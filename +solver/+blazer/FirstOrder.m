@@ -3,7 +3,7 @@ classdef FirstOrder ...
 
     properties
         Terminal = "none"
-        Initial = "firstOrder"
+        StartIterationsFrom = "firstOrder"
     end
 
 

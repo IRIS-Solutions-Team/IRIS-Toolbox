@@ -18,7 +18,7 @@ dcy = double.empty(0);
 % Run plain-vanilla first-order simulation to create initial condition,
 % ignoring shocks (IgnoreShocks=true is set in simulateFrames)
 %
-if startsWith(blazer.Initial, "firstOrder", "ignoreCase", true)
+if startsWith(blazer.StartIterationsFrom, "firstOrder", "ignoreCase", true)
     if idFrame==1
         % Simulate the entire frame range
         flat(rect, data);

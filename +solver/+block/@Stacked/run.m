@@ -159,6 +159,11 @@ return
             % ...
             %
             gradients = this.StackedJacob_GradientsFunc(data.YXEPG, frameColumns, data.BarYX);
+
+            %
+            % Retrieve only the gradients that are actually needed for the
+            % LHS Jacobian
+            %
             gradients = reshape(gradients(linxRhs), 1, [ ]);
 
             %

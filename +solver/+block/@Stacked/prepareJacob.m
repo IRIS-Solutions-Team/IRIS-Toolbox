@@ -4,12 +4,13 @@ columnsToRun = this.ParentBlazer.ColumnsToRun;
 numQuantities = numel(this.IdQuantities);
 
 %
-% Prepare the common part of the Jacobian
+% Prepare the common part of the Jacobian; if these already exist they
+% don't need to be updated because they are independent of the frame
 %
-if isempty(this.StackedJacob_GradientsMap)
+%if isempty(this.StackedJacob_GradientsMap)
     createGradientsMap(this);
     createGradientsFunc(this);
-end
+%end
 
 
 %

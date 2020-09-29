@@ -4,8 +4,12 @@ classdef Stacked ...
     properties
         ColumnsToRun (1, :) double = double.empty(1, 0)
 
-        Initial (1, 1) string = "firstOrder"
+        % StartIterationsFrom  Start iterations from data or from an extra
+        % plain vanilla first-order simulation
+        StartIterationsFrom (1, 1) string = "firstOrder"
 
+        % Terminal  Take the terminal condition from the data, from an
+        % extra plain vanilla first order simulation, or none
         Terminal (1, 1) string = "firstOrder"
     end
 

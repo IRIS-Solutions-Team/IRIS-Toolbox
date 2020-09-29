@@ -117,7 +117,7 @@ if isempty(pp)
     addParameter(pp, 'Method', solver.Method.FIRSTORDER, @(x) isa(solver.Method(string(x)), "solver.Method"));
     addParameter(pp, 'Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
     addParameter(pp, "Terminal", "firstOrder", @(x) startsWith(x, ["data", "firstOrder"], "ignoreCase", true));
-    addParameter(pp, "Initial", "firstOrder", @(x) startsWith(x, ["data", "firstOrder"], "ignoreCase", true));
+    addParameter(pp, ["StartIterationsFrom", "Initial"], "firstOrder", @(x) startsWith(x, ["data", "firstOrder"], "ignoreCase", true));
     addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
 end
 %)
@@ -150,7 +150,7 @@ opt.Terminal = locallyResolveTerminal(opt.Terminal, opt.Method);
 %
 % All simulation methods except PERIOD require a solved Model
 %
-locallyCheckSolvedModel(this, opt.Method, opt.Initial, opt.Terminal);
+locallyCheckSolvedModel(this, opt.Method, opt.StartIterationsFrom, opt.Terminal);
 
 nv = countVariants(this);
 
@@ -477,7 +477,7 @@ return
         outputInfo = struct( );
         outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
         outputInfo.ExtendedRange = DateWrapper(runningData.ExtendedRange);
-        outputInfo.Initial = opt.Initial;
+        outputInfo.StartIterationsFrom = opt.StartIterationsFrom;
         outputInfo.Terminal = opt.Terminal;
         outputInfo.FrameColumns = runningData.FrameColumns;
         outputInfo.FrameDates = runningData.FrameDates;

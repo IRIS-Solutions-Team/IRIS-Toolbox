@@ -60,7 +60,9 @@ else
 end
 
 % Set up @Rectangular object for simulation
-flag = needsFirstOrderSolution(method, this, runningData.DefaultBlazer.Initial, runningData.DefaultBlazer.Terminal);
+flag = needsFirstOrderSolution( ...
+    method, this, runningData.DefaultBlazer.StartIterationsFrom, runningData.DefaultBlazer.Terminal ...
+);
 rect = simulate.Rectangular.fromModel(this, run, flag);
 rect.SparseShocks = runningData.SparseShocks;
 rect.Deviation = data.Deviation;

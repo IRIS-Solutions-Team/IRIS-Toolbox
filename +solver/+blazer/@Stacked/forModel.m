@@ -12,7 +12,7 @@ numEquations = countEquations(model);
 this = solver.blazer.Stacked(numEquations);
 this.SuccessOnly = opt.SuccessOnly;
 this.IsBlocks = opt.Blocks;
-this.Initial = opt.Initial;
+this.StartIterationsFrom = opt.StartIterationsFrom;
 this.Terminal = opt.Terminal;
 
 prepareBlazer(model, this);

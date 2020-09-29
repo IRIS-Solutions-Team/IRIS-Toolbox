@@ -3,7 +3,7 @@ classdef Selective ...
 
     properties
         Terminal = "firstOrder"
-        Initial = "firstOrder"
+        StartIterationsFrom = "firstOrder"
     end
 
 
