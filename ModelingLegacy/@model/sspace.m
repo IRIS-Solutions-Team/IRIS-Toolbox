@@ -3,7 +3,7 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 %{
 % ## Syntax ##
 %
-%     [T, R, K, Z, H, D, U, Omg] = sspace(M, ...)
+%     [T, R, K, Z, H, D, U, Omg, list] = sspace(M, ...)
 %
 %
 % ## Input Arguments ##
