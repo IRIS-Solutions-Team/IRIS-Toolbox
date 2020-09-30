@@ -16,17 +16,46 @@ idQuantities = cellfun(@(x) reshape(x, [ ], 1) + 1i*columnsToRun, this.Gradients
 numWrts = cellfun(@numel, this.Gradients(2, :));
 
 %
-% Index of equations in common Jacobian that need update (because the
-% gradient functions involve at least one quantity solved for in this
-% block). The index is for each pointer, not each equation, because the
+% Index of equations in common Jacobian that need update because
+%
+% * the gradient functions involve at least one quantity solved for
+% in this block;
+% * the original equation involves the quantity and the quantity is a
+% log-variable (this is necessary whenever the derivative w.r.t. this
+% variable is a constant which however needs to be multiplied by the level
+% of the variable in each iteration).
+% 
+% The index is for each pointer, not each equation, because the
 % common Jacobian is for multiple columns in 2nd dimension.
 %
 inxNeedsUpdate = false(1, numPtrEquations);
-idsWithinGradient = cell(1, numPtrEquations);
+ptrQuantitiesWithinBlock = reshape(unique(real(this.IdQuantities)), 1, [ ]);
 for i = 1 : numPtrEquations
-    idsWithinGradient{i} = reshape(this.Gradients{3, i}, 1, [ ]) + reshape(1i*columnsToRun, [ ], 1);
-    inxNeedsUpdate(i) = any(any(reshape(idsWithinGradient{i}, [ ], 1)==this.IdQuantities));
+    %
+    % Needs update because the gradient depends on at least one variable
+    % solved for within this block
+    %
+    idsQuantitiesWithinGradients__ = reshape(this.Gradients{3, i}, 1, [ ]) + reshape(1i*columnsToRun, [ ], 1);
+    inxNeedsUpdate(i) = any(any(reshape(idsQuantitiesWithinGradients__, [ ], 1)==this.IdQuantities)); % [^1]
+    % [^1]: Use implicit expansion of elementwise ==
+
+    if inxNeedsUpdate(i)
+        continue
+    end
+
+    %
+    % Needs update because the original equation involves a log-variable
+    % solved for within this block
+    %
+    ptrQuantitiesWithinEquation = reshape(real(this.Gradients{2, i}), 1, [ ]); % [^1]
+    ptrQuantitiesWithinEquation = intersect(ptrQuantitiesWithinEquation, ptrQuantitiesWithinBlock); % [^2]
+    inxNeedsUpdate(i) = any(inxLogWithinModel(ptrQuantitiesWithinEquation)); % [^3]
+    % [^1]: Pointers to quantities in this equation
+    % [^2]: Pointers to quantities in this equation that are solved for
+    % within this block
+    % [^3]: Quantity is declared a log-variable within model
 end
+
 needsUpdate = any(inxNeedsUpdate);
 accelerateUpdate = ~all(inxNeedsUpdate);
 

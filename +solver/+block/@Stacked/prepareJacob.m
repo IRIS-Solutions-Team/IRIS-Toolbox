@@ -7,6 +7,8 @@ numQuantities = numel(this.IdQuantities);
 % Prepare the common part of the Jacobian; if these already exist they
 % don't need to be updated because they are independent of the frame
 %
+
+% TODO
 %if isempty(this.StackedJacob_GradientsMap)
     createGradientsMap(this);
     createGradientsFunc(this);

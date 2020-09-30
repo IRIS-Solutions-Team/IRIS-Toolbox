@@ -40,9 +40,17 @@ else
     for i = 1 : nx
         xp = x;
         xp(i) = xp(i) + h(i);
-        fnPlus = objectiveFuncReshaped(xp);
-        fnPlus = fnPlus(:);
-        g(:, i) = (fnPlus - f) / h(i);
+        fp = objectiveFuncReshaped(xp);
+        fp = fp(:);
+        g(:, i) = (fp - f) / h(i);
+
+        %xm = x;
+        %xm(i) = xm(i) - h(i);
+        %fm = objectiveFuncReshaped(xm);
+        %fm = fm(:);
+        %g(:, i) = (f - fm) / h(i);
+
+        %g(:, i) = (fp - fm) / (xp(i) - xm(i));
     end
 end
 

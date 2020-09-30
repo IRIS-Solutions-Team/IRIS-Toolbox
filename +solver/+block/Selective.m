@@ -10,7 +10,9 @@ classdef Selective ...
     methods
         function prepareForSolver(this, solverOptions, varargin)
             this.SolverOptions = solverOptions;
-            this.SolverOptions.JacobCalculation = "ForwardDiff";
+            for i = 1 : numel(this.SolverOptions)
+                this.SolverOptions(i).JacobCalculation = "ForwardDiff";
+            end
         end%
 
 

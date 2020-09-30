@@ -164,7 +164,7 @@ classdef Stacked ...
                 end
 
                 [ptr, column] = find(inxEndogenousInData);
-                this.IdQuantities = ptr + 1i*column;
+                this.IdQuantities = reshape(ptr + 1i*column, 1, [ ]);
             end
 
             this.IdEquations = reshape( ...
