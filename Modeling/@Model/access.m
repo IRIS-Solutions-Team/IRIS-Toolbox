@@ -60,15 +60,31 @@
 function output = access(this, input)
 
 arguments
+    %(
     this (1, :) Model
     input (1, 1) string
+    %)
 end
 
-[output, handled] = access(this.Quantity, input);
-if handled, return, end
+%
+% Preprocess the input query
+%
 
 what = input;
 what = erase(what, ["_", "-", ":", "."]);
+
+
+%
+% Model components
+%
+
+[output, handled] = access(this.Quantity, what);
+if handled, return, end
+
+[output, handled] = access(this.Equation, what);
+if handled, return, end
+
+
 stringify = @(x) reshape(string(x), 1, [ ]);
 output = [ ];
 handled = true;

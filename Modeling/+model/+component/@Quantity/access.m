@@ -1,17 +1,20 @@
 function [output, handled] = access(this, what)
 
 arguments
+    %(
     this (1, :) model.component.Quantity
     what (1, 1) string
+    %)
 end
 
 handled = true;
 output = [ ];
 stringify = @(x) reshape(string(x), 1, [ ]);
 
-what = erase(what, ["_", "-", ":", "."]);
+if matches(what, "names", "ignoreCase", true)
+    output = stringify(this.Name);
 
-if matches(what, "measurementVariables", "ignoreCase", true)
+elseif matches(what, "measurementVariables", "ignoreCase", true)
     output = stringify(this.Name(this.Type==1));
 
 elseif matches(what, "transitionVariables", "ignoreCase", true)
