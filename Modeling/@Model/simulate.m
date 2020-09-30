@@ -101,6 +101,7 @@ if isempty(pp)
     addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
     addParameter(pp, 'Contributions', false, @validate.logicalScalar);
     addParameter(pp, 'IgnoreShocks', false, @validate.logicalScalar);
+    addParameter(pp, "MaxFrames", Inf, @(x) validate.roundScalar(x, 1, Inf));
     addParameter(pp, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
     addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
     addParameter(pp, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
@@ -183,7 +184,7 @@ end
 % Define time frames and check for deficiency of simulation plans; can be
 % done only after we expand the data for contributions
 %
-defineFrames(runningData);
+defineFrames(runningData, opt);
 
 % Check initial conditions for NaNs
 hereCheckInitialConditions( );
