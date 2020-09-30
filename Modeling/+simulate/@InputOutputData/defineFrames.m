@@ -1,4 +1,4 @@
-function defineFrames(this)
+function defineFrames(this, opt)
 
 numPages = this.NumPages;
 this.FrameColumns = cell(1, numPages);
@@ -12,6 +12,10 @@ for page = 1 : this.NumPages
     locallyDefineFrames(this, page);
 
     numFrames = size(this.FrameColumns{page}, 1);
+    if numFrames>opt.MaxFrames
+        this.FrameColumns{page}(opt.MaxFrames+1:end, :) = [ ];
+        numFrames = opt.MaxFrames;
+    end
     frameDates = nan(numFrames, 2);
     deficiency{page} = zeros(1, numFrames);
     for frame = 1 : numFrames
@@ -31,7 +35,7 @@ end%
 % Local Functions
 %
 
-function locallyDefineFrames(this, page)
+function locallyDefineFrames(this, page, opt)
     %
     % For the PERIOD method, the frames are individual simulation periods
     %
