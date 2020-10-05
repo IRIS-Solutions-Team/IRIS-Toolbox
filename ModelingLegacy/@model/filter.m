@@ -350,11 +350,10 @@ if isempty(pp)
     addRequired(pp, 'filterRange', @DateWrapper.validateProperRangeInput);
 
     addParameter(pp, 'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
-    addParameter(pp, {'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
+    addParameter(pp, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
     addParameter(pp, 'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
 end
-parse(pp, this, inputDb, filterRange, varargin{:});
-opt = pp.Options;
+opt = parse(pp, this, inputDb, filterRange, varargin{:});
 
 filterRange = double(filterRange);
 numBasePeriods = round(filterRange(end) - filterRange(1) + 1);
@@ -509,9 +508,9 @@ return
     function herePreallocOutputData( )
         % TODO Make .Output the primary option, allow for cellstr or string
         % inputs
-        isPred = any(contains(opt.Data, "Pred", "IgnoreCase", true));
-        isFilter = any(contains(opt.Data, "Filter", "IgnoreCase", true));
-        isSmooth = any(contains(opt.Data, "Smooth", "IgnoreCase", true));
+        isPred = any(contains(opt.OutputData, "Pred", "IgnoreCase", true));
+        isFilter = any(contains(opt.OutputData, "Filter", "IgnoreCase", true));
+        isSmooth = any(contains(opt.OutputData, "Smooth", "IgnoreCase", true));
         numRuns = max(numPages, nv);
         numPredictions = max(numRuns, kalmanOpt.Ahead);
         numContributions = max(ny, nz);

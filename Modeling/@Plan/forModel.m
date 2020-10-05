@@ -1,4 +1,3 @@
-function this = forModel(varargin)
 % forModel  Construct a simulation Plan object for a Model
 %{
 % ## Syntax ##
@@ -50,6 +49,8 @@ function this = forModel(varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+function this = forModel(varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.Plan');
@@ -58,8 +59,7 @@ if isempty(pp)
     addParameter(pp, {'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Method', 'Exogenize', @(x) isequal(x, @auto) || validate.anyString(x, 'Exogenize', 'Condition'));
 end
-pp.parse(varargin{:});
-opt = pp.Options;
+opt = pp.parse(varargin{:});
 simulationRange = double(pp.Results.simulationRange);
 model = pp.Results.model;
 

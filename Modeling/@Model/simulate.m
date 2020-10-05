@@ -116,7 +116,7 @@ if isempty(pp)
     addParameter(pp, "Unlog", [ ], @(x) isempty(x) || isequal(x, @all) || validate.list(x));
 
     addParameter(pp, 'Method', solver.Method.FIRSTORDER, @(x) isa(solver.Method(string(x)), "solver.Method"));
-    addParameter(pp, 'Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
+    addParameter(pp, 'Window', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
     addParameter(pp, "Terminal", "firstOrder", @(x) startsWith(x, ["data", "firstOrder"], "ignoreCase", true));
     addParameter(pp, ["StartIterationsFrom", "Initial"], "firstOrder", @(x) startsWith(x, ["data", "firstOrder"], "ignoreCase", true));
     addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
@@ -140,7 +140,8 @@ if opt.Method==solver.Method.SELECTIVE && ~any(this.Equation.InxOfHashEquations)
     ]);
 end
 
-[opt.Window, baseRange] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange);
+[opt.Window, baseRange, opt.Plan] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange, opt.Plan);
+plan = locallyResolvePlan(this, baseRange, opt.Plan, opt.Anticipate, usingDefaults);
 isAsynchronous = isequal(inputDb, "asynchronous");
 opt.Solver = locallyParseSolverOption(opt.Solver, opt.Method);
 
@@ -155,7 +156,6 @@ locallyCheckSolvedModel(this, opt.Method, opt.StartIterationsFrom, opt.Terminal)
 
 nv = countVariants(this);
 
-plan = hereResolvePlan( );
 
 %
 % Prepare running data
@@ -234,28 +234,6 @@ if runningData.PrepareFrameData
 end
 
 return
-
-    function plan = hereResolvePlan( )
-        %(
-        plan = opt.Plan;
-        if ~usingDefaults.Anticipate && ~usingDefaults.Plan
-            thisError = [
-                "Model:CannotUseAnticipateAndPlan"
-                "Options Anticipate= and Plan= cannot be combined in one simulation."
-            ];
-            throw(exception.Base(thisError, 'error'));
-        end
-        if ~usingDefaults.Anticipate && usingDefaults.Plan
-            plan = opt.Anticipate;
-        end
-        if ~isa(plan, 'Plan')
-            plan = Plan(this, baseRange, 'Anticipate=', plan);
-        else
-            checkCompatibilityOfPlan(this, baseRange, plan);
-        end
-        %)
-    end%
-
 
     function hereResolveContributionsConflicts( )
         %(
@@ -550,35 +528,32 @@ function flag = locallyValidateSolverName(x)
 end%
 
 
-function [windowOption, baseRange] = resolveWindowAndBaseRange(windowOption, methodOption, baseRange)
+function [windowOption, baseRange, plan] = resolveWindowAndBaseRange(windowOption, methodOption, baseRange, plan)
     %(
     if isequal(baseRange, @auto)
-        if isequal(windowOption, @auto) || isequal(windowOption, @max)
+        if isequal(windowOption, @auto) 
             baseRange = 1;
             windowOption = 1;
             return
         else
-            baseRange = 1 : windowOption;
+            baseRange = 1 : round(windowOption);
             return
         end
     end
 
+    lenBaseRange = round(baseRange(end) - baseRange(1) + 1);
     if isequal(windowOption, @auto)
         if methodOption==solver.Method.FIRSTORDER
             windowOption = 1;
         else
-            windowOption = @max;
+            windowOption = lenBaseRange;
         end
     end
-    lenBaseRange = round(baseRange(end) - baseRange(1) + 1);
-    if isequal(windowOption, @max)
-        windowOption = lenBaseRange;
-    elseif isnumeric(windowOption) && windowOption>lenBaseRange
-        thisError = [
-            "Model:WindowCannotExceedRangeLength"
-            "Simulation windowOption cannot exceed number of simulation periods" 
-        ];
-        throw(exception.Base(thisError, 'error'));
+    if windowOption>lenBaseRange
+        baseRange = dater.colon(baseRange(1), dater.plus(baseRange(1), windowOption-1));
+        if isa(plan, "Plan")
+            plan.End = baseRange(end);
+        end
     end
     %)
 end%
@@ -656,4 +631,25 @@ function terminal = locallyResolveTerminal(terminal, method)
     end
     %)
 end%
+
+
+function plan = locallyResolvePlan(this, baseRange, plan, anticipate, usingDefaults)
+    %(
+    if ~usingDefaults.Anticipate && ~usingDefaults.Plan
+        exception.error([
+            "Model:CannotUseAnticipateAndPlan"
+            "Options Anticipate and Plan cannot be combined in one simulation."
+        ]);
+    end
+    if ~usingDefaults.Anticipate && usingDefaults.Plan
+        plan = anticipate;
+    end
+    if ~isa(plan, "Plan")
+        plan = Plan(this, baseRange, "anticipate", plan);
+    else
+        checkCompatibilityOfPlan(this, baseRange, plan);
+    end
+    %)
+end%
+
 

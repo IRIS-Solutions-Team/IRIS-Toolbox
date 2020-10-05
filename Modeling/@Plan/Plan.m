@@ -633,7 +633,7 @@ classdef Plan ...
                     if name=="SigmasExogenous"k
                         add = repmat(this.DefaultSigmasExogenous, 1, shift, 1);
                     else
-                        add = zeros(numRows, shift, numPages, 'like', this.(name));
+                        add = zeros(numRows, shift, numPages, "like", this.(name));
                     end
                     this.(name) = [this.(name), add];
                 end
