@@ -598,7 +598,7 @@ NumericTimeSubscriptable ...
             end
             
             % NumericTimeSubscriptable input
-            if nargin==1 && isequal(class(varargin{1}), 'NumericTimeSubscriptable')
+            if nargin==1 && isequal(string(class(varargin{1})), "NumericTimeSubscriptable")
                 this = varargin{1};
                 return
             end

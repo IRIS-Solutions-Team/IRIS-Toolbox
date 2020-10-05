@@ -434,7 +434,8 @@ return
             U = s.U(:, :, min(t, end));
             data.ForceInit = U*data.ForceInit;
         end
-        simulateFunc(simulateFirstOrderFunc, rect, data, blazer);
+        idFrame = 1;
+        simulateFunc(simulateFirstOrderFunc, rect, data, blazer, idFrame);
         if needsTransform
             a = U\data.YXEPG(rect.LinxOfXib);
         end

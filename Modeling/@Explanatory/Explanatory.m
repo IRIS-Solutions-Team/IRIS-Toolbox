@@ -186,9 +186,6 @@ classdef Explanatory ...
             this.ExplanatoryTerms(1, end+1) = term;
             this.Fixed(:, end+1, :) = double(fixed);
             this.Parameters(:, end+1, :) = double(fixed);
-            if isempty(fixed) || numel(this.Parameters)~=numel(this.ExplanatoryTerms)
-                keyboard
-            end
             this.Statistics.CovParameters(end+1, end+1, :) = NaN;
             return
 

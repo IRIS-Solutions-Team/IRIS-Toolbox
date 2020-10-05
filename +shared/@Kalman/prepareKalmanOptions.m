@@ -32,7 +32,7 @@ if isempty(pp)
     addParameter(pp, 'Relative', true, @validate.logicalScalar);
     addParameter(pp, {'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || validate.databank(x));
     addParameter(pp, 'Multiply', [ ], @(x) isempty(x) || isstruct(x));
-    addParameter(pp, 'Simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
+    addParameter(pp, 'Simulate', false, @(x) isequal(x, false) || validate.nestedOptions(x));
     addParameter(pp, 'Weighting', [ ], @isnumeric);
     addParameter(pp, 'MeanOnly', false, @validate.logicalScalar);
     addParameter(pp, 'ReturnStd', true, @validate.logicalScalar);
