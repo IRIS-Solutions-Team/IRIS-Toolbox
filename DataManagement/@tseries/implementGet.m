@@ -1,13 +1,12 @@
-function [answ, flag] = implementGet(this, query, varargin)
 % implementGet  Implement get method for tseries objects
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [answ, flag] = implementGet(this, query, varargin)
 
 answ = [ ];
 flag = true;
@@ -24,7 +23,7 @@ start = double(this.Start);
 
 switch query
     case {'range', 'first2last', 'start2end', 'first:last', 'start:end'}
-        answ = reshape(this.Range, 1, [ ]);k
+        answ = reshape(this.Range, 1, [ ]);
         
         
     case {'min', 'minrange', 'nanrange'}

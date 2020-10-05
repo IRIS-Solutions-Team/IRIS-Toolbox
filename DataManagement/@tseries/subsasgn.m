@@ -1,4 +1,3 @@
-function this = subsasgn(this, s, y, varargin)
 % subsasgn  Subscripted assignment to numeric time series
 %{
 % __Syntax__
@@ -35,9 +34,9 @@ function this = subsasgn(this, s, y, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function this = subsasgn(this, s, y, varargin)
 
 if isstruct(s) && isequal(s(1).type, '.')
     % Give standard dot access to properties
@@ -63,11 +62,10 @@ switch s(1).type
         end
         % After a lag or lead, only one ( )-reference is allowed
         if numel(s)~=1 || ~isequal(s(1).type, '()')
-            thisError = [
+            exception.error([
                 "NumericTimeSubscriptable:InvalidSubscriptedAssignment"
                 "Invalid subscripted assignment to time series. "
-            ];
-            throw(exception.Base(thisError, 'error'));k
+            ]);
         end
         this = setData(this, s, y);
         % Shift start date back
