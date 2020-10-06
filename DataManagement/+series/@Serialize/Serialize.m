@@ -42,26 +42,24 @@ classdef Serialize ...
             outputRecord = struct( );
 
             if ~isempty(this.Name) && ~isequal(this.Name, false)
-                outputRecord.(this.Name) = name;
+                outputRecord.(this.Name) = char(name);
             end
 
             if this.StartDateOnly
                 outputDate = inputSeries.StartAsNumeric;
             else
-                outputDate = reshape(inputSeries.RangeAsNumeric, 1, [ ]);
+                outputDate = reshape(inputSeries.RangeAsNumeric, [ ], 1);
             end
+
             if ~isempty(outputDate)
-                outputRecord.(this.Dates) = dater.toIsoString(outputDate);
-                if isscalar(outputDate) && ~this.StartDateOnly
-                    outputRecord.(this.Dates) = { outputRecord.(this.Dates) };
-                end
+                outputRecord.(this.Dates) = cellstr(dater.toIsoString(outputDate));
             else
                 outputRecord.(this.Dates) = outputDate;
             end
             
             outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
 
-            outputRecord.(this.Frequency) = this.letterFromFrequency(inputSeries.Frequency);
+            outputRecord.(this.Frequency) = char(this.letterFromFrequency(inputSeries.Frequency));
             if ~isequal(this.Comment, false)
                 outputRecord.(this.Comment) = inputSeries.Comment;
             end
@@ -102,7 +100,7 @@ classdef Serialize ...
             if isscalar(outputValues)
                 outputValues = { outputValues };
             else
-                outputValues = reshape(outputValues, 1, [ ]);
+                outputValues = reshape(outputValues, [ ], 1);
             end
             %)
         end%
