@@ -78,7 +78,7 @@ if isempty(pp)
     addParameter(pp, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
-    addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || isa(x, 'Frequency'));
+    addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
 %)

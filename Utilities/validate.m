@@ -110,6 +110,20 @@ classdef validate
             end
             flag = true;
         end%
+
+
+        function flag = frequency(input)
+            if ~isnumeric(input)
+                flag = false;
+                return
+            end
+            try
+                Frequency.fromNumeric(input);
+                flag = true;
+            catch
+                flag = false;
+            end
+        end%
     end
 
 
