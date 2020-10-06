@@ -409,8 +409,10 @@
 
 function varargout = season(inputSeries, opt, specs)
 
-%(
+%[
+% R2019b
 arguments
+    %(
     inputSeries Series { locallyValidateInputSeries(inputSeries) }
 
     opt.Range { mustBeNumeric } = Inf
@@ -544,8 +546,10 @@ arguments
     specs.Seats_Print (1, :) string = string.empty(1, 0)
     specs.Seats_Save (1, :) string = string.empty(1, 0)
     specs.Seats_SaveLog (1, :) string = string.empty(1, 0)
+    %)
 end
-%)
+% R2019b
+%]
 
 if ~isequal(opt.Range, Inf)
     [from, to] = resolveRange(inputSeries, opt.Range);

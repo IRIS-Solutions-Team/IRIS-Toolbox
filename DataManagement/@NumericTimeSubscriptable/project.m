@@ -1,12 +1,14 @@
-function this = project(this, func, dates, varargin)
 % project  Project time series using a function of its own observations and exogenous inputs
 %{
 %}
+
+function this = project(this, func, dates, varargin)
 
 if isempty(this) || isempty(dates)
     return
 end
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable/project');
@@ -15,11 +17,12 @@ if isempty(pp)
     addRequired(pp, 'dates', @DateWrapper.validateProperDateInput);
     addOptional(pp, 'arguments', @(x) all(cellfun(@(y) validate.numeric(y) || isa(y, 'NumericTimeSubscriptable'), x)));
 end
+%)
 parse(pp, this, func, dates, varargin);
 
 %--------------------------------------------------------------------------
 
-arguments = varargin;
+args = varargin;
 dates = reshape(double(dates), 1, [ ]);
 maxDate = max(dates);
 minDate = min(dates);
@@ -31,9 +34,9 @@ data = getDataFromTo(this, startDate, endDate);
 sizeData = size(data);
 posDates = round(dates - startDate + 1);
 for c = 1 : prod(sizeData(2:end))
-    arguments__ = locallyPrepareArguments(arguments, c, startDate, endDate);
+    args__ = locallyPrepareArguments(args, c, startDate, endDate);
     for t = posDates
-        data(t, c) = func(data(:, c), t, arguments__{:});
+        data(t, c) = func(data(:, c), t, args__{:});
     end
 end
 
@@ -63,21 +66,22 @@ function [maxSh, minSh] = locallyDetermineShifts(func)
 end%
 
 
-function arguments__ = locallyPrepareArguments(arguments, c, startDate, endDate)
-    arguments__ = arguments;
-    for ii = 1 : numel(arguments__)
-        if isnumeric(arguments__{ii})
-            if ~isscalar(arguments{ii})
-                arguments__{ii} = arguments__{ii}(c);
+function args__ = locallyPrepareArguments(args, c, startDate, endDate)
+    args__ = args;
+    for ii = 1 : numel(args__)
+        if isnumeric(args__{ii})
+            if ~isscalar(args{ii})
+                args__{ii} = args__{ii}(c);
             end
-        elseif isa(arguments__{ii}, 'NumericTimeSubscriptable')
-            temp = getDataFromTo(arguments__{ii}, startDate, endDate);
+        elseif isa(args__{ii}, 'NumericTimeSubscriptable')
+            temp = getDataFromTo(args__{ii}, startDate, endDate);
             sizeTemp = size(temp);
             if prod(sizeTemp(2:end))==1
-                arguments__{ii} = temp;
+                args__{ii} = temp;
             else
-                arguments__{ii} = temp(:, c);
+                args__{ii} = temp(:, c);
             end
         end
     end
 end%
+
