@@ -376,10 +376,10 @@ classdef Preparser ...
                 , "match" ...
             );
             inxControl = false(size(namesAssigned));
-            for name = reshape(namesWithinExpression, 1, [ ])
-                inx = name==namesAssigned;
+            for n = reshape(namesWithinExpression, 1, [ ])
+                inx = n==namesAssigned;
                 if any(inx)
-                    assignin('caller', name, assigned.(name));
+                    assignin('caller', n, assigned.(n));
                     inxControl = inxControl | inx;
                 end
             end
