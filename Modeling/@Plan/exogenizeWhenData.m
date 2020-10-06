@@ -8,6 +8,8 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function this = exogenizeWhenData(this, dates, names, varargin)
+
 % Parse input arguments
 %(
 persistent pp
@@ -21,8 +23,6 @@ unmatched = pp.UnmatchedInCell;
 opt = pp.Options;
 %)
 
-function this = exogenizeWhenData(this, dates, names, varargin)
-
 %--------------------------------------------------------------------------
 
 this = implementExogenize( ...
@@ -31,4 +31,3 @@ this = implementExogenize( ...
 );
 
 end%
-
