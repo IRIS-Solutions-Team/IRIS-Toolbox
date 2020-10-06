@@ -11,7 +11,7 @@ classdef Preparser ...
 
         CloneTemplate = char.empty(1, 0)  % Template to clone model names
         Export = shared.Export.empty(1, 0) % Files to be saved into working folder
-        CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and interpolations
+        CtrlParameters (1, :) string = string.empty(1, 0) % List of parameter names occuring in control expressions and interpolations
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors
         
         StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements
@@ -218,14 +218,12 @@ classdef Preparser ...
         
         
         function d = createCtrlDatabase(this)
-            ctrlParameters = [ this(:).CtrlParameters ];
             assigned = this(1).Assigned;
             d = struct( );
-            for i = 1 : length(ctrlParameters)
-                name = ctrlParameters{i};
+            for n = [this(:).CtrlParameters]
                 try %#ok<TRYNC>
-                    % Only create the field if it exists in input database.
-                    d.(name) = assigned.(name);
+                    % Only create the field if it exists in input database
+                    d.(n) = assigned.(n);
                 end
             end
         end%
@@ -254,10 +252,10 @@ classdef Preparser ...
         
         
         function addCtrlParameter(this, add)
-            if ischar(add)
-                add = { add };
+            if ~isstring(add)
+                add = string(add);
             end
-            this.CtrlParameters = [ this.CtrlParameters, add ];
+            this.CtrlParameters = [this.CtrlParameters, reshape(add, 1, [ ])];
         end%
         
         
@@ -332,7 +330,7 @@ classdef Preparser ...
             % Apply preparsing commands to the final cut
             finalCut = applyFinalCutCommands(this, finalCut);
             % Return list of control parameters
-            ctrlParameters = unique( [ this(:).CtrlParameters ] );
+            ctrlParameters = unique([this(:).CtrlParameters]);
             % Merge all exported files
             export = [ this(:).Export ];
             % First-line comment from the first file
@@ -371,22 +369,22 @@ classdef Preparser ...
             import parser.White
             shadowExpn = White.whiteOutLabel(expn);
             shadowExpn = replace(shadowExpn, "!", "");
-            listAssigned = reshape(string(fieldnames(assigned)), 1, [ ]);
-            listExpn = regexp( ...
-                shadowExpn ...
+            namesAssigned = reshape(string(fieldnames(assigned)), 1, [ ]);
+            namesWithinExpression = regexp( ...
+                string(shadowExpn) ...
                 , "(?<!\.)\<[a-zA-Z]\w*\>(?![\(\.])" ...
                 , "match" ...
             );
-            inxControl = false(size(listAssigned));
-            for name = listAssigned
-                inx = name==listAssigned;
+            inxControl = false(size(namesAssigned));
+            for name = reshape(namesWithinExpression, 1, [ ])
+                inx = name==namesAssigned;
                 if any(inx)
                     assignin('caller', name, assigned.(name));
                     inxControl = inxControl | inx;
                 end
             end
             if nargin>2 && any(inxControl)
-                addCtrlParameter(p, listAssigned(inxControl));
+                addCtrlParameter(p, namesAssigned(inxControl));
             end
         end%
         

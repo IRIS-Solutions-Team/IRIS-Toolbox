@@ -1,4 +1,3 @@
-function [this, opt] = file2model(this, modelFile, opt, preparserOpt, parserOpt, optimalOpt)
 % file2model  Translate model file to model object properties
 %
 % Backend [IrisToolbox] method
@@ -7,7 +6,7 @@ function [this, opt] = file2model(this, modelFile, opt, preparserOpt, parserOpt,
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [this, opt] = file2model(this, modelFile, opt, preparserOpt, parserOpt, optimalOpt)
 
 %
 % Run the preparser
@@ -35,9 +34,8 @@ export(this);
 % Create database of parameters occurring in control expressions
 %
 d = struct( );
-for i = 1 : length(ctrlParameters)
-    name = ctrlParameters{i};
-    d.(name) = opt.Assign.(name);
+for n = reshape(string(ctrlParameters), 1, [ ])
+    d.(n) = opt.Assign.(n);
 end
 this.PreparserControl = d;
 
