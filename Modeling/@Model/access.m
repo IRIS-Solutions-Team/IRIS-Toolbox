@@ -59,14 +59,16 @@
 
 function output = access(this, input)
 
-%[ R2019b
+%[
+% R2019b
 arguments
     %(
     this (1, :) Model
     input (1, 1) string
     %)
 end
-%] R2019b
+% R2019b
+%]
 
 %
 % Preprocess the input query

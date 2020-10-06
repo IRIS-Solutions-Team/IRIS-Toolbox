@@ -1,6 +1,7 @@
 function [success, info] = compareFields(d1, d2, opt)
 
-%[ R2019b
+%[
+% R2019b
 arguments
     %(
     d1 (1, 1) {validate.databank(d1)}
@@ -11,7 +12,8 @@ arguments
     opt.Warning = false
     %)
 end
-%] R2019b
+% R2019b
+%]
 
 success = true;
 info = struct( );

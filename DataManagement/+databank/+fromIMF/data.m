@@ -45,7 +45,8 @@
 
 function [outputDb, info] = data(dataset, freq, areas, items, options, nameOptions)
 
-%[ R2019b
+%[
+% R2019b
 arguments
     %(
     dataset (1, 1) string
@@ -63,7 +64,8 @@ arguments
     nameOptions.NameFunc = [ ]
     %)
 end
-%] R2019b
+% R2019b
+%]
 
 [areas, areaMap] = locallyCreateNameMap(areas);
 [items, itemMap] = locallyCreateNameMap(items);

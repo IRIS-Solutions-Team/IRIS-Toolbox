@@ -1,13 +1,15 @@
 function [output, handled] = access(this, what)
 
-%[ R2019b
+%[
+% R2019b
 arguments
     %(
     this (1, :) model.component.Quantity
     what (1, 1) string
     %)
 end
-%] R2019b
+% R2019b
+%]
 
 handled = true;
 output = [ ];
