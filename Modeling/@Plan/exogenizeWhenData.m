@@ -1,7 +1,5 @@
-function this = exogenizeWhenData(this, dates, names, varargin)
-%{
 % exogenizeWhenData  Exogenize endogenous quantities only if data are available
-%
+%{
 % Syntax
 %--------------------------------------------------------------------------
 %
@@ -22,6 +20,8 @@ parse(pp, varargin{:});
 unmatched = pp.UnmatchedInCell;
 opt = pp.Options;
 %)
+
+function this = exogenizeWhenData(this, dates, names, varargin)
 
 %--------------------------------------------------------------------------
 

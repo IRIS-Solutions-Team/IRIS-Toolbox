@@ -4,8 +4,9 @@ columnsToRun = this.ParentBlazer.ColumnsToRun;
 numQuantities = numel(this.IdQuantities);
 
 %
-% Prepare the common part of the Jacobian; if these already exist they
-% don't need to be updated because they are independent of the frame
+% Prepare the common part of the Jacobian; if these properties already
+% exist they don't need to be updated because they are independent of the
+% frame
 %
 
 % TODO
@@ -16,7 +17,8 @@ numQuantities = numel(this.IdQuantities);
 
 
 %
-% Prepare the terminal part of the Jacobian
+% Prepare the terminal part of the Jacobian; the terminal part consists of
+% equations+periods that reach into the terminal condition
 %
 
 sh0 = this.ParentBlazer.Incidence.PosOfZeroShift;
@@ -41,14 +43,14 @@ equationsFuncUsingTerminal = "";
 for i = find(this.InxEquationsUsingTerminal)
     ptrEquation = real(this.IdEquations(i));
     column = imag(this.IdEquations(i));
-    temp = string(this.ParentBlazer.Equations(ptrEquation));
-    if ~endsWith(temp, ";")
-        temp = temp + ";";
+    addEquation = string(this.ParentBlazer.Equations(ptrEquation));
+    if ~endsWith(addEquation, ";")
+        addEquation = addEquation + ";";
     end
-    temp = replace(temp, ",t)", "," + string(column) + ")");
-    temp = replace(temp, ",t+", "," + string(column) + "+");
-    temp = replace(temp, ",t-", "," + string(column) + "-");
-    equationsFuncUsingTerminal = equationsFuncUsingTerminal + temp;
+    addEquation = replace(addEquation, ",t)", "," + string(column) + ")");
+    addEquation = replace(addEquation, ",t+", "," + string(column) + "+");
+    addEquation = replace(addEquation, ",t-", "," + string(column) + "-");
+    equationsFuncUsingTerminal = equationsFuncUsingTerminal + addEquation;
 end
 equationsFuncUsingTerminal = str2func(this.PREAMBLE + "[" + equationsFuncUsingTerminal + "]");
 
