@@ -1,4 +1,3 @@
-function outputDatabank = fromCSV(fileName, varargin)
 % fromCSV  Create databank by loading CSV file
 %{
 % ## Syntax ##
@@ -214,6 +213,8 @@ function outputDatabank = fromCSV(fileName, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function outputDatabank = fromCSV(fileName, varargin)
+
 %( Input parser
 persistent pp
 if isempty(pp)
@@ -280,9 +281,9 @@ hereProcessOptions( );
 file = '';
 
 
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 hereReadFile( );
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 
 
 % Replace non-comma delimiter with comma; applies only to CSV files
@@ -301,9 +302,9 @@ isUserData = false;
 seriesUserdata = struct( );
 
 
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 hereReadHeaders( );
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 
 
 % Trim the headers
@@ -333,12 +334,14 @@ if ~isequal(opt.Select, @all)
 end
 
 
-% /////////////////////////////////////////////////////////////////////////
-[data, inxMissing, dateCol] = hereReadNumericData( );
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
+[data, inxMissing, datesColumn] = hereReadNumericData( );
+%===========================================================================
 
 
-% **Parse dates**
+%
+% Parse dates
+%
 [dates, inxNaNDates] = hereParseDates( );
 
 if ~isempty(dates)
@@ -367,11 +370,13 @@ if ~isempty(opt.DatabankUserData) && isUserData
 end
 
 
-% /////////////////////////////////////////////////////////////////////////
-% **Create Database**
+%
+% Create database
 % Populate the output databank with Series and numeric data
+%
+%===========================================================================
 herePopulateDatabank( );
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 
 return
 
@@ -462,8 +467,8 @@ return
             if isempty(tkn) || all(cellfun(@isempty, tkn))
                 ident = '%';
             else
-                ident = strrep(tkn{1}, '->', '');
-                ident = strtrim(ident);
+                ident = erase(tkn{1}, "->");
+                ident = strip(ident);
             end
             
             if isnumeric(opt.SkipRows) && any(rowCount==opt.SkipRows)
@@ -573,22 +578,22 @@ return
 
 
 
-    function [data, inxMissing, dateCol] = hereReadNumericData( )
+    function [data, inxMissing, datesColumn] = hereReadNumericData( )
         data = double.empty(0, 0);
         inxMissing = logical.empty(1, 0);
-        dateCol = cell.empty(1, 0);
+        datesColumn = cell.empty(1, 0);
         if isempty(file)
             return
         end
         % Read date column (first column).
-        dateCol = regexp(file, '^.*?(,|$)', 'match', 'lineanchors');
-        dateCol = strtrim(dateCol);
-        dateCol = strrep(dateCol, ',', '');
+        datesColumn = regexp(file, "^[^,]*?(?=,|$)", "match", "lineanchors");
+        datesColumn = strip(datesColumn);
+        datesColumn = erase(datesColumn, ",");
         
         % Remove leading or trailing single or double quotes.
         % Some programs save any text cells with single or double quotes.
-        dateCol = regexprep(dateCol, '^["'']', '');
-        dateCol = regexprep(dateCol, '["'']$', '');
+        datesColumn = regexprep(datesColumn, '^["'']', '');
+        datesColumn = regexprep(datesColumn, '["'']$', '');
         
         % Replace user-supplied NaN strings with 'NaN'. The user-supplied NaN
         % strings must not contain commas.
@@ -659,7 +664,7 @@ return
         if strcmpi(opt.Continuous, 'Descending')
             data = flipud(data);
             inxMissing = flipud(inxMissing);
-            dateCol = dateCol(end:-1:1);
+            datesColumn = datesColumn(end:-1:1);
         end
     end% 
 
@@ -667,20 +672,20 @@ return
 
 
     function [dates, inxNaNDates] = hereParseDates( )
-        numDates = numel(dateCol);
+        numDates = numel(datesColumn);
         dates = DateWrapper(nan(1, numDates));
-        dateCol = dateCol(1:min(end, size(data, 1)));
-        if ~isempty(dateCol)
+        datesColumn = datesColumn(1:min(end, size(data, 1)));
+        if ~isempty(datesColumn)
             if strcmpi(opt.Continuous, 'Ascending')
-                dateCol(2:end) = {''};
+                datesColumn(2:end) = {''};
             elseif strcmpi(opt.Continuous, 'Descending')
-                dateCol(1:end-1) = {''};
+                datesColumn(1:end-1) = {''};
             end
             % Rows with empty dates.
-            inxEmptyDates = cellfun(@isempty, dateCol);
+            inxEmptyDates = cellfun(@isempty, datesColumn);
         end
         % Convert date strings
-        if ~isempty(dateCol) && ~all(inxEmptyDates)
+        if ~isempty(datesColumn) && ~all(inxEmptyDates)
             if isequal(opt.DateFormat, @iso)
                 if ~validate.numericScalar(opt.EnforceFrequency)
                     exception.error([
@@ -689,10 +694,10 @@ return
                     ]);
                 end
                 dates(~inxEmptyDates) ...
-                    = dater.fromIsoString(opt.EnforceFrequency, string(dateCol(~inxEmptyDates)));
+                    = dater.fromIsoString(opt.EnforceFrequency, string(datesColumn(~inxEmptyDates)));
             else
                 dates(~inxEmptyDates) = str2dat( ...
-                    dateCol(~inxEmptyDates), ...
+                    datesColumn(~inxEmptyDates), ...
                     'DateFormat=', opt.DateFormat, ...
                     'Months=', opt.Months, ...
                     'EnforceFrequency=', opt.EnforceFrequency, ...

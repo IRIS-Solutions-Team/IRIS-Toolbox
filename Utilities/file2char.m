@@ -115,11 +115,15 @@ return
 
 
     function hereRemoveUTFBOM( )
-        % Remove UTF-8 bytes order mark from CSV files created by sometimes
-        % by MS Excel for Mac
-        UTF = char([239, 187, 191]);
-        if strncmp(file, UTF, length(UTF))
-            file = file(length(UTF)+1:end);
+        % Remove UTF-8 and UTF-16 bytes order mark from the beginnings of
+        % CSV files created sometimes by MS Excel for Mac
+        UTF8 = char([239, 187, 191]);
+        if strncmp(file, UTF8, numel(UTF8))
+            file = file(length(UTF8)+1:end);
+        end
+        UTF16 = char(65279);
+        if strncmp(file, UTF16, 1)
+            file = file(2:end);
         end
     end%
 
