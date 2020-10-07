@@ -10,6 +10,7 @@ classdef Serialize ...
         UserData = ""
         StartDateOnly = true
         Format = ""
+        ScalarAsArray = false
     end
 
 
@@ -97,7 +98,7 @@ classdef Serialize ...
             elseif ~isequal(this.Format, false) && strlength(this.Format)>0
                 outputValues = compose(this.Format, outputValues);
             end
-            if isscalar(outputValues)
+            if this.ScalarAsArray && isscalar(outputValues)
                 outputValues = { outputValues };
             else
                 outputValues = reshape(outputValues, [ ], 1);
