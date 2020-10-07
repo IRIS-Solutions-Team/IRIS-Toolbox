@@ -1,0 +1,178 @@
+% toSeries  Consolidate multiple time series into one time series
+%{
+% Syntax
+%--------------------------------------------------------------------------
+%
+%     outputSeries = toSeries(inputDb, ~names, ~dates, ~column)
+%
+%
+% Input Arguments
+%--------------------------------------------------------------------------
+%
+% __``__ [ ]
+%
+%>    
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __``__ [ ]
+%
+%>    
+%
+%
+% Options
+%--------------------------------------------------------------------------
+%
+%
+% __`=`__ [ | ]
+%
+%>    
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
+%
+%}
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function outputSeries = toSeries(inputDb, varargin)
+
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser("+databank/toSeries");
+    addRequired(pp, "inputDb", @(x) validate.databank(x) && isscalar(x)); 
+    addOptional(pp, "names", @all, @(x) isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x));
+    addOptional(pp, "dates", @all, @(x) isequal(x, @all) || validate.properDates(x));
+end
+%)
+unmatched = varargin(3:end);
+varargin = varargin(1:min(end, 2));
+parse(pp, inputDb, varargin{:});
+names = pp.Results.names;
+dates = pp.Results.dates;
+
+%--------------------------------------------------------------------------
+
+if isequal(names, @all)
+    names = keys(inputDb);
+    inxSeries = cellfun(@(n) isa(inputDb.(n), "NumericTimeSubscriptable"), names);
+    names = names(inxSeries);
+else
+    names = reshape(string(names), 1, [ ]);
+end
+
+if isempty(names)
+    exception.error([
+        "Datebank:EmptyNameList"
+        "The list of time series names requested resolved to an empty array."
+    ]);
+end
+
+if isequal(dates, @all)
+    dates = databank.range(inputDb, "NameList", names);
+    if iscell(dates)
+        exception.error([
+            "Databank:MultipleFrequencies"
+            "Time series requested include multiple date frequencies. "
+            "Cannot determine the output dates. "
+        ]);
+    elseif isempty(dates)
+        exception.error([
+            "Databank:UndeterminedFrequency"
+            "None of the time series requested has proper date frequency. "
+            "Cannot determine the output dates. "
+        ]);
+    end
+end
+
+[outputArray] = databank.toDoubleArray(inputDb, names, dates, unmatched{:});
+outputSeries = Series(dates, outputArray);
+
+end%
+
+
+
+
+%
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=databank/toSeriesUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+% Set up Once
+
+d1 = struct( );
+d1.a = Series(qq(1), rand(40,1));
+d1.b = Series(qq(2), rand(40,1));
+d1.c = Series(mm(1), rand(120,1));
+d1.d = Series( );
+d1.e = Series(qq(1), rand(40,2,3));
+d1.f = Series(qq(2), rand(40,2,3));
+d1.x = "a";
+d1.y = 1;
+
+
+%% Test Plain Vanilla
+
+x = databank.toSeries(d1, ["a", "b"]);
+y = [d1.a, d1.b];
+assertEqual(testCase, x.Data, y.Data);
+
+
+%% Test User Dates
+
+x = databank.toSeries(d1, ["a", "b"], qq(1,1:10));
+y = [d1.a{qq(1,1:10)}, d1.b{qq(1,1:10)}];
+assertEqual(testCase, x.Data, y.Data);
+
+
+%% Test Multidimensional Default Column
+
+x = databank.toSeries(d1, ["e", "f"]);
+y = [d1.e{:,1}, d1.f{:,1}];
+assertEqual(testCase, x.Data, y.Data);
+
+
+%% Test Multidimensional User Column
+
+x = databank.toSeries(d1, ["e", "f"], @all, 3);
+y = [d1.e{:,1,2}, d1.f{:,1,2}];
+assertEqual(testCase, x.Data, y.Data);
+
+
+%% Error Multiple Frequencies
+
+isError = false;
+try
+    x = databank.toSeries(d1);
+catch
+    isError = true;
+end
+assertTrue(testCase, isError);
+
+
+%% Error Empty Series
+
+isError = false;
+try
+    x = databank.toSeries(d1, "d");
+catch
+    isError = true;
+end
+assertTrue(testCase, isError);
+
+##### SOURCE END #####
+%}
+

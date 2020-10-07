@@ -124,6 +124,25 @@ classdef validate
                 flag = false;
             end
         end%
+
+
+        function flag = properDates(input)
+            if ~isnumeric(input)
+                flag = false;
+                return
+            end
+            input = reshape(double(input), 1, [ ]);
+            if any(~isfinite(input))
+                flag = false;
+                return
+            end
+            freq = dater.getFrequency(input);
+            if any(~isfinite(input))
+                flag = false;
+                return
+            end
+            flag = true;
+        end%
     end
 
 
