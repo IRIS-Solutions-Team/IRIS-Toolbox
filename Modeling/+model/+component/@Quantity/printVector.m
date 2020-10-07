@@ -1,6 +1,6 @@
 function output = printVector(this, vector, logStyle)
 
-try, logStyle;
+try, logStyle = string(logStyle);
     catch, logStyle = "log()"; end
 
 pos = reshape(real(vector), 1, [ ]);
@@ -14,7 +14,7 @@ output = output + shiftString;
 
 inxLog = this.IxLog(pos);
 
-if any(inxLog)
+if ~startsWith(logStyle, "none", "ignoreCase", true) && any(inxLog)
     if startsWith(string(logStyle), "log()")
         output(inxLog) = "log(" + output(inxLog) + ")";
     else

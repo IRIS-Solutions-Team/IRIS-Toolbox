@@ -27,11 +27,15 @@ function [response, flag, query] = locallyGet(this, query, varargin)
     %(
     response = [ ];
     flag = true;
-    isQuery = @(varargin) any(strcmpi(query, varargin));
 
-    if isQuery('InitCond', 'Required') 
+    if startsWith(query, ["initCond", "required"], "ignoreCase", true)
+        if startsWith(query, "required", "ignoreCase", true)
+            logStyle = "none";
+        else
+            logStyle = "log()";
+        end
         idInit = getIdInitialConditions(this);
-        response = printSolutionVector(this, idInit);
+        response = printSolutionVector(this, idInit, logStyle);
         return
     end
 

@@ -355,6 +355,9 @@ else
             % True initial conditions required at least in one parameter variant.
             vecXb = this.Vector.Solution{2}(numXiF+1:end);
             ixInit = any(this.Variant.IxInit, 3);
+            if startsWith(query, "required", "ignoreCase", true)
+                logStyle = "none";
+            end
             response = printVector(this.Quantity, vecXb(ixInit)-1i, logStyle);
             response = cellstr(response);
             
