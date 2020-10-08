@@ -64,6 +64,18 @@ classdef Stacked ...
         % gradient in each iteration (because the gradient involves at
         % least one quantity solved for in this block)
         StackedJacob_InxNeedsUpdate
+
+        % StackedJacob_IdQuantitiesWhenMapped  IdQuantities at the moment
+        % when the StackedJacob_GradientsMap and StackedJacob_GradientsFunc
+        % were create; these are used to check if an update of these
+        % properties is needed for the next block
+        StackedJacob_IdQuantitiesWhenMapped
+
+        % StackedJacob_IdEquationsWhenMapped  IdEquations at the moment
+        % when the StackedJacob_GradientsMap and StackedJacob_GradientsFunc
+        % were create; these are used to check if an update of these
+        % properties is needed for the next block
+        StackedJacob_IdEquationsWhenMapped
     end
 
 

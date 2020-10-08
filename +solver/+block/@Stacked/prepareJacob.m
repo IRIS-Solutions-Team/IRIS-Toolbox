@@ -5,15 +5,19 @@ numQuantities = numel(this.IdQuantities);
 
 %
 % Prepare the common part of the Jacobian; if these properties already
-% exist they don't need to be updated because they are independent of the
-% frame
+% exist, verify if they really need to be recalculated. Recalculation is
+% not needed if IdQuantities and IdEquations is the same as at the time of
+% their previous calcuation except for a constant time shift.
 %
+needsCreateGradientsMap = ...
+    isempty(this.StackedJacob_GradientsMap) ...
+    || ~locallyConsistent(this.IdQuantities, this.StackedJacob_IdQuantitiesWhenMapped) ...
+    || ~locallyConsistent(this.IdEquations, this.StackedJacob_IdEquationsWhenMapped);
 
-% TODO
-%if isempty(this.StackedJacob_GradientsMap)
+if needsCreateGradientsMap
     createGradientsMap(this);
     createGradientsFunc(this);
-%end
+end
 
 
 %
@@ -57,5 +61,19 @@ equationsFuncUsingTerminal = str2func(this.PREAMBLE + "[" + equationsFuncUsingTe
 this.StackedJacob_InxQuantitiesDeterminingTerminal = inxQuantitiesDeterminingTerminal;
 this.StackedJacob_EquationsFuncUsingTerminal = equationsFuncUsingTerminal;
 
+end%
+
+%
+% Local Functions
+%
+
+function flag = locallyConsistent(id1, id2)
+    if numel(id1)~=numel(id2)
+        flag = false;
+        return
+    end
+    t1 = imag(id1(1));
+    t2 = imag(id2(1));
+    flag = isequal(real(id1), real(id2)) && isequal(imag(id1)-t1, imag(id2)-t2);
 end%
 

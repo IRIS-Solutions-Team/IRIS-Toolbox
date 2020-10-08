@@ -125,5 +125,8 @@ if needsUpdate && accelerateUpdate
     this.StackedJacob_InxLogWithinMap_Update = inxLogWithinMap_Update;
 end
 
+this.StackedJacob_IdQuantitiesWhenMapped = this.IdQuantities;
+this.StackedJacob_IdEquationsWhenMapped = this.IdEquations;
+
 end%
 

@@ -30,7 +30,10 @@ func = [ ];
 needsUpdate = any(this.StackedJacob_InxNeedsUpdate);
 accelerateUpdate = ~all(this.StackedJacob_InxNeedsUpdate);
 if needsUpdate && accelerateUpdate 
-    func = cellfun(@(x) extractAfter(string(char(x)), ")"), gradients(this.StackedJacob_InxNeedsUpdate));
+    func = cellfun( ...
+        @(x) extractAfter(string(char(x)), ")") ...
+        , gradients(this.StackedJacob_InxNeedsUpdate) ...
+    );
     func = join(func, ";");
     func = string(vectorize(func));
     func = str2func(this.PREAMBLE + "[" + func + "]");
