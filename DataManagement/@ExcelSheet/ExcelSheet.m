@@ -8,7 +8,7 @@ classdef ExcelSheet ...
         FileName (1, 1) string = ""
         SheetIdentification = 1
         SheetRange = ''
-        Orientation (1, 1) string {validateOrientation} = "Row"
+        Orientation (1, 1) string {locallyValidateOrientation} = "Row"
         DataRange = double.empty(1, 0)
         DataStart = NaN
         DataEnd = NaN
@@ -18,8 +18,6 @@ classdef ExcelSheet ...
         Dates (1, :) DateWrapper = DateWrapper.NaD
         InsertEmpty = [0, 0]
     end
-
-
 
 
     methods % Constructor
@@ -354,62 +352,36 @@ classdef ExcelSheet ...
         function this = set.Dates(this, value)
             dataRange = this.DataRange;
             if isempty(dataRange)
-                thisError = [
+                exception.error([
                     "ExcelSheet:CannotSetDates"
                     "Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates."
-                ];
-                throw(exception.Base(thisError, 'error'));
+                ]);
             end
             numDates = numel(value);
-            if numDates==1 || numDates==this.NumData;
+            if numDates==1 || numDates==this.NumData
                 this.Dates = value;
                 return
             end
-            thisError = [
+            exception.error([
                 "ExcelSheet:DatesNotMatchData"
                 "Number of Dates must match the number of elements in DataRange."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
         end%
     end
-
-
-    methods (Static) % Static constructors
-        function output = collection(fileName, sheets, varargin)
-            %( Input parser
-            persistent pp
-            if isempty(pp)
-                pp = extend.InputParser("@ExcelSheet/collection");
-                pp.KeepUnmatched = true;
-                addRequired("sheets", @(x) isstring(x) || isnumeric(x) || isequal(x, @all));
-                addParameter("NameFunc", [ ], @(x) isempty(x) || isa(x, "function_handle"));
-            end
-            opt = parse(pp, varargin{:});
-
-            output = struct( );
-            if isequal(sheets, @all)
-                sheets = sheetnames(fileName);
-            end
-            sheets = reshape(string(sheets), 1, [ ]);
-
-        
 end
-
 
 %
 % Local Functions
 %
 
-
-function flag = validateOrientation(input)
-    flag = strcmpi(input, 'Row') || strcmpi(input, 'Column');
+function flag = locallyValidateOrientation(input)
+    flag = strcmpi(input, ""Row"") || strcmpi(input, ""Column"");
     if flag
         return
     end
-    thisError = [
+    exception.error([
         "ExcelReference:InvalidPropertyOrientation" 
-        "Property Orientation must be 'Row' or 'Column'"
-    ];
-    throw(exception.Base(thisError, 'error'));
+        "Property Orientation must be ""Row"" or ""Column"""
+    ]);
 end%
 
