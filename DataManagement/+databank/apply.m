@@ -85,13 +85,13 @@
 %>    the `inputDb` on which the `function` was run to create a new
 %>    field.
 %
-% __`InputNames=@all`__ [ `@all` | cellstr | string ] 
+% __`SourceNames=@all`__ [ `@all` | cellstr | string ] 
 %
 %>    List of databank field names to which the name selection procedure will
 %>    be reduced.
 %
 %
-% __`OutputNames=@default`__ [ `@default` | cellstr | string ] 
+% __`TargetNames=@default`__ [ `@default` | cellstr | string ] 
 %
 %>    New names for output databank fields.
 %
@@ -164,18 +164,18 @@ if isempty(pp)
     pp.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
     pp.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
     pp.addParameter('RemoveSource', false, @validate.logicalScalar);
-    pp.addParameter({'InputNames', 'Names', 'Fields', 'SourceNames'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
-    pp.addParameter({'OutputNames', 'TargetNames'}, @default, @(x) isequal(x, @default) || validate.list(x));
+    pp.addParameter({'SourceNames', 'Names', 'Fields', 'InputNames'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
+    pp.addParameter({'TargetNames', 'OutputNames'}, @default, @(x) isequal(x, @default) || validate.list(x));
     pp.addParameter('AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
 end
 %)
 opt = pp.parse(func, inputDb, varargin{:});
 
-if ~isequal(opt.InputNames, @all)
-    if isa(opt.InputNames, 'Rxp')
-        opt.InputNames = databank.filter(inputDb, 'Name=', opt.InputNames);
+if ~isequal(opt.SourceNames, @all)
+    if isa(opt.SourceNames, 'Rxp')
+        opt.SourceNames = databank.filter(inputDb, 'Name=', opt.SourceNames);
     end
-    opt.InputNames = cellstr(opt.InputNames);
+    opt.SourceNames = cellstr(opt.SourceNames);
 end
 
 opt.HasPrefix = char(opt.HasPrefix);
@@ -206,7 +206,7 @@ inxApplied = false(1, numFields);
 inxToRemove = false(1, numFields);
 for i = 1 : numFields
     name__ = namesFields{i};
-    if ~isequal(opt.InputNames, @all) && ~any(strcmpi(name__, opt.InputNames))
+    if ~isequal(opt.SourceNames, @all) && ~any(strcmpi(name__, opt.SourceNames))
        continue
     end 
     if ~isempty(opt.HasPrefix) && ~startsWith(name__, opt.HasPrefix)
@@ -221,9 +221,9 @@ for i = 1 : numFields
     %
     % Create output field name
     %
-    if iscellstr(opt.OutputNames)
-        inxName = strcmp(opt.InputNames, name__);
-        newName__ = opt.OutputNames{inxName};
+    if iscellstr(opt.TargetNames)
+        inxName = strcmp(opt.SourceNames, name__);
+        newName__ = opt.TargetNames{inxName};
     else
         newName__ = name__;
         if opt.RemovePrefix
@@ -260,23 +260,23 @@ return
 
 
     function hereCheckInputOutputNames( )
-        if isequal(opt.OutputNames, @default)
+        if isequal(opt.TargetNames, @default)
             return
         end
-        if validate.list(opt.InputNames)
-            opt.InputNames = cellstr(opt.InputNames);
+        if validate.list(opt.SourceNames)
+            opt.SourceNames = cellstr(opt.SourceNames);
         end
-        if validate.list(opt.OutputNames)
-            opt.OutputNames = cellstr(opt.OutputNames);
+        if validate.list(opt.TargetNames)
+            opt.TargetNames = cellstr(opt.TargetNames);
         end
-        if iscellstr(opt.OutputNames) 
-            if iscellstr(opt.OutputNames) && numel(opt.InputNames)==numel(opt.OutputNames)
+        if iscellstr(opt.TargetNames) 
+            if iscellstr(opt.TargetNames) && numel(opt.SourceNames)==numel(opt.TargetNames)
                 return
             end
         end
         thisError = { 'Databank:InconsistentInputOutputNames'
                       'When used together in databank.apply(~), '
-                      'options InputNames= and OutputNames= '
+                      'options SourceNames= and TargetNames= '
                       'must be lists of the same size' };
         throw(exception.Base(thisError, 'error'));
     end%

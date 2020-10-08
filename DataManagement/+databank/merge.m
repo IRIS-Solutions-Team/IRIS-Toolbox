@@ -1,6 +1,5 @@
-function mainDatabank = merge(method, mainDatabank, varargin)
 %{
-% databank.merge  Merge two or more databanks
+% databank.merge  Merge two or more mergeWith
 %
 % Syntax
 %--------------------------------------------------------------------------
@@ -14,19 +13,19 @@ function mainDatabank = merge(method, mainDatabank, varargin)
 %
 % __`method`__ [ `'horzcat'` | `'vertcat'` | `'replace'` | `'discard'` | `'error'` ] 
 %
-%     Action to perform when two or more of the input databanks contain a
+%     Action to perform when two or more of the input mergeWith contain a
 %     field of the same name; see Description.
 %
 %
 % __`primaryDb`__ [ struct | Dictionary ] 
 %
 %     Primary input databank that will be merged with the other input
-%     databanks, `d1`, etc.  using the `method`.
+%     mergeWith, `d1`, etc.  using the `method`.
 %
 %
 % __`otherDb`__ [ struct | Dictionary ] 
 %
-%     One or more databanks which will be merged with the primaryinput databank
+%     One or more mergeWith which will be merged with the primaryinput databank
 %     `primaryDb` to create the `outputDb`.
 %
 %
@@ -36,7 +35,7 @@ function mainDatabank = merge(method, mainDatabank, varargin)
 %
 % __`outputDb`__ [ struct | Dictionary ] 
 %
-%     Output databank created by merging the input databanks using the
+%     Output databank created by merging the input mergeWith using the
 %     method specified by the `method`.
 %
 %
@@ -47,14 +46,14 @@ function mainDatabank = merge(method, mainDatabank, varargin)
 % __`MissingField=@rmfield`__ [ `@rmfield` | `NaN` | `[ ]` | * ] 
 %
 %     Action to perform when a field is missing from one or more of the
-%     input databanks when the `method` is `'horzcat'`.
+%     input mergeWith when the `method` is `'horzcat'`.
 %
 %
 % Description
 %--------------------------------------------------------------------------
 %
 %
-% The fields from each of the additional databanks (`d1` and further) are
+% The fields from each of the additional mergeWith (`d1` and further) are
 % added to the main databank `d`. If the name of a field to be added
 % already exists in the main databank, `d`, one of the following actions is
 % performed:
@@ -80,6 +79,30 @@ function mainDatabank = merge(method, mainDatabank, varargin)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+% >=R2019b
+%{
+function mainDatabank = merge(method, mainDatabank, mergeWith, opt)
+
+arguments
+    method (1, :) char {validate.anyString(method, ["horzcat", "vertcat", "replace", "discard", "error"])}
+    mainDatabank (1, 1) {validate.databank(mainDatabank)}
+end
+
+arguments (Repeating)
+    mergeWith (1, 1) {validate.databank(mergeWith)}
+end
+
+arguments
+    opt.MissingField = @remove
+    opt.Names { locallyValidateNames(opt.Names) } = @all
+end
+%}
+% >=R2019b
+
+% <=R2019a
+%(
+function mainDatabank = merge(method, mainDatabank, varargin)
 
 if isempty(varargin)
     return
@@ -111,6 +134,8 @@ if isempty(pp)
 end
 parse(pp, method, mainDatabank, mergeWith, varargin{:});
 opt = pp.Options;
+%)
+% <=R2019a
 
 %--------------------------------------------------------------------------
 
@@ -118,9 +143,9 @@ numMergeWith = numel(mergeWith);
 method = char(method);
 
 if strcmpi(method, 'horzcat')
-    mergeNext = @(varargin) catNext(@horzcat, varargin{:});
+    mergeNext = @(varargin) concatenateNext(@horzcat, varargin{:});
 elseif strcmpi(method, 'vertcat')
-    mergeNext = @(varargin) catNext(@vertcat, varargin{:});
+    mergeNext = @(varargin) concatenateNext(@vertcat, varargin{:});
 elseif strcmpi(method, 'replace')
     mergeNext = @replaceNext;
 elseif strcmpi(method, 'discard')
@@ -135,13 +160,11 @@ end
 
 end%
 
-
 %
 % Local Functions
 %
 
-
-function mainDatabank = catNext(func, mainDatabank, mergeWith, opt)
+function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
     if isequal(opt.Names, @all)
         fieldsMainDatabank = fieldnames(mainDatabank);
         fieldsMergeWith = fieldnames(mergeWith);
@@ -149,7 +172,7 @@ function mainDatabank = catNext(func, mainDatabank, mergeWith, opt)
     else
         fieldsToMerge = reshape(cellstr(opt.Names), 1, [ ]);
     end
-    fieldsToMerge = unique(fieldsToMerge, 'stable');
+    fieldsToMerge = unique(fieldsToMerge, "stable");
     numFieldsToMerge = numel(fieldsToMerge);
     for i = 1 : numFieldsToMerge
         name__ = fieldsToMerge{i};
@@ -175,8 +198,6 @@ function mainDatabank = catNext(func, mainDatabank, mergeWith, opt)
         mainDatabank.(name__) = mainDatabankField;
     end
 end%
-
-
 
 
 function mainDatabank = replaceNext(mainDatabank, mergeWith, opt)
@@ -247,5 +268,13 @@ function mainDatabank = errorNext(mainDatabank, mergeWith, opt)
         ];
         throw(exception.Base(thisError, 'error'), newFields{inxErrorFields});
     end
+end%
+
+
+function locallyValidateNames(input)
+    if isequal(input, @all) || validate.list(input)
+        return
+    end
+    error("ValidationFailed:Names", "Option Names must be @all or a string array");
 end%
 
