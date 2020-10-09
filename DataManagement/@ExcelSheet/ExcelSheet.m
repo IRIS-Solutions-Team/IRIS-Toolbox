@@ -375,7 +375,7 @@ end
 %
 
 function flag = locallyValidateOrientation(input)
-    flag = strcmpi(input, ""Row"") || strcmpi(input, ""Column"");
+    flag = strcmpi(input, "Row") || strcmpi(input, "Column");
     if flag
         return
     end
