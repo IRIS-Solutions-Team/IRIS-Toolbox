@@ -15,6 +15,7 @@ classdef ExcelSheet ...
         DataSkip (1, 1) double {mustBePositive, mustBeFinite, mustBeInteger} = 1
         Description = NaN
         NamesLocation = NaN
+        CommentsLocation = NaN
         Dates (1, :) DateWrapper = DateWrapper.NaD
         InsertEmpty = [0, 0]
     end
@@ -337,6 +338,11 @@ classdef ExcelSheet ...
 
         function this = set.NamesLocation(this, value)
             this.NamesLocation = setAnchor(this, value);
+        end%
+
+
+        function this = set.CommentsLocation(this, value)
+            this.CommentsLocation = setAnchor(this, value);
         end%
 
 
