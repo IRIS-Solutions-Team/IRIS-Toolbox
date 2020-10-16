@@ -19,9 +19,14 @@ numDates = numel(dates);
 if isempty(dates)
     freq = double.empty(1, 0);
 else
-    freq = dater.getFrequency(dates(1));
+    freq = dater.getFrequency(dates);
     freq = freq(~isnan(freq));
-    DateWrapper.checkMixedFrequency(freq);
+    if isempty(freq)
+        freq = NaN;
+    else
+        DateWrapper.checkMixedFrequency(freq);
+        freq = freq(1);
+    end
 end
 serials = dater.getSerial(dates);
 serials = reshape(serials, [ ], 1);

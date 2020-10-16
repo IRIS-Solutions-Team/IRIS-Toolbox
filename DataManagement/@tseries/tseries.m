@@ -218,14 +218,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = length(varargin)
         varargout = moving(varargin)
         varargout = ndims(varargin)
-
-
-        varargout = normalize(varargin)
-        function varargout = normalise(varargin)
-            [varargout{1:nargout}] = normalize(varargin{:});
-        end%
-
-
         varargout = pctmean(varargin)
         varargout = permute(varargin)
         varargout = plot(varargin)
@@ -233,7 +225,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = plotyy(varargin)
         varargout = plotpred(varargin)
         varargout = range(varargin)
-        varargout = rebase(varargin)
         varargout = regress(varargin)
         varargout = repmat(varargin)
         varargout = reshape(varargin)

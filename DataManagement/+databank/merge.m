@@ -81,7 +81,7 @@
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 % >=R2019b
-%{
+%(
 function mainDatabank = merge(method, mainDatabank, mergeWith, opt)
 
 arguments
@@ -97,11 +97,11 @@ arguments
     opt.MissingField = @remove
     opt.Names { locallyValidateNames(opt.Names) } = @all
 end
-%}
+%)
 % >=R2019b
 
 % <=R2019a
-%(
+%{
 function mainDatabank = merge(method, mainDatabank, varargin)
 
 if isempty(varargin)
@@ -134,7 +134,7 @@ if isempty(pp)
 end
 parse(pp, method, mainDatabank, mergeWith, varargin{:});
 opt = pp.Options;
-%)
+%}
 % <=R2019a
 
 %--------------------------------------------------------------------------

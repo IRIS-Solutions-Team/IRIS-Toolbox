@@ -143,6 +143,83 @@ classdef validate
             end
             flag = true;
         end%
+
+
+        function flag = properRange(input)
+            if ~validate.range(input)
+                flag = false;
+                return
+            end
+            if isequal(input, @all) || isempty(input) || any(isinf(input))
+                flag = false;
+                return
+            end
+            flag = true;
+        end%
+
+
+        function flag = rangeInput(input)
+            flag = validate.range(input);
+        end%
+
+
+        function flag = range(input)
+            if isequal(input, Inf) || isequal(input, @all)
+                flag = true;
+                return
+            end
+            if ~validate.dateInput(input)
+                flag = false;
+                return
+            end
+            if numel(input)==1
+                flag = true;
+                return
+            end
+            if numel(input)==2
+                if (isinf(input(1)) || isinf(input(2)))
+                    flag = true;
+                    return
+                elseif all(freqcmp(input))
+                    flag = true;
+                    return
+                else
+                    flag = false;
+                    return
+                end
+            end
+            if ~all(freqcmp(input))
+                flag = false;
+                return
+            end
+            if ~all(round(diff(input))==1)
+                flag = false;
+                return
+            end
+            flag = true;
+        end%
+
+
+        function flag = dateInput(input)
+            if isa(input, "DateWrapper")
+                flag = true;
+                return
+            end
+            if isnumeric(input)
+                try
+                    dater.getFrequency(input);
+                    flag = true;
+                catch
+                    flag = false;
+                end
+                return
+            end
+            if isequal(input, @all)
+                flag = true;
+                return
+            end
+            flag = false;
+        end%
     end
 
 

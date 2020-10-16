@@ -1,6 +1,5 @@
-function this = moving(this, varargin)
 % moving  Apply function to moving window of time series observations
-%
+%{
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
@@ -38,27 +37,41 @@ function this = moving(this, varargin)
 %
 % __Example__
 %
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%( Input parser
+% >=R2019b
+%[
+function this = moving(this, range, opt)
+
+arguments
+    this NumericTimeSubscriptable
+    range {validate.rangeInput(range)} = Inf
+
+    opt.Window {locallyValidateWindow(opt.Window)} = @auto
+    opt.Function {mustBeA(opt.Function, "function_handle")} = @mean
+end
+%]
+% >=R2019b
+
+% <=R2019a
+%{
+function this = moving(this, varargin)
+
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('tseries.moving');
-    pp.addRequired('inputSeries', @(x) isa(x, 'tseries'));
-    pp.addOptional('range_', Inf, @DateWrapper.validateRangeInput);
+    pp = extend.InputParser('@Series/moving');
+    pp.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    pp.addOptional('range', Inf, @DateWrapper.validateRangeInput);
     pp.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
     pp.addParameter('Window', @auto, @(x) isequal(x, @auto) || isnumeric(x));
-    pp.addParameter('Range', Inf, @DateWrapper.validateRangeInput);
 end
-%)
 opt = pp.parse(this, varargin{:});
-if ~pp.UsingDefaultsInStruct.Range
-    range = pp.Results.Range;
-else
-    range = pp.Results.range_;
-end
+range = pp.Results.range;
+%}
+% <=R2019a
 
 opt.Window = locallyResolveWindow(opt.Window, this);
 
@@ -102,5 +115,16 @@ function window = locallyResolveWindow(window, inputSeries)
         throw(exception.Base(thisError, 'error'));
     end
     window = (-freq+1):0;
+end%
+
+
+function locallyValidateWindow(input)
+    if isa(input, "function_handle")
+        return
+    end
+    if isnumeric(input) && all(input==round(input))
+        return
+    end
+    error("Validation:Failed", "Input value must be an array of integers");
 end%
 

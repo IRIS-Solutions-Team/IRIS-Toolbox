@@ -132,8 +132,12 @@ classdef SystemPriorWrapper < handle
 
         function replace = replaceSystemPropertyReferences(systemPriorWrapper, outputName, reference)
             namedReferences = getNamedReferencesForOutputName(systemPriorWrapper, outputName);
+            reference = strip(char(reference));
+            if startsWith(reference, "(") && endsWith(reference, ")")
+                reference = reference(2:end-1);
+            end
             args = textual.splitArguments(reference);
-            args = strtrim(args);
+            args = strip(args);
             for i = 1 : min(numel(args), numel(namedReferences))
                 index__ = strcmp(args{i}, namedReferences{i});
                 if any(index__)

@@ -1,4 +1,3 @@
-function data = moving(data, window, varargin)
 % moving  Implement moving function on numeric data
 %
 % Backend [IrisToolbox] function
@@ -6,6 +5,8 @@ function data = moving(data, window, varargin)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function data = moving(data, window, varargin)
 
 persistent pp
 if isempty(pp)

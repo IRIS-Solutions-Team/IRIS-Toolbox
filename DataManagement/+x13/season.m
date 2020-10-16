@@ -3,7 +3,7 @@
 % Syntax
 %--------------------------------------------------------------------------
 %
-%     [outputSeries, outputSeries, ..., info] = x13.season(inputSeries, ...)
+%     [outputSeries, outputSeries, ..., info] = x13.season(inputSeries, ~range, ...)
 %
 %>    Optional input arguments are entered as name-value pairs (with the
 %>    names being strings enclosed in single or double quotes and no equal
@@ -16,9 +16,17 @@
 %--------------------------------------------------------------------------
 %
 % __`inputSeries`__ [ Series ]
-%
+%>
 %>    Input time series that will be subjected to a X13-ARIMA seasonal
 %>    adjustment procedure.
+%
+%
+% __`range=Inf`__ [ DateWrapper ]
+%>
+%>    Date range on which the seasonal adjustment will be performed; any
+%>    observations outside the `range` will be clipped off before running
+%>    the procedure; if not specified, all observations available will be
+%>    used.
 %
 %
 % Output Arguments
@@ -407,15 +415,15 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function varargout = season(inputSeries, opt, specs)
+function varargout = season(inputSeries, range, opt, specs)
 
+% >=R2019b
 %[
-% R2019b
 arguments
     %(
     inputSeries Series { locallyValidateInputSeries(inputSeries) }
+    range {validate.rangeInput} = Inf 
 
-    opt.Range { mustBeNumeric } = Inf
     opt.Output (1, :) string = "d11"
     opt.Display (1, 1) logical = false
     opt.Cleanup (1, 1) logical = true
@@ -548,11 +556,11 @@ arguments
     specs.Seats_SaveLog (1, :) string = string.empty(1, 0)
     %)
 end
-% R2019b
 %]
+% >=R2019b
 
-if ~isequal(opt.Range, Inf)
-    [from, to] = resolveRange(inputSeries, opt.Range);
+if ~isequal(range, Inf)
+    [from, to] = resolveRange(inputSeries, range);
     inputSeries = clip(inputSeries, from, to);
 end
 

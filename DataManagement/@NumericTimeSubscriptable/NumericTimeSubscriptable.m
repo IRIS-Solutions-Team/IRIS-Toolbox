@@ -65,6 +65,7 @@ NumericTimeSubscriptable ...
         varargout = horzcat(varargin)
         varargout = llf(varargin)
         varargout = llf2(varargin)
+        varargout = normalize(varargin)
         varargout = hpf(varargin)
         varargout = hpf2(varargin)
 
@@ -84,7 +85,9 @@ NumericTimeSubscriptable ...
         tabular(varargin)
         varargout = pct(varargin)
         varargout = project(varargin)
+        varargout = rebase(varargin)
         varargout = recognizeShift(varargin)
+        varargout = replaceData(varargin)
         varargout = rmse(varargin)
         varargout = roc(varargin)
 

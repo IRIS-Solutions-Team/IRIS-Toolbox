@@ -156,8 +156,7 @@ classdef DateWrapper ...
             freq = dater.getFrequency(from);
             fromSerial = floor(from);
             toSerial = floor(to);
-            serial = fromSerial : step : toSerial;
-            serial = floor(serial);
+            serial = fromSerial : round(step) : toSerial;
             this = DateWrapper.fromSerial(freq, serial);
         end%
 
@@ -312,11 +311,6 @@ classdef DateWrapper ...
 
 
     methods (Static)
-        varargout = reportConsecutive(varargin)
-        varargout = reportMissingPeriodsAndPages(varargin)
-        varargout = resolveShift(varargin)
-
-
         function this = Inf( )
             this = DateWrapper(Inf);
         end%
@@ -430,7 +424,6 @@ classdef DateWrapper ...
 
 
         function flag = validateDateInput(input)
-            freqLetter = iris.get('FreqLetters');
             if isa(input, 'DateWrapper')
                 flag = true;
                 return
@@ -448,13 +441,7 @@ classdef DateWrapper ...
                 flag = true;
                 return
             end
-            if ~(ischar(input) || isa(input, 'string')) || isempty(input)
-                flag = false;
-                return
-            end
-            input = strtrim(cellstr(input));
-            match = regexpi(input, ['\d+[', freqLetter, ']\d*'], 'Once');
-            flag = all(~cellfun('isempty', match));
+            flag = false;
         end%
 
 
@@ -517,9 +504,6 @@ classdef DateWrapper ...
 
 
         function flag = validateProperRangeInput(input)
-            if ischar(input) || isa(input, 'string')
-                input = textinp2dat(input);
-            end
             if ~DateWrapper.validateRangeInput(input)
                 flag = false;
                 return
