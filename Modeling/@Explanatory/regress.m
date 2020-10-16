@@ -85,11 +85,11 @@
 %     expy0.Parameters = [0.002, 0.8, 1];
 % 
 % 
-% Simulate the equation dynamically, using random shocks (names `'res_x'`
+% Simulate the equation period by period, using random shocks (names `'res_x'`
 % by default) and random observations for `z`:
 %
 %     rng(981);
-%     d0 = struct( );
+%     d0 = struct();
 %     d0.x = Series(qq(2020,1), ones(40,1));
 %     d0.z = Series(qq(2020,1), exp(randn(40, 1)/10));
 %     d0.res_x = Series(qq(2020,1), randn(40, 1)/50);
@@ -107,9 +107,38 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%[
+function [this, outputDb, info] = regress(this, inputDb, fittedRange, opt)
+
+arguments
+    this Explanatory
+    inputDb (1, 1) {validate.databank}
+    fittedRange {validate.rangeInput}
+
+    opt.AddToDatabank = @auto
+    opt.BlackoutBefore {Explanatory.validateBlackout(opt.BlackoutBefore, this)} = -Inf
+    opt.BlackoutAfter {Explanatory.validateBlackout(opt.BlackoutAfter, this)} = Inf
+    opt.PrependInput (1, 1) {mustBeA(opt.PrependInput, "logical")} = false
+    opt.AppendInput (1, 1) {mustBeA(opt.AppendInput, "logical")} = false
+    opt.OutputType (1, 1) string {validate.databankType} = "struct"
+    opt.MissingObservations = @auto
+    opt.Optim = []
+    opt.Progress (1, 1) {mustBeA(opt.Progress, "logical")} = false
+    opt.ResidualsOnly (1, 1) {mustBeA(opt.ResidualsOnly, "logical")} = false
+    opt.Journal = false
+end
+
+opt.AppendPresample = opt.PrependInput;
+opt.AppendPostsample = opt.AppendInput;
+%]
+% >=R2019b
+
+
+% <=R2019a
+%{
 function [this, outputDb, info] = regress(this, inputDb, fittedRange, varargin)
 
-%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory.regress');
@@ -118,20 +147,25 @@ if isempty(pp)
     addRequired(pp, 'inputDb', @validate.databank);
     addRequired(pp, 'fittedRange', @DateWrapper.validateRangeInput);
 
-    addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
-    addParameter(pp, {'AppendPostsample', 'PrependInput'}, false, @validate.logicalScalar);
-    addParameter(pp, {'AppendPresample', 'AppendInput'}, false, @validate.logicalScalar);
+    addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, []) || validate.databank(x));
+    addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
+    addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, "MissingObservations", @auto, @(x) isequal(x, @auto) || validate.anyString(x, ["Error", "Warning", "Silent"]));
-    addParameter(pp, "Optim", [ ], @(x) isempty(x) || isa(x, "optim.options.Lsqnonlin"));
+    addParameter(pp, "Optim", [], @(x) isempty(x) || isa(x, "optim.options.Lsqnonlin"));
     addParameter(pp, "Progress", false, @validate.logicalScalar);
     addParameter(pp, 'ResidualsOnly', false, @validate.logicalScalar);
 end
-%)
 opt = parse(pp, this, inputDb, fittedRange, varargin{:});
+%}
+% <=R2019a
+
 [fittedRange, opt.MissingObservations] = locallyResolveRange(this, inputDb, fittedRange, opt.MissingObservations);
+opt.BlackoutBefore = Explanatory.resolveBlackout(opt.BlackoutBefore);
+opt.BlackoutAfter = Explanatory.resolveBlackout(opt.BlackoutAfter);
 
 storeToDatabank = nargout>=2;
+journal = Journal(opt.Journal, "@Explanatory/regress");
 
 %--------------------------------------------------------------------------
 
@@ -143,7 +177,7 @@ numEquations = numel(this);
 % needed even if they do not appear on the RHS 
 %
 lhsRequired = true;
-context = "for " + this(1).Context + " estimation";
+context = "to run regress() on the " + this(1).Context + " object";
 dataBlock = getDataBlock(this, inputDb, fittedRange, lhsRequired, context);
 
 
@@ -156,8 +190,10 @@ controls = assignControls(this, inputDb);
 numExtendedPeriods = dataBlock.NumExtendedPeriods;
 numPages = dataBlock.NumPages;
 fitted = nan(numEquations, numExtendedPeriods, numPages);
+lhsTransform = nan(numEquations, numExtendedPeriods, numPages);
 inxMissingColumns = false(numEquations, numExtendedPeriods, numPages);
 reportEmptyData = string.empty(1, 0);
+extdRange = double(dataBlock.ExtendedRange);
 
 
 %
@@ -171,17 +207,19 @@ this = runtime(this, dataBlock, "regress");
 %
 inxColumns = cell(numEquations, numPages);
 inxToEstimate = ~[this.IsIdentity];
-this(inxToEstimate) = alter(this(inxToEstimate), numPages, true);
+this(inxToEstimate) = alter(this(inxToEstimate), numPages, NaN);
 
 
 if opt.Progress
     progress = ProgressBar("@Explanatory/regress", nnz(inxToEstimate)*numPages);
 end
 
-% /////////////////////////////////////////////////////////////////////////
+exitFlags = nan(numEquations, numPages);
 
+%==========================================================================
 for q = find(inxToEstimate)
     this__ = this(q);
+    indent(journal, this__.InputString);
 
     [lhs, rhs] = createData4Regress(this__, dataBlock, controls);
 
@@ -197,17 +235,41 @@ for q = find(inxToEstimate)
     %
     res = nan(size(lhs));
     for v = 1 : numPages
+        fixed__ = fixed(:, :, min(v, end));
+        indent(journal, "Variant|Page:" + string(v));
+
+        %
+        % Extract data for page v, black out observations
+        %
         lhs__ = lhs(:, :, min(v, end));
         rhs__ = rhs(:, :, min(v, end));
-        fixed__ = fixed(:, :, min(v, end));
         inxColumns__ = dataBlock.InxBaseRange;
-        inxFiniteColumns = all(isfinite([rhs__; lhs__]), 1);
-        inxMissingColumns(q, :, v) = inxColumns__ & ~inxFiniteColumns;
+        [lhs__, rhs__, inxColumns__] = locallyBlackout( ...
+            lhs__, rhs__, inxColumns__, extdRange ...
+            , opt.BlackoutBefore(min(q,end)), opt.BlackoutAfter(min(q,end)) ...
+            , journal ...
+        );
+
+        %
+        % Find missing within-sample observations
+        %
+        inxFiniteColumns__ = all(isfinite([rhs__; lhs__]), 1);
+        inxMissingColumns(q, :, v) = inxColumns__ & ~inxFiniteColumns__;
         if startsWith(opt.MissingObservations, ["warning", "silent"], "ignoreCase", true)
-            inxColumns__ = inxColumns__ & inxFiniteColumns;
+            inxColumns__ = inxColumns__ & inxFiniteColumns__;
         elseif any(inxMissingColumns(q, :, v))
             continue
         end
+
+        if journal.IsActive
+            first__ = dater.toDefaultString(extdRange(find(inxColumns__, 1, "first")));
+            last__ = dater.toDefaultString(extdRange(find(inxColumns__, 1, "last")));
+            write(journal, "Fitted Range " + first__ + ":" + last__);
+        end
+
+        %
+        % Extract within-sample non-missing observations only
+        %
         lhs__ = lhs__(:, inxColumns__);
         rhs__ = rhs__(:, inxColumns__);
         if ~any(inxColumns__)
@@ -216,22 +278,26 @@ for q = find(inxToEstimate)
         end
         numObservations__ = nnz(inxColumns__);
 
-        residualModelParameters__ = double.empty(1, 0, 1);
         if isa(residualModel, "ParameterizedArmani") && residualModel.NumParameters>0
-            [residualModelParameters__, residualModel] ...
-                = locallyEstimateResidualModel(lhs__, rhs__, fixed__, residualModel, opt.Optim);
+            indent(journal, "Residual Model");
+            [gamma__, exitFlag__] = locallyEstimateResidualModel(lhs__, rhs__, fixed__, residualModel, opt.Optim);
+            residualModel.Parameters(1, :, v) = gamma__;
+            residualModel = update(residualModel, gamma__);
+            exitFlags(q, v) = exitFlag__;
+            write(journal, "ExitFlag " + string(exitFlag__));
+            write(journal, "Parameters " + join(string(gamma__)));
+            deindent(journal);
         end
 
-        if ~isempty(residualModel)
-            residualModel = update(residualModel, residualModelParameters__);
-        end
-
-        [parameters__, varResiduals__, covParameters__, fitted__, res__] ...
+        [parameters__, varResiduals__, covParameters__, fitted__, res__, inxFixed__] ...
             = locallyLeastSquares(lhs__, rhs__, fixed__, residualModel);
+        if any(~inxFixed__)
+            write(journal, "Parameters " + join(string(parameters__(~inxFixed__))));
+        end
 
         this__.Parameters(1, :, v) = parameters__;
-        this__.ResidualModelParameters(1, :, v) = residualModelParameters__;
         fitted(q, inxColumns__, v) = fitted__;
+        lhsTransform(q, inxColumns__, v) = lhs__;
         res(:, inxColumns__, v) = res__;
         this__.Statistics.VarResiduals(:, :, v) = varResiduals__;
         this__.Statistics.CovParameters(:, :, v) = covParameters__;
@@ -239,34 +305,54 @@ for q = find(inxToEstimate)
         if opt.Progress
             increment(progress);
         end
+        deindent(journal);
     end
+
+    %
+    % Update ResidualModel parameters
+    %
+    this__.ResidualModel = residualModel;
 
     %
     % Update residuals in dataBlock
     %
-    updateDataBlock(this__, dataBlock, [ ], res);
+    updateDataBlock(this__, dataBlock, [], res);
 
     %
-    % Update Parameters, ResidualModelParameters and Statistics 
+    % Update Parameters, Statistics and ResidualModel
     %
     this(q) = this__;
+    deindent(journal);
 end
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 
 
 if ~isempty(reportEmptyData)
-    hereReportEmptyData( );
+    hereReportEmptyData();
 end
 
-if ~strcmpi(opt.MissingObservations, 'Silent') && nnz(inxMissingColumns)>0
-    hereReportMissing( );
+if any(~isnan(exitFlags) & exitFlags<=0)
+    hereReportFailedResidualModels();
 end
+
+
+if nnz(inxMissingColumns)>0
+    if startsWith(opt.MissingObservations, "silent", "ignoreCase", true)
+        % Do nothing
+    else
+        hereReportMissing();
+    end
+end
+
 
 if storeToDatabank
-    namesToInclude = [this.ResidualName];
+    namesToInclude = [this(:).ResidualName];
     outputDb = createOutputDatabank( ...
         this, inputDb, dataBlock ...
-        , namesToInclude, fitted(inxToEstimate, :, :), opt ...
+        , namesToInclude ...
+        , fitted(inxToEstimate, :, :) ...
+        , lhsTransform(inxToEstimate, :, :) ...
+        , opt ...
     );
 end
 
@@ -276,12 +362,12 @@ end
 this = runtime(this);
 
 if nargout>=3
-    info = herePopulateOutputInfo( );
+    info = herePopulateOutputInfo();
 end
 
 return
 
-    function hereReportEmptyData( )
+    function hereReportEmptyData()
         %(
         reportEmptyData = cellstr(reportEmptyData);
         thisWarning = [ 
@@ -294,9 +380,23 @@ return
     end%
 
 
-    function hereReportMissing( )
+    function hereReportFailedResidualModels()
         %(
-        if strcmpi(opt.MissingObservations, 'Warning')
+        lhsNames = collectAllLhsNames(this);
+        [q, v] = find(~isnan(exitFlags) & exitFlags<=0);
+        qv = sortrows([q, v], 1);
+        temp = reshape([reshape(string(qv(:,2)), 1, []); reshape(lhsNames(qv(:,1)), 1, [])], [], 1);
+        exception.error([
+            "Explanatory:ResidualModelFailed"
+            "ResidualModel for this LHS variable failed to converge [Parameter|Variant:%s]: %s "
+        ], temp);
+        %)
+    end%
+
+
+    function hereReportMissing()
+        %(
+        if startsWith(opt.MissingObservations, "warning", "ignoreCase", true)
             action = 'adjusted to exclude';
         else
             action = 'contain';
@@ -306,21 +406,24 @@ return
             if nnz(inxMissingColumns(qq, :, :))==0
                 continue
             end
-            report = [report, DateWrapper.reportMissingPeriodsAndPages(dataBlock.ExtendedRange, inxMissingColumns, this.LhsName)];
+            addReport = dater.reportMissingPeriodsAndPages( ...
+                extdRange, inxMissingColumns(qq, :, :), this(qq).LhsName ...
+            );
+            report = [report, addReport];
         end
-        thisWarning  = [ 
+        message  = [ 
             "Explanatory:MissingObservationInRegressionRange"
             "Explanatory[""%s""] regression data " + action + " "
             "NaN or Inf observations [Variant|Page:%g]: %s" 
         ];
-        throw(exception.Base(thisWarning, opt.MissingObservations), report{:});
+        throw(exception.Base(message, opt.MissingObservations), report{:});
         %)
     end%
 
 
-    function info = herePopulateOutputInfo( )
+    function info = herePopulateOutputInfo()
         %(
-        info = struct( );
+        info = struct();
         info.FittedPeriods = cell(size(inxColumns));
         extendedRange = double(dataBlock.ExtendedRange);
         for i = 1 : numel(inxColumns)
@@ -352,7 +455,7 @@ function [fittedRange, missingObservations] = locallyResolveRange(this, inputDb,
 end%
 
 
-function [parameters, varResiduals, covParameters, fitted, res] = locallyLeastSquares(y, X, fixed, residualModel)
+function [parameters, varResiduals, covParameters, fitted, res, inxFixed] = locallyLeastSquares(y, X, fixed, residualModel)
     %(
     numParameters = numel(fixed);
     numObservations = size(y, 2);
@@ -382,7 +485,12 @@ function [parameters, varResiduals, covParameters, fitted, res] = locallyLeastSq
 end%
 
 
-function [gamma, rm] = locallyEstimateResidualModel(y, X, fixed, rm, optim)
+function [gamma, exitFlag] = locallyEstimateResidualModel(y, X, fixed, rm, optim)
+    %(
+    persistent EMPTY_OPTIM
+    if isempty(EMPTY_OPTIM)
+        EMPTY_OPTIM = optimoptions("lsqnonlin", "display", "none");
+    end
     numObservations = size(y, 2);
     inxFixed = ~isnan(fixed);
     y0 = y;
@@ -394,10 +502,9 @@ function [gamma, rm] = locallyEstimateResidualModel(y, X, fixed, rm, optim)
     yt = transpose(y);
     Xt = transpose(X);
     if isempty(optim)
-        optim = optimoptions("lsqnonlin", "display", "none");
+        optim = EMPTY_OPTIM;
     end
-    gamma = lsqnonlin(@hereObjectiveFunc, zeros(1, rm.NumParameters), [ ], [ ], optim);
-    rm = update(rm, gamma);
+    [gamma, ~, ~, exitFlag] = lsqnonlin(@hereObjectiveFunc, zeros(1, rm.NumParameters), [], [], optim);
     
     return
         function obj = hereObjectiveFunc(p)
@@ -412,7 +519,40 @@ function [gamma, rm] = locallyEstimateResidualModel(y, X, fixed, rm, optim)
                 obj = Fyt - FXt*beta;
             end
         end%
+    %)
 end%
+
+
+function [lhs, rhs, inxColumns] = locallyBlackout(lhs, rhs, inxColumns, extdRange, before, after, journal)
+    %(
+    if isinf(before) && isinf(after)
+        return
+    end
+    if ~isinf(before)
+        pos = round(before - extdRange(1) + 1);
+        if pos>1
+            lhs(:, 1:pos-1) = NaN;
+            rhs(:, 1:pos-1) = NaN;
+            inxColumns(:, 1:pos-1) = false;
+            if journal.IsActive
+                write(journal, "Blackout before " + dater.toDefaultString(extdRange(pos)));
+            end
+        end
+    end
+    if ~isinf(after)
+        pos = round(after - extdRange(1) + 1);
+        if pos<size(lhs, 2)
+            lhs(:, pos+1:end) = NaN;
+            rhs(:, pos+1:end) = NaN;
+            inxColumns(:, pos+1:end) = false;
+            if journal.IsActive
+                write(journal, "Blackout after " + dater.toDefaultString(extdRange(pos)));
+            end
+        end
+    end
+    %)
+end%
+
 
 
 
@@ -431,11 +571,11 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     startDate = qq(2001,1);
     endDate = qq(2010, 4);
     baseRange = startDate:endDate;
-    db1 = struct( );
+    db1 = struct();
     db1.x = Series(startDate-10:endDate+10, cumsum(randn(60,1)));
     db1.a = Series(startDate-1:endDate, cumsum(randn(41,1)));
     db1.y = Series(startDate:endDate, cumsum(randn(40,1)));
-    db2 = struct( );
+    db2 = struct();
     db2.x = Series(startDate-1:endDate, cumsum(randn(41,3)));
     db2.a = Series(startDate-1:endDate, cumsum(randn(41,1)));
     db2.y = Series(startDate:endDate, cumsum(randn(40,1)));
@@ -473,7 +613,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
     [est1, outputDb] = regress(m1, db1, baseRange);
-    simDb = simulate(est1, outputDb, baseRange, 'PrependInput=', true);
+    simDb = simulate(est1, outputDb, baseRange, 'prependInput', true);
     startDate = db1.x.Start;
     range = db1.x.Start : baseRange(end);
     assertEqual(testCase, db1.x(range), simDb.x(range), 'AbsTol', 1e-12);
@@ -484,7 +624,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
     [est1, outputDb] = regress(m1, db1, baseRange);
-    simDb = simulate(est1, outputDb, baseRange, 'AppendInput=', true);
+    simDb = simulate(est1, outputDb, baseRange, 'appendInput', true);
     range = baseRange(1)-1 : db1.x.End;
     assertEqual(testCase, db1.x(range), simDb.x(range), 'AbsTol', 1e-12);
 

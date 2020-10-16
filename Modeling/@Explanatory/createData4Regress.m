@@ -9,12 +9,11 @@
 function [lhs, rhs] = createData4Regress(this, dataBlock, controls)
 
 if numel(this)~=1
-    thisError = [ 
+    exception.error([ 
         "Explanatory:SingleEquationExpected"
         "Method @Explanatory/createData4Regress expects "
         "a scalar Explanatory object."
-    ];
-    throw(exception.Base(thisError, 'error'));
+    ]);
 end
 
 %--------------------------------------------------------------------------

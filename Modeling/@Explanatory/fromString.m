@@ -115,7 +115,6 @@ for j = 1 : numel(inputString)
     %
     this__ = hereCreateObject( );
 
-
     %
     % Assign control names
     %
@@ -126,14 +125,33 @@ for j = 1 : numel(inputString)
         this__.ControlNames = opt.ControlNames;
     end
 
+    %
+    % Legacy syntax =# -> ===
+    %
+    inputString__ = replace(inputString__, "=#", "===");
+    
+
+    this__.InputString = inputString__;
+
+
+    %
+    % Extract ResidualModel if present; this will remain in the InputString
+    % of the Explanatory object
+    %
+    residualModelString__ = "";
+    if contains(inputString__, "#")
+        residualModelString__ = "#" + extractAfter(inputString__, "#");
+        inputString__ = extractBefore(inputString__, "#");
+        residualModel = ParameterizedArmani.fromEviewsString(residualModelString__);
+        this__.ResidualModel = residualModel;
+    end
+
 
     %
     % Collect all variables names from the input string, enforcing lower or
     % upper case if requested
     %
     this__.VariableNames = hereCollectAllVariableNames( );
-
-    this__.InputString = hereComposeUserInputString(inputString__, label__, attributes__);
 
 
     %
@@ -237,8 +255,7 @@ return
         rhsString = replace(rhsString, "?", "@");
 
         if endsWith(rhsString, ";")
-            len__ = strlength(rhsString);
-            rhsString = eraseBetween(rhsString, len__, len__);
+            rhsString = extractBefore(rhsString, strlength(rhsString));
         end
 
         %
@@ -384,27 +401,6 @@ return
 end%
 
 
-%
-% Local Functions
-%
-
-
-function userInputString = hereComposeUserInputString(inputString__, label, attributes)
-    userInputString = inputString__;
-    %{
-    if label~=""
-        userInputString = """" + label + """ " + userInputString;
-    end
-    if ~isempty(attributes)
-        userInputString = join(attributes) + " " + userInputString;
-    end
-    %}
-    if ~endsWith(userInputString, ";")
-        userInputString = userInputString + ";";
-    end
-end%
-
-
 
 
 %
@@ -491,7 +487,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Lower
     act = Explanatory.fromString( ...
         ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
-        'EnforceCase=', @lower ...
+        'EnforceCase', @lower ...
     );
     exp = Explanatory.fromString( ...
         ["xa = xa{-1} + xa{-2} + xb", "xb = xa{-1}"] ...
@@ -501,6 +497,9 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     act_struct = struct(act);
     assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
     for n = keys(exp_struct)
+        if n=="InputString"
+            continue
+        end
         if isa(exp_struct.(n), 'function_handle')
             assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
         else
@@ -512,7 +511,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Upper
     act = Explanatory.fromString( ...
         ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
-        'EnforceCase=', @upper ...
+        'EnforceCase', @upper ...
     );
     exp = Explanatory.fromString( ...
         ["XA = XA{-1} + XA{-2} + XB", "XB = XA{-1}"] ...
@@ -526,6 +525,9 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     act_struct = struct(act);
     assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
     for n = keys(exp_struct)
+        if n=="InputString"
+            continue
+        end
         if isa(exp_struct.(n), 'function_handle')
             assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
         else
@@ -550,7 +552,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.z(yy(1:10))+10);
 
 
-%% Test Compare Dynamic Static If
+%% Test Compare Period=true and Period=false If
     q = Explanatory.fromString([
         "x = x{-1} + if(w<0, dummy1, dummy0)"
         "y = 1 + if(w, dummy1, dummy0)"
@@ -560,7 +562,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     inputDb.w = -1;
     inputDb.dummy1 = Series(yy(1:10), @rand);
     inputDb.dummy0 = -Series(yy(1:10), @rand);
-    simDb = simulate(q, inputDb, yy(1:10), "Blazer=", {"Dynamic=", false});
+    simDb = simulate(q, inputDb, yy(1:10), "blazer", {"period", false});
     temp = 1 + inputDb.dummy1;
     assertEqual(testCase, simDb.x(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
     assertEqual(testCase, simDb.y(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
@@ -600,13 +602,13 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
-    ], 'ResidualNamePattern=', ["", "_ma"]);
+    ], 'ResidualNamePattern', ["", "_ma"]);
     assertEqual(testCase, [q.LhsName], ["x", "y"]);
     assertEqual(testCase, [q.ResidualName], ["x_ma", "y_ma"]);
     q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
-    ], 'ResidualNamePattern=', ["", "_ma"], 'EnforceCase=', @upper);
+    ], 'ResidualNamePattern', ["", "_ma"], 'EnforceCase', @upper);
     assertEqual(testCase, [q.LhsName], ["X", "Y"]);
     assertEqual(testCase, [q.ResidualName], ["X_MA", "Y_MA"]);
 
@@ -615,13 +617,13 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
-    ], 'FittedNamePattern=', ["", "_fitted"]);
+    ], 'FittedNamePattern', ["", "_fitted"]);
     assertEqual(testCase, [q.LhsName], ["x", "y"]);
     assertEqual(testCase, [q.FittedName], ["x_fitted", "y_fitted"]);
     q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
-    ], 'FittedNamePattern=', ["", "_fitted"], 'EnforceCase=', @upper);
+    ], 'FittedNamePattern', ["", "_fitted"], 'EnforceCase', @upper);
     assertEqual(testCase, [q.LhsName], ["X", "Y"]);
     assertEqual(testCase, [q.FittedName], ["X_FITTED", "Y_FITTED"]);
 

@@ -1,4 +1,3 @@
-function outputDatabank = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, fitted, opt)
 % createOutputDatabank  Create output databank from Explanatory
 %
 % Backend [IrisToolbox] function
@@ -7,9 +6,11 @@ function outputDatabank = createOutputDatabank(this, inputDatabank, dataBlock, n
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function outputDatabank = createOutputDatabank( ...
+    this, inputDatabank, dataBlock, namesToInclude, fitted, lhsTransform, opt ...
+)
 
-if isempty(namesToInclude) && isempty(fitted)
+if isempty(namesToInclude) && isempty(fitted) && isempty(lhsTransform)
     return
 end
 
@@ -20,8 +21,12 @@ inxToInclude = ismember(names, namesToInclude);
 if ~isempty(fitted)
     array = [array; fitted];
     names = [names, this.FittedName];
-    numFitted = size(fitted, 1);
-    inxToInclude = [inxToInclude, true(1, numFitted)];
+    inxToInclude = [inxToInclude, true(1, size(fitted, 1))];
+end
+if ~isempty(lhsTransform)
+    array = [array; lhsTransform];
+    names = [names, this.LhsTransformName];
+    inxToInclude = [inxToInclude, true(1, size(lhsTransform, 1))];
 end
 comments = names;
 timeSeriesConstructor = @default;

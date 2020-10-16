@@ -56,9 +56,38 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%[
+function [outputData, info] = simulate(this, inputData, range, opt)
+
+arguments
+    this Explanatory
+    inputData {locallyValidateInputData}
+    range {validate.properRange}
+
+    opt.AddToDatabank = @auto
+    opt.PrependInput (1, 1) {mustBeA(opt.PrependInput, "logical")} = false
+    opt.AppendInput (1, 1) {mustBeA(opt.AppendInput, "logical")} = false
+    opt.Blazer (1, :) cell = cell.empty(1, 0)
+    opt.NaNParameters (1, 1) string = "warning"
+    opt.NaNSimulation (1, 1) string = "warning"
+    opt.OutputType (1, 1) string = "struct"
+    opt.Plan = [ ];
+    opt.Progress (1, 1) {mustBeA(opt.Progress, "logical")} = false
+    opt.SkipWhenData (1, 1) {mustBeA(opt.SkipWhenData, "logical")} = false
+    opt.ExogenizeWhenData {mustBeA(opt.ExogenizeWhenData, "logical")} = false
+    opt.Journal = false
+end
+
+opt.AppendPresample = opt.PrependInput;
+opt.AppendPostsample = opt.AppendInput;
+%]
+% >=R2019b
+
+% <=R2019a
+%{
 function [outputData, info] = simulate(this, inputData, range, varargin)
 
-%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory/simulate');
@@ -76,11 +105,15 @@ if isempty(pp)
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, 'Plan', [ ], @(x) isempty(x) || isa(x, 'Plan'));
     addParameter(pp, "Progress", false, @validate.logicalScalar);
+    addParameter(pp, "SkipWhenData", false, @validate.logicalScalar);
+    addParameter(pp, "ExogenizeWhenData", false, @islogical);
+    addParameter(pp, "Journal", false);
 end
-%)
 opt = parse(pp, this, inputData, range, varargin{:});
+%}
 
 storeToDatabank = nargout>=1 && validate.databank(inputData);
+journal = Journal(opt.Journal, "@Explanatory/simulate");
 
 %--------------------------------------------------------------------------
 
@@ -92,7 +125,7 @@ if isempty(this)
     outputData = inputData;
     info = struct( );
     info.Blocks = cell.empty(1, 0);
-    info.DynamicStatus = false;
+    info.Period = false;
     return
 end
 %)
@@ -101,6 +134,14 @@ end
 range = double(range);
 numEquations = numel(this);
 nv = countVariants(this);
+if numEquations>1
+    if isscalar(opt.SkipWhenData)
+        opt.SkipWhenData = repmat(opt.SkipWhenData, 1, numEquations);
+    end
+    if isscalar(opt.ExogenizeWhenData)
+        opt.ExogenizeWhenData = repmat(opt.ExogenizeWhenData, 1, numEquations);
+    end
+end
 
 
 %
@@ -111,12 +152,11 @@ nv = countVariants(this);
 lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 outputData = getDataBlock(this, inputData, range, lhsRequired, context);
-numExtendedPeriods = outputData.NumExtendedPeriods;
+numExtdPeriods = outputData.NumExtendedPeriods;
 numPages = outputData.NumPages;
 numRuns = max(nv, numPages);
 lhsNames = [this.LhsName];
 baseRangeColumns = outputData.BaseRangeColumns;
-extendedRange = DateWrapper(outputData.ExtendedRange);
 numBaseRangeColumns = numel(baseRangeColumns);
 
 
@@ -135,7 +175,7 @@ end
 %
 % Extract exogenized points from the Plan
 %
-[isExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( );
+[anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( );
 
 
 hereExpandPagesIfNeeded( );
@@ -146,26 +186,38 @@ hereExpandPagesIfNeeded( );
 %
 this = runtime(this, outputData, "simulate");
 
+
 %
-% Run blazer
+% Run blazer and reorder equations
 % 
-[blocks, ~, humanBlocks, dynamicStatus] = blazer(this, opt.Blazer{:});
+[blocks, ~, humanBlocks, period] = blazer(this, opt.Blazer{:});
 numBlocks = numel(blocks);
+
 
 if opt.Progress
     progress = ProgressBar("@Explanatory/simulate", numBlocks*numBaseRangeColumns*numRuns);
 end
 
-% /////////////////////////////////////////////////////////////////////////
+
+%==========================================================================
 for blk = 1 : numBlocks
+    indent(journal, "Block:"+string(blk));
     if numel(blocks{blk})==1
         eqn = blocks{blk};
         this__ = this(eqn);
-        [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
+        lhsName__ = this__.LhsName;
+        residualName__ = this__.ResidualName;
+        [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
         [plainData, res] = createData4Simulate(this__, outputData, controls);
-        if dynamicStatus(eqn)
-            hereRunRecursive( );
+        if period(eqn)
+            %
+            % Period by period
+            %
+            hereRunPeriodByPeriod( );
         else
+            %
+            % All periods at once
+            %
             hereRunOnce(baseRangeColumns);
         end
         updateDataBlock(this__, outputData, plainData, res);
@@ -173,15 +225,18 @@ for blk = 1 : numBlocks
         for column = baseRangeColumns
             for eqn = reshape(blocks{blk}, 1, [ ])
                 this__ = this(eqn);
-                [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
+                lhsName__ = this__.LhsName;
+                residualName__ = this__.ResidualName;
+                [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
                 [plainData, res] = createData4Simulate(this__, outputData, controls);
                 hereRunOnce(column);
                 updateDataBlock(this__, outputData, plainData, res);
             end
         end
     end
+    deindent(journal);
 end
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 
 
 %
@@ -212,77 +267,89 @@ if storeToDatabank
     % databank; do not include RHS-only variables 
     %
     namesToInclude = [this.LhsName, this.ResidualName];
-    outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], opt);
+    outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], [ ], opt);
 end
 
 if nargout>=2
     info = struct( );
     info.Blocks = humanBlocks;
-    info.DynamicStatus = dynamicStatus;
+    info.Period = period;
 end
 
 return
 
 
-    function [isExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( )
-        if isempty(opt.Plan)
-            isExogenized = false;
+    function [anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( )
+        if isempty(opt.Plan) && ~any(opt.ExogenizeWhenData)
             inxExogenizedAlways = logical.empty(0);
             inxExogenizedWhenData = logical.empty(0);
+        elseif ~isempty(opt.Plan)
+            checkCompatibilityOfPlan(this, range, opt.Plan);
+            inxExogenized = opt.Plan.InxOfAnticipatedExogenized | opt.Plan.InxOfUnanticipatedExogenized;
+            inxExogenizedWhenData = opt.Plan.InxToKeepEndogenousNaN;
+            inxExogenizedAlways = inxExogenized & ~inxExogenizedWhenData;
+        else
+            inxExogenizedWhenData = false(numEquations, numExtdPeriods);
+            inxExogenizedAlways = false(numEquations, numExtdPeriods);
+            inxExogenizedWhenData(opt.ExogenizeWhenData, baseRangeColumns, :) = true;
+        end
+
+        anyExogenized = (nnz(inxExogenizedAlways) + nnz(inxExogenizedWhenData))>0;
+        if ~anyExogenized
             return
         end
-        checkCompatibilityOfPlan(this, range, opt.Plan);
-        inxExogenized = opt.Plan.InxOfAnticipatedExogenized | opt.Plan.InxOfUnanticipatedExogenized;
-        inxExogenizedWhenData = opt.Plan.InxToKeepEndogenousNaN;
-        inxExogenizedAlways = inxExogenized & ~inxExogenizedWhenData;
-        isExogenized = nnz(inxExogenized)>0;
 
         %
-        % If some equations are identities, `inxExogenized` is only
+        % If some equations are identities, `inxExogenized___` is only
         % returned for non-identities; expand the array here and set
-        % `inxExogenized` to `false` for all identities/periods.
+        % `inxExogenized___` to `false` for all identities/periods.
         %
         inxIdentity = [this.IsIdentity];
         if any(inxIdentity)
             tempWhenData = inxExogenizedWhenData;
             tempAlways = inxExogenizedAlways;
-            inxExogenizedWhenData = false(numEquations, numExtendedPeriods, size(tempWhenData, 30));
-            inxExogenizedAlways = false(numEquations, numExtendedPeriods, size(tempAlways, 30));
+            inxExogenizedWhenData = false(numEquations, numExtdPeriods, size(tempWhenData, 3));
+            inxExogenizedAlways = false(numEquations, numExtdPeriods, size(tempAlways, 3));
             inxExogenizedWhenData(~inxIdentity, :, :) = tempWhenData;
             inxExogenizedAlways(~inxIdentity, :, :) = tempAlways;
         end
     end%
 
 
-
-
-    function [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( )
-        inxExogenizedAlways__ = logical.empty(0);
-        inxExogenizedWhenData__ = logical.empty(0);
-        if isExogenized
+    function [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( )
+        if anyExogenized
             inxExogenizedAlways__ = inxExogenizedAlways(eqn, :);
             inxExogenizedWhenData__ = inxExogenizedWhenData(eqn, :);
+            anyExogenized__ = nnz(inxExogenizedAlways__)>0 || nnz(inxExogenizedWhenData__)>0;
+        else
+            inxExogenizedAlways__ = logical.empty(0);
+            inxExogenizedWhenData__ = logical.empty(0);
+            anyExogenized__ = false;
         end
-        isExogenized__ = nnz(inxExogenizedAlways__)>0 || nnz(inxExogenizedWhenData__)>0;
     end%
 
 
 
 
-    function hereRunRecursive( )
+    function hereRunPeriodByPeriod( )
         posLhs__ = this__.DependentTerm.Position;
         inxData__ = ~isnan(plainData(posLhs__, :, :));
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
         end
+        skipWhenData__ = opt.SkipWhenData(eqn);
         for tt = baseRangeColumns
+            if skipWhenData__ && all(inxData__(1, tt, :))
+                continue
+            end
             for vv = 1 : numRuns
-                %
-                % Parameters times RHS terms
-                %
+                indent(journal, "Variant|Page:" + string(vv));
+                if skipWhenData__ && inxData__(1, tt, vv)
+                    continue
+                end
 
-                if isExogenized__ && ( ...
+                if anyExogenized__ && ( ...
                     inxExogenizedAlways__(1, tt) ...
                     || (inxExogenizedWhenData__(1, tt) && inxData__(1, tt, vv)) ...
                 )
@@ -290,16 +357,19 @@ return
                     % Exogenized point, calculate residuals
                     %
                     res(:, tt, vv) = this__.EndogenizeResiduals(plainData, res, parameters__, tt, vv, controls);
+                    write(journal, residualName__+"("+string(tt)+")");
                 else
                     %
                     % Endogenous simulation
                     %
                     plainData(posLhs__, tt, vv) ...
                         = this__.Simulate(plainData, res, parameters__, tt, vv, controls);
+                    write(journal, lhsName__+"("+string(tt)+")");
                 end
                 if opt.Progress
                     increment(progress);
                 end
+                deindent(journal);
             end
         end
     end%
@@ -314,11 +384,16 @@ return
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
         end
+        skipWhenData__ = opt.SkipWhenData(eqn);
         for vv = 1 : numRuns
-            inxColumnsToRun__ = false(1, numExtendedPeriods);
+            indent(journal, "Variant|Page:" + string(vv));
+            inxColumnsToRun__ = false(1, numExtdPeriods);
             inxColumnsToRun__(columnsToRun) = true;
-            inxColumnsToExogenize__ = false(1, numExtendedPeriods);
-            if isExogenized__
+            inxColumnsToExogenize__ = false(1, numExtdPeriods);
+            if skipWhenData__
+                inxColumnsToRun__ = inxColumnsToRun__ & ~inxData__(:, :, vv); 
+            end
+            if anyExogenized__
                 inxColumnsToExogenize__ = ...
                     inxColumnsToRun__ ...
                     & ( inxExogenizedAlways__ | (inxExogenizedWhenData__ & inxData__(:, :, vv)) );
@@ -331,6 +406,7 @@ return
                 tt = find(inxColumnsToExogenize__);
                 res(:, tt, vv) ...
                     = this__.EndogenizeResiduals(plainData, res, parameters__, tt, vv, controls);
+                write(journal, residualName__+"("+join(string(tt), ",")+")");
             end
             if any(inxColumnsToRun__)
                 %
@@ -339,10 +415,12 @@ return
                 tt = find(inxColumnsToRun__);
                 plainData(posLhs__, tt, vv) ...
                     = this__.Simulate(plainData, res, parameters__, tt, vv, controls);
+                write(journal, lhsName__+"("+join(string(tt), ",")+")");
             end
             if opt.Progress
                 increment(progress, numBaseRangeColumns);
             end
+            deindent(journal);
         end
     end%
 
@@ -390,6 +468,20 @@ return
         ];
         throw(exception.Base(thisWarning, opt.NaNSimulation), report);
     end%
+end%
+
+%
+% Local Validators
+%
+
+function locallyValidateInputData(input)
+    if validate.databank(input)
+        return
+    end
+    if isa(input, "shared.DataBlock")
+        return
+    end
+    error("Validation:Failed", "Input value must be a databank");
 end%
 
 
@@ -554,7 +646,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     range = testCase.TestData.Range;
     db = testCase.TestData.Databank;
     db.x(range(1)+(-10:-2)) = rand(9, 1);
-    s = simulate(m, db, range, 'PrependInput=', true);
+    s = simulate(m, db, range, 'PrependInput', true);
     exp_z = s.x{range} + s.a{-1}{range};
     assertEqual(testCase, s.z.Data, exp_z.Data, 'absTol', 1e-12);
     assertEqual(testCase, double(s.x.Start), range(1)-10);
@@ -598,7 +690,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     db.z = Series(0, rand);
     simRange = 1:1000;
     [simDb1, info1] = simulate(xq, db, simRange);
-    [simDb2, info2] = simulate(xq, db, simRange, 'blazer=', {'reorder=', false, 'dynamic=', true});
+    [simDb2, info2] = simulate(xq, db, simRange, 'blazer', {'reorder', false, 'period', true});
     [simDb3, info3] = simulate(xq([1,3,4,5,2]), db, simRange);
     for i = reshape(string(fieldnames(simDb1)), 1, [ ]);
         assertEqual(testCase, simDb1.(i).Data, simDb2.(i).Data, 'absTol', 1e-12);
@@ -620,7 +712,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     %
     p2 = Plan.forExplanatory(xq, 1:10);
     p2 = exogenizeWhenData(p2, 1:10, @all);
-    simDb2 = simulate(xq, db, 1:10, 'Plan=', p2);
+    simDb2 = simulate(xq, db, 1:10, 'Plan', p2);
     %
     assertEqual(testCase, simDb1.c(1:10), db.d{-1}(1:10), 'absTol', 1e-14);
     assertEqual(testCase, simDb2.c(1:8), db.c(1:8), 'absTol', 1e-14);
@@ -649,7 +741,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     [~, ~, listExogenous] = lookup(xq, ':exogenous');
     p2 = Plan.forExplanatory(xq, 1:10);
     p2 = exogenizeWhenData(p2, 1:10, listExogenous);
-    simDb2 = simulate(xq, db, 1:10, 'Plan=', p2);
+    simDb2 = simulate(xq, db, 1:10, 'Plan', p2);
     %
     assertEqual(testCase, simDb1.c(1:10), db.d{-1}(1:10), 'absTol', 1e-14);
     assertEqual(testCase, simDb2.c(1:10), db.d{-1}(1:10), 'absTol', 1e-14);
@@ -684,7 +776,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Runtime Ifnan
     xq = Explanatory.fromString([
         "b = ifnan(0.8*c{-1}, z);"
-    ], "ControlNames=", "z");
+    ], "ControlNames", "z");
     db = struct( );
     db.c = Series(qq(2000,4), rand(20,1));
     db.c(qq(2001,4))=NaN;
@@ -721,7 +813,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     assertEqual(testCase, simDb2.y(1:10), db.a(1:10)+sin(db.b(1:10))+db.res_y(1:10), "absTol", 1e-14);
     assertEqual(testCase, simDb2.res_y(1:10), db.res_y(1:10));
     % [^1]: res_x is carried over from the input db but unused
-
 
 ##### SOURCE END #####
 %}

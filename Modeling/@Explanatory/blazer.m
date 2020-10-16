@@ -1,10 +1,9 @@
-function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, varargin)
 % blazer  Determine the order of execution within an Explanatory array
 %{
 % ## Syntax ##
 %
 %
-%     [blocks, variables, equations, dynamic] = function(xq, ...)
+%     [blocks, variables, equations, period] = function(xq, ...)
 %
 %
 % ## Input Arguments ##
@@ -38,11 +37,11 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 % contain a string array with the equations. 
 %
 %
-% __`dynamic`__ [ logical ]
+% __`period`__ [ logical ]
 % >
 % Logical array indicating whether the corresponding equation will be
 % evaluated as a static assignment (all periods at once) or iterated period
-% by period; the `dynamic` indicator is only valid for equations that are
+% by period; the `period` indicator is only valid for equations that are
 % run individually, i.e. not as part of a multiple-equation block;
 % multiple-equation blocks are always interate period by period.
 %
@@ -50,11 +49,11 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 % ## Options ##
 %
 %
-% __`Dynamic=@auto`__ [ `@auto` | `true` | `false` ]
+% __`Period=@auto`__ [ `@auto` | `true` | `false` ]
 % >
-% Mode of execution: `Dynamic=true` means the equations will be iterated
-% period by period; `Dynamic=false` means the equations will be evaluated
-% as a static assignment; `Dynamic=@auto` means the model of execution will
+% Mode of execution: `Period=true` means the equations will be iterated
+% period by period; `Period=false` means the equations will be evaluated
+% as a static assignment; `Period=@auto` means the model of execution will
 % be determined for each equation from its structure.
 %
 %
@@ -79,22 +78,35 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+% >=R2019b
+function [blocks, variableBlocks, equationBlocks, period] = blazer(this, opt)
 
-%( Input parser
+arguments
+    this Explanatory
+    
+    opt.Reorder (1, 1) {mustBeA(opt.Reorder, "logical")} = true
+    opt.SaveAs (1, 1) string = ""
+    opt.Period (1, 1) = @auto
+end
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [blocks, variableBlocks, equationBlocks, period] = blazer(this, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory.blazer');
-    pp.KeepUnmatched = true;
-
     addRequired(pp, 'equations', @(x) isa(x, 'Explanatory'));
 
     addParameter(pp, 'Reorder', true, @(x) validate.logicalScalar(x) || (iscell(x) && all(cellfun(@(y) isnumeric(y), x))));
-    addParameter(pp, {'SaveAs', 'SaveBlazerAs'}, [ ], @(x) isempty(x) || validate.string(x));
-    addParameter(pp, 'Dynamic', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(pp, "SaveAs", "", @(x) isempty(x) || validate.string(x));
+    addParameter(pp, 'Period', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
-%)
 opt = parse(pp, this, varargin{:});
+% <=R2019a
+%}
 
 %--------------------------------------------------------------------------
 
@@ -114,7 +126,7 @@ if islogical(opt.Reorder)
     if opt.Reorder
         blocks = hereReorderGlobally( );
     else
-        if isequal(opt.Dynamic, @auto) || isequal(opt.Dynamic, true)
+        if isequal(opt.Period, @auto) || isequal(opt.Period, true)
             blocks = {1 : numEquations};
         else
             blocks = num2cell(1 : numEquations);
@@ -131,23 +143,23 @@ numBlocks = numel(blocks);
 
 
 %
-% Determined the dynamic status of single-equation blocks
+% Determined the period status of single-equation blocks
 %
-if isequal(opt.Dynamic, @auto)
-    dynamicStatus = true(size(this));
+if isequal(opt.Period, @auto)
+    period = true(size(this));
 else
-    dynamicStatus = repmat(opt.Dynamic, size(this));
+    period = repmat(opt.Period, size(this));
 end
-if isequal(opt.Dynamic, @auto)
+if isequal(opt.Period, @auto)
     inxSingletonBlocks = cellfun('length', blocks)==1;
     if any(inxSingletonBlocks)
-        dynamicStatus(inxSingletonBlocks) = [this(inxSingletonBlocks).NeedsIterate];
+        period(inxSingletonBlocks) = [this(inxSingletonBlocks).NeedsIterate];
     end
 end
 
 [variableBlocks, equationBlocks] = hereGetHumanBlocks( );
 
-if ~isempty(opt.SaveAs) && string(opt.SaveAs)~=""
+if isscalar(opt.SaveAs) && strlength(opt.SaveAs)>0
     hereSaveAs( );
 end
 
@@ -224,7 +236,7 @@ return
         for i = 1 : numBlocks
             numEquationsInBlock = numel(blocks{i});
             if numEquationsInBlock==1
-                if dynamicStatus(blocks{i})
+                if period(blocks{i})
                     type = solver.block.Type.ITERATE_TIME;
                 else
                     type = solver.block.Type.ASSIGN;

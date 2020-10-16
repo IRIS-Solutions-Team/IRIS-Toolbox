@@ -64,7 +64,16 @@ return
                 textual.abbreviate(EQUATIONS_KEYWORD + reportBlock, "MaxLength=", 30)
             ];
         end
+
+        %
+        % Split the block into individual equations by semicolons; replace
+        % semicolons within double quotes with alternative (full-widht)
+        % unicode semicolons first, return them back afterwards
+        %
+        block = locallyReplaceSemicolons(block);
         equationStrings__ = strip(split(block, ";"));
+        equationStrings__ = locallyReturnSemicolons(equationStrings__);
+
         equationStrings__(equationStrings__=="" | equationStrings__==";") = [ ];
         numEquations__ = numel(equationStrings__);
         if numEquations__==0
@@ -128,6 +137,31 @@ function [block, attributes, status] = locallyExtractBlockAttributes(block)
         status = 1;
         return
     end
+    %)
+end%
+
+
+function block = locallyReplaceSemicolons(block)
+    %(
+    altSemicolon = char(65307);
+    block = char(block);
+    posQuotes = strfind(block, """");
+    level = zeros(1, strlength(block));
+    level(posQuotes(1:2:end)) = 1;
+    level(posQuotes(2:2:end)) = -1;
+    level = cumsum(level);
+    posSemicolons = strfind(block, ";");
+    posSemicolons(level(posSemicolons)==0) = [];
+    block(posSemicolons) = altSemicolon;
+    block = string(block);
+    %)
+end%
+
+
+function equationStrings = locallyReturnSemicolons(equationStrings)
+    %(
+    altSemicolon = char(65307);
+    equationStrings = replace(equationStrings, altSemicolon, ";");
     %)
 end%
 
