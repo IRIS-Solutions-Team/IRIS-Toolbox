@@ -10,34 +10,39 @@ end
 % R2019b
 %]
 
-allKeys = keys(inputDb);
-
 isNameFilter = ~isequal(options.Name, @all);
 isValueFilter = ~isequal(options.Value, @all);
 
+allKeys = reshape(string(fieldnames(inputDb)), 1, [ ]);
 if ~isNameFilter && ~isValueFilter
     outputNames = allKeys;
     return
 end
 
-inxPassed = logical.empty(1, 0);
-for k = allKeys
-   passed = true;
-   if isNameFilter
-       passed = passed && isequal(options.Name(k), true);
-   end
-   if passed && isValueFilter
-       if isa(inputDb, "Dictionary")
-           value = retrieve(inputDb, k);
-       else
-           value = inputDb.(k);
-       end
-       passed = passed && isequal(options.Value(value), true);
-   end
-   inxPassed(end+1) = passed;
+if isNameFilter
+    inxName = logical.empty(1, 0);
+    for n = allKeys
+        inxName(end+1) = options.Name(n);
+    end
+else
+    inxName = true(size(allKeys));
 end
 
-outputNames = allKeys(inxPassed);
+if isValueFilter
+    inxValue = logical.empty(1, 0);
+    for n = allKeys
+       if isa(inputDb, "Dictionary")
+           value = retrieve(inputDb, n);
+       else
+           value = inputDb.(n);
+       end
+       inxValue(end+1) = isequal(options.Value(value), true);
+    end
+else
+    inxValue = true(size(allKeys));
+end
+
+outputNames = allKeys(inxName & inxValue);
 
 end%
 
