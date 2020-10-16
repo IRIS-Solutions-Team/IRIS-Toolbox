@@ -15,6 +15,7 @@ classdef ExcelSheet ...
         DataSkip (1, 1) double {mustBePositive, mustBeFinite, mustBeInteger} = 1
         Description = NaN
         NamesLocation = NaN
+        CommentsLocation = NaN
         Dates (1, :) DateWrapper = DateWrapper.NaD
         InsertEmpty = [0, 0]
     end
@@ -340,6 +341,11 @@ classdef ExcelSheet ...
         end%
 
 
+        function this = set.CommentsLocation(this, value)
+            this.CommentsLocation = setAnchor(this, value);
+        end%
+
+
         function anchor = setAnchor(this, value)
             if strcmpi(this.Orientation, "Row")
                 anchor = ExcelReference.decodeColumn(value);
@@ -375,7 +381,7 @@ end
 %
 
 function flag = locallyValidateOrientation(input)
-    flag = strcmpi(input, ""Row"") || strcmpi(input, ""Column"");
+    flag = strcmpi(input, "Row") || strcmpi(input, "Column");
     if flag
         return
     end

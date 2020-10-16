@@ -28,13 +28,14 @@ classdef Explanatory ...
         FittedNamePattern (1, 2) string = ["fit_", ""]
 
 
+% LhsTransformNamePattern  Two-element string array with a prefix and a suffix
+% attached to the transformed LHS variables used in regressions
+        LhsTransformNamePattern (1, 2) string = ["lhs_", ""]
+
+
 % ResidualModel  Armani or ParameterizedArmani object specifying an ARMA
 % model for residuals
         ResidualModel = [ ]
-
-
-% ResidualModelParameters  Parameters in residual model
-        ResidualModelParameters (1, :, :) double = double.empty(1, 0, 1)
     end
 
 
@@ -82,8 +83,10 @@ classdef Explanatory ...
         ExplanatoryTerms (1, :) regression.Term = regression.Term.empty(1, 0)
 
 
-        Statistics (1, 1) struct = struct( 'VarResiduals', NaN, ...
-                                           'CovParameters', double.empty(0, 0, 1) )
+        Statistics (1, 1) struct = struct( ...
+            "VarResiduals", NaN ...
+            , "CovParameters", double.empty(0, 0, 1) ...
+        )
 
         Runtime = struct( )
     end
@@ -93,7 +96,8 @@ classdef Explanatory ...
 
     properties (Constant)
         VARIABLE_WITH_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(\{[^\}]*\})"
-        VARIABLE_NO_SHIFT   = "(?<!@)(\<[A-Za-z]\w*\>)(?!\()" 
+        VARIABLE_NO_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(?!\()" 
+        USERDATA_PREFIX = "#"
     end
 
 
@@ -106,6 +110,7 @@ classdef Explanatory ...
         LhsName
         ResidualName
         FittedName
+        LhsTransformName
 
 % PlainDataNames  List of plain names in a single Explanatory object
 %
@@ -154,6 +159,7 @@ classdef Explanatory ...
         varargout = alter(varargin)
         varargout = blazer(varargin)
         varargout = collectAllNames(varargin)
+        varargout = collectUserData(varargin)
         varargout = collectControlNames(varargin)
         varargout = collectLhsNames(varargin)
         varargout = collectRhsNames(varargin)
@@ -378,6 +384,31 @@ classdef Explanatory ...
 
 
     methods
+        function this = set.InputString(this, value)
+            value = string(value);
+            if ~endsWith(value, ";")
+                value = value + ";";
+            end
+            this.InputString = value;
+        end%
+
+
+        function this = set.Label(this, value)
+            if contains(value, this.USERDATA_PREFIX)
+                userDataString = this.USERDATA_PREFIX + extractAfter(value, this.USERDATA_PREFIX);
+                value = extractBefore(value, this.USERDATA_PREFIX);
+                if ~endsWith(userDataString, ";")
+                    userDataString = userDataString + ";";
+                end
+                userData__ = struct();
+                userDataString = replace(userDataString, this.USERDATA_PREFIX, "userData__.");
+                eval(userDataString);
+                this.UserData = userData__;
+            end
+            this.Label = value;
+        end%
+
+
         function this = set.VariableNames(this, value)
             if isempty(value)
                 this.VariableNames = string.empty(1, 0);
@@ -491,17 +522,14 @@ classdef Explanatory ...
             nv = countVariants(this);
             if isempty(value)
                 this.ResidualModel = [ ];
-                this.ResidualModelParameters = double.empty(1, 0, nv);
                 return
             end
             if isa(value, "ParameterizedArmani")
                 this.ResidualModel = value;
-                this.ResidualModelParameters = nan(1, value.NumParameters, nv);
                 return
             end
             if isa(value, "Armani")
                 this.ResidualModel = value;
-                this.ResidualModelParameters = double.empty(1, 0, nv);
                 return
             end
             exception.error([
@@ -579,8 +607,6 @@ classdef Explanatory ...
         end%
 
 
-
-
         function value = get.FittedName(this)
             if this.IsIdentity
                 value = string.empty(1, 0);
@@ -590,13 +616,18 @@ classdef Explanatory ...
         end%
 
 
+        function value = get.LhsTransformName(this)
+            if this.IsIdentity
+                value = string.empty(1, 0);
+                return
+            end
+            value = this.LhsTransformNamePattern(1) + this.LhsName + this.LhsTransformNamePattern(2);
+        end%
 
 
         function value = get.NumExplanatoryTerms(this)
             value = numel(this.ExplanatoryTerms);
         end%
-
-
 
 
         function value = get.NumParameters(this)
@@ -621,8 +652,9 @@ classdef Explanatory ...
 
 
         function [inputString, label] = extractLabel(inputString)
+            %(
             label = "";
-            inputString = strtrim(inputString);
+            inputString = strip(inputString);
             pos = strfind(inputString, '"');
             if numel(pos)<2 || pos(1)~=1
                 pos = strfind(inputString, "'");
@@ -638,13 +670,15 @@ classdef Explanatory ...
                 inputString, pos(1), pos(2), ...
                 'Boundaries', 'Inclusive' ...
             );
-            label = string(label);
+            label = strip(string(label));
+            %)
         end%
 
 
 
 
         function [inputString, attributes] = extractAttributes(inputString)
+            %(
             attributes = string.empty(1, 0);
             inputString = strtrim(inputString);
             if ~startsWith(inputString, ':')
@@ -659,6 +693,36 @@ classdef Explanatory ...
             attributes = reshape(attributes, 1, [ ]);
             inputString = eraseBetween(inputString, start, finish, 'Boundaries', 'Inclusive');
             inputString = strtrim(inputString);
+            %)
+        end%
+
+
+        function validateBlackout(input, this)
+            %(
+            if iscell(input)
+                try
+                    input = [input{:}];
+                catch
+                    input = NaN;
+                end
+            end
+            numEquations = numel(this);
+            if isnumeric(input) && ~any(isnan(input(:))) ...
+                    && (isscalar(input) || numel(input)==numEquations)
+                return
+            end
+            error("Validation:Failed", "Input value must be a scalar date or an array of dates the same size as the Explanatory array");
+            %)
+        end%
+
+
+        function blackout = resolveBlackout(blackout)
+            %(
+            if iscell(blackout)
+                blackout = [blackout{:}];
+            end
+            blackout = reshape(double(blackout), 1, []);
+            %)
         end%
     end
 end

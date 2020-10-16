@@ -1,4 +1,3 @@
-function [variableNames, residualNames, fittedNames, controlNames] = collectAllNames(this)
 % collectAllNames  Collect all variable names, error names and fitted names from all equations
 %{
 % ## Syntax ##
@@ -48,7 +47,7 @@ function [variableNames, residualNames, fittedNames, controlNames] = collectAllN
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function [variableNames, residualNames, fittedNames, controlNames] = collectAllNames(this)
 
 variableNames = unique([this.VariableNames], 'stable');
 if nargout<=1

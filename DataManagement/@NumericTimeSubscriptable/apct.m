@@ -1,4 +1,3 @@
-function this = apct(this, varargin)
 % apct  Annualized percent rate of change
 %
 % __Syntax__
@@ -31,9 +30,9 @@ function this = apct(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function this = apct(this, varargin)
 
-this = pct(this, varargin{:}, 'OutputFreq=', Frequency.YEARLY);
+this = pct(this, varargin{:}, "annualize", true);
 
 end%
 

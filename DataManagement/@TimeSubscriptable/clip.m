@@ -1,4 +1,3 @@
-function [this, newStart, newEnd] = clip(this, newStart, varargin)
 % clip  Clip time series range
 %{
 % ## Syntax ##
@@ -43,6 +42,28 @@ function [this, newStart, newEnd] = clip(this, newStart, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%[
+function [this, newStart, newEnd] = clip(this, newStart, newEnd)
+
+arguments
+    this TimeSubscriptable
+    newStart {validate.dateInput(newStart)}
+    newEnd {mustBeScalarOrEmpty, validate.dateInput(newEnd)} = []
+end
+
+newStart = double(newStart);
+newEnd = double(newEnd);
+if all(isinf(newStart)) && all(isinf(newEnd))
+    return
+end
+%]
+% >=R2019b
+
+% <=R2019a
+%{
+function [this, newStart, newEnd] = clip(this, newStart, varargin)
+
 %
 % Fast track for `x = clip(x, Inf)`
 %
@@ -58,7 +79,11 @@ if isempty(pp)
     addOptional(pp, 'newEnd', [ ], @(x) isempty(x) || (DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf)));
 end
 parse(pp, this, newStart, varargin{:});
-newEnd = pp.Results.newEnd;
+newStart = double(newStart);
+newEnd = double(pp.Results.newEnd);
+%}
+% <=R2019a
+
 if isempty(newEnd)
     newEnd = newStart(end);
 end
@@ -66,38 +91,50 @@ newStart = newStart(1);
 
 %--------------------------------------------------------------------------
 
-if isnan(this.Start) && isempty(this.Data)
+if isa(this.Start, "DateWrapper")
+    outputDateFunc = @DateWrapper;
+else
+    outputDateFunc = @double;
+end
+
+thisStart = double(this.Start);
+if isnan(thisStart) && isempty(this.Data)
+    newStart = outputDateFunc(thisStart);
+    newEnd = newStart;
     return
 end
 
 if isequaln(newStart, NaN) || isequaln(newEnd, NaN)
     this = emptyData(this);
+    newStart = outputDateFunc(newStart);
+    newEnd = outputDateFunc(newEnd);
     return
 end
 
+thisEnd = dater.plus(thisStart, size(this.Data, 1)-1);
 isStartInf = isequal(newStart, -Inf) || isequal(newStart, Inf);
 isEndInf = isequal(newEnd, Inf);
 if isStartInf && isEndInf
     if nargout>1
-        newStart = this.Start;
-        newEnd = this.End;
+        newStart = outputDateFunc(thisStart);
+        newEnd = outputDateFunc(thisEnd);
     end
     return
 end
 
-serialXStart = round(this.Start);
-serialXEnd = round(serialXStart + size(this.Data, 1) - 1);
-freqOfX = dater.getFrequency(this.Start);
+serialThisStart = floor(thisStart);
+serialThisEnd = floor(thisEnd);
+freqThis = dater.getFrequency(thisStart);
 
 serialNewStart = getSerialNewStart( );
 serialNewEnd = getSerialNewEnd( );
 
 % Return immediately the input time series if the new start is before the
 % input start and the new end is after the input end
-if serialNewStart<=serialXStart && serialNewEnd>=serialXEnd
+if serialNewStart<=serialThisStart && serialNewEnd>=serialThisEnd
     if nargout>1
-        newStart = this.Start;
-        newEnd = this.End;
+        newStart = outputDateFunc(thisStart);
+        newEnd = outputDateFunc(thisEnd);
     end
     return
 end
@@ -107,32 +144,32 @@ end
 % * both the new start and end are before the start of the series
 % * both the new start and end are after the end of the series
 if serialNewStart>serialNewEnd ...
-   || (serialNewStart<serialXStart && serialNewEnd<serialXStart) ...
-   || (serialNewStart>serialXEnd && serialNewEnd>serialXEnd)
+   || (serialNewStart<serialThisStart && serialNewEnd<serialThisStart) ...
+   || (serialNewStart>serialThisEnd && serialNewEnd>serialThisEnd)
     this = this.empty(this);
     if nargout>1
-        newStart = this.Start;
-        newENd = this.End;
+        newStart = outputDateFunc(thisStart);
+        newENd = outputDateFunc(thisEnd);
     end
     return
 end
 
-sizeOfData = size(this.Data);
-ndimsOfData = ndims(this.Data);
-if serialNewStart>serialXStart
-    numRowsToRemove = round(serialNewStart - serialXStart);
+sizeData = size(this.Data);
+ndimsData = ndims(this.Data);
+if serialNewStart>serialThisStart
+    numRowsToRemove = round(serialNewStart - serialThisStart);
     this.Data(1:numRowsToRemove, :) = [ ];
-    this.Start = DateWrapper.fromSerial(freqOfX, serialNewStart);
+    this.Start = outputDateFunc(dater.fromSerial(freqThis, serialNewStart));
 end
 
-if serialNewEnd<serialXEnd
-    numRowsToRemove = round(serialXEnd - serialNewEnd);
+if serialNewEnd<serialThisEnd
+    numRowsToRemove = round(serialThisEnd - serialNewEnd);
     this.Data(end-numRowsToRemove+1:end, :) = [ ];
 end
 
-if ndimsOfData>2
-    sizeOfData(1) = size(this.Data, 1);
-    this.Data = reshape(this.Data, sizeOfData);
+if ndimsData>2
+    sizeData(1) = size(this.Data, 1);
+    this.Data = reshape(this.Data, sizeData);
 end
 
 this = trim(this);
@@ -142,28 +179,28 @@ return
 
     function serialNewStart = getSerialNewStart( )
         if isStartInf
-            serialNewStart = serialXStart;
+            serialNewStart = serialThisStart;
         else
-            freqOfNewStart = dater.getFrequency(newStart);
-            if freqOfNewStart~=freqOfX
+            freqNewStart = dater.getFrequency(newStart);
+            if freqNewStart~=freqThis
                 throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
-                       Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewStart) );
+                       Frequency.toChar(freqThis), Frequency.toChar(freqNewStart) );
             end
-            serialNewStart = round(newStart);
+            serialNewStart = floor(newStart);
         end
     end%
 
 
     function serialNewEnd = getSerialNewEnd( )
         if isEndInf
-            serialNewEnd = serialXEnd;
+            serialNewEnd = serialThisEnd;
         else
-            freqOfNewEnd = dater.getFrequency(newEnd);
-            if freqOfNewEnd~=freqOfX
+            freqNewEnd = dater.getFrequency(newEnd);
+            if freqNewEnd~=freqThis
                 throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
-                       Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewEnd) );
+                       Frequency.toChar(freqThis), Frequency.toChar(freqNewEnd) );
             end
-            serialNewEnd = round(newEnd);
+            serialNewEnd = floor(newEnd);
         end
     end%
 end%

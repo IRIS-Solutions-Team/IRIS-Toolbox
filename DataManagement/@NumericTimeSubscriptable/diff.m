@@ -44,17 +44,24 @@
 
 function this = diff(this, varargin)
 
-[shift, power] = DateWrapper.resolveShift(this.RangeAsNumeric, varargin{:});
+if ~isempty(varargin) && isnumeric(varargin{1}) && numel(varargin{1})>1
+    for shift = reshape(varargin{1}, 1, [ ]);
+        this = diff(this, shift, varargin{2:end});
+    end
+    return
+end
 
-%--------------------------------------------------------------------------
+[shift, power] = dater.resolveShift(getRangeAsNumeric(this), varargin{:});
 
 if isempty(this.Data)
     return
 end
 
+
 %===========================================================================
 this = unop(@series.change, this, 0, @minus, shift);
 %===========================================================================
+
 
 if power~=1
     this.Data = this.Data * power;

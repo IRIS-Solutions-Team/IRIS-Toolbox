@@ -1,4 +1,3 @@
-function args = splitArguments(text) 
 % splitArguments  Split text into input arguments
 %
 % Backend IRIS function
@@ -7,33 +6,36 @@ function args = splitArguments(text)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('textual.splitArguments');
-    INPUT_PARSER.addRequired('Text', @(x) ischar(x) && isvector(x) && ~isempty(x) && x(1)=='(' && x(end)==')');
-end
-INPUT_PARSER.parse(text);
+function args = splitArguments(text)
 
 %--------------------------------------------------------------------------
 
-level = zeros(size(text), 'int64');
+convertToString = isstring(text);
+text = char(text);
+level = zeros(size(text));
 level(text=='(' | text=='[' | text=='{') = 1;
 level(text==')' | text==']' | text=='}') = -1;
 level = cumsum(level);
 
-assert( ...
-    level(end)==0, ...
-    'textual:splitArguments', ...
-    'Unmatched bracket in input expression.' ...
-);
+if level(end)~=0
+    exception.error([
+        "SplitArguments:UnmatchedBracket"
+        "Unmatched parentheses or brackets in this expression: %s "
+    ], text);
+end
 
-indexDelimiters = level==1 & text==',';
-numDelimiters = nnz(indexDelimiters);
+inxDelims = level==0 & text==',';
+numDelimiters = nnz(inxDelims);
 args = cell(1, numDelimiters+1);
-pos = [1, find(indexDelimiters), length(text)];
-for i = 1 : length(pos)-1
+pos = [0, find(inxDelims), numel(text)+1];
+for i = 1 : numel(pos)-1
     range = pos(i)+1 : pos(i+1)-1;
     args{i} = text(range);
 end
 
+if convertToString
+    args = string(args);
 end
+
+end%
+

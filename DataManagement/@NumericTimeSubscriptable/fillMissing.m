@@ -22,10 +22,12 @@
 %>    `inputSeries` and filled with values determined by the `method`.
 %
 %
-% __`method`__ [ string ]
+% __`method`__ [ string | Series ]
 %
-%>    String specifying the method to obtain missing observations; the
-%>    `method` can be any of the methods valid in the built-in
+%>    String specifying the method to obtain missing observations, or a
+%>    time series with replacement values. 
+%>     
+%>    The `method` can be any of the methods valid in the built-in
 %>    `fillmissing()` function (see `help fillmissing`) or one of the
 %>    regression methods provided by IrisT: `"regressConstant"`,
 %>    `"regressTrend"` or `"regressLogTrend"` for a regression on a
@@ -45,7 +47,7 @@
 % __`outputSeries`__ [ ]
 %
 %>    Output time series whose missing observations found within the
-%>    `range` have been filled with values determined by the `method`.
+%>    `range` have been filled with values given by the `method`.
 %
 %
 % Description
@@ -60,11 +62,28 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-function [this, datesMissing] = fillMissing(this, range, varargin)
+% >=R2019b
+%[
+function [this, datesMissing] = fillMissing(this, range, method)
+
+arguments
+    this NumericTimeSubscriptable
+    range {validate.rangeInput(range)}
+end
+
+arguments (Repeating)
+    method
+end
+%]
+% >=R2019b
 
 if isempty(this.Data)
     return
 end
+
+% <=R2019a
+%{
+function [this, datesMissing] = fillMissing(this, range, varargin)
 
 %( Input parser
 persistent pp
@@ -76,8 +95,9 @@ if isempty(pp)
 end
 %)
 opt = parse(pp, this, range, varargin);
-
-%-------------------------------------------------------------------------- 
+method = pp.Results.method;
+%}
+% <=R2019a
 
 [startDate, endDate, inxRange] = locallyResolveDates(this, range);
 data = getDataFromTo(this, startDate, endDate);
@@ -96,7 +116,12 @@ if ~any(inxMissing(:))
     return
 end
 
-data = numeric.fillMissing(data, inxMissing, varargin{:});
+if numel(method)==1 && isa(method{1}, "NumericTimeSubscriptable")
+    data = locallyReplaceData(data, startDate, endDate, inxMissing, method{1});
+else
+    data = numeric.fillMissing(data, inxMissing, method{:});
+end
+
 this = fill(this, data, startDate);
 
 end%
@@ -130,5 +155,22 @@ function [startDate, endDate, inxRange] = locallyResolveDates(this, range)
     posStartMissing = round(startMissing - startDate + 1);
     posEndMissing = round(endMissing - startDate + 1);
     inxRange(posStartMissing:posEndMissing) = true;
+end%
+
+
+function data = locallyReplaceData(data, startDate, endDate, inxMissing, method)
+    replaceWith = getDataFromTo(method, startDate, endDate);
+    sizeData = size(data);
+    sizeReplaceWith = size(replaceWith);
+    if prod(sizeData(2:end))>1 && prod(sizeReplaceWith(2:end))==1
+        replaceWith = repmat(replaceWith, [1, sizeData(2:end)]);
+    end
+    if ~isequal(size(replaceWith), sizeData)
+        exception.error([
+            "Inconsistent dimensions of the input time series "
+            "and the replacement time series."
+        ]);
+    end
+    data(inxMissing) = replaceWith(inxMissing);
 end%
 

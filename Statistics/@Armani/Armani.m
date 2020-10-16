@@ -11,6 +11,9 @@ classdef Armani
 
 % Tolerance  Tolerance level for zeros in the AR and MA polynomials
         Tolerance (1, 1) double = 1e-14
+
+% Parameters  Empty array
+        Parameters (1, :, :) double = double.empty(1, 0, 1)
     end
 
 
@@ -124,6 +127,25 @@ classdef Armani
         end%
 
 
+        function numVariants = countVariants(this)
+            numVariants = size(this.Parameters, 3);
+        end%
+
+
+        function this = alter(this, new, reset)
+            numVariants = countVariants(this);
+            if new<numVariants
+                this.Parameters = this.Parameters(1, :, 1:new);
+            elseif new>numVariants
+                this.Parameters(1, :, end+1:new) ...
+                    = repmat(this.Parameters(1, :, end), 1, 1, new-numVariants);
+            end
+            if ~isempty(this.Parameters) && nargin>=3 && isequaln(reset, NaN)
+                this.Parameters(1, :, :) = NaN;
+            end
+        end%
+
+
         function value = get.IsIdentity(this)
             value = isequal(this.AR, 1) && isequal(this.MA, 1);
         end%
@@ -131,7 +153,8 @@ classdef Armani
 
 
     methods (Static)
-        function this = fromParameterizedArmani(pa, gamma, varargin)
+        function this = fromParameterizedArmani(pa, variant, varargin)
+            gamma = pa.Parameters(1, :, variant);
             pa = update(pa, gamma);
             this = Armani(pa.AR, pa.MA, varargin{:});
         end%

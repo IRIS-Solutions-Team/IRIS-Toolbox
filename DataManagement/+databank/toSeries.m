@@ -121,7 +121,11 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     d1.f = Series(qq(2), rand(40,2,3));
     d1.x = "a";
     d1.y = 1;
-    d2 = databank.copy(d1, "sourceNames", ["a", "b", "x", "y"]);
+    d2 = struct();
+    d2.a = d1.a;
+    d2.b = d1.b;
+    d2.x = d1.x;
+    d2.y = d1.y;
 
 
 %% Test Plain Vanilla

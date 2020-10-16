@@ -82,7 +82,7 @@
 
 function this = roc(this, varargin)
 
-[shift, power] = DateWrapper.resolveShift(this.RangeAsNumeric, varargin{:});
+[shift, power] = dater.resolveShift(getRangeAsNumeric(this), varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -91,9 +91,9 @@ if isempty(this.Data)
 end
 
 
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 this = unop(@series.change, this, 0, @rdivide, shift);
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 
 
 if power~=1

@@ -142,46 +142,109 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [outputDb, appliedToNames, newNames] = apply(inputDb, func, varargin)
+function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
 
-%--------------------------------------------------------------------------
+% >=R2019b
+%[
+arguments
+    inputDb (1, 1) {locallyValidateInputDbOrFunc}
+    func (1, 1) {locallyValidateInputDbOrFunc}
+
+    opt.StartsWith {mustBeTextScalar} = ""
+    opt.HasPrefix {mustBeTextScalar} = ""
+
+    opt.EndsWith {mustBeTextScalar} = ""
+    opt.HasSuffix {mustBeTextScalar} = ""
+
+    opt.AddToStart {mustBeTextScalar} = ""
+    opt.AddPrefix {mustBeTextScalar} = ""
+
+    opt.AddToEnd {mustBeTextScalar} = ""
+    opt.AddSuffix {mustBeTextScalar} = ""
+
+    opt.RemoveStart (1, 1) {mustBeA(opt.RemoveStart, "logical")} = false
+    opt.RemovePrefix (1, 1) {mustBeA(opt.RemovePrefix, "logical")} = false
+
+    opt.RemoveEnd (1, 1) {mustBeA(opt.RemoveEnd, "logical")} = false
+    opt.RemoveSuffix (1, 1) {mustBeA(opt.RemoveSuffix, "logical")} = false
+
+    opt.RemoveSource (1, 1) {mustBeA(opt.RemoveSource, "logical")} = false
+    opt.SourceNames {locallyValidateNames} = @all
+    opt.TargetNames {locallyValidateNames} = @default
+    opt.AddToDatabank {locallyValidateDb} = @default
+    opt.TargetDb {locallyValidateDb} = @default
+end
+
+if strlength(opt.HasPrefix)>0
+    opt.StartsWith = opt.HasPrefix;
+end
+
+if strlength(opt.HasSuffix)>0
+    opt.EndsWith = opt.HasSuffix;
+end
+
+if strlength(opt.AddPrefix)>0
+    opt.AddToStart = opt.AddPrefix;
+end
+
+if strlength(opt.AddSuffix)>0
+    opt.AddToEnd = opt.AddSuffix;
+end
+
+if opt.RemovePrefix
+    opt.RemoveStart = opt.RemovePrefix;
+end
+
+if opt.RemoveSuffix
+    opt.RemoveEnd = opt.RemoveSuffix;
+end
+
+if ~isequal(opt.TargetDb, @default)
+    opt.AddToDatabank = opt.TargetDb;
+end
+%]
+% >=R2019b
 
 if validate.databank(func)
     [func, inputDb] = deal(inputDb, func);
 end
 
-%( Input parser
+% <=R2019a
+%{
+function [outputDb, appliedToNames, newNames] = apply(inputDb, func, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.apply');
     pp.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
     pp.addRequired('InputDatabank', @validate.databank);
 
-    pp.addParameter({'HasPrefix', 'StartsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'AddPrefix', 'AddToStart', 'Prepend'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'AddSuffix', 'AddToEnd', 'Append'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
-    pp.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
+    pp.addParameter({'StartsWith', 'HasPrefix'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'EndsWith', 'HasSuffix'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'AddToStart', 'AddPrefix', 'Prepend'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'AddToEnd', 'AddSuffix', 'Append'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'RemoveStart', 'RemovePrefix'}, false, @validate.logicalScalar);
+    pp.addParameter({'RemoveEnd', 'RemoveSuffix'}, false, @validate.logicalScalar);
     pp.addParameter('RemoveSource', false, @validate.logicalScalar);
     pp.addParameter({'SourceNames', 'Names', 'Fields', 'InputNames'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
     pp.addParameter({'TargetNames', 'OutputNames'}, @default, @(x) isequal(x, @default) || validate.list(x));
-    pp.addParameter('AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
+    pp.addParameter({'AddToDatabank', 'TargetDb'}, @default, @(x) isequal(x, @default) || validate.databank(x));
 end
-%)
 opt = pp.parse(func, inputDb, varargin{:});
+%}
+% <=R2019a
 
-if ~isequal(opt.SourceNames, @all)
+if ~isa(opt.SourceNames, "function_handle")
     if isa(opt.SourceNames, 'Rxp')
         opt.SourceNames = databank.filter(inputDb, 'Name=', opt.SourceNames);
     end
     opt.SourceNames = cellstr(opt.SourceNames);
 end
 
-opt.HasPrefix = char(opt.HasPrefix);
-opt.HasSuffix = char(opt.HasSuffix);
-opt.AddPrefix = char(opt.AddPrefix);
-opt.AddSuffix = char(opt.AddSuffix);
+opt.StartsWith = char(opt.StartsWith);
+opt.EndsWith = char(opt.EndsWith);
+opt.AddToStart = char(opt.AddToStart);
+opt.AddToEnd = char(opt.AddToEnd);
 
 hereCheckInputOutputNames( );
 
@@ -206,13 +269,13 @@ inxApplied = false(1, numFields);
 inxToRemove = false(1, numFields);
 for i = 1 : numFields
     name__ = namesFields{i};
-    if ~isequal(opt.SourceNames, @all) && ~any(strcmpi(name__, opt.SourceNames))
+    if ~isa(opt.SourceNames, "function_handle") && ~any(strcmpi(name__, opt.SourceNames))
        continue
     end 
-    if ~isempty(opt.HasPrefix) && ~startsWith(name__, opt.HasPrefix)
+    if ~isempty(opt.StartsWith) && ~startsWith(name__, opt.StartsWith)
         continue
     end
-    if ~isempty(opt.HasSuffix) && ~endsWith(name__, opt.HasSuffix)
+    if ~isempty(opt.EndsWith) && ~endsWith(name__, opt.EndsWith)
         continue
     end
 
@@ -226,17 +289,17 @@ for i = 1 : numFields
         newName__ = opt.TargetNames{inxName};
     else
         newName__ = name__;
-        if opt.RemovePrefix
-            newName__ = extractAfter(newName__, strlength(opt.HasPrefix));
+        if opt.RemoveStart
+            newName__ = extractAfter(newName__, strlength(opt.StartsWith));
         end
-        if opt.RemoveSuffix
+        if opt.RemoveEnd
             newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.HasSuffix)+1);
         end
-        if ~isempty(opt.AddPrefix)
-            newName__ = [opt.AddPrefix, newName__];
+        if ~isempty(opt.AddToStart)
+            newName__ = [opt.AddToStart, newName__];
         end
-        if ~isempty(opt.AddSuffix)
-            newName__ = [newName__, opt.AddSuffix];
+        if ~isempty(opt.AddToEnd)
+            newName__ = [newName__, opt.AddToEnd];
         end
     end
     newNames{i} = newName__;
@@ -245,7 +308,11 @@ for i = 1 : numFields
     if ~isempty(func)
         field__ = func(field__);
     end
-    outputDb.(newName__) = field__;
+    if isa(outputDb, "Dictionary")
+        store(outputDb, newName__, field__);
+    else
+        outputDb.(newName__) = field__;
+    end
     inxToRemove(i) = opt.RemoveSource && ~strcmp(name__, newName__);
 end
 
@@ -260,7 +327,7 @@ return
 
 
     function hereCheckInputOutputNames( )
-        if isequal(opt.TargetNames, @default)
+        if isa(opt.TargetNames, "function_handle")
             return
         end
         if validate.list(opt.SourceNames)
@@ -274,11 +341,36 @@ return
                 return
             end
         end
-        thisError = { 'Databank:InconsistentInputOutputNames'
-                      'When used together in databank.apply(~), '
-                      'options SourceNames= and TargetNames= '
-                      'must be lists of the same size' };
-        throw(exception.Base(thisError, 'error'));
+        exception.error([
+            "Databank:InconsistentInputOutputNames"
+            "When used together in databank.apply(~), "
+            "options SourceNames= and TargetNames= "
+            "must be lists of the same size"
+        ]);
     end%
+end%
+
+
+function locallyValidateInputDbOrFunc(input)
+    if isempty(input) || validate.databank(input) || isa(input, "function_handle")
+        return
+    end
+    error("Validation:Failed", "Input value must empty, a databank or a function handle");
+end%
+
+
+function locallyValidateNames(input)
+    if isa(input, "function_handle") || validate.list(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be a string array");
+end%
+
+
+function locallyValidateDb(input)
+    if isa(input, "function_handle") || validate.databank(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be a struct or a Dictionary");
 end%
 

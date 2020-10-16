@@ -27,6 +27,9 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         StartAsDate
         StartAsDateWrapper
 
+        % BalancedStart  First date at which all columns have a non-missing observation
+        BalancedStart
+
         % End  Date of last observation in time series
         End
 
@@ -36,6 +39,9 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         % EndAsDate  Date of last observation in time series returned as DateWrapper
         EndAsDate
         EndAsDateWrapper
+
+        % BalancedEnd  Last date at which all columns have a non-missing observation
+        BalancedEnd
 
         % Frequency  Date frequency of time series
         Frequency
@@ -72,13 +78,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
-    methods (Access=protected)
-        varargout = resolveRange(varargin)
-    end
-
-
-
-
     methods
         varargout = clip(varargin)
         varargout = comment(varargin)
@@ -94,7 +93,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = retrieveColumns(varargin)
         varargout = setData(varargin)
         varargout = shift(varargin)
-
 
 
         function startDateAsNumeric = get.StartAsNumeric(this)
@@ -114,6 +112,29 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             startAsDate = this.StartAsDate;
         end%
 
+
+        function value = get.BalancedStart(this)
+            if isa(this.Start, "DateWrapper")
+                outputFunction = @DateWrapper;
+            else
+                outputFunction = @double;
+            end
+            if isnan(this.Start) || isempty(this.Data)
+                value = outputFunction(NaN);
+                return
+            end
+            start = double(this.Start);
+            inxMissing = this.MissingTest(this.Data);
+            inxMissing = inxMissing(:, :);
+            first = find(all(~inxMissing, 2), 1, "first");
+            if ~isempty(first)
+                value = dater.plus(start, first-1);
+            else
+                value = NaN;
+            end
+            value = outputFunction(value);
+        end%
+                
 
         function endDate = get.End(this)
             if isnan(this.Start)
@@ -145,6 +166,29 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         function endAsDate = get.EndAsDateWrapper(this)
             endAsDate = this.EndAsDate;
         end%
+
+
+        function value = get.BalancedEnd(this)
+            if isa(this.Start, "DateWrapper")
+                outputFunction = @DateWrapper;
+            else
+                outputFunction = @double;
+            end
+            if isnan(this.Start) || isempty(this.Data)
+                value = outputFunction(NaN);
+                return
+            end
+            start = double(this.Start);
+            inxMissing = this.MissingTest(this.Data);
+            inxMissing = inxMissing(:, :);
+            last = find(all(~inxMissing, 2), 1, "last");
+            if ~isempty(last)
+                value = dater.plus(start, last-1);
+            else
+                value = NaN;
+            end
+            value = outputFunction(value);
+        end%
          
 
         function frequency = get.Frequency(this)
@@ -158,12 +202,28 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
         function frequency = getFrequency(this)
-            frequency = DateWrapper.getFrequency(double(this.Start));
+            frequency = dater.getFrequency(double(this.Start));
+            frequency = Frequency.fromNumeric(frequency);
         end%
 
 
         function frequency = getFrequencyAsNumeric(this)
             frequency = dater.getFrequency(double(this.Start));
+        end%
+
+
+        function numericRange = getRangeAsNumeric(this)
+            numericStart = double(this.Start);
+            numericRange = dater.plus(double(this.Start), 0:size(this.Data, 1)-1);
+            numericRange = reshape(numericRange, [ ], 1);
+        end%
+
+
+        function range = getRange(this)
+            range = getRangeAsNumeric(this);
+            if isa(this.Start, 'DateWrapper')
+               range = DateWrapper(range);
+            end 
         end%
 
 
@@ -230,6 +290,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     methods (Hidden)
         varargout = trim(varargin)
         varargout = resolveShift(varargin)
+        varargout = resolveRange(varargin)
     end
 
 

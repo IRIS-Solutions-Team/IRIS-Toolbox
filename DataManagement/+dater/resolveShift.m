@@ -6,31 +6,45 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%[
+function [shift, power] = resolveShift(dates, shift, opt)
+
+arguments
+    dates {mustBeReal}
+    shift (1, 1) {locallyValidateShift(shift)} = -1
+    opt.Annualize (1, 1) {mustBeA(opt.Annualize, "logical")} = false
+end
+%]
+% >=R2019b
+
+% <=R2019a
+%{
 function [shift, power] = resolveShift(dates, varargin)
 
-%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@DateWrapper/resolveShift');
     addRequired(pp, 'dates', @isnumeric);
-    addOptional(pp, 'shift', -1, @(x) validate.roundScalar(x) || validate.anyString(x, ["YoY", "EoPY", "BoY"]));
+    addOptional(pp, 'shift', -1, @(x) 
     addParameter(pp, 'Annualize', false, @validate.logicalScalar);
-
-    % Legacy option
-    addParameter(pp, 'OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
 end
 %)
 opt = parse(pp, dates, varargin{:});
 shift = pp.Results.shift;
+%}
+% <=R2019
+
+outputFreq = [];
 if opt.Annualize
-    opt.OutputFreq = 1;
+    outputFreq = 1;
 end
 
 %--------------------------------------------------------------------------
 
 dates = reshape(double(dates), 1, [ ]);
 inputFreq = dater.getFrequency(dates(1));
-power = locallyResolvePower(inputFreq, opt.OutputFreq, shift);
+power = locallyResolvePower(inputFreq, outputFreq, shift);
 shift = locallyResolveShift(dates, inputFreq, shift);
 
 end%
@@ -85,5 +99,16 @@ function power = locallyResolvePower(inputFreq, outputFreq, shift)
         power = double(inputFreq) / double(outputFreq) / abs(shift);
     end
     %)
+end%
+
+%
+% Local Validators
+%
+
+function locallyValidateShift(input)
+    if validate.roundScalar(input) || startsWith(input, ["YoY", "EoPY", "BoY"], "ignoreCase", true)
+        return
+    end
+    error("Validation:Failed", "Input value must be a negative integer or one of {""YoY"", ""EoPY"", ""BoY""}");
 end%
 

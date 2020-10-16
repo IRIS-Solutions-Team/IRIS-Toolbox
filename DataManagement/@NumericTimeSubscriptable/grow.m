@@ -97,23 +97,40 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function this = grow(this, operator, growth, dates, shift, opt)
+
+% >=R2019b
+%[
+arguments
+    this NumericTimeSubscriptable
+    operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "roc", "pct"])}
+    growth {locallyValidateGrowth(growth)}
+    dates {validate.properDates(dates)}
+    shift {locallyValidateShift(shift)} = -1
+
+    opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
+end
+%]
+% >=R2019b
+
+% <=R2019a
+%{
 function this = grow(this, operator, growth, dates, varargin)
 
-%( Input pp
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Series/grow');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, "function_handle"));
-    addRequired(pp, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x));
+    addRequired(pp, 'growth', @locallyValidateGrowth);
     addRequired(pp, 'dates', @DateWrapper.validateProperDateInput);
-    addOptional(pp, 'shift', -1, @(x) validate.roundScalar(x, -intmax( ), -1) || validate.anyString(x, ["YoY", "EoPY", "BoY"]));
+    addOptional(pp, 'shift', -1, @locallyValidateShift);
+
+    addParameter(pp, "Direction", "Forward", @(x) any(strcmpi(x, ["Forward", "Backward"])));
 
     % Legacy option
     addParameter(pp, 'BaseShift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, -intmax( ), -1));
-    addParameter(pp, "Direction", "Forward", @(x) any(strcmpi(x, ["Forward", "Backward"])));
 end
-%)
 opt = parse(pp, this, operator, growth, dates, varargin{:});
 if isequal(opt.BaseShift, @auto)
     shift = pp.Results.shift;
@@ -121,63 +138,38 @@ else
     % Legacy option
     shift = opt.BaseShift;
 end
+%}
+% <=R2019a
 
-if strcmpi(opt.Direction, "Backward")
+if startsWith(opt.Direction, "backward", "ignoreCase", true)
     shift = -shift;
 end
 
 %--------------------------------------------------------------------------
 
-if isa(operator, "function_handle")
-    func = operator;
-else
-    switch string(operator)
-        case {"*", "roc"}
-            if strcmpi(opt.Direction, "Forward")
-                func = @times;
-            else
-                func = @rdivide;
-            end
-        case {"+", "diff"}
-            if strcmpi(opt.Direction, "Forward")
-                func = @plus;
-            else
-                func = @minus;
-            end
-        case "/"
-            func = @rdivide;
-        case "-"
-            func = @minus;
-        case "pct"
-            if strcmpi(opt.Direction, "Forward")
-                func = @(x, y) x.*(1 + y/100);
-            else
-                func = @(x, y) x./(1 + y/100);
-            end
-    end
-end
+func = locallyChooseFunction(operator, opt.Direction);
 
 dates = reshape(double(dates), 1, [ ]);
-shift = DateWrapper.resolveShift(dates, shift);
+shift = dater.resolveShift(dates, shift);
 datesShifted = dater.plus(dates, shift);
 startAll = min([dates, datesShifted]);
 endAll = max([dates, datesShifted]);
 
 % Get level data
-xData = getDataFromTo(this, startAll, endAll);
-sizeX = size(xData);
-xData = xData(:, :);
+levelData = getDataFromTo(this, startAll, endAll);
+sizeLevelData = size(levelData);
+levelData = levelData(:, :);
 
 % Get growth rate data
 if isa(growth, 'NumericTimeSubscriptable')
     growthData = getDataFromTo(growth, startAll, endAll);
     growthData = growthData(:, :);
 else
-    growthData = repmat(growth, size(xData));
+    growthData = repmat(growth, size(levelData));
 end
 
 
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 posDates = round(dates - startAll + 1);
 posDatesShifted = round(datesShifted - startAll + 1);
 if strcmpi(opt.Direction, "Forward")
@@ -189,35 +181,95 @@ else
 end
 
 for i = 1 : numel(posDates)
-    xData(posDates(i), :) = func(xData(posDatesShifted(i), :), growthData(posDatesGrowth(i), :));
+    levelData(posDates(i), :) ...
+        = func(levelData(posDatesShifted(i), :), growthData(posDatesGrowth(i), :));
 end
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
+
 
 hereCheckMissingObs( );
 
 % Reshape output data back
-if numel(sizeX)>2
-    xData = reshape(xData, [size(xData, 1), sizeX(2:end)]);
+if numel(sizeLevelData)>2
+    levelData = reshape(levelData, [size(levelData, 1), sizeLevelData(2:end)]);
 end
 
 % Update output series
-this = setData(this, dater.colon(startAll, endAll), xData);
+this = setData(this, dater.colon(startAll, endAll), levelData);
 
 return
 
     function hereCheckMissingObs( )
-        inxFinite = all(isfinite(xData(posDates, :)), 2);
-        if all(inxFinite)
+        inxMissing = any(this.MissingTest(levelData(posDates, :)), 2);
+        if ~any(inxMissing)
             return
         end
-        report = join(dater.toDefaultString(dates(inxFinite)));
+        report = join(dater.toDefaultString(dates(inxMissing)));
         throw(exception.Base([ 
             "Series:OutputWithMissingObs"
-            "Output time series contains Inf or NaN observations "
-            "in these periods: %s"
+            "Output time series resulted in missing observations "
+            "in some columns in these periods: %s"
         ], "warning"), report);
     end%
 end%
+
+%
+% Local Functions
+%
+
+function func = locallyChooseFunction(operator, direction)
+    %(
+    if isa(operator, "function_handle")
+        func = operator;
+    else
+        switch string(operator)
+            case {"*", "roc"}
+                if strcmpi(direction, "Forward")
+                    func = @times;
+                else
+                    func = @rdivide;
+                end
+            case {"+", "diff"}
+                if strcmpi(direction, "Forward")
+                    func = @plus;
+                else
+                    func = @minus;
+                end
+            case "/"
+                func = @rdivide;
+            case "-"
+                func = @minus;
+            case "pct"
+                if strcmpi(direction, "Forward")
+                    func = @(x, y) x.*(1 + y/100);
+                else
+                    func = @(x, y) x./(1 + y/100);
+                end
+        end
+    end
+    %)
+end%
+
+
+function locallyValidateGrowth(input)
+    %(
+    if isa(input, 'NumericTimeSubscriptable') || validate.numericScalar(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be a time series or a numeric scalar");
+    %)
+end%
+
+
+function locallyValidateShift(input)
+    %(
+    if validate.roundScalar(input, -Inf, -1) || validate.anyString(input, ["YoY", "EoPY", "BoY"])
+        return
+    end
+    error("Validation:Failed", "Input value must be a negative integer or one of {""YoY"", ""EoPY"", ""BoY""}");
+    %)
+end%
+
 
 
 
@@ -254,12 +306,12 @@ assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
 assertEqual(this, z(g.Range), g(g.Range), 'AbsTol', 1e-10);
 
 
-%% Test Grow with BaseShift=-4
+%% Test Grow with Shift=-4
 
 x = Series(qq(2001,1):qq(2010,4), @rand);
 g = 1 + Series(qq(2005,1):qq(2020,4), @rand) / 10;
 
-y = grow(x, '*', g, g.Range, 'BaseShift=', -4);
+y = grow(x, '*', g, g.Range, -4);
 z = y / y{-4};
 
 assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
@@ -286,3 +338,4 @@ assertNotEqual(this, round(z(g.Range), 8), round(g(g.Range), 8));
 
 ##### SOURCE END #####
 %}
+

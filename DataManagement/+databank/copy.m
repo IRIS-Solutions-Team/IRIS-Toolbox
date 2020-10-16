@@ -81,9 +81,26 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%[
+function targetDb = copy(sourceDb, opt)
+
+arguments
+    sourceDb (1, 1) {validate.databank(sourceDb)}
+
+    opt.SourceNames {locallyValidateNames(opt.SourceNames)} = @all
+    opt.TargetNames {locallyValidateNames(opt.TargetNames)} = @auto
+    opt.TargetDb {locallyValidateDb(opt.TargetDb)} = @empty
+    opt.Transform {locallyValidateTransform(opt.Transform)} = []
+    opt.WhenTransformFails {locallyValidateWhenTransformFails} = "error"
+end
+%]
+% >=R2019b
+
+% <=R2019a
+%{
 function targetDb = copy(sourceDb, varargin)
 
-%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.copy');
@@ -95,8 +112,10 @@ if isempty(pp)
     addParameter(pp, 'Transform', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
     addParameter(pp, 'WhenTransformFails', 'Error', @(x) validate.anyString(x, 'Error', 'Warning'));
 end
-%)
 opt = parse(pp, sourceDb, varargin{:});
+%}
+% <=R2019a
+
 sourceNames = opt.SourceNames;
 targetNames = opt.TargetNames;
 transform = opt.Transform;
@@ -149,7 +168,8 @@ return
 
     function sourceNames = hereResolveSourceNames( )
         sourceNames = opt.SourceNames;
-        if isequal(sourceNames, @all)
+        if isa(sourceNames, "function_handle")
+            % sourceNames=@auto
             if isa(sourceDb, 'Dictionary')
                 sourceNames = keys(sourceDb);
             else
@@ -206,4 +226,38 @@ return
     end%
 end%
 
+%
+% Local Functions
+%
+
+function locallyValidateNames(input)
+    if isa(input, "function_handle") || validate.list(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be a string array");
+end%
+
+
+function locallyValidateDb(input)
+    if isa(input, "function_handle") || validate.databank(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be a struct or a Dictionary");
+end%
+
+
+function locallyValidateTransform(input)
+    if isempty(input) || isa(input, "function_handle")
+        return
+    end
+    error("Validation:Failed", "Input value must be empty or a function handle");
+end%
+
+
+function locallyValidateWhenTransformFails(input)
+    if startsWith(input, ["error", "warning"], "ignoreCase", true)
+        return
+    end
+    error("Validation:Failed", "Input value must be ""Error"" or ""Warning""");
+end%
 

@@ -18,24 +18,25 @@ extEndDate = dater.plus(endDate, maxLead);
 extRange = dater.colon(extStartDate, extEndDate);
 numExtPeriods = numel(extRange);
 
-[variableNames, residualNames] = collectAllNames(this);
+[variableNames, residualNames, ~, ~] = collectAllNames(this);
+variableNames = setdiff(variableNames, residualNames, "stable");
 allNames = [variableNames, residualNames];
 
 if lhsRequired
     %
     % All LHS names are required to be in the input databank even if they
-    % do not occur on the RHS in the Explanatory terms
+    % do not occur on the RHS in the Explanatory terms (estimation)
     %
     requiredNames = variableNames;
     optionalNames = residualNames;
 else
     %
     % LHS names are required to be in the input databank only if they occur
-    % on the RHS in the Explanatory terms
+    % on the RHS in the Explanatory terms (simulation)
     %
     inxLhsOptional = ~[this.RhsContainsLhsName];
     lhsNames = [this.LhsName];
-    requiredNames = setdiff(variableNames, lhsNames(inxLhsOptional));
+    requiredNames = [setdiff(variableNames, lhsNames(inxLhsOptional))];
     optionalNames = [lhsNames(inxLhsOptional), residualNames];
 end
 

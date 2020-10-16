@@ -1,4 +1,3 @@
-function this = rebase(this, varargin)
 % rebase  Rebase times seriss data to specified period
 %
 %
@@ -38,6 +37,8 @@ function this = rebase(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+function this = rebase(this, varargin)
+
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tseries.rebase');
@@ -66,9 +67,9 @@ if ischar(basePeriod) || isa(basePeriod, 'string')
 end
 
 % Frequency check
-freqOfBasePeriod = dater.getFrequency(basePeriod);
-freqOfInput = this.FrequencyAsNumeric;
-if isnan(basePeriod) || freqOfBasePeriod~=freqOfInput
+freqBasePeriod = dater.getFrequency(basePeriod);
+freqInput = getFrequencyAsNumeric(this);
+if isnan(basePeriod) || freqBasePeriod~=freqInput
     this = this.empty(this);
     return
 end
@@ -93,3 +94,4 @@ end
 this = trim(this);
 
 end%
+
