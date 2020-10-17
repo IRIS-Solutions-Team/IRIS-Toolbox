@@ -100,7 +100,7 @@
 function this = grow(this, operator, growth, dates, shift, opt)
 
 % >=R2019b
-%[
+%(
 arguments
     this NumericTimeSubscriptable
     operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "roc", "pct"])}
@@ -110,7 +110,7 @@ arguments
 
     opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
 end
-%]
+%)
 % >=R2019b
 
 % <=R2019a

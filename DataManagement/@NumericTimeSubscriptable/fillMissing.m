@@ -63,7 +63,7 @@
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%[
+%(
 function [this, datesMissing] = fillMissing(this, range, method)
 
 arguments
@@ -74,7 +74,7 @@ end
 arguments (Repeating)
     method
 end
-%]
+%)
 % >=R2019b
 
 if isempty(this.Data)
