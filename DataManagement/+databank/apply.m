@@ -145,7 +145,7 @@
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
 
 % >=R2019b
-%[
+%(
 arguments
     inputDb (1, 1) {locallyValidateInputDbOrFunc}
     func (1, 1) {locallyValidateInputDbOrFunc}
@@ -202,7 +202,7 @@ end
 if ~isequal(opt.TargetDb, @default)
     opt.AddToDatabank = opt.TargetDb;
 end
-%]
+%)
 % >=R2019b
 
 if validate.databank(func)

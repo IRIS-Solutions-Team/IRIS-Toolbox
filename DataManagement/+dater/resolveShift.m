@@ -7,7 +7,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%[
+%(
 function [shift, power] = resolveShift(dates, shift, opt)
 
 arguments
@@ -15,7 +15,7 @@ arguments
     shift (1, 1) {locallyValidateShift(shift)} = -1
     opt.Annualize (1, 1) {mustBeA(opt.Annualize, "logical")} = false
 end
-%]
+%)
 % >=R2019b
 
 % <=R2019a
@@ -29,7 +29,6 @@ if isempty(pp)
     addOptional(pp, 'shift', -1, @(x) 
     addParameter(pp, 'Annualize', false, @validate.logicalScalar);
 end
-%)
 opt = parse(pp, dates, varargin{:});
 shift = pp.Results.shift;
 %}

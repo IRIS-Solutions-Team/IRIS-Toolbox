@@ -43,7 +43,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%[
+%(
 function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 
 arguments
@@ -57,7 +57,7 @@ newEnd = double(newEnd);
 if all(isinf(newStart)) && all(isinf(newEnd))
     return
 end
-%]
+%)
 % >=R2019b
 
 % <=R2019a
