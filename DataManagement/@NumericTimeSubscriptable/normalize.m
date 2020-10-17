@@ -52,7 +52,7 @@ end
 
 % <=R2019a
 %{
-function this = normalize(this, dates, varargin)
+function this = normalize(this, varargin)
 
 persistent pp
 if isempty(pp)
@@ -63,7 +63,8 @@ if isempty(pp)
     pp.addParameter("Aggregation", @mean, @(x) isa(x, "function_handle"));
     pp.addParameter("Mode", "multiplicative", @(x) startsWith(x, ["mult", "add"], "ignoreCase", true));
 end
-opt = pp.parse(this, dates, varargin{:});
+opt = pp.parse(this, varargin{:});
+dates = pp.Results.dates;
 %}
 % <=R2019a
 
