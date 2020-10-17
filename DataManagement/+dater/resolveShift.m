@@ -26,7 +26,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('@DateWrapper/resolveShift');
     addRequired(pp, 'dates', @isnumeric);
-    addOptional(pp, 'shift', -1, @(x) 
+    addOptional(pp, 'shift', -1, @locallyValidateShift);
     addParameter(pp, 'Annualize', false, @validate.logicalScalar);
 end
 opt = parse(pp, dates, varargin{:});
