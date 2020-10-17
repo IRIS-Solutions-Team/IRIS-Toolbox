@@ -74,18 +74,22 @@ end
 arguments (Repeating)
     method
 end
-%)
-% >=R2019b
 
 if isempty(this.Data)
     return
 end
+%)
+% >=R2019b
 
 % <=R2019a
 %{
 function [this, datesMissing] = fillMissing(this, range, varargin)
 
 %( Input parser
+if isempty(this.Data)
+    return
+end
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable.fillMissing');
