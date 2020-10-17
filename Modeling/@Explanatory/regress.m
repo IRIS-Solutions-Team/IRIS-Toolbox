@@ -108,7 +108,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [this, outputDb, info] = regress(this, inputDb, fittedRange, opt)
 
 arguments
@@ -131,11 +131,11 @@ end
 
 opt.AppendPresample = opt.PrependInput;
 opt.AppendPostsample = opt.AppendInput;
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [this, outputDb, info] = regress(this, inputDb, fittedRange, varargin)
 
 persistent pp
@@ -159,7 +159,7 @@ if isempty(pp)
     addParameter(pp, "Journal", false);
 end
 opt = parse(pp, this, inputDb, fittedRange, varargin{:});
-%}
+%)
 % <=R2019a
 
 [fittedRange, opt.MissingObservations] = locallyResolveRange(this, inputDb, fittedRange, opt.MissingObservations);

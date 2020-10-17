@@ -63,7 +63,7 @@
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [this, datesMissing] = fillMissing(this, range, method)
 
 arguments
@@ -78,11 +78,11 @@ end
 if isempty(this.Data)
     return
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [this, datesMissing] = fillMissing(this, range, varargin)
 
 %( Input parser
@@ -100,7 +100,7 @@ end
 %)
 opt = parse(pp, this, range, varargin);
 method = pp.Results.method;
-%}
+%)
 % <=R2019a
 
 [startDate, endDate, inxRange] = locallyResolveDates(this, range);

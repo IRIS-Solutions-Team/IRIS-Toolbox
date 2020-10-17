@@ -44,12 +44,12 @@
 function runningDb = newSeries(runningDb, list)
 
 % >=R2019b
-%(
+%{
 arguments
     runningDb {validate.databank}
     list string
 end
-%)
+%}
 % >=R2019b
 
 if isempty(list)
