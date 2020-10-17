@@ -57,7 +57,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%[
+%(
 function [outputData, info] = simulate(this, inputData, range, opt)
 
 arguments
@@ -81,7 +81,7 @@ end
 
 opt.AppendPresample = opt.PrependInput;
 opt.AppendPostsample = opt.AppendInput;
-%]
+%)
 % >=R2019b
 
 % <=R2019a
@@ -111,6 +111,7 @@ if isempty(pp)
 end
 opt = parse(pp, this, inputData, range, varargin{:});
 %}
+% <=R2019a
 
 storeToDatabank = nargout>=1 && validate.databank(inputData);
 journal = Journal(opt.Journal, "@Explanatory/simulate");

@@ -38,7 +38,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%[
+%(
 function this = normalize(this, dates, opt)
 
 arguments
@@ -47,7 +47,7 @@ arguments
     opt.Aggregation {mustBeA(opt.Aggregation, "function_handle")} = @mean
     opt.Mode (1, 1) string {startsWith(opt.Mode, ["mult", "add"], "ignoreCase", 1)} = "mult"
 end
-%]
+%)
 % >=R2019b
 
 % <=R2019a
