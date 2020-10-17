@@ -43,7 +43,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%[
+%(
 function this = moving(this, range, opt)
 
 arguments
@@ -53,7 +53,7 @@ arguments
     opt.Window {locallyValidateWindow(opt.Window)} = @auto
     opt.Function {mustBeA(opt.Function, "function_handle")} = @mean
 end
-%]
+%)
 % >=R2019b
 
 % <=R2019a
