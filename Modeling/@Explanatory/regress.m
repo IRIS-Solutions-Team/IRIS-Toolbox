@@ -149,11 +149,14 @@ if isempty(pp)
     addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, []) || validate.databank(x));
     addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
     addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
+    addParameter(pp, "BlackoutBefore", -Inf, @Explanatory.validateBlackout);
+    addParameter(pp, "BlackoutAfter", Inf, @Explanatory.validateBlackout);
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, "MissingObservations", @auto, @(x) isequal(x, @auto) || validate.anyString(x, ["Error", "Warning", "Silent"]));
     addParameter(pp, "Optim", [], @(x) isempty(x) || isa(x, "optim.options.Lsqnonlin"));
     addParameter(pp, "Progress", false, @validate.logicalScalar);
     addParameter(pp, 'ResidualsOnly', false, @validate.logicalScalar);
+    addParameter(pp, "Journal", false);
 end
 opt = parse(pp, this, inputDb, fittedRange, varargin{:});
 %}

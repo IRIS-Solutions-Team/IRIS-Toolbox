@@ -2,6 +2,8 @@
 
 function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, opt)
 
+% >=R2019b
+%(
 arguments
     this Explanatory
     runningDb {validate.databank(runningDb)}
@@ -11,6 +13,8 @@ arguments
     opt.SkipWhenData (1, 1) {mustBeA(opt.SkipWhenData, "logical")} = false
     opt.Journal = false
 end
+%)
+% >=R2019b
 
 if isempty(range)
     return

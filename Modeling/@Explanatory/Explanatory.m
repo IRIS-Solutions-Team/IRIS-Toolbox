@@ -706,9 +706,8 @@ classdef Explanatory ...
                     input = NaN;
                 end
             end
-            numEquations = numel(this);
             if isnumeric(input) && ~any(isnan(input(:))) ...
-                    && (isscalar(input) || numel(input)==numEquations)
+                    && (nargin>=2 && (isscalar(input) || numel(input)==numel(this)))
                 return
             end
             error("Validation:Failed", "Input value must be a scalar date or an array of dates the same size as the Explanatory array");
