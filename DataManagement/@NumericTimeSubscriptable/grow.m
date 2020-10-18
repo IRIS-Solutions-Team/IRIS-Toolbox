@@ -97,10 +97,10 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function this = grow(this, operator, growth, dates, shift, opt)
-
 % >=R2019b
 %(
+function this = grow(this, operator, growth, dates, shift, opt)
+
 arguments
     this NumericTimeSubscriptable
     operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "roc", "pct"])}

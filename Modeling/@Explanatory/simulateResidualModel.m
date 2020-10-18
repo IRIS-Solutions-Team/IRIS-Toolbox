@@ -1,9 +1,9 @@
 % simulateResidualModels  Project residuals using ResidualModels
 
-function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, opt)
-
 % >=R2019b
 %(
+function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, opt)
+
 arguments
     this Explanatory
     runningDb {validate.databank(runningDb)}
@@ -15,6 +15,21 @@ arguments
 end
 %)
 % >=R2019b
+
+% <=R2019a
+%{
+function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser("@Explanatory/simulateResidualModel");
+    addParameter(pp, "BlackoutBefore", -Inf);
+    addParameter(pp, "SkipWhenData", false);
+    addParameter(pp, "Journal", false);
+end
+opt = parse(pp, varargin{:});
+%}
+% <=R2019a
 
 if isempty(range)
     return

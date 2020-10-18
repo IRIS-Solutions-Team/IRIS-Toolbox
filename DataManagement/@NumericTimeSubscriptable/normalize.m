@@ -43,7 +43,7 @@ function this = normalize(this, dates, opt)
 
 arguments
     this NumericTimeSubscriptable
-    dates {locallyValidateDates(dates)} = "Start"
+    dates {locallyValidateDates(dates)} = "start"
     opt.Aggregation {mustBeA(opt.Aggregation, "function_handle")} = @mean
     opt.Mode (1, 1) string {startsWith(opt.Mode, ["mult", "add"], "ignoreCase", 1)} = "mult"
 end
@@ -52,18 +52,19 @@ end
 
 % <=R2019a
 %{
-function this = normalize(this, dates, varargin)
+function this = normalize(this, varargin)
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser("@Series/normalize");
     pp.addRequired("inputSeries", @(x) isa(x, "NumericTimeSubscriptable"));
-    pp.addOptional("dates", [], @(x) validate.properDates(x));
+    pp.addOptional("dates", "start", @locallyValidateDates);
 
     pp.addParameter("Aggregation", @mean, @(x) isa(x, "function_handle"));
     pp.addParameter("Mode", "multiplicative", @(x) startsWith(x, ["mult", "add"], "ignoreCase", true));
 end
-opt = pp.parse(this, dates, varargin{:});
+opt = pp.parse(this, varargin{:});
+dates = pp.Results.dates;
 %}
 % <=R2019a
 
