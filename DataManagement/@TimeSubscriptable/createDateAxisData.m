@@ -98,7 +98,7 @@ function dateFormat = backwardCompatibilityDateFormat(dateFormat, timeFrequency)
 
     dateFormat = replace(dateFormat, "YY", "yy");
     if contains(dateFormat, "yy:P")
-        replacement = [ ];k
+        replacement = [ ];
         if timeFrequency==Frequency.YEARLY
             dateFormat = "yy";
         elseif timeFrequency==Frequency.HALFYEARLY || timeFrequency==Frequency.MONTHLY
