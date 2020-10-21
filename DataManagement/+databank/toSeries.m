@@ -44,7 +44,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputSeries, names, dates] = toSeries(inputDb, names, dates, columns)
 
 arguments
@@ -53,11 +53,11 @@ arguments
     dates {locallyValidateDates(dates)} = @all
     columns (1, :) {mustBeInteger, mustBePositive} = 1
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [outputSeries, names, dates] = toSeries(inputDb, varargin)
 
 persistent pp
@@ -72,7 +72,7 @@ parse(pp, inputDb, varargin{:});
 names = pp.Results.names;
 dates = pp.Results.dates;
 columns = pp.Results.columns;
-%}
+%)
 % <=R2019a
 
 %--------------------------------------------------------------------------

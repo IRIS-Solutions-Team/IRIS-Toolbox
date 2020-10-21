@@ -38,7 +38,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = normalize(this, dates, opt)
 
 arguments
@@ -47,11 +47,11 @@ arguments
     opt.Aggregation {mustBeA(opt.Aggregation, "function_handle")} = @mean
     opt.Mode (1, 1) string {startsWith(opt.Mode, ["mult", "add"], "ignoreCase", 1)} = "mult"
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function this = normalize(this, varargin)
 
 persistent pp
@@ -65,7 +65,7 @@ if isempty(pp)
 end
 opt = pp.parse(this, varargin{:});
 dates = pp.Results.dates;
-%}
+%)
 % <=R2019a
 
 if startsWith(opt.Mode, "add", "ignoreCase", true)

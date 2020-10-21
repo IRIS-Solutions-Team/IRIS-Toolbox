@@ -1,13 +1,13 @@
 function outputNames = filterFields(inputDb, options)
 
 % >=R2019b
-%(
+%{
 arguments
     inputDb (1, 1) { validate.databank(inputDb) }
     options.Name  (1, 1) function_handle = @all
     options.Value  (1, 1) function_handle = @all
 end
-%)
+%}
 % >=R2019b
 
 isNameFilter = ~isequal(options.Name, @all);
