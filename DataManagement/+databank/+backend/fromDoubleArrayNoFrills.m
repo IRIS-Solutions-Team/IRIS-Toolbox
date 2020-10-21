@@ -1,3 +1,11 @@
+% fromDoubleArrayNoFrills  Create databank from double array
+%
+% Backend [IrisToolbox] method
+% No help provided
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
 function outputDb = fromDoubleArrayNoFrills( ...
     array, ...
     names, ...
@@ -8,13 +16,6 @@ function outputDb = fromDoubleArrayNoFrills( ...
     outputType, ...
     addToDatabank ...
 )
-% fromDoubleArrayNoFrills  Create databank from double array
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if nargin<8
     addToDatabank = false;

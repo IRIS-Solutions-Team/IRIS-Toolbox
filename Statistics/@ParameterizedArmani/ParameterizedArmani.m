@@ -46,6 +46,11 @@ classdef ParameterizedArmani ...
 
 
     methods (Static)
+        function this = fromArmani(armani)
+            this = ParameterizedArmani(0, armani.AR, armani.MA);
+        end%
+
+
         function this = fromString(input)
             preserveInput = input;
             input = replace(string(input), " ", "");

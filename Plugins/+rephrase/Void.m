@@ -1,5 +1,5 @@
 classdef Selective ...
-    < rephrase.Element
+    < rephrase.Element ...
     & rephrase.Terminus
 
     properties (Constant)

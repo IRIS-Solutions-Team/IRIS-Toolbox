@@ -69,6 +69,10 @@ classdef Explanatory ...
         IsIdentity (1, 1) logical = false
 
 
+% IsLinear  True if the RHS is linear in parameters
+        IsLinear (1, 1) logical = false
+
+
 % LhsReference  Symbol used to create lags of LHS variables (aka AR terms) on
 % the RHS; each LhsReferece on the RHS must be followed by a shift
 % specification in curly braces (lags are specified as negative numbers)
@@ -81,6 +85,15 @@ classdef Explanatory ...
 
 % ExplanatoryTerms  Array of right hand side (explanatory) terms
         ExplanatoryTerms (1, :) regression.Term = regression.Term.empty(1, 0)
+
+
+% NumParameters  Number of parameters
+        NumParameters (1, 1) {mustBeReal, mustBeNonnegative, mustBeInteger} = 0
+
+
+% IncParameters  Incidence of parameters in nonlinear regression
+% expressions
+        IncParameters (1, :) {mustBeA(IncParameters, "logical")} = logical.empty(1, 0)
 
 
         Statistics (1, 1) struct = struct( ...
@@ -125,7 +138,6 @@ classdef Explanatory ...
 
 
         NumExplanatoryTerms
-        NumParameters
         MaxLag
         MaxLead
     end
@@ -183,6 +195,20 @@ classdef Explanatory ...
 
     methods 
         %(
+        function this = addParameters(this, fixed)
+            fixed = double(fixed);
+            numAdd = size(fixed, 2);
+            this.NumParameters = this.NumParameters + numAdd;
+            numVariants = countVariants(this);
+            if size(fixed, 3)==1 && numVariants>1
+                fixed = repmat(fixed, 1, 1, numVariants);
+            end
+            this.Fixed = [this.Fixed, fixed];
+            this.Parameters = [this.Parameters, fixed]
+            this.Statistics.CovParameters(end+(1:numAdd), end+(1:numAdd), :) = NaN;
+        end%
+
+
         function this = addExplanatoryTerm(this, fixed, inputString)
             term = regression.Term(this, inputString, "rhs");
             term = containsLhsName(term, this.PosLhsName);
@@ -190,9 +216,9 @@ classdef Explanatory ...
                 hereReportCurrentLhsName( );
             end
             this.ExplanatoryTerms(1, end+1) = term;
-            this.Fixed(:, end+1, :) = double(fixed);
-            this.Parameters(:, end+1, :) = double(fixed);
-            this.Statistics.CovParameters(end+1, end+1, :) = NaN;
+            if this.IsLinear
+                this = addParameters(this, fixed);
+            end
             return
 
                 function hereReportCurrentLhsName( )
@@ -206,9 +232,21 @@ classdef Explanatory ...
 
 
         function this = seal(this)
-            build = "";
-            for i = 1 : this.NumExplanatoryTerms
-                build = build + "+p(:," + string(i) + ",v)*(" + this.ExplanatoryTerms(i).Expression + ")";
+            if this.IsLinear
+                build = "";
+                for i = 1 : this.NumExplanatoryTerms
+                    build = build + "+p(:," + string(i) + ",v)*(" + this.ExplanatoryTerms(i).Expression + ")";
+                end
+                this.IncParameters = true(1, this.NumParameters);
+            else
+                build = this.ExplanatoryTerms.Expression;
+                tokens = regexp(string(build), "\<p\((\d+)\)", "tokens");
+                tokens = [tokens{:}];
+                tokens = string(tokens);
+                tokens = reshape(double(tokens), 1, []);
+                this = addParameters(this, nan(1, max(tokens)));
+                this.IncParameters = false(1, this.NumParameters);
+                this.IncParameters(tokens) = true;
             end
             if ~this.IsIdentity
                 this.EndogenizeResiduals = ...
@@ -445,14 +483,8 @@ classdef Explanatory ...
 
         function this = set.ResidualNamePattern(this, value)
             %(
-            if all(strlength(value)==0)
-                thisError = [
-                    "Explanatory:InvalidResidualNamePattern"
-                    "Either the prefix or the suffix (or both) for the new ResidualNamePattern"
-                    "must be a non-empty string."
-                ];
-            end
-            [this.ResidualNamePattern] = deal(value);
+            locallyValidateNamePattern(value, "ResidualNamePattern");
+            this.ResidualNamePattern = value;
             checkNames(this);
             %)
         end%
@@ -460,14 +492,17 @@ classdef Explanatory ...
 
         function this = set.FittedNamePattern(this, value)
             %(
-            if all(strlength(value)==0)
-                thisError = [
-                    "Explanatory:InvalidFittedNamePattern"
-                    "Either the prefix or the suffix (or both) for the new FittedNamePattern"
-                    "must be a non-empty string."
-                ];
-            end
-            [this.FittedNamePattern] = deal(value);
+            locallyValidateNamePattern(value, "FittedNamePattern");
+            this.FittedNamePattern = value;
+            checkNames(this);
+            %)
+        end%
+
+
+        function this = set.LhsTransformNamePattern(this, value)
+            %(
+            locallyValidateNamePattern(value, "LhsTransformNamePattern");
+            this.LhsTransformNamePattern = value;
             checkNames(this);
             %)
         end%
@@ -481,17 +516,13 @@ classdef Explanatory ...
                     "Parameters in Explanatory objects must be numeric values"
                 ]);
             end
-            for i = 1 : numel(this)
-                numTerms = numel(this(i).ExplanatoryTerms);
-                if size(value, 2)~=numTerms
-                    exception.error([
-                        "Explanatory:InvalidParametersAssigned"
-                        "Invalid dimension of parameters assigned to Explanatory object:"
-                        "there are %g explanatory term(s) and %g value(s) being assigned."
-                    ], numTerms, size(value, 2));
-                end
-                this(i).Parameters = value;
+            if size(value, 1)~=1 || size(value, 2)~=this.NumParameters
+                exception.error([
+                    "Explanatory:InvalidFixedParametersAssigned"
+                    "Invalid dimension of the parameters being assigned to an Explanatory object"
+                ]);
             end
+            this.Parameters = double(value);
             %)
         end%
 
@@ -504,15 +535,13 @@ classdef Explanatory ...
                     "Fixed parameters in Explanatory objects must be numeric values"
                 ]);
             end
-            this.Fixed = value;
-            numTerms = numel(this.ExplanatoryTerms);
-            if size(this.Fixed, 2)~=numTerms
+            if size(value, 1)~=1 || size(value, 2)~=this.NumParameters 
                 exception.error([
                     "Explanatory:InvalidFixedParametersAssigned"
-                    "Invalid dimension of fixed parameters assigned to Explanatory object:"
-                    "there are %g explanatory term(s) and %g parameter variant(s)."
-                ], numTerms, countVariants(this));
+                    "Invalid dimension of the fixed parameters being assigned to an Explanatory object"
+                ]);
             end
+            this.Fixed = double(value);
             %)
         end%
 
@@ -628,11 +657,6 @@ classdef Explanatory ...
         function value = get.NumExplanatoryTerms(this)
             value = numel(this.ExplanatoryTerms);
         end%
-
-
-        function value = get.NumParameters(this)
-            value = this.NumExplanatoryTerms;
-        end%
     end
 
 
@@ -725,4 +749,24 @@ classdef Explanatory ...
         end%
     end
 end
+
+%
+% Local Validators
+%
+
+function locallyValidateNamePattern(value, prop)
+    if ~isstring(value) || ~isequal(size(value), [1, 2])
+        exception.error([
+            "Explanatory:InvalidNamePattern"
+            prop + " must be a 1-by-2 string consisting of the prefix and the suffix."
+        ]);
+    end
+    if all(strlength(value)==0)
+        exception.error([
+            "Explanatory:InvalidNamePattern"
+            "Either the prefix or the suffix (or both) for the new " + prop
+            "must be a non-empty string."
+        ]);
+    end
+end%
 
