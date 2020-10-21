@@ -2,26 +2,31 @@ classdef Serialize ...
     < matlab.mixin.Copyable
 
     properties
-        Name = "Name"
-        Dates = "Dates"
-        Values = "Values"
-        Frequency = "Frequency"
-        Comment = "Comment"
+        Name (1, :) string {mustBeScalarOrEmpty} = "Name"
+        Dates (1, :) string {mustBeScalarOrEmpty} = "Dates"
+        Values (1, :) string {mustBeScalarOrEmpty} = "Values"
+        Frequency (1, :) string {mustBeScalarOrEmpty} = "Frequency"
+        Comment (1, :) string {mustBeScalarOrEmpty} = "Comment"
         UserData = ""
         StartDateOnly = true
         Format = ""
         ScalarAsArray = false
+        DateFunc = @dater.fromIsoString
     end
 
 
     methods 
         function outputSeries = seriesFromJson(this, inputRecord, name)
             %(
-            freq = frequencyFromLetter(this, inputRecord.(this.Frequency));
-            isoDates = reshape(string(inputRecord.(this.Dates)), [ ], 1);
+            if ~isempty(this.Frequency) && strlength(this.Frequency)>0
+                freq = frequencyFromLetter(this, inputRecord.(this.Frequency));
+            else
+                freq = [];
+            end
+            dateStrings = reshape(string(inputRecord.(this.Dates)), [ ], 1);
             values = reshape(inputRecord.(this.Values), [ ], 1);
-            if ~isnan(freq)>0 && ~isempty(isoDates) && ~isempty(values)
-                dates = dater.fromIsoString(freq, isoDates);
+            if ~isempty(dateStrings) && ~isempty(values)
+                dates = this.DateFunc(freq, dateStrings);
             else
                 dates = double.empty(0, 1);
                 values = double.empty(0, 1);
@@ -32,7 +37,9 @@ classdef Serialize ...
             elseif nargin>=3
                 comment = name;
             end
-            userData = rmfield(inputRecord, [this.Dates, this.Values, this.Frequency]);
+            fieldsToRemove = [this.Dates, this.Values, this.Frequency];
+            fieldsToRemove(strlength(fieldsToRemove)==0) = [];
+            userData = rmfield(inputRecord, fieldsToRemove);
             outputSeries = Series(dates, values, comment, userData, "--skip");
             %)
         end%

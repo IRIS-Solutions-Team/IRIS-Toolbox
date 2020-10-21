@@ -6,7 +6,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [lhs, rhs] = createData4Regress(this, dataBlock, controls)
+function [lhs, rhs, x] = createData4Regress(this, dataBlock, controls)
 
 if numel(this)~=1
     exception.error([ 
@@ -35,10 +35,13 @@ lhs = nan(1, numExtendedPeriods, numPages);
 lhs(1, baseRangeColumns, :) = createModelData(this.DependentTerm, x, baseRangeColumns, controls);
 
 %
-% Model data for all explanatory terms
+% Model data for all explanatory terms for linear regressions
 %
-rhs = nan(numel(this.ExplanatoryTerms), numExtendedPeriods, numPages);
-rhs(:, baseRangeColumns, :) = createModelData(this.ExplanatoryTerms, x, baseRangeColumns, controls);
+rhs = [];
+if this.IsLinear
+    rhs = nan(numel(this.ExplanatoryTerms), numExtendedPeriods, numPages);
+    rhs(:, baseRangeColumns, :) = createModelData(this.ExplanatoryTerms, x, baseRangeColumns, controls);
+end
 
 end%
 

@@ -180,7 +180,7 @@ for j = 1 : numel(inputString)
     % Populate the Explanatory object
     %
     this__ = defineDependentTerm(this__, lhsString);
-    hereParseExplanatoryTerms( );
+    this__ = parseRightHandSide(this__, rhsString);
     this__ = seal(this__);
     this__.Label = label__;
     this__.Attributes = attributes__;
@@ -248,115 +248,6 @@ return
 
 
 
-    function hereParseExplanatoryTerms( )
-        %
-        % Legacy syntax for free parameters
-        %
-        rhsString = replace(rhsString, "?", "@");
-
-        if endsWith(rhsString, ";")
-            rhsString = extractBefore(rhsString, strlength(rhsString));
-        end
-
-        %
-        % Add an implicit plus sign if RHS starts with an @ to make the
-        % start of all regression terms of one of the following forms: +@
-        % or -@ 
-        %
-        if startsWith(rhsString, "@")
-            rhsString = "+" + rhsString;
-        end
-
-        %
-        % Find all characters outside any brackets (round, curly, square);
-        % these characters will have level==0
-        %
-        rhsString = char(rhsString);
-        [level, allClosed] = textual.bracketLevel(rhsString, {'()', '{}', '[]'}, '--skip');
-
-        %
-        % Find the starts of all regression terms
-        %
-        posStart = sort([strfind(rhsString, '+@'), strfind(rhsString, '-@')]);
-        if ~isempty(posStart) && this__.IsIdentity
-            hereReportRegressionCoefficientsInIdentity( );
-        end
-
-        %
-        % Collect all regression terms first and see what's left afterwards
-        %
-        numRegressionTerms = numel(posStart);
-        termStrings = repmat("", 1, numRegressionTerms);
-        fixed = nan(1, numRegressionTerms);
-        for ii = 1 : numRegressionTerms
-            ithPosStart = posStart(ii);
-            after = false(size(rhsString));
-            after(ithPosStart+1:end) = true;
-            %
-            % Find the end of the current regression term; the end is
-            % either a plus or minus sign outside brackets, or the end of
-            % the string
-            %
-            ithPosEnd = find((rhsString=='+' | rhsString=='-') & level==0 & after, 1);
-            if ~isempty(ithPosEnd)
-                ithPosEnd = ithPosEnd - 1;
-            else
-                ithPosEnd = numel(rhsString);
-            end
-            temp = [rhsString(ithPosStart), rhsString(ithPosStart+3:ithPosEnd)];
-            temp = strrep(temp, ' ', '');
-
-            %
-            % if the term string consists only of a plus or minus sign, it
-            % is a regressin constant, e.g. +@ or -@; make it a valid
-            % expression by creating a +1 or -1 string
-            %
-            if numel(temp)==1
-                temp = [temp, '1'];
-            end
-            if strncmp(temp, '+', 1)
-                temp(1) = '';
-            end
-            termStrings(ii) = string(temp);
-            rhsString(ithPosStart:ithPosEnd) = ' ';
-        end
-
-        %
-        % Add a fixed term (lump sum) if there is anything left
-        %
-        rhsString = regexprep(rhsString, '\s+', '');
-        if strncmp(rhsString, '+', 1)
-            rhsString(1) = '';
-        end
-        if ~isempty(rhsString)
-            termStrings(end+1) = string(rhsString);
-            fixed(1, end+1) = 1;
-        end
-        termStrings = strtrim(termStrings);
-
-        % 
-        % Create an explanatory term for each regression term and for the
-        % fixed lump-sum term
-        %
-        for ii = 1 : numel(termStrings)
-            this__ = addExplanatoryTerm(this__, fixed(ii), termStrings(ii));
-        end
-
-        return
-
-            function hereReportRegressionCoefficientsInIdentity( )
-                thisError = [ 
-                    "Explanatory:RegressionInIdentity"
-                    "This Explanatory object specification includes regression "
-                    "coefficients even though it is marked as an identity: %s "
-                ];
-                throw(exception.Base(thisError, 'error'), this__.InputString);
-            end%
-    end%
-
-
-
-
     function hereThrowInvalidInputString( )
         thisError = [ 
             "Explanatory:InvalidInputString"
@@ -415,6 +306,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     input = "x = @*a + b*x{-1} + @*log(c);";
     act = Explanatory.fromString(input);
     exp = Explanatory( );
+    exp = setp(exp, "IsLinear", true);
     exp = setp(exp, 'VariableNames', ["x", "a", "b", "c"]);
     exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
     exp = defineDependentTerm(exp, "x");
@@ -441,6 +333,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     input = "x = @*a + b*z{-1} + @*log(c);";
     act = Explanatory.fromString(input);
     exp = Explanatory( );
+    exp = setp(exp, "IsLinear", true);
     exp = setp(exp, 'VariableNames', ["x", "a", "b", "z", "c"]);
     exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
     exp = defineDependentTerm(exp, "x");

@@ -74,7 +74,7 @@ arguments
     opt.OutputType (1, 1) string = "struct"
     opt.Plan = [ ];
     opt.Progress (1, 1) {mustBeA(opt.Progress, "logical")} = false
-    opt.SkipWhenData (1, 1) {mustBeA(opt.SkipWhenData, "logical")} = false
+    opt.SkipWhenData {mustBeA(opt.SkipWhenData, "logical")} = false
     opt.ExogenizeWhenData {mustBeA(opt.ExogenizeWhenData, "logical")} = false
     opt.Journal = false
 end
@@ -209,7 +209,7 @@ for blk = 1 : numBlocks
         lhsName__ = this__.LhsName;
         residualName__ = this__.ResidualName;
         [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
-        [plainData, res] = createData4Simulate(this__, outputData, controls);
+        [subBlock, res] = createData4Simulate(this__, outputData, controls);
         if period(eqn)
             %
             % Period by period
@@ -221,7 +221,7 @@ for blk = 1 : numBlocks
             %
             hereRunOnce(baseRangeColumns);
         end
-        updateDataBlock(this__, outputData, plainData, res);
+        updateDataBlock(this__, outputData, subBlock, res);
     else
         for column = baseRangeColumns
             for eqn = reshape(blocks{blk}, 1, [ ])
@@ -229,9 +229,9 @@ for blk = 1 : numBlocks
                 lhsName__ = this__.LhsName;
                 residualName__ = this__.ResidualName;
                 [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
-                [plainData, res] = createData4Simulate(this__, outputData, controls);
+                [subBlock, res] = createData4Simulate(this__, outputData, controls);
                 hereRunOnce(column);
-                updateDataBlock(this__, outputData, plainData, res);
+                updateDataBlock(this__, outputData, subBlock, res);
             end
         end
     end
@@ -243,7 +243,7 @@ end
 %
 % Report equations with NaN or Inf parameters
 %
-inxNaNParameters = arrayfun(@(x) any(~isfinite(x.Parameters(:))), this);
+inxNaNParameters = arrayfun(@(x) any(any(~isfinite(x.Parameters(1, x.IncParameters, :)))), this);
 if any(inxNaNParameters)
     hereReportNaNParameters( );
 end
@@ -311,8 +311,8 @@ return
             tempAlways = inxExogenizedAlways;
             inxExogenizedWhenData = false(numEquations, numExtdPeriods, size(tempWhenData, 3));
             inxExogenizedAlways = false(numEquations, numExtdPeriods, size(tempAlways, 3));
-            inxExogenizedWhenData(~inxIdentity, :, :) = tempWhenData;
-            inxExogenizedAlways(~inxIdentity, :, :) = tempAlways;
+            inxExogenizedWhenData(~inxIdentity, :, :) = tempWhenData(~inxIdentity, :, :);
+            inxExogenizedAlways(~inxIdentity, :, :) = tempAlways(~inxIdentity, :, :);
         end
     end%
 
@@ -334,42 +334,40 @@ return
 
     function hereRunPeriodByPeriod( )
         posLhs__ = this__.DependentTerm.Position;
-        inxData__ = ~isnan(plainData(posLhs__, :, :));
+        inxLhsData__ = ~isnan(subBlock(posLhs__, :, :));
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
         end
         skipWhenData__ = opt.SkipWhenData(eqn);
         for tt = baseRangeColumns
-            if skipWhenData__ && all(inxData__(1, tt, :))
-                continue
-            end
             for vv = 1 : numRuns
                 indent(journal, "Variant|Page:" + string(vv));
-                if skipWhenData__ && inxData__(1, tt, vv)
-                    continue
-                end
 
                 if anyExogenized__ && ( ...
                     inxExogenizedAlways__(1, tt) ...
-                    || (inxExogenizedWhenData__(1, tt) && inxData__(1, tt, vv)) ...
+                    || (inxExogenizedWhenData__(1, tt) && inxLhsData__(1, tt, vv)) ...
                 )
                     %
                     % Exogenized point, calculate residuals
                     %
-                    res(:, tt, vv) = this__.EndogenizeResiduals(plainData, res, parameters__, tt, vv, controls);
+                    res(:, tt, vv) = this__.EndogenizeResiduals(subBlock, res, parameters__, tt, vv, controls);
                     write(journal, residualName__+"("+string(tt)+")");
                 else
                     %
                     % Endogenous simulation
                     %
-                    plainData(posLhs__, tt, vv) ...
-                        = this__.Simulate(plainData, res, parameters__, tt, vv, controls);
-                    write(journal, lhsName__+"("+string(tt)+")");
+                    if ~skipWhenData__ || ~inxLhsData__(1, tt, vv)
+                        subBlock(posLhs__, tt, vv) ...
+                            = this__.Simulate(subBlock, res, parameters__, tt, vv, controls);
+                        write(journal, lhsName__+"("+string(tt)+")");
+                    end
                 end
+
                 if opt.Progress
                     increment(progress);
                 end
+
                 deindent(journal);
             end
         end
@@ -380,7 +378,7 @@ return
 
     function hereRunOnce(columnsToRun)
         posLhs__ = this__.DependentTerm.Position;
-        inxData__ = ~isnan(plainData(posLhs__, :, :));
+        inxLhsData__ = ~isnan(subBlock(posLhs__, :, :));
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
@@ -391,31 +389,34 @@ return
             inxColumnsToRun__ = false(1, numExtdPeriods);
             inxColumnsToRun__(columnsToRun) = true;
             inxColumnsToExogenize__ = false(1, numExtdPeriods);
-            if skipWhenData__
-                inxColumnsToRun__ = inxColumnsToRun__ & ~inxData__(:, :, vv); 
-            end
             if anyExogenized__
                 inxColumnsToExogenize__ = ...
                     inxColumnsToRun__ ...
-                    & ( inxExogenizedAlways__ | (inxExogenizedWhenData__ & inxData__(:, :, vv)) );
+                    & ( inxExogenizedAlways__ | (inxExogenizedWhenData__ & inxLhsData__(1, :, vv)) );
                 inxColumnsToRun__ = inxColumnsToRun__ & ~inxColumnsToExogenize__;
             end
+
             if any(inxColumnsToExogenize__)
                 %
                 % Exogenized points, calculate residuals
                 %
                 tt = find(inxColumnsToExogenize__);
                 res(:, tt, vv) ...
-                    = this__.EndogenizeResiduals(plainData, res, parameters__, tt, vv, controls);
+                    = this__.EndogenizeResiduals(subBlock, res, parameters__, tt, vv, controls);
                 write(journal, residualName__+"("+join(string(tt), ",")+")");
             end
+
+            if skipWhenData__
+                inxColumnsToRun__ = inxColumnsToRun__ & ~inxLhsData__(1, :, vv); 
+            end
+
             if any(inxColumnsToRun__)
                 %
                 % Endogenous simulation
                 %
                 tt = find(inxColumnsToRun__);
-                plainData(posLhs__, tt, vv) ...
-                    = this__.Simulate(plainData, res, parameters__, tt, vv, controls);
+                subBlock(posLhs__, tt, vv) ...
+                    = this__.Simulate(subBlock, res, parameters__, tt, vv, controls);
                 write(journal, lhsName__+"("+join(string(tt), ",")+")");
             end
             if opt.Progress

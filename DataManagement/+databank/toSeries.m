@@ -43,22 +43,37 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function outputSeries = toSeries(inputDb, varargin)
+% >=R2019b
+%(
+function [outputSeries, names, dates] = toSeries(inputDb, names, dates, columns)
 
-%( Input parser
+arguments
+    inputDb (1, 1) {validate.databank(inputDb)}
+    names {locallyValidateNames(names)} = @all
+    dates {locallyValidateDates(dates)} = @all
+    columns (1, :) {mustBeInteger, mustBePositive} = 1
+end
+%)
+% >=R2019b
+
+% <=R2019a
+%{
+function [outputSeries, names, dates] = toSeries(inputDb, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser("+databank/toSeries");
     addRequired(pp, "inputDb", @(x) validate.databank(x) && isscalar(x)); 
-    addOptional(pp, "names", @all, @(x) isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x));
-    addOptional(pp, "dates", @all, @(x) isequal(x, @all) || validate.properDates(x));
+    addOptional(pp, "names", @all, @locallyValidateNames);
+    addOptional(pp, "dates", @all, @locallyValidateDates);
+    addOptional(pp, 'columns', 1, @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
 end
-%)
-unmatched = varargin(3:end);
-varargin = varargin(1:min(end, 2));
 parse(pp, inputDb, varargin{:});
 names = pp.Results.names;
 dates = pp.Results.dates;
+columns = pp.Results.columns;
+%}
+% <=R2019a
 
 %--------------------------------------------------------------------------
 
@@ -94,9 +109,28 @@ if isequal(dates, @all)
     end
 end
 
-[outputArray] = databank.toDoubleArray(inputDb, names, dates, unmatched{:});
+[outputArray] = databank.toDoubleArray(inputDb, names, dates, columns);
 outputSeries = Series(dates, outputArray);
 
+end%
+
+%
+% Local Validators
+%
+
+function locallyValidateNames(input)
+    if isequal(input, @all) || isstring(input) || ischar(input) || iscellstr(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be an array of strings");
+end%
+
+
+function locallyValidateDates(input)
+    if isequal(input, @all) || validate.properDates(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be @all or an array of proper dates");
 end%
 
 

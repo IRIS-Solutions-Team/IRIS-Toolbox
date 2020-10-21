@@ -302,6 +302,8 @@ function specs = locallyPostparseSpecials(expy, specs)
     specs = regexprep(specs, "(?<!\.)\<ifnan\(", "simulate.ifnan(");
     % Replace `if(` with `simulate.if(`
     specs = regexprep(specs, "(?<!\.)\<if\(", "simulate.if(");
+    % Replace @(k) with p(k)
+    specs = regexprep(specs, "@\((\d+)\)", "p($1)");
 end%
 
 

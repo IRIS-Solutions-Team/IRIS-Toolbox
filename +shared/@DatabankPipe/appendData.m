@@ -1,4 +1,3 @@
-function outputData = appendData(this, inputData, outputData, range, varargin)
 % appendData  Append presample or postsample data
 %
 % Backend [IrisToolbox] function
@@ -7,6 +6,7 @@ function outputData = appendData(this, inputData, outputData, range, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function outputDb = appendData(this, inputDb, outputDb, range, varargin)
 
 if numel(varargin)==2
     presample = varargin{1};
@@ -30,14 +30,14 @@ end
 
 preDatabank = [ ];
 if isequal(presample, true)
-    preDatabank = inputData;
+    preDatabank = inputDb;
 elseif validate.databank(presample)
     preDatabank = presample;
 end
 
 postDatabank = [ ];
 if isequal(postsample, true)
-    postDatabank = inputData;
+    postDatabank = inputDb;
 elseif validate.databank(postsample)
     postDatabank = postsample;
 end
@@ -52,12 +52,8 @@ serialRangeEnd = dater.getSerial(endRange);
 previousSerialXStart = [ ];
 previousXStart = [ ];
 
-listAppendables = nameAppendables(this);
-numAppendables = numel(listAppendables);
-for i = 1 : numAppendables
-    name__ = listAppendables{i};
-
-    if ~isfield(outputData, name__)
+for name__ = reshape(string(nameAppendables(this)), 1, [])
+    if ~isfield(outputDb, name__)
         continue
     end
 
@@ -82,7 +78,7 @@ for i = 1 : numAppendables
         continue
     end
 
-    x = outputData.(name__);
+    x = outputDb.(name__);
     serialXStart = round(double(x.Start));
     serialXStart0 = serialXStart;
     if isnan(serialXStart)
@@ -112,7 +108,7 @@ for i = 1 : numAppendables
     end
     x.Data = xData;
     x = trim(x);
-    outputData.(name__) = x;
+    outputDb.(name__) = x;
 end
 
 return

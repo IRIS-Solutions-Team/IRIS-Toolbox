@@ -3,23 +3,35 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%(
 function [outputArray, inxValid] = toDoubleArray(inputDb, names, dates, columns)
 
-if nargin<4
-    columns = 1;
+arguments
+    inputDb (1, 1) {validate.databank(inputDb)}
+    names (:, :) string
+    dates {validate.properRange}
+    columns (1, :) {mustBeInteger, mustBePositive} = 1
 end
+%)
+% >=R2019b
 
-%( Input parser
+% <=R2019a
+%{
+function [outputArray, inxValid] = toDoubleArray(inputDb, names, dates, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('+databank/toDoubleArray');
     addRequired(pp, 'inputDb', @(x) validate.databank(x) && isscalar(x)); 
     addRequired(pp, 'names', @(x) iscellstr(x) || ischar(x) || isstring(x));
     addRequired(pp, 'dates', @DateWrapper.validateProperRangeInput);
-    addRequired(pp, 'columns', @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
+    addOptional(pp, 'columns', 1, @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
 end
-%)
-parse(pp, inputDb, names, dates, columns);
+parse(pp, inputDb, names, dates, varargin{:});
+columns = pp.Results.columns;
+%}
+% <=R2019a
 
 names = reshape(string(names), 1, [ ]);
 
