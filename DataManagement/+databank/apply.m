@@ -150,25 +150,25 @@ arguments
     inputDb (1, 1) {locallyValidateInputDbOrFunc}
     func (1, 1) {locallyValidateInputDbOrFunc}
 
-    opt.StartsWith {mustBeTextScalar} = ""
-    opt.HasPrefix {mustBeTextScalar} = ""
+    opt.StartsWith {validate.mustBeTextScalar} = ""
+    opt.HasPrefix {validate.mustBeTextScalar} = ""
 
-    opt.EndsWith {mustBeTextScalar} = ""
-    opt.HasSuffix {mustBeTextScalar} = ""
+    opt.EndsWith {validate.mustBeTextScalar} = ""
+    opt.HasSuffix {validate.mustBeTextScalar} = ""
 
-    opt.AddToStart {mustBeTextScalar} = ""
-    opt.AddPrefix {mustBeTextScalar} = ""
+    opt.AddToStart {validate.mustBeTextScalar} = ""
+    opt.AddPrefix {validate.mustBeTextScalar} = ""
 
-    opt.AddToEnd {mustBeTextScalar} = ""
-    opt.AddSuffix {mustBeTextScalar} = ""
+    opt.AddToEnd {validate.mustBeTextScalar} = ""
+    opt.AddSuffix {validate.mustBeTextScalar} = ""
 
-    opt.RemoveStart (1, 1) {mustBeA(opt.RemoveStart, "logical")} = false
-    opt.RemovePrefix (1, 1) {mustBeA(opt.RemovePrefix, "logical")} = false
+    opt.RemoveStart (1, 1) {validate.mustBeA(opt.RemoveStart, "logical")} = false
+    opt.RemovePrefix (1, 1) {validate.mustBeA(opt.RemovePrefix, "logical")} = false
 
-    opt.RemoveEnd (1, 1) {mustBeA(opt.RemoveEnd, "logical")} = false
-    opt.RemoveSuffix (1, 1) {mustBeA(opt.RemoveSuffix, "logical")} = false
+    opt.RemoveEnd (1, 1) {validate.mustBeA(opt.RemoveEnd, "logical")} = false
+    opt.RemoveSuffix (1, 1) {validate.mustBeA(opt.RemoveSuffix, "logical")} = false
 
-    opt.RemoveSource (1, 1) {mustBeA(opt.RemoveSource, "logical")} = false
+    opt.RemoveSource (1, 1) {validate.mustBeA(opt.RemoveSource, "logical")} = false
     opt.SourceNames {locallyValidateNames} = @all
     opt.TargetNames {locallyValidateNames} = @default
     opt.AddToDatabank {locallyValidateDb} = @default

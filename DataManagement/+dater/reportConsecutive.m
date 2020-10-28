@@ -1,4 +1,3 @@
-function [c, s] = reportConsecutive(d, fromToSign)
 % reportConsecutive  Group dates into continuous ranges
 %
 % Backend IRIS function
@@ -7,25 +6,29 @@ function [c, s] = reportConsecutive(d, fromToSign)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-if isempty(d)
+function [c, s] = reportConsecutive(inputDates, fromToSign)
+
+inputDates = double(inputDates);
+
+if isempty(inputDates)
     c = cell.empty(1, 0);
-    s = cell.empty(1, 0);
+    s = string.empty(1, 0);
     return
 end
 
 if nargin<2
-    fromToSign = ':';
+    fromToSign = ":";
 end
 
 %--------------------------------------------------------------------------
 
-c = { d(1) };
-for i = 2 : numel(d)
-    ithDate = d(i);
-    if isempty(c{end}) || datdiff(ithDate, c{end}(end))==1
-        c{end}(end+1) = ithDate;
+c = {inputDates(1)};
+for i = 2 : numel(inputDates)
+    date__ = inputDates(i);
+    if isempty(c{end}) || dater.minus(date__, c{end}(end))==1
+        c{end}(end+1) = date__;
     else
-        c{end+1} = ithDate; %#ok<AGROW>
+        c{end+1} = date__; %#ok<AGROW>
     end
 end
 
@@ -33,12 +36,12 @@ if nargout==1
     return
 end
 
-s = cell(size(c));
-for i = 1 : length(c)
-    if length(c{i})==1
-        s{i} = dat2char(c{i});
+s = repmat("", size(c));
+for i = 1 : numel(c)
+    if numel(c{i})==1
+        s(i) = dater.toDefaultString(c{i});
     else
-        s{i} = [dat2char(c{i}(1)), fromToSign, dat2char(c{i}(end))];
+        s(i) = dater.toDefaultString(c{i}(1)) + fromToSign + dater.toDefaultString(c{i}(end));
     end
 end
 

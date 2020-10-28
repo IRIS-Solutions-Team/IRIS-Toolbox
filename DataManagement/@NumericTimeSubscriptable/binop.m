@@ -73,7 +73,7 @@ else
     sizeB = size(b);
     sizeA = size(a);
     strFn = func2str(fn);
-    if isa(a, "TimeSubscriptable")
+    if isa(a, 'TimeSubscriptable')
         x = a;
         a = a.Data;
         if any(strcmp(strFn, ...

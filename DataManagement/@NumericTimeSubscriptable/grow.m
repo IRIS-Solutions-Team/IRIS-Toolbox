@@ -121,7 +121,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Series/grow');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, "function_handle"));
+    addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, 'function_handle'));
     addRequired(pp, 'growth', @locallyValidateGrowth);
     addRequired(pp, 'dates', @DateWrapper.validateProperDateInput);
     addOptional(pp, 'shift', -1, @locallyValidateShift);

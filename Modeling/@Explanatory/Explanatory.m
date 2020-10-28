@@ -93,7 +93,7 @@ classdef Explanatory ...
 
 % IncParameters  Incidence of parameters in nonlinear regression
 % expressions
-        IncParameters (1, :) {mustBeA(IncParameters, "logical")} = logical.empty(1, 0)
+        IncParameters (1, :) {validate.mustBeA(IncParameters, "logical")} = logical.empty(1, 0)
 
 
         Statistics (1, 1) struct = struct( ...
@@ -204,7 +204,7 @@ classdef Explanatory ...
                 fixed = repmat(fixed, 1, 1, numVariants);
             end
             this.Fixed = [this.Fixed, fixed];
-            this.Parameters = [this.Parameters, fixed]
+            this.Parameters = [this.Parameters, fixed];
             this.Statistics.CovParameters(end+(1:numAdd), end+(1:numAdd), :) = NaN;
         end%
 

@@ -10,7 +10,7 @@ arguments
     range {validate.properRange}
 
     opt.BlackoutBefore {Explanatory.validateBlackout(opt.BlackoutBefore, this)} = -Inf
-    opt.SkipWhenData (1, 1) {mustBeA(opt.SkipWhenData, "logical")} = false
+    opt.SkipWhenData (1, 1) {validate.mustBeA(opt.SkipWhenData, "logical")} = false
     opt.Journal = false
 end
 %)
@@ -48,11 +48,15 @@ numEquations = numel(this);
 
 for q = 1 : numEquations
     this__ = this(q);
-    indent(journal, this__.InputString);
     if this__.IsIdentity
-        write(journal, "Identity");
-        deindent(journal);
+        if journal.IsActive
+            write(journal, "Skipping " + this__.InputString);
+        end
         continue
+    end
+
+    if journal.IsActive
+        indent(journal, "Simulating residual model " + this__.InputString);
     end
 
     %
@@ -91,15 +95,19 @@ for q = 1 : numEquations
     if ~isempty(this__.ResidualModel) && nnz(inxMissing)>0
         numPeriods = size(data, 1);
         for v = 1 : numRuns
-            indent(journal, "Variant|Page:" + string(v));
+            if journal.IsActive && numRuns>1
+                indent(journal, "Variant|Page " + sprintf("%g", v));
+            end
             residualModel = update(residualModel, residualModel.Parameters(:, :, v));
             if residualModel.IsIdentity
-                write(journal, "Identity");
+                if journal.IsActive
+                    write(journal, "Skipping identity");
+                end
             else
                 if journal.IsActive
-                    ar = "AR=[" + join(string(residualModel.AR), ",") + "]";
-                    ma = "MA=[" + join(string(residualModel.MA), ",") + "]";
-                    write(journal, ar + " " + ma);
+                    ar = "AR=[" + sprintf("%g ", residualModel.AR) + "]";
+                    ma = "MA=[" + sprintf("%g ", residualModel.MA) + "]";
+                    write(journal, replace(ar, " ]", "]") + ", " + replace(ma, " ]", "]"));
                 end
 
                 %
@@ -111,7 +119,9 @@ for q = 1 : numEquations
                 if journal.IsActive
                     startData__ = dater.toDefaultString(dater.plus(startData, first-1));
                     endData__ = dater.toDefaultString(dater.plus(startData, last-1));
-                    write(journal, "Data " + startData__ + ":" + endData__);
+                    if journal.IsActive
+                        write(journal, "Filtering data " + startData__ + ":" + endData__);
+                    end
                 end
                 if last==numPeriods
                     continue
@@ -131,10 +141,14 @@ for q = 1 : numEquations
                 if journal.IsActive
                     startSimulation__ = dater.toDefaultString(dater.plus(startData, last));
                     endSimulation__ = dater.toDefaultString(range(end));
-                    write(journal, "Simulation " + startSimulation__ + ":" + endSimulation__);
+                    if journal.IsActive
+                        write(journal, "Projecting " + startSimulation__ + ":" + endSimulation__);
+                    end
                 end
             end
-            deindent(journal);
+            if journal.IsActive
+                deindent(journal);
+            end
         end
     end
 
@@ -148,7 +162,10 @@ for q = 1 : numEquations
     else
         runningDb.(residualName) = series;
     end
-    deindent(journal);
+
+    if journal.IsActive
+        deindent(journal);
+    end
 end
 
 end%

@@ -27,8 +27,8 @@ for i = 1 : numPages
         continue
     end
     missingDates = dates(inxMissing(1, :, i));
-    [~, c] = dater.reportConsecutive(missingDates);
-    report__ = {i, sprintf('%s ', c{:})};
+    [~, s] = dater.reportConsecutive(missingDates);
+    report__ = {i, join(s, " ")};
     if ~isempty(pre)
         report__ = [{pre}, report__];
     end

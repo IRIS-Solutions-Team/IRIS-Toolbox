@@ -23,7 +23,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser("@Model/createSourceDb");
     pp.KeepDefaultOptions = true;
-    addRequired(pp, "model", @(x) isa(x, "model"));
+    addRequired(pp, "model", @(x) isa(x, 'model'));
     addRequired(pp, "range", @DateWrapper.validateProperRangeInput);
 
     addParameter(pp, ["AppendPresample", "AddPresample"], true, @validate.logicalScalar);

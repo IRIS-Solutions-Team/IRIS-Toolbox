@@ -349,11 +349,11 @@ return
         if opt.Warning && any(~allFitted(p+1:end))
             missing = this.Range(p+1:end);
             missing = missing(~allFitted(p+1:end));
-            [~, consec] = DateWrapper.reportConsecutive(missing);
+            [~, s] = dater.reportConsecutive(missing);
             utils.warning('VAR:estimate', ...
                 ['These periods have been not fitted ', ...
                 'because of missing observations: %s '], ...
-                consec{:});
+                join(s, " "));
         end
     end 
 

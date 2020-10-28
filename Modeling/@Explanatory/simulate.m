@@ -66,16 +66,16 @@ arguments
     range {validate.properRange}
 
     opt.AddToDatabank = @auto
-    opt.PrependInput (1, 1) {mustBeA(opt.PrependInput, "logical")} = false
-    opt.AppendInput (1, 1) {mustBeA(opt.AppendInput, "logical")} = false
+    opt.PrependInput (1, 1) {validate.mustBeA(opt.PrependInput, "logical")} = false
+    opt.AppendInput (1, 1) {validate.mustBeA(opt.AppendInput, "logical")} = false
     opt.Blazer (1, :) cell = cell.empty(1, 0)
     opt.NaNParameters (1, 1) string = "warning"
     opt.NaNSimulation (1, 1) string = "warning"
     opt.OutputType (1, 1) string = "struct"
     opt.Plan = [ ];
-    opt.Progress (1, 1) {mustBeA(opt.Progress, "logical")} = false
-    opt.SkipWhenData {mustBeA(opt.SkipWhenData, "logical")} = false
-    opt.ExogenizeWhenData {mustBeA(opt.ExogenizeWhenData, "logical")} = false
+    opt.Progress (1, 1) {validate.mustBeA(opt.Progress, "logical")} = false
+    opt.SkipWhenData {validate.mustBeA(opt.SkipWhenData, "logical")} = false
+    opt.ExogenizeWhenData {validate.mustBeA(opt.ExogenizeWhenData, "logical")} = false
     opt.Journal = false
 end
 
@@ -153,6 +153,7 @@ end
 lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 outputData = getDataBlock(this, inputData, range, lhsRequired, context);
+extdRange = outputData.ExtendedRange;
 numExtdPeriods = outputData.NumExtendedPeriods;
 numPages = outputData.NumPages;
 numRuns = max(nv, numPages);
@@ -202,7 +203,7 @@ end
 
 %==========================================================================
 for blk = 1 : numBlocks
-    indent(journal, "Block:"+string(blk));
+    indent(journal, "Block " + sprintf("%g", blk));
     if numel(blocks{blk})==1
         eqn = blocks{blk};
         this__ = this(eqn);
@@ -235,7 +236,9 @@ for blk = 1 : numBlocks
             end
         end
     end
-    deindent(journal);
+    if journal.IsActive
+        deindent(journal);
+    end
 end
 %==========================================================================
 
@@ -334,33 +337,43 @@ return
 
     function hereRunPeriodByPeriod( )
         posLhs__ = this__.DependentTerm.Position;
-        inxLhsData__ = ~isnan(subBlock(posLhs__, :, :));
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
         end
         skipWhenData__ = opt.SkipWhenData(eqn);
-        for tt = baseRangeColumns
-            for vv = 1 : numRuns
-                indent(journal, "Variant|Page:" + string(vv));
-
-                if anyExogenized__ && ( ...
-                    inxExogenizedAlways__(1, tt) ...
-                    || (inxExogenizedWhenData__(1, tt) && inxLhsData__(1, tt, vv)) ...
-                )
+        for vv = 1 : numRuns
+            if journal.IsActive && numRuns>1
+                indent(journal, "Variant|Page " + sprintf("%g", vv));
+            end
+            inxLhsData__ = ~isnan(subBlock(posLhs__, :, vv));
+            for tt = baseRangeColumns
+                if anyExogenized__ && ...
+                    (inxExogenizedAlways__(1, tt) || (inxExogenizedWhenData__(1, tt) && inxLhsData__(1, tt)))
                     %
                     % Exogenized point, calculate residuals
                     %
                     res(:, tt, vv) = this__.EndogenizeResiduals(subBlock, res, parameters__, tt, vv, controls);
-                    write(journal, residualName__+"("+string(tt)+")");
+                    if journal.IsActive
+                        write(journal, "Exogenizing " + lhsName__ + "(" + residualName__ + ") " + dater.toDefaultString(extdRange(tt)));
+                    end
                 else
                     %
                     % Endogenous simulation
                     %
-                    if ~skipWhenData__ || ~inxLhsData__(1, tt, vv)
+                    if skipWhenData__ && inxLhsData__(1, tt)
+                        %
+                        % Skip
+                        %
+                        if journal.IsActive
+                            write(journal, "Skipping " + lhsName__ + " " + dater.toDefaultString(extdRange(tt)));
+                        end
+                    else
                         subBlock(posLhs__, tt, vv) ...
                             = this__.Simulate(subBlock, res, parameters__, tt, vv, controls);
-                        write(journal, lhsName__+"("+string(tt)+")");
+                        if journal.IsActive
+                            write(journal, "Simulating " + lhsName__ + " " + dater.toDefaultString(extdRange(tt)));
+                        end
                     end
                 end
 
@@ -368,7 +381,9 @@ return
                     increment(progress);
                 end
 
-                deindent(journal);
+                if journal.IsActive && numRuns>1
+                    deindent(journal);
+                end
             end
         end
     end%
@@ -378,21 +393,23 @@ return
 
     function hereRunOnce(columnsToRun)
         posLhs__ = this__.DependentTerm.Position;
-        inxLhsData__ = ~isnan(subBlock(posLhs__, :, :));
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
         end
         skipWhenData__ = opt.SkipWhenData(eqn);
         for vv = 1 : numRuns
-            indent(journal, "Variant|Page:" + string(vv));
+            if journal.IsActive && numRuns>1
+                indent(journal, "Variant|Page " + sprintf("%g", vv));
+            end
+            inxLhsData__ = ~isnan(subBlock(posLhs__, :, vv));
             inxColumnsToRun__ = false(1, numExtdPeriods);
             inxColumnsToRun__(columnsToRun) = true;
             inxColumnsToExogenize__ = false(1, numExtdPeriods);
             if anyExogenized__
                 inxColumnsToExogenize__ = ...
                     inxColumnsToRun__ ...
-                    & ( inxExogenizedAlways__ | (inxExogenizedWhenData__ & inxLhsData__(1, :, vv)) );
+                    & ( inxExogenizedAlways__ | (inxExogenizedWhenData__ & inxLhsData__) );
                 inxColumnsToRun__ = inxColumnsToRun__ & ~inxColumnsToExogenize__;
             end
 
@@ -403,11 +420,21 @@ return
                 tt = find(inxColumnsToExogenize__);
                 res(:, tt, vv) ...
                     = this__.EndogenizeResiduals(subBlock, res, parameters__, tt, vv, controls);
-                write(journal, residualName__+"("+join(string(tt), ",")+")");
+                if journal.IsActive
+                    [~, s] = dater.reportConsecutive(extdRange(inxColumnsToExogenize__));
+                    write(journal, "Exogenizing " + lhsName__ + "(" + residualName__ + ") " + join(s, " "));
+                end
             end
 
             if skipWhenData__
-                inxColumnsToRun__ = inxColumnsToRun__ & ~inxLhsData__(1, :, vv); 
+                inxColumnsToRun__ = inxColumnsToRun__ & ~inxLhsData__; 
+                if journal.IsActive
+                    inxColumnsToSkip__ = inxColumnsToRun__ & inxLhsData__;
+                    if any(inxColumnsToSkip__)
+                        [~, s] = dater.reportConsecutive(extdRange(inxColumnsToSkip__));
+                        write(journal, "Skipping " + lhsName__ + " " + dater.toDefaultString(extdRange(inxColumnsToSkip__)));
+                    end
+                end
             end
 
             if any(inxColumnsToRun__)
@@ -417,12 +444,17 @@ return
                 tt = find(inxColumnsToRun__);
                 subBlock(posLhs__, tt, vv) ...
                     = this__.Simulate(subBlock, res, parameters__, tt, vv, controls);
-                write(journal, lhsName__+"("+join(string(tt), ",")+")");
+                if journal.IsActive
+                    [~, s] = dater.reportConsecutive(extdRange(inxColumnsToRun__));
+                    write(journal, "Simulating " + lhsName__ + " " + join(s, " "));
+                end
             end
             if opt.Progress
                 increment(progress, numBaseRangeColumns);
             end
-            deindent(journal);
+            if journal.IsActive && numRuns>1
+                deindent(journal);
+            end
         end
     end%
 

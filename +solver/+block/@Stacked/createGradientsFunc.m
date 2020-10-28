@@ -20,10 +20,13 @@ func = string(vectorize(func));
 func = str2func(this.PREAMBLE + "[" + func + "]");
 this.StackedJacob_GradientsFunc = func;
 
+
 %
 % Anynomous function to update the equations in an existing Jacobian that
 % actually do change in each iteration (i.e. the function depends on a
-% quantity included in this block)
+% quantity included in this block). Create this function only if it would
+% be different from the baseline StackedJacob_GradientsFunc; this is
+% indicated by accelerateUpdate==true.
 %
 
 func = [ ];

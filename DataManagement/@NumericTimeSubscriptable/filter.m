@@ -56,23 +56,40 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%(
+function this = filter(this, armani, range, opt)
+
+arguments
+    this NumericTimeSubscriptable
+    armani (1, 1) Armani
+    range {validate.range} = Inf
+
+    opt.FillMissing = 0
+end
+%)
+% >=R2019b
+
+% <=R2019a
+%{
 function this = filter(this, armani, range, varargin)
 
-%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser("@Series/filter");
-    addRequired(pp, "inputSeries", @(x) isa(x, "NumericTimeSubscriptable"));
-    addRequired(pp, "model", @(x) isa(x, "Armani"));
+    addRequired(pp, "inputSeries", @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(pp, "model", @(x) isa(x, 'Armani'));
     addRequired(pp, "range", @DateWrapper.validateRangeInput);
     
     addParameter(pp, "FillMissing", 0);
 end
-%)
+
 [skipped, opt] = maybeSkip(pp, varargin{:});
 if ~skipped
     opt = parse(pp, this, armani, range, varargin{:});
 end
+%}
+% <=R2019a
 
 %--------------------------------------------------------------------------
 

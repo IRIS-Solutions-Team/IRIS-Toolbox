@@ -226,7 +226,38 @@ classdef validate
     methods (Static)
         function mustBeAnyString(x, varargin)
             if ~validate.anyString(x, varargin{:})
-                error("Must be one of the following strings: " + sprintf("""%s""", varargin{:}));
+                error("Input value must be one of the following strings: " + sprintf("""%s""", varargin{:}) + ".");
+            end
+        end%
+
+
+        function mustBeScalarOrEmpty(x)
+            if ~isscalar(x) && ~isempty(x)
+                error("Input value must be empty or a scalar.");
+            end
+        end%
+
+
+        function mustBeInRange(x, lower, upper)
+            if isempty(x)
+                return
+            end
+            if ~all(x(:)>=lower) || ~all(x(:)<=upper)
+                error("Input value must be between " + string(lower) + " and " + string(upper) + ".");
+            end
+        end%
+
+
+        function mustBeA(x, class)
+            if ~isa(x, char(class))
+                error("Input value must be the " + string(class) + " class.");
+            end
+        end%
+
+
+        function mustBeTextScalar(x)
+            if (~ischar(x) && ~isstring(x) && ~iscellstr(x)) || ~isscalar(string(x))
+                error("Input value must be a scalar text string.");
             end
         end%
     end

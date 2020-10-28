@@ -45,7 +45,7 @@ function outputDb = clip(inputDb, newStart, newEnd, opt)
 arguments
     inputDb (1, 1) {validate.databank(inputDb)}
     newStart {mustBeNonempty, validate.dateInput(newStart)}
-    newEnd {mustBeScalarOrEmpty, validate.dateInput(newEnd)} = []
+    newEnd {validate.mustBeScalarOrEmpty, validate.dateInput(newEnd)} = []
 
     opt.SourceNames {locallyValidateNames(opt.SourceNames)} = @all
     opt.TargetDb {locallyValidateDb(opt.TargetDb)} = @auto

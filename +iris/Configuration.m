@@ -1,4 +1,5 @@
 classdef (CaseInsensitiveProperties=true) Configuration 
+
     properties (SetAccess=protected)
         %(
         % IrisRoot  IrisToolbox root folder (not customizable)
@@ -595,25 +596,44 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         function irisRelease = getIrisRelease( )
             x = ver( );
-            inxIris = startsWith({x.Name}, '[IrisToolbox]');
-            if any(inxIris)
-                if sum(inxIris)>1
-                    disp(' ');
-                    thisError = { 'IrisToolbox:Fatal'
-                                  'Cannot start up [IrisToolbox] because '
-                                  'there are conflicting root folders '
-                                  'or versions on the Matlab path. '
-                                  'Remove *ALL* [IrisToolbox] versions and folders from the Matlab path, '
-                                  'and try again.' };
-                    error(thisError{1}, [thisError{2:end}]);
-                end
+            inxIris = startsWith(strip(string({x.Name})), '[IrisToolbox]');
+            numIris = nnz(inxIris);
+            if numIris==1
                 irisRelease = regexp(x(inxIris).Version, '\d+\-?\w+', 'match', 'once');
-            else
+            elseif numIris==0
+                %
                 % Do not use utils.warning because it calls back iris.get and results
-                % in infinite recursion.
-                warning( 'IrisToolbox:CannotDetermineRelease', ...
-                         'Cannot determine the release of [IrisToolbox] currently running.' );
+                % in an infinite recursion
+                %
+                warning( ...
+                    'IrisToolbox:CannotDetermineRelease', ...
+                    'Cannot determine the release of [IrisToolbox] currently running.' ...
+                )
                 irisRelease = '???';
+            else
+                %
+                % Look up all Contents.m files that have the string
+                % "[IrisToolbox]" in them and report their folders
+                %
+                allContentsFiles = which("-all", "Contents.m");
+                irisContentsFolders = string.empty(0, 1);
+                for fileName = reshape(string(allContentsFiles), 1, [])
+                    f = fileread(fileName);
+                    if contains(f, "[IrisToolbox]")
+                        irisContentsFolders(end+1, 1) = "    * " + string(fileparts(fileName)); %#ok<AGROW>
+                    end
+                end
+                
+                disp(' ');
+                thisError = [
+                    "IrisToolbox:ConflictingVersionsOrFolders"
+                    ""
+                    "Cannot start up [IrisToolbox] because there are conflicting [IrisToolbox] root folders or [IrisToolbox] versions on the Matlab path: "
+                    irisContentsFolders
+                    "Remove all the above [IrisToolbox] versions and folders from the Matlab path, use addpath to add the right one, and start [IrisToolbox] up again."
+                    ""
+                ];
+                error(thisError(1), join(thisError(2:end), string(newline)));
             end
         end%
 

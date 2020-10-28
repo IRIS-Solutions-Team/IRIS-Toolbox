@@ -85,7 +85,7 @@ function [blocks, variableBlocks, equationBlocks, period] = blazer(this, opt)
 arguments
     this Explanatory
     
-    opt.Reorder (1, 1) {mustBeA(opt.Reorder, "logical")} = true
+    opt.Reorder (1, 1) {validate.mustBeA(opt.Reorder, "logical")} = true
     opt.SaveAs (1, 1) string = ""
     opt.Period (1, 1) = @auto
 end

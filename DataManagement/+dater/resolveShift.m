@@ -13,7 +13,7 @@ function [shift, power] = resolveShift(dates, shift, opt)
 arguments
     dates {mustBeReal}
     shift (1, 1) {locallyValidateShift(shift)} = -1
-    opt.Annualize (1, 1) {mustBeA(opt.Annualize, "logical")} = false
+    opt.Annualize (1, 1) {validate.mustBeA(opt.Annualize, "logical")} = false
 end
 %)
 % >=R2019b

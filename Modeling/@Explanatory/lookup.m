@@ -61,34 +61,46 @@
 function [inx, this, lhsNames] = lookup(this, varargin)
 
 %( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@Explanatory/lookup');
-    addRequired(pp, 'xq', @(x) isa(x, 'Explanatory'));
-    addOptional(pp, 'lookFor', cell.empty(1, 0), @(x) all(cellfun(@(y) isstring(y) || ischar(y) || iscellstr(y), x)));
-end
+% persistent pp
+% if isempty(pp)
+    % pp = extend.InputParser('@Explanatory/lookup');
+    % addRequired(pp, 'xq', @(x) isa(x, 'Explanatory'));
+    % addOptional(pp, "operator", @or, @(x) isequal(x, @or) || isequal(x, @xor) || isequal(x, @and));
+    % addOptional(pp, 'lookFor', cell.empty(1, 0), @(x) all(cellfun(@(y) isstring(y) || ischar(y) || iscellstr(y), x)));
+% end
 %)
-parse(pp, this, varargin);
+% parse(pp, this, varargin);
 
 %--------------------------------------------------------------------------
 
-inx = false(size(this));
+operator = @or;
+if ~isempty(varargin) && isa(varargin{1}, "function_handle")
+    operator = varargin{1};
+    varargin(1) = [];
+end
+
+if isequal(operator, @or)
+    inx = false(size(this));
+elseif isequal(operator, @and)
+    inx = true(size(this));
+end
+
 lhsNames = reshape([this.LhsName], size(this));
 
 for v = varargin
-    for identifier = reshape(strip(string(v{:})), 1, [ ])
+    for identifier = reshape(strip(string(v{:})), 1, [])
         if startsWith(identifier, ":")
-            inx = inx | hasAttribute(this, identifier);
+            inx = operator(inx, hasAttribute(this, identifier));
         else
-            inx = inx | lhsNames==identifier;
+            inx = operator(inx, lhsNames==identifier);
         end
     end
 end
 
 if nargout>=2
-    this = reshape(this(inx), [ ], 1);
+    this = reshape(this(inx), [], 1);
     if nargout>=3
-        lhsNames = reshape(lhsNames(inx), 1, [ ]);
+        lhsNames = reshape(lhsNames(inx), 1, []);
     end
 end
 

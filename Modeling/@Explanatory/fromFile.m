@@ -104,7 +104,6 @@ this = Explanatory.fromString( ...
     , 'ControlNames=', controlNames ...
 );
 
-
 %
 % Fill in parse time information * FileName * Export * Comment
 %

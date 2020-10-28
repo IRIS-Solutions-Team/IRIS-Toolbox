@@ -49,7 +49,7 @@ function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 arguments
     this TimeSubscriptable
     newStart {validate.dateInput(newStart)}
-    newEnd {mustBeScalarOrEmpty, validate.dateInput(newEnd)} = []
+    newEnd {validate.mustBeScalarOrEmpty, validate.dateInput(newEnd)} = []
 end
 
 newStart = double(newStart);

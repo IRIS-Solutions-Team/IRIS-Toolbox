@@ -67,7 +67,7 @@ if isempty(pp)
     addRequired(pp, 'excelRange', @(x) isnumeric(x) || isstring(x) || validate.string(x));
     
     addParameter(pp, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
-    addParameter(pp, "NameFunc", [ ], @(x) isempty(x) || isa(x, "function_handle"));
+    addParameter(pp, "NameFunc", [ ], @(x) isempty(x) || isa(x, 'function_handle'));
     addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.databankType(x));
     addParameter(pp, "UpdateWhenExists", false, @validate.logicalScalar);
 end

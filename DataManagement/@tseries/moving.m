@@ -51,7 +51,7 @@ arguments
     range {validate.rangeInput(range)} = Inf
 
     opt.Window {locallyValidateWindow(opt.Window)} = @auto
-    opt.Function {mustBeA(opt.Function, "function_handle")} = @mean
+    opt.Function {validate.mustBeA(opt.Function, "function_handle")} = @mean
 end
 %)
 % >=R2019b

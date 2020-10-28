@@ -37,10 +37,11 @@ lhs(1, baseRangeColumns, :) = createModelData(this.DependentTerm, x, baseRangeCo
 %
 % Model data for all explanatory terms for linear regressions
 %
-rhs = [];
 if this.IsLinear
     rhs = nan(numel(this.ExplanatoryTerms), numExtendedPeriods, numPages);
     rhs(:, baseRangeColumns, :) = createModelData(this.ExplanatoryTerms, x, baseRangeColumns, controls);
+else
+    rhs = zeros(0, numExtendedPeriods, 1);
 end
 
 end%

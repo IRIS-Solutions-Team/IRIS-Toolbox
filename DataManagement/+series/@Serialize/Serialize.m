@@ -2,11 +2,11 @@ classdef Serialize ...
     < matlab.mixin.Copyable
 
     properties
-        Name (1, :) string {mustBeScalarOrEmpty} = "Name"
-        Dates (1, :) string {mustBeScalarOrEmpty} = "Dates"
-        Values (1, :) string {mustBeScalarOrEmpty} = "Values"
-        Frequency (1, :) string {mustBeScalarOrEmpty} = "Frequency"
-        Comment (1, :) string {mustBeScalarOrEmpty} = "Comment"
+        Name (1, :) string {validate.mustBeScalarOrEmpty} = "Name"
+        Dates (1, :) string {validate.mustBeScalarOrEmpty} = "Dates"
+        Values (1, :) string {validate.mustBeScalarOrEmpty} = "Values"
+        Frequency (1, :) string {validate.mustBeScalarOrEmpty} = "Frequency"
+        Comment (1, :) string {validate.mustBeScalarOrEmpty} = "Comment"
         UserData = ""
         StartDateOnly = true
         Format = ""
