@@ -259,7 +259,7 @@ return
         numRuns = runningData.NumPages;
         runningData.Plan = plan;
         runningData.Window = opt.Window;
-        runnintDaga.SuccessOnly = opt.SuccessOnly;
+        runningData.SuccessOnly = opt.SuccessOnly;
         runningData.SparseShocks = opt.SparseShocks;
         runningData.Method = repmat(opt.Method, 1, numRuns);
         runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
