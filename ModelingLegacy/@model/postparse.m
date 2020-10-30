@@ -359,8 +359,8 @@ return
         add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, numQuantitiesToAdd);
         qty = insert(qty, add, TYPE(2), 'first');
         if isFloor
-            floorParameterName = string(model.Quantity.FLOOR_PREFIX) + string(optimalOpt.Floor);
-            inxFloorParameter = startsWith(qty.Name, model.Quantity.FLOOR_PREFIX);
+            floorParameterName = string(model.component.Quantity.FLOOR_PREFIX) + string(optimalOpt.Floor);
+            inxFloorParameter = startsWith(qty.Name, model.component.Quantity.FLOOR_PREFIX);
             % Floor parameter may be declared by the user
             if any(inxFloorParameter)
                 posFloorParameter = find(inxFloorParameter);
