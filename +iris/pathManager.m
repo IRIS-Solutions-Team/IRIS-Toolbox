@@ -88,7 +88,7 @@ function [ppath, everything] = generatePath(root)
     try
         root; %#ok<VUNUS>
     catch
-        root = irisroot( );
+        root = iris.root( );
     end
 
     % All first-level folders in IRIS root.

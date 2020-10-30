@@ -15,7 +15,7 @@ sect{1} = [ ...
     ];
 
 % Second section is How to Run...
-sect{2} = file2char(fullfile(irisroot( ),'+latex','howtorun.m'));
+sect{2} = file2char(fullfile(iris.root( ),'+latex','howtorun.m'));
 
 for i = 1 : nFile;    
     [~, fileTitle, fileExt] = fileparts(lsFile{i});

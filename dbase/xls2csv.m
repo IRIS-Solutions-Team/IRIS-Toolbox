@@ -34,7 +34,7 @@ function xls2csv(InpFile,OutpFile,varargin)
 % first worksheet found in the input XLS file; use the option `'sheet='` to
 % control which worksheet will be saved.
 %
-% See also $irisroot/+thirdparty/xls2csv.js for copyright information.
+% See also $(iris.root)/+thirdparty/xls2csv.js for copyright information.
 %
 % Example
 % ========
@@ -79,7 +79,7 @@ opt = passvalopt('dbase.xls2csv',varargin{:});
 
 %--------------------------------------------------------------------------
 
-jsPath = fullfile(irisroot( ),'+thirdparty','xls2csv.js');
+jsPath = fullfile(iris.root( ),'+thirdparty','xls2csv.js');
 [inpDir,inpTitle,inpExt] = fileparts(InpFile);
 
 if isempty(OutpFile)

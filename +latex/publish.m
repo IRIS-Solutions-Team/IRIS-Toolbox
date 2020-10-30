@@ -120,7 +120,7 @@ rptFileName = [inpTitle, inpExt];
 br = sprintf('\n');
 
 if strcmpi(opt.template, 'paper')
-    template = file2char(fullfile(irisroot( ), '+latex', 'paper.tex'));
+    template = file2char(fullfile(iris.root( ), '+latex', 'paper.tex'));
     if ~isnumericscalar(opt.linespread)
         opt.linespread = 1.1;
     end
