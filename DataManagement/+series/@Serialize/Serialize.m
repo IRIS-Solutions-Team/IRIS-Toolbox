@@ -67,8 +67,11 @@ classdef Serialize ...
             
             outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
 
-            outputRecord.(this.Frequency) = char(this.letterFromFrequency(inputSeries.Frequency));
-            if ~isequal(this.Comment, false)
+            if ~isempty(this.Frequency) && (ischar(this.Frequency) || isstring(this.Frequency)) && strlength(this.Frequency)>0
+                outputRecord.(this.Frequency) = char(this.letterFromFrequency(inputSeries.Frequency));
+            end
+
+            if ~isequal(this.Comment, false) && (ischar(this.Comment) || isstring(this.Comment)) && strlength(this.Comment)>0
                 outputRecord.(this.Comment) = inputSeries.Comment;
             end
             %
