@@ -145,7 +145,7 @@
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
 
 % >=R2019b
-%(
+%{
 arguments
     inputDb (1, 1) {locallyValidateInputDbOrFunc}
     func (1, 1) {locallyValidateInputDbOrFunc}
@@ -202,7 +202,7 @@ end
 if ~isequal(opt.TargetDb, @default)
     opt.AddToDatabank = opt.TargetDb;
 end
-%)
+%}
 % >=R2019b
 
 if validate.databank(func)
@@ -210,7 +210,7 @@ if validate.databank(func)
 end
 
 % <=R2019a
-%{
+%(
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, varargin)
 
 persistent pp
@@ -231,7 +231,7 @@ if isempty(pp)
     pp.addParameter({'AddToDatabank', 'TargetDb'}, @default, @(x) isequal(x, @default) || validate.databank(x));
 end
 opt = pp.parse(func, inputDb, varargin{:});
-%}
+%)
 % <=R2019a
 
 if ~isa(opt.SourceNames, "function_handle")

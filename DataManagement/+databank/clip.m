@@ -39,7 +39,7 @@
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 % >=R2019b
-%(
+%{
 function outputDb = clip(inputDb, newStart, newEnd, opt)
 
 arguments
@@ -50,11 +50,11 @@ arguments
     opt.SourceNames {locallyValidateNames(opt.SourceNames)} = @all
     opt.TargetDb {locallyValidateDb(opt.TargetDb)} = @auto
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function outputDb = clip(inputDb, newStart, newEnd, varargin)
 
 persistent pp
@@ -67,7 +67,7 @@ if isempty(pp)
     addParameter(pp, "TargetDb", @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end
 opt = parse(pp, inputDb, newStart, newEnd, varargin{:});
-%}
+%)
 % <=R2019a
 
 newStart = double(newStart);

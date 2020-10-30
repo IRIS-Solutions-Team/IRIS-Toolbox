@@ -1,7 +1,7 @@
 function this = replaceData(this, pairs)
 
 % >=R2019b
-%(
+%{
 arguments
     this NumericTimeSubscriptable
 end
@@ -9,7 +9,7 @@ end
 arguments (Repeating)
     pairs
 end
-%)
+%}
 % >=R2019b
 
 if isempty(this.Data)

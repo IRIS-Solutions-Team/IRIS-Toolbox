@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputArray, inxValid] = toDoubleArray(inputDb, names, dates, columns)
 
 arguments
@@ -13,11 +13,11 @@ arguments
     dates {validate.properRange}
     columns (1, :) {mustBeInteger, mustBePositive} = 1
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [outputArray, inxValid] = toDoubleArray(inputDb, names, dates, varargin)
 
 persistent pp
@@ -30,7 +30,7 @@ if isempty(pp)
 end
 parse(pp, inputDb, names, dates, varargin{:});
 columns = pp.Results.columns;
-%}
+%)
 % <=R2019a
 
 names = reshape(string(names), 1, [ ]);

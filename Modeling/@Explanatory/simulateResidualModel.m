@@ -1,7 +1,7 @@
 % simulateResidualModels  Project residuals using ResidualModels
 
 % >=R2019b
-%(
+%{
 function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, opt)
 
 arguments
@@ -13,11 +13,11 @@ arguments
     opt.SkipWhenData (1, 1) {validate.mustBeA(opt.SkipWhenData, "logical")} = false
     opt.Journal = false
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, varargin)
 
 persistent pp
@@ -28,7 +28,7 @@ if isempty(pp)
     addParameter(pp, "Journal", false);
 end
 opt = parse(pp, varargin{:});
-%}
+%)
 % <=R2019a
 
 if isempty(range)

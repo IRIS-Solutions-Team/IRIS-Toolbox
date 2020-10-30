@@ -98,7 +98,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = grow(this, operator, growth, dates, shift, opt)
 
 arguments
@@ -110,11 +110,11 @@ arguments
 
     opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function this = grow(this, operator, growth, dates, varargin)
 
 persistent pp
@@ -138,7 +138,7 @@ else
     % Legacy option
     shift = opt.BaseShift;
 end
-%}
+%)
 % <=R2019a
 
 if startsWith(opt.Direction, "backward", "ignoreCase", true)

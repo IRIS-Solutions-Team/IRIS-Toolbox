@@ -7,7 +7,7 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [shift, power] = resolveShift(dates, shift, opt)
 
 arguments
@@ -15,11 +15,11 @@ arguments
     shift (1, 1) {locallyValidateShift(shift)} = -1
     opt.Annualize (1, 1) {validate.mustBeA(opt.Annualize, "logical")} = false
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [shift, power] = resolveShift(dates, varargin)
 
 persistent pp
@@ -31,7 +31,7 @@ if isempty(pp)
 end
 opt = parse(pp, dates, varargin{:});
 shift = pp.Results.shift;
-%}
+%)
 % <=R2019a
 
 outputFreq = [];
