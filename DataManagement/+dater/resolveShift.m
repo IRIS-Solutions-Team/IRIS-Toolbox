@@ -32,7 +32,7 @@ end
 opt = parse(pp, dates, varargin{:});
 shift = pp.Results.shift;
 %}
-% <=R2019
+% <=R2019a
 
 outputFreq = [];
 if opt.Annualize
