@@ -1,4 +1,3 @@
-function mydatxtick(h, range, time, freq, userRange, opt)
 % mydatxtick  Set up x-axis for time series graphs
 %
 % Backend IRIS function
@@ -6,6 +5,8 @@ function mydatxtick(h, range, time, freq, userRange, opt)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function mydatxtick(h, range, time, freq, userRange, opt)
 
 if numel(h)>1
     for i = 1 : numel(h)
@@ -61,23 +62,21 @@ adjustXLim( );
 return
 
 
-
-
     function setXLim( )
         if isequal(userRange, Inf)
             if isZero
                 firstDate = double(range(1));
                 lastDate = double(range(end));
                 xLim = [firstDate, lastDate];
-            elseif isWeekly
+            elseif isWeekly 
                 firstDate = double(range(1));
                 lastDate = double(range(end));
                 xLim = [time(1), time(end)];
             elseif isDaily
                 % First day in first plotted month to last day in last plotted month.
-                firstDate = double( datbom(range(1)) );
-                lastDate = double( dateom(range(end)) );
-                xLim = [firstDate, lastDate];
+                firstDate = double(range(1));
+                lastDate = double(range(end));
+                xLim = [time(1), time(end)];
             else
                 % First period in first plotted year to last period in last plotted year.
                 firstDate = numeric.datecode(freq, floor(time(1)), 1);
