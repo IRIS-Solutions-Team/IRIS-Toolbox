@@ -83,8 +83,8 @@ this = preallocate(this, ny, order, nXPer, nv, ng);
 this = assign@BaseVAR(this, A, Omg, xRange, Fitted);
 
 if isempty(K)
-    this.K = zeros(ny, nGrp, nv);
-elseif size(K, 1) ~= ny || size(K, 2) ~= nGrp || size(K, 3) ~= nv
+    this.K = zeros(ny, numGroups, nv);
+elseif size(K, 1) ~= ny || size(K, 2) ~= numGroups || size(K, 3) ~= nv
     utils.error('VAR:assign', ...
         'Invalid size of the constant matrix K.');
 else
@@ -93,8 +93,8 @@ else
 end
 
 if isempty(J)
-    this.J = zeros(nx, nGrp, nv);
-elseif size(J, 1) ~= ny || size(J, 2) ~= nx*nGrp || size(J, 3) ~= nv
+    this.J = zeros(nx, numGroups, nv);
+elseif size(J, 1)~=ny || size(J, 2)~=nx*numGroups || size(J, 3)~=nv
     utils.error('VAR:assign', ...
         'Invalid size of the coefficient matrix J.');
 else
