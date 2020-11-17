@@ -101,7 +101,14 @@ end
 
 checkFrequency(this, inputRange);
 data = getData(this, inputRange);
-xCoor = dat2dec(inputRange, opt.DatePosition);
+freq = dater.getFrequency(inputRange(1));
+isDaily = freq==Frequency.DAILY;
+if isDaily
+    xCoor = double(inputRange);
+else
+    xCoor = dat2dec(inputRange, opt.DatePosition);
+end
+
 
 if isempty(plotFunc)
     return
