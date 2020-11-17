@@ -85,7 +85,7 @@ classdef validate
                 end
             else
                 try
-                    flag = matches(input, string(varargin), "ignoreCase", true);
+                    flag = any(matches(input, string(varargin), "ignoreCase", true));
                 catch
                     flag = any(strcmpi(input, string(varargin)));
                 end
@@ -225,16 +225,29 @@ classdef validate
 
     methods (Static)
         function mustBeAnyString(x, varargin)
-            if ~validate.anyString(x, varargin{:})
-                error("Input value must be one of the following strings: " + sprintf("""%s""", varargin{:}) + ".");
+            if validate.anyString(x, varargin{:})
+                return
             end
+            error("Input value must be one of the following strings: " + sprintf("""%s""", varargin{:}) + ".");
+        end%
+        
+        
+        function mustBeAnyStringOrEmpty(x, varargin)
+            if isempty(x)
+                return
+            end
+            if validate.anyString(x, varargin{:})
+                return
+            end
+            error("Input value must be one of the following strings: " + sprintf("""%s""", varargin{:}) + ".");
         end%
 
 
         function mustBeScalarOrEmpty(x)
-            if ~isscalar(x) && ~isempty(x)
-                error("Input value must be empty or a scalar.");
+            if isscalar(x) || isempty(x)
+                return
             end
+            error("Input value must be empty or a scalar.");
         end%
 
 
@@ -242,23 +255,37 @@ classdef validate
             if isempty(x)
                 return
             end
-            if ~all(x(:)>=lower) || ~all(x(:)<=upper)
-                error("Input value must be between " + string(lower) + " and " + string(upper) + ".");
+            if all(x(:)>=lower) && all(x(:)<=upper)
+                return
             end
+            error("Input value must be between " + string(lower) + " and " + string(upper) + ".");
         end%
 
 
         function mustBeA(x, class)
-            if ~isa(x, char(class))
-                error("Input value must be the " + string(class) + " class.");
+            if isa(x, char(class))
+                return
             end
+            error("Input value must be of the " + string(class) + " class.");
         end%
 
 
-        function mustBeTextScalar(x)
-            if (~ischar(x) && ~isstring(x) && ~iscellstr(x)) || ~isscalar(string(x))
-                error("Input value must be a scalar text string.");
+        function mustBeText(x)
+            if ischar(x) || isstring(x) || iscellstr(x) 
+                return
             end
+            error("Input value must be a string, char or cellstr.");
+        end%
+            
+
+        function mustBeTextScalar(x)
+            try
+                validate.mustBeText(x);
+                if isscalar(string(x))
+                    return
+                end
+            end
+            error("Input value must be a scalar text string.");
         end%
     end
 end
