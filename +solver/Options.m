@@ -62,7 +62,7 @@ classdef (CaseInsensitiveProperties=true) Options
         % Step Improvement Options
         DEFAULT_LAMBDA = [0.1, 1, 10, 100]
         DEFAULT_INFLATE_STEP = 1.2
-        DEFAULT_DEFLATE_STEP = 0.5
+        DEFAULT_DEFLATE_STEP = 0.8
 
         % Jacobian Options
         DEFAULT_JACOB_CALCULATION = "Analytical"
