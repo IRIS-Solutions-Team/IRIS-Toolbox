@@ -66,16 +66,16 @@ arguments
     range {validate.properRange}
 
     opt.AddToDatabank = @auto
-    opt.PrependInput (1, 1) {validate.mustBeA(opt.PrependInput, "logical")} = false
-    opt.AppendInput (1, 1) {validate.mustBeA(opt.AppendInput, "logical")} = false
+    opt.PrependInput (1, 1) logical = false
+    opt.AppendInput (1, 1) logical = false
     opt.Blazer (1, :) cell = cell.empty(1, 0)
     opt.NaNParameters (1, 1) string = "warning"
     opt.NaNSimulation (1, 1) string = "warning"
     opt.OutputType (1, 1) string = "struct"
     opt.Plan = [ ];
-    opt.Progress (1, 1) {validate.mustBeA(opt.Progress, "logical")} = false
-    opt.SkipWhenData {validate.mustBeA(opt.SkipWhenData, "logical")} = false
-    opt.ExogenizeWhenData {validate.mustBeA(opt.ExogenizeWhenData, "logical")} = false
+    opt.Progress (1, 1) logical = false
+    opt.SkipWhenData (:, :) logical {mustBeNonempty} = false
+    opt.ExogenizeWhenData (:, :) logical {mustBeNonempty} = false
     opt.Journal = false
 end
 

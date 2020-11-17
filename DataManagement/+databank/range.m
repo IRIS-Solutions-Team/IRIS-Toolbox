@@ -75,7 +75,7 @@ if isempty(pp)
     pp = extend.InputParser('databank.range');
     addRequired(pp, 'inputDb', @validate.databank);
 
-    addParameter(pp, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
+    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
@@ -146,7 +146,7 @@ return
             listNames = databank.filter(inputDb, opt.Filter{:});
         else
             allInputEntries = reshape(string(fieldnames(inputDb)), 1, [ ]);
-            listNames = opt.NameList;
+            listNames = opt.SourceNames;
             if validate.string(listNames)
                 listNames = reshape(string(listNames), 1, [ ]);
                 if numel(listNames)==1

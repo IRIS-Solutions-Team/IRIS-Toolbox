@@ -360,7 +360,7 @@ if isempty(parser)
     parser.addParameter('AddToPages', [ ], @(x) isempty(x) || isa(x, 'pages.New'));
     parser.addParameter({'Caption', 'Captions', 'Title', 'Titles'}, { }, @(x) isempty(x) || iscellstr(x) || isfunc(x));
     parser.addParameter('Clear', [ ], @isnumeric);
-    parser.addParameter('Clone', '', @ischar);
+    parser.addParameter('Clone', ["", ""], @(x) isstring(x) && isequal(size(x), [1, 2]));
     parser.addParameter({'DeviationFrom', 'DeviationsFrom'}, [ ], @(x) isempty(x) || isequal(x, false) || (isnumeric(x) && isscalar(x)));
     parser.addParameter({'DeviationTimes', 'DeviationsTimes'}, 1, @(x) isnumeric(x) && isscalar(x));
     parser.addParameter('DbSave', false, @(x) isequal(x, true) || isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));

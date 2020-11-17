@@ -122,8 +122,8 @@ arguments
     opt.OutputType (1, 1) string {validate.databankType} = "struct"
     opt.MissingObservations = @auto
     opt.Optim = []
-    opt.Progress (1, 1) {validate.mustBeA(opt.Progress, "logical")} = false
-    opt.ResidualsOnly (1, 1) {validate.mustBeA(opt.ResidualsOnly, "logical")} = false
+    opt.Progress (1, 1) logical = false
+    opt.ResidualsOnly (1, 1) logical = false
     opt.Journal = false
 end
 %)

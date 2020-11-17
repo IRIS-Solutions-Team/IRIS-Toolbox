@@ -10,7 +10,7 @@ arguments
     range {validate.properRange}
 
     opt.BlackoutBefore {Explanatory.validateBlackout(opt.BlackoutBefore, this)} = -Inf
-    opt.SkipWhenData (1, 1) {validate.mustBeA(opt.SkipWhenData, "logical")} = false
+    opt.SkipWhenData (1, 1) logical = false
     opt.Journal = false
 end
 %)
