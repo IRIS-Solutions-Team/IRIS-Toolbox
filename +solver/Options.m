@@ -91,7 +91,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 pp = extend.InputParser('solver.Options');
                 pp.KeepUnmatched = true;
                 pp.PartialMatching = false; % Possible conflict of Display and DisplayMode
-                pp.addRequired('SolverName', @(x) (ischar(x) || (iscell(x) && ~isempty(x) && ischar(x{1})) || isa(x, 'string')) && locallyValidateIRISSolver(x));
+                pp.addRequired('SolverName', @(x) (ischar(x) || (iscell(x) && ~isempty(x) && ischar(x{1})) || isa(x, 'string')) && locallyValidateIrisSolver(x));
                 addParameter(pp, 'DisplayMode', 'Verbose', @(x) any(strcmpi(x, {'Verbose', 'Silent'})));
             end
 
@@ -102,7 +102,7 @@ classdef (CaseInsensitiveProperties=true) Options
             pp.parse(solverName, varargin{:});
             varargin = pp.UnmatchedInCell;
 
-            if validateSolver(solverName, {'IRIS-QaD', 'QaD'})
+            if locallyValidateSolver(solverName, {'IRIS-QaD', 'QaD'})
                 % QaD
                 this.Algorithm = 'QaD';
                 this.DEFAULT_DISPLAY = 100;
@@ -118,7 +118,14 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_STEP_SIZE_SWITCH = 1;
                 this.DEFAULT_INFLATE_STEP = false;
                 this.DEFAULT_DEFLATE_STEP = false;
-            elseif validateSolver(solverName, {'IRIS-Newton'})
+            elseif locallyValidateSolver(solverName, {'Iris-QuickNewton'})
+                % Newton (Lambda=0, higher tolerance, Inf norm)
+                this.Algorithm = 'Newton';
+                this.DEFAULT_FUNCTION_NORM = Inf;
+                this.DEFAULT_LAMBDA = double.empty(1, 0);
+                this.DEFAULT_FUNCTION_TOLERANCE = 1e-5;
+                this.DEFAULT_STEP_TOLERANCE = Inf;
+            elseif locallyValidateSolver(solverName, {'IRIS-Newton'})
                 % Newton (Lambda=0)
                 this.Algorithm = 'Newton';
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
@@ -205,11 +212,11 @@ classdef (CaseInsensitiveProperties=true) Options
                 % Solver= solver.Options( )
                 % Do nothing
 
-            elseif validateSolver(solverOpt, {'lsqnonlin', 'fsolve'})
+            elseif locallyValidateSolver(solverOpt, {'lsqnonlin', 'fsolve'})
                 % Optim Tbx
                 solverOpt = parseOptimTbx(solverOpt, displayMode, varargin{:});                
 
-            elseif locallyValidateIRISSolver(solverOpt)
+            elseif locallyValidateIrisSolver(solverOpt)
                 % IRIS Solver
                 if iscell(solverOpt)
                     solverName = char(solverOpt{1});
@@ -315,11 +322,9 @@ function display = resolveDisplayMode(display, displayMode)
     end
 end%
 
-
 %
-% Validators
+% Local Validators
 %
-
 
 function flag = validateDisplay(x)
     flag = isequal(x, @auto) || isequal(x, @default) ...
@@ -329,17 +334,13 @@ function flag = validateDisplay(x)
 end%
 
 
-
-
-function flag = validateSolver(x, choice)
+function flag = locallyValidateSolver(x, choice)
     checkFunc = @(x) (ischar(x) || isstring(x) || isa(x, 'function_handle')) && any(strcmpi(char(x), choice));
     flag = checkFunc(x) || (iscell(x) && ~isempty(x) && checkFunc(x{1}) && validate.nestedOptions(x(2:2:end)));
 end%
 
 
-
-
-function flag = locallyValidateIRISSolver(x)
-   flag = validateSolver(x, {'IRIS', 'IRIS-qnsd', 'IRIS-newton', 'IRIS-qad', 'qad'}); 
+function flag = locallyValidateIrisSolver(x)
+   flag = locallyValidateSolver(x, {'Iris', 'Iris-Qnsd', 'Iris-Newton', 'Iris-QuickNewton', 'Iris-QaD', 'QaD'}); 
 end%
 
