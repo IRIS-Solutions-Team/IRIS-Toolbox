@@ -20,6 +20,7 @@ classdef ExitFlag
         MAX_ITER_FUN_EVALS   ( -8, 'Failed. Maximum number of iterations or funcion evaluations reached.') 
         OBJ_FUN_FAILED       ( -9, 'Failed. Objective function failed.') 
         LOG_NEGATIVE_ASSIGNED(-10, 'Failed. Negative number assigned to log variable.')
+        NAN_INF_OBJECTIVE    (-11, 'Failed. Objective function or its norm evaluates to NaN or Inf.') 
     end
     
     
