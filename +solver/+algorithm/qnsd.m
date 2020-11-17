@@ -149,6 +149,11 @@ while true
     % Check convergence before calculating current Jacobian
     %
 
+    if ~isfinite(current.Norm)
+        exitFlag = solver.ExitFlag.NAN_INF_OBJECTIVE;
+        break
+    end
+
     if current.Norm<=best.Norm
         best = current;
     end
@@ -409,8 +414,10 @@ return
         else
             jacob = current.J;
             next.D = -jacob \ F0;
-            if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
-                next.D = -pinv(full(jacob)) * F0;
+            if ~isempty(lastwarn())
+                if opt.PseudoinverseWhenSingular
+                    next.D = -pinv(full(jacob)) * F0;
+                end
             end
         end
 

@@ -31,7 +31,7 @@ classdef (CaseInsensitiveProperties=true) Options
         SkipJacobUpdate (1, 1) double { mustBeNonnegative } = 0
         FiniteDifferenceStepSize (1, 1) double
         FiniteDifferenceType
-        UsePinvIfJacobSingular
+        PseudoinverseWhenSingular
         ForceJacobUpdateWhenReversing
         LastBroydenUpdate
 
@@ -73,6 +73,7 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_FINITE_DIFFERENCE_TYPE = 'forward'
         DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING = false
         DEFAULT_LAST_BROYDEN_UPDATE = -1
+        DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR = false
 
         % Step Size Options
         DEFAULT_INIT_STEP_SIZE = 1
@@ -112,6 +113,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_STEP_TOLERANCE = Inf;
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
                 this.DEFAULT_LAST_JACOB_UPDATE = -1;
+                this.DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR = true;
                 this.DEFAULT_LAST_STEP_SIZE_OPTIM = 1;
                 this.DEFAULT_STEP_SIZE_SWITCH = 1;
                 this.DEFAULT_INFLATE_STEP = false;
@@ -167,7 +169,7 @@ classdef (CaseInsensitiveProperties=true) Options
             addParameter(pp, 'TrimObjectiveFunction', this.DEFAULT_TRIM_OBJECTIVE_FUNCTION, @(x) isequal(x, true) || isequal(x, false));
             addParameter(pp, 'FiniteDifferenceStepSize', this.DEFAULT_FINITE_DIFFERENCE_STEP_SIZE, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
             addParameter(pp, 'FiniteDifferenceType', this.DEFAULT_FINITE_DIFFERENCE_TYPE, @(x) any(strcmpi(x, {'forward', 'central'})));
-            addParameter(pp, 'UsePinvIfJacobSingular', true, @validate.logicalScalar);
+            addParameter(pp, 'PseudoinverseWhenSingular', this.DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR, @validate.logicalScalar);
             addParameter(pp, 'ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @validate.logicalScalar);
             addParameter(pp, 'LastBroydenUpdate', this.DEFAULT_LAST_BROYDEN_UPDATE, @validate.numericScalar);
             addParameter(pp, 'FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || validate.numericScalar(x, 0, Inf) || isa(x, 'function_handle'));
