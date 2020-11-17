@@ -30,7 +30,7 @@ if any(~inxValid)
     ], string(names(~inxValid)));
 end
 
-inputValues = cellfun(@(x) reshape(x(1:min(end,4)), [ ], 1), varargin(2:2:end), "uniformOutput", false);
+inputValues = cellfun(@(x) reshape(x(1:min(end,4)), [ ], 1), varargin(2:2:end), 'uniformOutput', false);
 for i = find(inxValid)
     value = model.component.Quantity.DEFAULT_BOUNDS;
     value(1:numel(inputValues{i})) = inputValues{i};
