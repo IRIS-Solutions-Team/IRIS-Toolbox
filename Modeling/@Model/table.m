@@ -1,4 +1,3 @@
-function outputTable = table(this, requests, varargin)
 % table  Create table based on selected indicators from Model object 
 %{
 % Syntax
@@ -48,10 +47,10 @@ function outputTable = table(this, requests, varargin)
 %     the command window, and captured in a text file under this file name.
 %
 %
-% __`SelectNames=false`__ [ `false` | string ]
+% __`SelectRows=false`__ [ `false` | string ]
 % 
-%     Select only a subset of names (variables, shocks, parameters) to be
-%     included in the `outputTable`.
+%     Select only a subset of rows (names of variables, shocks and/or
+%     parameters) to be included in the `outputTable`.
 %
 %
 % __`Sort=false`__ [ `true` | `false` ] 
@@ -165,25 +164,47 @@ function outputTable = table(this, requests, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+% >=R2019b
+%(
+function outputTable = table(this, requests, opt)
 
-%( Input parser
+arguments
+    this Model
+    requests {mustBeText}
+
+    opt.CompareFirstColumn (1, 1) logical = false
+    opt.Diary (1, 1) string = ""
+    opt.Round (1, 1) double = Inf
+    opt.SelectRows = false
+    opt.SortAlphabetically (1, 1) logical = false
+    opt.WriteTable (1, :) string = ""
+end
+%)
+% >=R2019b
+
+% <=R2019a
+%{
+function outputTable = table(this, requests, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Model/table');
 
     addRequired(pp, 'model', @(x) isa(x, 'Model'));
-    addRequired(pp, 'request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(pp, 'requests', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     
     addParameter(pp, 'CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addParameter(pp, 'Diary', "", @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
     addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, 'SelectRows', false, @(x) isequal(x, false) || validate.list(x));
     addParameter(pp, {'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'WriteTable', '', @locallyValidateWriteTable); % @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addParameter(pp, 'WriteTable', "", @mustBeTextScalar);
 end
-%)
 opt = parse(pp, this, requests, varargin{:});
+%}
+% <=R2019a
+
+TYPE = @int8;
 
 if ischar(requests)
     requests = regexp(requests, '\w+', 'match');
@@ -385,13 +406,13 @@ end
 % 
 % Write table to file
 %
-if ~isempty(opt.WriteTable) && ~isequal(opt.WriteTable, false)
-    locallyWriteTable(outputTable, opt.WriteTable)
+if (iscell(opt.WriteTable) && ~isempty(opt.WriteTable)) || any(strlength(opt.WriteTable)>0)
+    locallyWriteTable(outputTable, opt.WriteTable);
 end
 
 
 % Print table to screen and capture output in diary
-if ~isempty(opt.Diary)
+if strlength(opt.Diary)>0
     if exist(opt.Diary, 'file')==2
         delete(opt.Diary);
     end
@@ -402,11 +423,9 @@ end
 
 end%
 
-
 %
 % Local Functions
 %
-
 
 function outputTable = innerjoin(inputTable1, inputTable2)
     keys1 = inputTable1{:, 1};
@@ -554,8 +573,11 @@ end%
 
 function locallyWriteTable(table, writeTableOpt)
 % Write table to text or spreadsheet file
-    if iscell(writeTableOpt)
-        fileName = writeTableOpt{1};
+    if isstring(writeTableOpt) && numel(writeTableOpt)>1
+        writeTableOpt = cellstr(writeTableOpt);
+    end
+    if iscell(writeTableOpt) 
+        fileName = string(writeTableOpt{1});
         writeTableOpt = writeTableOpt(2:end);
         writeTableOpt(1:2:end) = replace(writeTableOpt(1:2:end), '=', '');
     else
