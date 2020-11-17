@@ -183,8 +183,8 @@ elseif n<=2 && (isstruct(varargin{1}) || isa(varargin{1}, 'table'))
         inputValues = table2cell(d(:, :));
     end
     if ~isempty(varargin) && ~isempty(varargin{1})
-        cloneTemplate = varargin{1};
-        inputNames = model.File.cloneAllNames(inputNames, cloneTemplate);
+        clonePattern = varargin{1};
+        inputNames = model.File.cloneAllNames(inputNames, clonePattern);
     end
     numNames = numel(inputNames);
     invalidLength = cell(1, 0);
@@ -323,35 +323,34 @@ return
     function assignFromModelObj( )
         rhs = varargin{1};
         namesToAssign = @all;
-        if n>1
-            namesToAssign = varargin{2};
-            if ischar(namesToAssign)
-                namesToAssign = regexp(namesToAssign, '\w+', 'match');
-            end
+        if n>=2 && ~isequal(namesToAssign, @all)
+            namesToAssign = string(varargin{2});
         end
-        inputNames = rhs.Quantity.Name;
-        cloneTemplate = '';
-        if n>2
-            cloneTemplate = varargin{3};
-            if ~isequal(namesToAssign, @all)
-                namesToAssign = model.File.cloneAllNames(namesToAssign, cloneTemplate);
+        rhsNames = rhs.Quantity.Name;
+        clonePattern = ["", ""];
+        if n>=3
+            clonePattern = string(varargin{3});
+            if ~isequal(namesToAssign, @all) && any(strlength(clonePattern)>0)
+                namesToAssign = model.File.cloneAllNames(namesToAssign, clonePattern);
             end
-            inputNames = model.File.cloneAllNames(inputNames, cloneTemplate);
+            rhsNames = model.File.cloneAllNames(rhsNames, clonePattern);
         end
         nvRhs = countVariants(rhs);
         if nvRhs~=1 && nvRhs~=nv
-            utils.error( 'modelobj:assign', ...
-                         ['Cannot assign from object ', ...
-                         'with different number of parameterisations.'] );
+            exception.error([
+                "Model:NumVariantsMustMatch"
+                "Cannot assign values between two Model objects "
+                "with different numbers of alternative parameter variants."
+            ]);
         end
-        numQuantities = length(this.Quantity);
+        numQuantities = numel(this.Quantity);
         inxMatchingTypes = true(1, numQuantities);
         for ii = 1 : numQuantities
             name = this.Quantity.Name{ii};
-            if ~isequal(namesToAssign, @all) && ~any(strcmpi(name, namesToAssign))
+            if ~isequal(namesToAssign, @all) && ~any(strcmp(name, namesToAssign))
                 continue
             end
-            ixRhs = strcmp(name, inputNames);
+            ixRhs = strcmp(name, rhsNames);
             if ~any(ixRhs)
                 continue
             end
@@ -369,23 +368,25 @@ return
                 inxMatchingTypes(ii) = false;
             end
         end
+
         listStdCorr = [ getStdNames(this.Quantity), getCorrNames(this.Quantity) ];
-        listStdCorrRhs = [ getStdNames(rhs.Quantity), getCorrNames(rhs.Quantity) ];
-        if ~isempty(cloneTemplate)
-            listStdCorrRhs = model.File.cloneAllNames(listStdCorrRhs, cloneTemplate);
-        end
+        listStdCorrRhs = [ getStdNames(rhs.Quantity, @all, clonePattern), getCorrNames(rhs.Quantity, @all, clonePattern) ];
+
         for ii = 1 : numel(listStdCorr)
-            ixRhs = strcmpi(listStdCorr{ii}, listStdCorrRhs);
+            ixRhs = strcmp(listStdCorr{ii}, listStdCorrRhs);
             if ~any(ixRhs)
                 continue
             end
             this.Variant.StdCorr(1, ii, :) = rhs.Variant.StdCorr(1, ixRhs, :);
             inxStdCorr(ii) = true;
         end
+
         if any(~inxMatchingTypes)
-            utils.warning( 'modelobj:assign', ...
-                           'This name not assigned because of type mismatch: %s ', ...
-                           this.Quantity.Name{~inxMatchingTypes} );
+            exception.error([
+                "Model:NameTypeMismatch"
+                "This name cannot be assigned between two Model objects "
+                "because it is of a different type in either: %s "
+            ], this.Quantity.Name{~inxMatchingTypes});
         end
     end%
 

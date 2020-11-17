@@ -1,30 +1,39 @@
-function namesOfCorr = getCorrNames(this, request)
 % getCorrNames  Get names of cross-correlation coefficients of shocks
 %
-% Backend IRIS function
+% Backend [IrisToolbox] class
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function namesCorr = getCorrNames(this, request, clonePattern)
 
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-indexOfShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
-namesOfShocks = this.Name(indexOfShocks);
-ne = sum(indexOfShocks);
+inxShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
+listShocks = string(this.Name(inxShocks));
+
+if nargin>=3 && any(strlength(clonePattern)>0)
+    listShocks = clonePattern(1) + listShocks + clonePattern(2);
+end
+
+ne = sum(inxShocks);
 [row, col] = find(tril(true(ne), -1));
 
-if nargin<2
+if nargin<2 || isequal(request, @all)
     request = 1 : numel(row);
 end
 
-namesOfCorr = cell(1, numel(request));
-for i = request
-    name = ['corr_', namesOfShocks{col(i)}, '__', namesOfShocks{row(i)}];
-    namesOfCorr{i} = name;
+namesCorr = repmat("", 1, numel(request));
+for i = reshape(request, 1, [])
+    name = model.component.Quantity.CORR_PREFIX + listShocks(col(i)) + "__" + listShocks(row(i));
+    namesCorr(i) = name;
 end
 
-end
+namesCorr = cellstr(namesCorr);
+
+end%
+
 

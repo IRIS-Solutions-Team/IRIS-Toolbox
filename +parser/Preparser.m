@@ -9,7 +9,7 @@ classdef Preparser ...
         % AngleBrackets  Angle brackets can be used as an alternative to enclose Matlab expressions
         AngleBrackets = true
 
-        CloneTemplate = char.empty(1, 0)  % Template to clone model names
+        CloneTemplate (1, 2) string = ["", ""]  % Template to clone model names
         Export = shared.Export.empty(1, 0) % Files to be saved into working folder
         CtrlParameters (1, :) string = string.empty(1, 0) % List of parameter names occuring in control expressions and interpolations
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors
@@ -165,7 +165,7 @@ classdef Preparser ...
                 % Check leading and trailing empty lines
                 fixEmptyLines(this__);
                 % Clone preparsed code
-                if ~isempty(cloneTemplate)
+                if any(strlength(this__.CloneTemplate)>0)
                     this__.Code = model.File.cloneAllNames(this__.Code, this__.CloneTemplate);
                 end
                 throwEvalWarning(this__);
@@ -309,7 +309,7 @@ classdef Preparser ...
 
                 addParameter(pp, 'AngleBrackets', true, @validate.logicalScalar);
                 addParameter(pp, {'Assigned', 'Assign'}, struct( ), @(x) isempty(x) || isstruct(x));
-                addParameter(pp, {'CloneTemplate', 'CloneString'}, '', @(x) isempty(x) || ischar(x) || isstring(x)); 
+                addParameter(pp, {'CloneTemplate', 'CloneString'}, '', @(x) isstring(x) && isequal(size(x), [1, 2]));
                 addParameter(pp, 'Skip', string.empty(1, 0), @isstring);
             end
             %)
@@ -357,6 +357,7 @@ classdef Preparser ...
         
         function varargout = eval(varargin)
             if isempty(regexp(varargin{1}, "[A-Za-z]", "once"))
+                % No letters means no variables, evaluate right away
                 varargout{1} = eval(varargin{1});
             else
                 parser.Preparser.evalPopulateWorkspace(varargin{:});
@@ -372,7 +373,7 @@ classdef Preparser ...
             namesAssigned = reshape(string(fieldnames(assigned)), 1, [ ]);
             namesWithinExpression = regexp( ...
                 string(shadowExpn) ...
-                , "(?<!\.)\<[a-zA-Z]\w*\>(?![\(\.])" ...
+                , "(?<!\.)\<[a-zA-Z]\w*\>(?![\.])" ...
                 , "match" ...
             );
             inxControl = false(size(namesAssigned));

@@ -1,21 +1,31 @@
-function namesOfStd = getStdNames(this, request)
 % getStdNames  Get names of standard deviations of shocks
 %
-% Backend IRIS function
+% Backend [IrisToolbox] class
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function listStd = getStdNames(this, request, clonePattern)
 
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-inxOfShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
-namesOfStd = strcat('std_', this.Name(inxOfShocks));
-if nargin>1
-    namesOfStd = namesOfStd(request);
+inxShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
+listShocks = string(this.Name(inxShocks));
+
+if nargin>=3 && any(strlength(clonePattern)>0)
+    listShocks = clonePattern(1) + listShocks + clonePattern(2);
 end
+
+listStd = string(model.component.Quantity.STD_PREFIX) + listShocks;
+
+if nargin>=2 && ~isequal(request, @all)
+    listStd = listStd(request);
+end
+
+listStd = cellstr(listStd);
 
 end%
 
