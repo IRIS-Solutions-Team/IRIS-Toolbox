@@ -93,17 +93,43 @@ stringify = @(x) reshape(string(x), 1, [ ]);
 output = [ ];
 handled = true;
 
-if matches(what, "parameterDb", "ignoreCase", true)
+
+%==========================================================================
+if matches(what, "parameterValues", "ignoreCase", true)
     inx = this.Quantity.Type==4;
     names = permute(stringify(this.Quantity.Name(inx)), [2, 1]);
     values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
     output = cell2struct( ...
         mat2cell(values, ones(1, size(values, 1)), size(values, 2)), names, 1 ...
     );
+
+
+elseif startsWith(what, "steady", "ignoreCase", true)
+    names = permute(stringify(this.Quantity.Name), [2, 1]);
+    values = permute(this.Variant.Values, [2, 3, 1]);
+    if endsWith(what, "level", "ignoreCase", true)
+        values = real(values);
+    elseif endsWith(what, ["change", "growth"], "ignoreCase", true)
+        values = imag(values);
+    end
+    output = cell2struct( ...
+        mat2cell(values, ones(1, size(values, 1)), size(values, 2)), names, 1 ...
+    );
+
+
+elseif matches(what, "steadyLevel")
+    names = permute(stringify(this.Quantity.Name), [2, 1]);
+    values = permute(this.Variant.Values, [2, 3, 1]);
+    output = cell2struct( ...
+        mat2cell(values, ones(1, size(values, 1)), size(values, 2)), names, 1 ...
+    );
      
 else
     handled = false;
+
 end
+%==========================================================================
+
 
 if ~handled
     exception.error([
