@@ -205,7 +205,7 @@ classdef Stacked ...
     methods % Dependent properties
         %(
         function value = get.LastTerminalColumn(this)
-            value = find(any(this.InxTerminalDataPoints, 1), 1, "last");
+            value = find(any(this.InxTerminalDataPoints, 1), 1, 'last');
             if isempty(value)
                 value = 0;
             end

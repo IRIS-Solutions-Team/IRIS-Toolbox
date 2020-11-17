@@ -25,44 +25,40 @@ prepareBlazer(model, this);
 this = processLogOptions(this, opt);
 
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
-    [listExogenize, listEndogenize] = resolveAutoswap(model, "steady", opt.Exogenize, opt.Endogenize);
+    [namesToExogenize, namesToEndogenize] = resolveAutoswap(model, "steady", opt.Exogenize, opt.Endogenize);
 else
-    listExogenize = opt.Exogenize;
-    listEndogenize = opt.Endogenize;
+    namesToExogenize = opt.Exogenize;
+    namesToEndogenize = opt.Endogenize;
 end
 
 %
-% Endogenize= option
+% Process the Endogenize option
 %
-if ischar(listEndogenize)
-    listEndogenize = regexp(listEndogenize, "\w+", "match");
-elseif ~iscellstr(listEndogenize)
-    listEndogenize = cellstr(listEndogenize);
+if ischar(namesToEndogenize)
+    namesToEndogenize = regexp(namesToEndogenize, "\w+", "match");
+elseif ~iscellstr(namesToEndogenize)
+    namesToEndogenize = cellstr(namesToEndogenize);
 end
-listEndogenize = unique(listEndogenize);
-if ~isempty(listEndogenize)
-    outp = lookup(this.Model.Quantity, listEndogenize);
-    vecEndg = outp.PosName;
-    endogenize(this, vecEndg);
+namesToEndogenize = unique(namesToEndogenize);
+if ~isempty(namesToEndogenize)
+    endogenize(this, namesToEndogenize);
 end
 
 %
-% Exogenize= option
+% Process the Exogenize option
 %
-if ischar(listExogenize)
-    listExogenize = regexp(listExogenize, "\w+", "match");
-elseif ~iscellstr(listExogenize)
-    listExogenize = cellstr(listExogenize);
+if ischar(namesToExogenize)
+    namesToExogenize = regexp(namesToExogenize, "\w+", "match");
+elseif ~iscellstr(namesToExogenize)
+    namesToExogenize = cellstr(namesToExogenize);
 end
-listExogenize = unique(listExogenize);
-if ~isempty(listExogenize)
-    outp = lookup(this.Model.Quantity, listExogenize);
-    vecExg = outp.PosName;
-    exogenize(this, vecExg);
+namesToExogenize = unique(namesToExogenize);
+if ~isempty(namesToExogenize)
+    exogenize(this, namesToExogenize);
 end
 
 %
-% Fix=, FixLevel=, FixChange= options
+% Process the Fix, FixLevel, FixChange options
 %
 processFixOptions(this, opt);
 

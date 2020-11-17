@@ -79,42 +79,34 @@ classdef (Abstract) Blazer ...
     methods
         function endogenize(this, posToEndogenize)
             testFunc = @(this, pos) this.InxCanBeEndogenized(pos);
-            inxValid = swap(this, posToEndogenize, true, testFunc);
-            if any(~inxValid)
-                thisError = [
-                    "Blazer:CannotEndogenize"
-                    "This name cannot be endogenized because it is endogenous already: %s"
-                ];
-                pos = posToEndogenize(~inxValid);
-                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
-            end
+            swap(this, posToEndogenize, true, testFunc, "endogen");
         end%
 
         
-        function exogenize(this, posToExogenize)
+        function exogenize(this, namesToExogenize)
             testFunc = @(this, pos) this.InxCanBeExogenized(pos);
-            inxValid = swap(this, posToExogenize, false, testFunc);
-            if any(~inxValid)
-                thisError = [
-                    "Blazer:CannotExogenize"
-                    "This name cannot be exogenized because it is exogenous already: %s"
-                ];
-                pos = posToExogenize(~inxValid);
-                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
-            end
+            swap(this, namesToExogenize, false, testFunc, "exogen");
         end%
         
 
-        function inxValid = swap(this, vecSwap, setIxEndgTo, testFunc) 
-            numSwaps = numel(vecSwap);
-            inxValid = true(1, numSwaps);
-            for i = 1 : numSwaps
-                pos = vecSwap(i);
-                if isnan(pos) || isinf(pos) || ~testFunc(this, pos)
-                    inxValid(i) = false;
+        function swap(this, namesToSwap, status, testFunc, context)
+            ell = lookup(this.Model.Quantity, namesToSwap);
+            namesInvalid = string.empty(1, 0);
+            for i = 1 : numel(ell.PosName)
+                pos = ell.PosName(i);
+                if ~isfinite(pos) || ~testFunc(this, pos)
+                    namesInvalid(end+1) = namesToSwap(i);
                     continue
                 end
-                this.InxEndogenous(pos) = setIxEndgTo;
+                this.InxEndogenous(pos) = status;
+            end
+
+            if ~isempty(namesInvalid)
+                exception.error([
+                    "Blazer:CannotEndogenize"
+                    "This is not a valid name to %1ize "
+                    "because it does not exist in the object or it is already %2ous: %s "
+                ], context, context, namesInvalid);
             end
         end%
         
