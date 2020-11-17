@@ -41,10 +41,11 @@ for fixOption = list
     posToFix = ell.PosName;
     inxValid = ~isnan(posToFix);
     if any(~inxValid)
-        throw( ...
-            exception.Base('Steady:CANNOT_FIX', 'error') ...
-            , temp{~inxValid} ...
-            );
+        exception.error([
+            "Steady:CannotFix"
+            "This is not a valid name to fix "
+            "because it does not exist in the object: %s "
+        ], temp{~inxValid});
     end
     opt.(fixOption) = posToFix;
 end

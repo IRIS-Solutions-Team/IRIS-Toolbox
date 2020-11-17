@@ -199,7 +199,7 @@ classdef Armani
             end
             absPoly = abs(polyn);
             if absPoly(end)<=tolerance
-                polyn = polyn(1:find(absPoly>tolerance, 1, "last")); 
+                polyn = polyn(1:find(absPoly>tolerance, 1, 'last')); 
             end
             %)
         end%

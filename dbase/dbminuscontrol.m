@@ -1,4 +1,3 @@
-function [dmc, controlData] = dbminuscontrol(varargin)
 % dbminuscontrol  Create simulation-minus-control database
 %
 %
@@ -66,6 +65,8 @@ function [dmc, controlData] = dbminuscontrol(varargin)
 
 %#ok<*VUNUS>
 %#ok<*CTCH>
+
+function [dmc, controlData] = dbminuscontrol(varargin)
 
 [this, inputData, controlData, varargin] = irisinp.parser.parse('dbase.dbminuscontrol', varargin{:});
 opt = passvalopt('dbase.dbminuscontrol', varargin{:});

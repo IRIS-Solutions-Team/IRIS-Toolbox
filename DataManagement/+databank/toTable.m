@@ -96,9 +96,9 @@ end
 names = reshape(string(names), 1, [ ]);
 
 if isa(inputDb, 'Dictionary')
-    allSeries = arrayfun(@(n) retrieve(inputDb, n), names, "uniformOutput", false);
+    allSeries = arrayfun(@(n) retrieve(inputDb, n), names, 'uniformOutput', false);
 else
-    allSeries = arrayfun(@(n) inputDb.(n), names, "uniformOutput", false);
+    allSeries = arrayfun(@(n) inputDb.(n), names, 'uniformOutput', false);
 end
 
 [dates, transform] = locallyResolveDates(dates);

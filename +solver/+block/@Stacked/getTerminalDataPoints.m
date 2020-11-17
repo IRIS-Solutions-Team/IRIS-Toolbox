@@ -17,7 +17,7 @@ incEquationsShifts = across(this.ParentBlazer.Incidence, "Quantities");
 maxLeads = zeros(1, numEquations);
 for i = 1 : numEquations
     ptrEquation = real(this.IdEquations(i));
-    maxLeads(i) = find(incEquationsShifts(ptrEquation, :), 1, "last") - sh0;
+    maxLeads(i) = find(incEquationsShifts(ptrEquation, :), 1, 'last') - sh0;
 end
 
 %

@@ -12,7 +12,7 @@ inxLogWithinModel = this.ParentBlazer.Model.Quantity.InxLog;
 columnsToRun = this.ParentBlazer.ColumnsToRun;
 numPtrEquations = numel(this.PtrEquations);
 numColumns = numel(columnsToRun);
-idQuantities = cellfun(@(x) reshape(x, [ ], 1) + 1i*columnsToRun, this.Gradients(2, :), "uniformOutput", false);
+idQuantities = cellfun(@(x) reshape(x, [ ], 1) + 1i*columnsToRun, this.Gradients(2, :), 'uniformOutput', false);
 numWrts = cellfun(@numel, this.Gradients(2, :));
 
 %

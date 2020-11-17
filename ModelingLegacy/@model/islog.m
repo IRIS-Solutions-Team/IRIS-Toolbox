@@ -28,9 +28,8 @@ function flag = islog(this, lsName)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-% Parse input arguments.
 pp = inputParser( );
-pp.addRequired('Name', @(x) ischar(x) || iscellstr(x));
+pp.addRequired('Name', @(x) ischar(x) || iscellstr(x) || isstring(x));
 pp.parse(lsName);
 
 if ischar(lsName)

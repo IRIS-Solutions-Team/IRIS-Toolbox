@@ -34,7 +34,7 @@ if any(this.InxEquationsUsingTerminal)
     maxLag = zeros(1, numQuantities);
     for i = 1 : numQuantities
         name = real(this.IdQuantities(i));
-        maxLag(i) = find(incQuantitiesShifts(name, :), 1, "first") - sh0;
+        maxLag(i) = find(incQuantitiesShifts(name, :), 1) - sh0;
     end
     inxQuantitiesDeterminingTerminal = imag(this.IdQuantities) - maxLag > columnsToRun(end);
 end

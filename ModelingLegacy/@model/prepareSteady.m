@@ -146,7 +146,7 @@ function blazer = locallyRunBlazer(this, opt)
     inxP = this.Quantity.Type==TYPE(4);
 
     %
-    % Run solver.blazer.Blazer on steady equations, process Exogenize=,
+    % Prepare solver.blazer.Blazer for steady equations, process Exogenize=,
     % Endogenize=, Fix...= options
     %
     blazer = solver.blazer.Steady.forModel(this, opt);

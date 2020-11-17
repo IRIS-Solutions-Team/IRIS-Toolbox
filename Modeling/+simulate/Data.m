@@ -292,7 +292,7 @@ classdef Data ...
 
 
         function value = get.LastAnticipatedE(this)
-            value = find(any(this.AnticipatedE~=0, 1), 1, "last");
+            value = find(any(this.AnticipatedE~=0, 1), 1, 'last');
             if isempty(value)
                 value = 0;
             end
@@ -300,7 +300,7 @@ classdef Data ...
 
 
         function value = get.LastUnanticipatedE(this)
-            value = find(any(this.UnanticipatedE~=0, 1), 1, "last");
+            value = find(any(this.UnanticipatedE~=0, 1), 1, 'last');
             if isempty(value)
                 value = 0;
             end
@@ -308,7 +308,7 @@ classdef Data ...
 
 
         function value = get.LastEndogenizedE(this)
-            value = find(any(this.InxEndogenizedE, 1), 1, "last");
+            value = find(any(this.InxEndogenizedE, 1), 1, 'last');
             if isempty(value)
                 value = 0;
             end
@@ -316,7 +316,7 @@ classdef Data ...
 
 
         function value = get.LastExogenizedYX(this)
-            value = find(any(this.InxExogenizedYX, 1), 1, "last");
+            value = find(any(this.InxExogenizedYX, 1), 1, 'last');
             if isempty(value)
                 value = 0;
             end
@@ -329,7 +329,7 @@ classdef Data ...
                 return
             end
             anyHashedYX = any(this.InxHashedYX, 1);
-            value = find(anyHashedYX, 1, "last");
+            value = find(anyHashedYX, 1, 'last');
             if isempty(value)
                 value = 0;
             end

@@ -1,13 +1,13 @@
 % simulate  Simulate model
 %{
-%
 % ## Syntax ##
+%
 %
 %     [outputDb, outputInfo, frameDb] = simulate(model, inputDb, range, ...)
 %
 %
-% Input Arguments
-%-----------------
+% ## Input Arguments ##
+%
 %
 %
 % __`model`__ [ Model ]
@@ -27,8 +27,8 @@
 % the end date (the last element in `range`) are considered.
 %
 %
-% Output Arguments
-%------------------
+% ## Output Arguments ##
+%
 %
 % __`outputDb`__ [ struct | Dictionary ]
 %>
@@ -62,13 +62,44 @@
 %
 % __`frameDb`__ [ cell ]
 %>
-%>    Nested cell arrays with databanks containing the simulation results
-%>    of each individual frame; the `frameDb{i}{j}` element is the output
-%>    databank from simulating the j-th frame in the i-th variant or data
-%>    page.
+%>    Only for `Method="stacked"`: Nested cell arrays with databanks
+%>    containing the simulation results of each individual frame; the
+%>    `frameDb{i}{j}` element is the output databank from simulating the
+%>    j-th frame in the i-th variant or data page.
 %
 %
 % ## Options ##
+%
+%
+% __`Method="firstOrder"`__ [ "firstOrder" | "stacked" ]
+%>
+%>    Simulation method: "firstOrder" means using a first-order approximate
+%>    solution, "stacked" means a stacked-time system solved by a
+%>    quasi-Newton method.
+%
+%
+% __`Deviation=false`__ [ `true` | `false` ]
+%>
+%>   If true, both the input data and the output data are (and are expected
+%>   to be) in the form of deviations from steady state:
+%>   
+%>   * for variables not declared as `log-variables`, the deviations from
+%>   steady state are calculated as a plain difference: $x_t - \bar x_t$
+%>
+%>   * for variables declared as `log-variables`, the deviations from
+%>   steady state are calculated as a ratio: $x_t / \bar x_t$.
+%
+%
+% __`PrependInput=false`__ [ `true` | `false` ]
+%>
+%>    If `true`, the data from `inputDb` preceding the simulation range
+%>    will be included in the output time series returned in `outputDb`.
+%
+%
+% __`AppendInput=false`__ [ `true` | `false` ]
+%>
+%>    If `true`, the data from `inputDb` succeeding the simulation range
+%>    will be included in the output time series returned in `outputDb`.
 %
 %
 % ## Description ##

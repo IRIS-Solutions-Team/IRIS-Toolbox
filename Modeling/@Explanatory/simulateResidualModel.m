@@ -114,8 +114,8 @@ for q = 1 : numEquations
                 % Remove leading missing observations, find the last
                 % available observation
                 %
-                first = find(~inxMissing(:, v), 1, "first");
-                last = find(~inxMissing(:, v), 1, "last");
+                first = find(~inxMissing(:, v), 1);
+                last = find(~inxMissing(:, v), 1, 'last');
                 if journal.IsActive
                     startData__ = dater.toDefaultString(dater.plus(startData, first-1));
                     endData__ = dater.toDefaultString(dater.plus(startData, last-1));

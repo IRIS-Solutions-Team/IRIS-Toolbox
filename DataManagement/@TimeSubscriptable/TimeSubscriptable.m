@@ -126,7 +126,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             start = double(this.Start);
             inxMissing = this.MissingTest(this.Data);
             inxMissing = inxMissing(:, :);
-            first = find(all(~inxMissing, 2), 1, "first");
+            first = find(all(~inxMissing, 2), 1);
             if ~isempty(first)
                 value = dater.plus(start, first-1);
             else
@@ -181,7 +181,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             start = double(this.Start);
             inxMissing = this.MissingTest(this.Data);
             inxMissing = inxMissing(:, :);
-            last = find(all(~inxMissing, 2), 1, "last");
+            last = find(all(~inxMissing, 2), 1, 'last');
             if ~isempty(last)
                 value = dater.plus(start, last-1);
             else

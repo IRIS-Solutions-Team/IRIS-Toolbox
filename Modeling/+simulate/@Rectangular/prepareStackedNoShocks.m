@@ -74,8 +74,8 @@ return
         firstColumn = this.FirstColumn;
         lastColumn = this.LastColumn;
         inxColumnsDataPoints = any(inxDataPoints, 1);
-        firstColumnData = find(inxColumnsDataPoints, 1, "first");
-        lastColumnData = find(inxColumnsDataPoints, 1, "last");
+        firstColumnData = find(inxColumnsDataPoints, 1);
+        lastColumnData = find(inxColumnsDataPoints, 1, 'last');
         if firstColumnData>=firstColumn && lastColumnData<=lastColumn
             lastColumn = lastColumnData;
             return
