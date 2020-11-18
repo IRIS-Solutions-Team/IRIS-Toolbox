@@ -550,7 +550,10 @@ function flag = locallyValidateSolverName(x)
         "IRIS-Newton"
         "IRIS-Qnsd"
         "QaD"
-        "IRIS"
+        "QuickNewton"
+        "Newton"
+        "Qnsd"
+        "Iris"
         "fminsearch"
         "lsqnonlin"
         "fsolve"      
@@ -601,12 +604,12 @@ function solverOption = locallyParseSolverOption(solverOption, methodOption)
         case solver.Method.FIRSTORDER
             solverOption = [ ];
         case solver.Method.SELECTIVE
-            defaultSolver = 'IRIS-QaD';
-            displayMode = 'Verbose';
+            defaultSolver = 'Iris-QaD';
+            displayMode = 'verbose';
             solverOption = solver.Options.parseOptions(solverOption, defaultSolver, displayMode);
         case {solver.Method.STACKED, solver.Method.PERIOD}
-            defaultSolver = 'IRIS-Newton';
-            displayMode = 'Verbose';
+            defaultSolver = 'Iris-Newton';
+            displayMode = 'verbose';
             solverOption = solver.Options.parseOptions(solverOption, defaultSolver, displayMode);
     end
     %)

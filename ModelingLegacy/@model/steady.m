@@ -290,3 +290,4 @@ pos = getPosTimeTrend(this.Quantity);
 this.Variant.Values(1, pos, :) = complex(0, 1);
 
 end%
+

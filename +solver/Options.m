@@ -118,20 +118,22 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_STEP_SIZE_SWITCH = 1;
                 this.DEFAULT_INFLATE_STEP = false;
                 this.DEFAULT_DEFLATE_STEP = false;
-            elseif locallyValidateSolver(solverName, {'Iris-QuickNewton'})
+            elseif locallyValidateSolver(solverName, {'Iris-QuickNewton', 'QuickNewton'})
                 % Newton (Lambda=0, higher tolerance, Inf norm)
                 this.Algorithm = 'Newton';
                 this.DEFAULT_FUNCTION_NORM = Inf;
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
                 this.DEFAULT_FUNCTION_TOLERANCE = 1e-5;
                 this.DEFAULT_STEP_TOLERANCE = Inf;
-            elseif locallyValidateSolver(solverName, {'IRIS-Newton'})
+                this.DEFAULT_SKIP_JACOB_UPDATE = 2;
+            elseif locallyValidateSolver(solverName, {'IRIS-Newton', 'Newton'})
                 % Newton (Lambda=0)
                 this.Algorithm = 'Newton';
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
             else
                 % Quasi Newton-steepest descend
                 this.Algorithm = 'Qnsd';
+                this.DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR = true;
             end
 
             optionsParser = getParser(this);
@@ -341,6 +343,6 @@ end%
 
 
 function flag = locallyValidateIrisSolver(x)
-   flag = locallyValidateSolver(x, {'Iris', 'Iris-Qnsd', 'Iris-Newton', 'Iris-QuickNewton', 'Iris-QaD', 'QaD'}); 
+   flag = locallyValidateSolver(x, {'Iris', 'Iris-Qnsd', 'Iris-Newton', 'Iris-QuickNewton', 'Iris-QaD', 'QaD', 'Newton', 'QuickNewton', 'Qnsd'}); 
 end%
 
