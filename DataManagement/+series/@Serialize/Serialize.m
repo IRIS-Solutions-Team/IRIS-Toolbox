@@ -2,16 +2,17 @@ classdef Serialize ...
     < matlab.mixin.Copyable
 
     properties
-        Name (1, :) string {validate.mustBeScalarOrEmpty} = "Name"
-        Dates (1, :) string {validate.mustBeScalarOrEmpty} = "Dates"
-        Values (1, :) string {validate.mustBeScalarOrEmpty} = "Values"
-        Frequency (1, :) string {validate.mustBeScalarOrEmpty} = "Frequency"
-        Comment (1, :) string {validate.mustBeScalarOrEmpty} = "Comment"
+        Name (1, 1) string = "Name"
+        Dates (1, 1) string = "Dates"
+        Values (1, 1) string = "Values"
+        Frequency (1, 1) string = "Frequency"
+        Comment (1, 1) string  = "Comment"
         UserData = ""
         StartDateOnly = true
         Format = ""
         ScalarAsArray = false
-        DateFunc = @dater.fromIsoString
+        ReadDateFunc = @dater.fromIsoString
+        WriteDateFunc = @dater.toIsoString
     end
 
 
@@ -26,7 +27,7 @@ classdef Serialize ...
             dateStrings = reshape(string(inputRecord.(this.Dates)), [ ], 1);
             values = reshape(inputRecord.(this.Values), [ ], 1);
             if ~isempty(dateStrings) && ~isempty(values)
-                dates = this.DateFunc(freq, dateStrings);
+                dates = this.ReadDateFunc(freq, dateStrings);
             else
                 dates = double.empty(0, 1);
                 values = double.empty(0, 1);
@@ -49,7 +50,7 @@ classdef Serialize ...
             %(
             outputRecord = struct( );
 
-            if ~isempty(this.Name) && ~isequal(this.Name, false)
+            if strlength(this.Name)>0
                 outputRecord.(this.Name) = char(name);
             end
 
@@ -60,18 +61,18 @@ classdef Serialize ...
             end
 
             if ~isempty(outputDate)
-                outputRecord.(this.Dates) = cellstr(dater.toIsoString(outputDate));
+                outputRecord.(this.Dates) = cellstr(this.WriteDateFunc(outputDate));
             else
                 outputRecord.(this.Dates) = outputDate;
             end
             
             outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
 
-            if ~isempty(this.Frequency) && (ischar(this.Frequency) || isstring(this.Frequency)) && strlength(this.Frequency)>0
+            if strlength(this.Frequency)>0
                 outputRecord.(this.Frequency) = char(this.letterFromFrequency(inputSeries.Frequency));
             end
 
-            if ~isequal(this.Comment, false) && (ischar(this.Comment) || isstring(this.Comment)) && strlength(this.Comment)>0
+            if strlength(this.Comment)>0
                 outputRecord.(this.Comment) = inputSeries.Comment;
             end
             %

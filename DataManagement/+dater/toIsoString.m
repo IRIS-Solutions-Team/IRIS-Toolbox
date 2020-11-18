@@ -1,15 +1,15 @@
-function isoString = toIsoString(this, varargin)
+function isoString = toIsoString(date, varargin)
 
-this = double(this);
+date = double(date);
 
-if isempty(this)
-    isoString = string.empty(size(this));
+if isempty(date)
+    isoString = string.empty(size(date));
     return
 end
 
-reshapeOutput = size(this);
+reshapeOutput = size(date);
 isoString = repmat("", reshapeOutput);
-freq = dater.getFrequency(this);
+freq = dater.getFrequency(date);
 inxNaN = isnan(freq);
 if all(inxNaN)
     return
@@ -26,10 +26,10 @@ end
 
 freq = freq(1);
 if freq==0
-    isoString = string(double(this));
+    isoString = string(double(date));
     return
 end
-[year, month, day] = dater.ymdFromSerial(freq, floor(this), varargin{:});
+[year, month, day] = dater.ymdFromSerial(freq, floor(date), varargin{:});
 isoString(~inxNaN) = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
 isoString = reshape(isoString, reshapeOutput);
 
