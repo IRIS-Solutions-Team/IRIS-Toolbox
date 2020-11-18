@@ -543,22 +543,26 @@ function flag = locallyValidateSolverName(x)
         flag = false;
         return
     end
+    if isa(x, 'function_handle')
+        x = char(x);
+    end
+    x = string(x);
     listSolverNames = [ 
         "auto" 
-        "IRIS-QaD"
-        "IRIS-QuickNewton"
-        "IRIS-Newton"
-        "IRIS-Qnsd"
-        "QaD"
-        "QuickNewton"
-        "Newton"
-        "Qnsd"
-        "Iris"
+        "iris-qad"
+        "iris-quickNewton"
+        "iris-newton"
+        "iris-qnsd"
+        "qad"
+        "quickNewton"
+        "newton"
+        "qnsd"
+        "iris"
         "fminsearch"
         "lsqnonlin"
         "fsolve"      
     ];
-    flag = any(strcmpi(string(x), listSolverNames));
+    flag = any(strcmpi(x, listSolverNames));
     %)
 end%
 
