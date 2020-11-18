@@ -170,7 +170,7 @@ function outputTable = table(this, requests, opt)
 
 arguments
     this Model
-    requests {mustBeText}
+    requests {validate.mustBeText}
 
     opt.CompareFirstColumn (1, 1) logical = false
     opt.Diary (1, 1) string = ""
@@ -198,7 +198,7 @@ if isempty(pp)
     addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, 'SelectRows', false, @(x) isequal(x, false) || validate.list(x));
     addParameter(pp, {'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'WriteTable', "", @mustBeTextScalar);
+    addParameter(pp, 'WriteTable', "", @validate.mustBeTextScalar);
 end
 opt = parse(pp, this, requests, varargin{:});
 %}
