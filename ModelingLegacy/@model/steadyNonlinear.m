@@ -223,7 +223,7 @@ return
 
         % Check for change rates fixed to NaN
         inxChangesToFix = false(1, numQuantities);
-        inxChangesToFix(levelsToFix) = true;
+        inxChangesToFix(changesToFix) = true;
         inxNaN = any(isnan(steadyChange), 3) & inxChangesToFix;
         if any(inxNaN)
             exception.error([
