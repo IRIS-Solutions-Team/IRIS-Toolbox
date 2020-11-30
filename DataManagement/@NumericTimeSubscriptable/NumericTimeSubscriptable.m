@@ -56,6 +56,7 @@ NumericTimeSubscriptable ...
 
         varargout = diff(varargin)
         varargout = difflog(varargin)
+        varargout = diffChart(varargin)
         varargout = ellone(varargin)
         
         function varargout = isfreq(this, freq)
