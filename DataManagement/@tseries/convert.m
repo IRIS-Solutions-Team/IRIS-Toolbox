@@ -141,6 +141,7 @@ if isempty(pp)
     addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.stringScalar(x) || isnumeric(x));
     addParameter(pp, 'Position', 'center', @(x) validate.stringScalar(x) && startsWith(x, ["s", "b", "f", "c", "m", "e", "l"], "IgnoreCase", true));
     addParameter(pp, 'Select', Inf, @(x) isnumeric(x));
+    addParameter(pp, "RemoveWeekends", false, @validate.logicalScalar);
 end
 %)
 opt = parse(pp, this, newFreq, varargin{:});
@@ -175,10 +176,6 @@ if oldFreq>newFreq
     % Aggregate
     conversionFunc = @locallyAggregate;
 else
-    % Weekly to daily intepolation not implemented
-    if oldFreq==52 && newFreq==365
-        throw( exception.Base('Series:CannotConvertWeeklyToDaily', 'error') )
-    end
     % Interpolate matching sum or average
     if validate.stringScalar(opt.Method) && startsWith(opt.Method, ["quadSum", "quadAvg", "quadMean"], "ignoreCase", true)
         conversionFunc = @locallyInterpolateAndMatch;
@@ -190,6 +187,12 @@ end
 
 [oldStart, oldEnd] = resolveRange(this, range(1), range(end));
 [newData, newStart] = conversionFunc(this, oldStart, oldEnd, oldFreq, newFreq, opt);
+
+if newFreq==Frequency.DAILY && opt.RemoveWeekends
+    range = round(newStart + (0 : size(newData, 1)-1));
+    inxWeekend = dater.isWeekend(range);
+    newData(inxWeekend, :) = NaN;
+end
 this = fill(this, newData, newStart, this.Comment, this.UserData);
 
 end%
@@ -354,10 +357,15 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
         % newStart = newStart + 1;
         % newEnd = newEnd - 1;
     elseif newFreq==Frequency.DAILY
-        startMonth = per2month(oldStartPer, oldFreq, 'first');
-        endMonth = per2month(oldEndPer, oldFreq, 'last');
-        newStart = numeric.dd(oldStartYear, startMonth, 1);
-        newEnd = numeric.dd(oldEndYear, endMonth, eomday(oldEndYear, endMonth));
+        if oldFreq==Frequency.WEEKLY
+            newStart = convert(oldStart, Frequency.DAILY) - 3;
+            newEnd = convert(oldEnd, Frequency.DAILY) + 3;
+        else
+            startMonth = per2month(oldStartPer, oldFreq, 'first');
+            endMonth = per2month(oldEndPer, oldFreq, 'last');
+            newStart = numeric.dd(oldStartYear, startMonth, 1);
+            newEnd = numeric.dd(oldEndYear, endMonth, eomday(oldEndYear, endMonth));
+        end
     else
         newStartYear = oldStartYear;
         newEndYear = oldEndYear;
