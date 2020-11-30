@@ -336,10 +336,8 @@ function build = locallyCreateInverseTransform(transform, diffops, posLhs)
                     coeff = "+";
                 elseif coeff==-1
                     coeff = "-";
-                elseif coeff>0
-                    coeff = "+" + string(coeff) + "*";
                 else
-                    coeff = "-" + string(coeff) + "*";
+                    coeff = sprintf("%+g*", coeff);
                 end
                 p = dataRow + ",t-" + lag + ",v)";
                 if transform=="difflog"
