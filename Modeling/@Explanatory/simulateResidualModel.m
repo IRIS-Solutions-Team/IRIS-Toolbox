@@ -12,6 +12,7 @@ arguments
     opt.BlackoutBefore {Explanatory.validateBlackout(opt.BlackoutBefore, this)} = -Inf
     opt.SkipWhenData (1, 1) logical = false
     opt.Journal = false
+    opt.IncludeInnovations (1, 1) logical = false
 end
 %)
 % >=R2019b
@@ -26,6 +27,7 @@ if isempty(pp)
     addParameter(pp, "BlackoutBefore", -Inf);
     addParameter(pp, "SkipWhenData", false);
     addParameter(pp, "Journal", false);
+    addParameter(pp, "IncludeInnovations", false);
 end
 opt = parse(pp, varargin{:});
 %}
@@ -65,12 +67,12 @@ for q = 1 : numEquations
     residualName = this__.ResidualName;
     if isfield(runningDb, residualName)
         if isa(runningDb, "Dictionary")
-            series = retrieve(runningDb, residualName);
+            residualSeries = retrieve(runningDb, residualName);
         else
-            series = runningDb.(residualName);
+            residualSeries = runningDb.(residualName);
         end
         blackoutBefore = opt.BlackoutBefore(min(q,end));
-        [data, startData] = getDataFromTo(series, blackoutBefore, range(end));
+        [data, startData] = getDataFromTo(residualSeries, blackoutBefore, range(end));
         data = data(:, :);
         if ~opt.SkipWhenData
             data(end-numSimulationPeriods+1:end, :) = NaN;
@@ -92,22 +94,34 @@ for q = 1 : numEquations
 
     residualModel = this__.ResidualModel;
     inxMissing = isnan(data);
+    numPeriods = size(data, 1);
     if ~isempty(this__.ResidualModel) && nnz(inxMissing)>0
-        numPeriods = size(data, 1);
         for v = 1 : numRuns
             if journal.IsActive && numRuns>1
+                %(
                 indent(journal, "Variant|Page " + sprintf("%g", v));
+                %)
             end
+
             residualModel = update(residualModel, residualModel.Parameters(:, :, v));
+
             if residualModel.IsIdentity
+                %
+                % Skip identity
+                %
                 if journal.IsActive
+                    %(
                     write(journal, "Skipping identity");
+                    %)
                 end
+
             else
                 if journal.IsActive
+                    %(
                     ar = "AR=[" + sprintf("%g ", residualModel.AR) + "]";
                     ma = "MA=[" + sprintf("%g ", residualModel.MA) + "]";
                     write(journal, replace(ar, " ]", "]") + ", " + replace(ma, " ]", "]"));
+                    %)
                 end
 
                 %
@@ -116,13 +130,17 @@ for q = 1 : numEquations
                 %
                 first = find(~inxMissing(:, v), 1);
                 last = find(~inxMissing(:, v), 1, 'last');
+
                 if journal.IsActive
+                    %(
                     startData__ = dater.toDefaultString(dater.plus(startData, first-1));
                     endData__ = dater.toDefaultString(dater.plus(startData, last-1));
                     if journal.IsActive
                         write(journal, "Filtering data " + startData__ + ":" + endData__);
                     end
+                    %)
                 end
+
                 if last==numPeriods
                     continue
                 end
@@ -146,21 +164,35 @@ for q = 1 : numEquations
                     end
                 end
             end
+
             if journal.IsActive
+                %(
                 deindent(journal);
+                %)
             end
         end
+    else
+        innovations = zeros(numPeriods, 1);
     end
 
 
     %
-    % Update the residual series in the databank
+    % Update the residual and innovation series in the databank
     %
-    series = setData(series, startData:range(end), data);
+    residualSeries = setData(residualSeries, startData:range(end), data);
     if isa(runningDb, "Dictionary")
-        store(runningDb, residualName, series);
+        store(runningDb, residualName, residualSeries);
     else
-        runningDb.(residualName) = series;
+        runningDb.(residualName) = residualSeries;
+    end
+    if opt.IncludeInnovations
+        innovationName = this__.InnovationName;
+        innovationSeries = Series(startData, innovations);
+        if isa(runningDb, "Dictionary")
+            store(runningDb, innovationName, innovationSeries);
+        else
+            runningDb.(innovationName) = innovationSeries;
+        end
     end
 
     if journal.IsActive

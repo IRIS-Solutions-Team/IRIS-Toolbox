@@ -185,14 +185,13 @@ dataBlock = getDataBlock(this, inputDb, fittedRange, lhsRequired, context);
 controls = assignControls(this, inputDb);
 
 
-numExtendedPeriods = dataBlock.NumExtendedPeriods;
+numExtdPeriods = dataBlock.NumExtendedPeriods;
 numPages = dataBlock.NumPages;
-fitted = nan(numEquations, numExtendedPeriods, numPages);
-lhsTransform = nan(numEquations, numExtendedPeriods, numPages);
-inxMissingColumns = false(numEquations, numExtendedPeriods, numPages);
+fitted = nan(numEquations, numExtdPeriods, numPages);
+lhsTransform = nan(numEquations, numExtdPeriods, numPages);
+inxMissingColumns = false(numEquations, numExtdPeriods, numPages);
 reportEmptyData = string.empty(1, 0);
 extdRange = double(dataBlock.ExtendedRange);
-
 
 %
 % Prepare runtime information
@@ -201,12 +200,15 @@ this = runtime(this, dataBlock, "regress");
 
 
 %
-% Preallocate space for parameters and statistics, reset all to NaN
+% Preallocate space for parameters and statistics, reset all to NaN unless
+% this call is to evaluate residuals only
 %
 inxBaseRange = cell(numEquations, numPages);
 inxToEstimate = ~[this.IsIdentity];
-this(inxToEstimate) = alter(this(inxToEstimate), numPages, NaN);
-
+this = alter(this, numPages);
+if ~opt.ResidualsOnly
+    this(inxToEstimate) = reset(this(inxToEstimate));
+end
 
 if opt.Progress
     progress = ProgressBar("@Explanatory/regress", nnz(inxToEstimate)*numPages);
@@ -230,6 +232,7 @@ for q = find(inxToEstimate)
     else
         fixed = this__.Fixed;
     end
+
     residualModel = this__.ResidualModel;
     maxLag = this__.MaxLag;
     isLinear = this__.IsLinear;
@@ -252,14 +255,24 @@ for q = find(inxToEstimate)
         rhs__ = rhs(:, :, min(v, end));
         subBlock__ = subBlock(:, :, min(v, end));
 
+        %
+        % Retain the LHS and RHS data on the entire regression range to
+        % report fitted values and residuals after estimation
+        %
+        lhs4Fit__ = lhs__;
+        rhs4Fit__ = rhs__;
+        subBlock4Fit__ = subBlock__;
+
         inxBaseRange__ = dataBlock.InxBaseRange;
-        [lhs__, rhs__, subBlock__, inxBaseRange__] = locallyBlackout( ...
-            lhs__, rhs__, subBlock__ ...
-            , maxLag, inxBaseRange__, extdRange ...
-            , opt.BlackoutBefore(min(q,end)) ...
-            , opt.BlackoutAfter(min(q,end)) ...
-            , journal ...
-        );
+        [lhs__, rhs__, subBlock__, inxBaseRange__] ...
+            = locallyBlackout( ...
+                lhs__, rhs__, subBlock__ ...
+                , maxLag, inxBaseRange__, extdRange ...
+                , opt.BlackoutBefore(min(q,end)) ...
+                , opt.BlackoutAfter(min(q,end)) ...
+                , journal ...
+            );
+
 
         if ~any(inxBaseRange__)
             reportEmptyData = [reportEmptyData, this__.LhsName];
@@ -267,7 +280,7 @@ for q = find(inxToEstimate)
         end
 
 
-        if isa(residualModel, "ParameterizedArmani") && residualModel.NumParameters>0
+        if ~opt.ResidualsOnly && isa(residualModel, "ParameterizedArmani") && residualModel.NumParameters>0
             if ~isLinear
                 exception.error([
                     "Explanatory:ArimaNonlinear"
@@ -277,7 +290,7 @@ for q = find(inxToEstimate)
             end
             indent(journal, "Residual Model");
             [gamma__, exitFlag__] ...
-                = locallyEstimateResidualModel(lhs__, rhs__, fixed__, residualModel, opt.Optim);
+                = locallyEstimateResidualModel(lhs__, rhs__, fixed__, residualModel, inxBaseRange__, opt.Optim);
             residualModel.Parameters(1, :, v) = gamma__;
             residualModel = update(residualModel, gamma__);
             exitFlags(q, v) = exitFlag__;
@@ -308,26 +321,34 @@ for q = find(inxToEstimate)
         %
         % Report missing within-sample observations
         %
-        inxMissing__ = inxBaseRange__ & inxMissing__;
-        if any(inxMissing__) ...
+        inxMissingWithinBaseRange__ = inxBaseRange__ & inxMissing__;
+        if any(inxMissingWithinBaseRange__) ...
                 && startsWith(opt.MissingObservations, ["warning", "error"], "ignoreCase", true)
-            hereReportMissing(inxMissing__, q);
+            hereReportMissing(inxMissingWithinBaseRange__, q);
         end
 
         if journal.IsActive
-            [~, s] = dater.reportConsecutive(extdRange(inxBaseRange__ & ~inxMissing__));
+            [~, s] = dater.reportConsecutive(extdRange(inxBaseRange__ & ~inxMissingWithinBaseRange__));
             write(journal, "Dates fitted " + join(s, " "));
         end
 
         this__.Parameters(1, :, v) = parameters__;
         lhsTransform(q, :, v) = lhs__;
-        fitted(q, :, v) = fitted__;
-        res(:, :, v) = res__;
         this__.Statistics.VarResiduals(:, :, v) = varResiduals__;
         this__.Statistics.CovParameters(:, :, v) = covParameters__;
+        this__.Statistics.NumPeriodsFitted(1, :, v) = nnz(~inxMissing__);
         inxBaseRange{q, v} = inxBaseRange__;
 
+
+        %
+        % Evaluate fitted values and residuals on the entire regression
+        % range
+        %
+        [fitted, res] = hereEvaluateFittedAndResiduals(fitted, res);
+
+
         if journal.IsActive
+            %(
             temp = compose("%g", reshape(parameters__, 1, []));
             inxFixed__ = ~isnan(fixed__);
             if any(inxFixed__)
@@ -335,13 +356,18 @@ for q = find(inxToEstimate)
             end
             write(journal, "Parameter values " + join(temp, " "));
             write(journal, "Residuals " + residualName__);
+            %)
         end
-
 
         if opt.Progress
             increment(progress);
         end
-        deindent(journal);
+
+        if journal.IsActive
+            %(
+            deindent(journal);
+            %)
+        end
     end
 
     %
@@ -401,6 +427,16 @@ if nargout>=3
 end
 
 return
+
+    function [fitted, res] = hereEvaluateFittedAndResiduals(fitted, res)
+        %(
+        inx = dataBlock.InxBaseRange;
+        columnsBaseRange = find(inx);
+        res0 = zeros(1, numExtdPeriods);
+        fitted(q, columnsBaseRange, v) = this__.Simulate(subBlock4Fit__, res0, parameters__, columnsBaseRange, v, []); 
+        res(:, columnsBaseRange, v) = this__.EndogenizeResiduals(subBlock4Fit__, res0, parameters__, columnsBaseRange, v, []);
+        %)
+    end%
 
     function hereReportEmptyData()
         %(
@@ -525,6 +561,7 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         fitted = parameters*X;
         fitted(:, inxMissing) = NaN;
         numParametersEstimated = nnz(~inxFixed);
+
     else
         endogenizeResidualsFunc = this.EndogenizeResiduals;
         simulateFunc = this.Simulate;
@@ -536,7 +573,8 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 
         %
         % Evaluate endogenizeResidualsFunc once before to find columns
-        % resulting in NaNs
+        % resulting in NaNs; these are replaced with zeros when filtering
+        % the residuals
         %
         inxMissing = [];
         z0 = rand(1, nnz(inxToEstimate));
@@ -565,9 +603,9 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 
     res = y - fitted;
 
+    numPeriodsFitted = nnz(~inxMissing);
     varResiduals ...
-        = sum(res(~inxMissing).^2, 2) ...
-        / (nnz(~inxMissing) - numParametersEstimated);
+        = sum(res(~inxMissing).^2, 2) / (numPeriodsFitted - numParametersEstimated);
 
     res(:, inxMissing) = NaN;
     y(:, inxMissing) = NaN;
@@ -592,7 +630,7 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 end%
 
 
-function [gamma, exitFlag] = locallyEstimateResidualModel(y, X, fixed, rm, optim)
+function [gamma, exitFlag] = locallyEstimateResidualModel(y, X, fixed, rm, inxObjectiveRange, optim)
     %(
     persistent DEFAULT_OPTIM
     if isempty(DEFAULT_OPTIM)
@@ -637,6 +675,7 @@ function [gamma, exitFlag] = locallyEstimateResidualModel(y, X, fixed, rm, optim
                 beta = lscov(FXt, Fyt);
                 obj = Fyt - FXt*beta;
             end
+            obj(~inxObjectiveRange) = 0;
         end%
     %)
 end%

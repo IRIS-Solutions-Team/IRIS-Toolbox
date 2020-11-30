@@ -5,7 +5,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function outputDb = residuals(this, inputDatabank, range, varargin)
+function outputDb = residuals(this, inputDb, range, varargin)
 
 %--------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ if any(inxMissingParameters(:))
 end
 
 [~, outputDb] = regress( ...
-    this, inputDatabank, range ...
+    this, inputDb, range ...
     , varargin{:} ...
     , "residualsOnly", true ...
 );

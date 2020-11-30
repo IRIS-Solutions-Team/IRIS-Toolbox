@@ -23,6 +23,11 @@ classdef Explanatory ...
         ResidualNamePattern (1, 2) string = ["res_", ""]
 
 
+% InnovationNamePattern  Two-element string array with a prefix and a suffix
+% attached to LHS variables names to create the innovation name
+        InnovationNamePattern (1, 2) string = ["inn_", ""]
+
+
 % FittedNamePattern  Two-element string array with a prefix and a suffix
 % attached to LHS variables names to create the fitted name
         FittedNamePattern (1, 2) string = ["fit_", ""]
@@ -100,6 +105,7 @@ classdef Explanatory ...
         Statistics (1, 1) struct = struct( ...
             'VarResiduals', NaN ...
             , 'CovParameters', double.empty(0, 0, 1) ...
+            , 'NumPeriodsFitted', NaN ...
         )
 
 
@@ -124,6 +130,7 @@ classdef Explanatory ...
         RhsContainsLhsName
         LhsName
         ResidualName
+        InnovationName
         FittedName
         LhsTransformName
 
@@ -181,11 +188,13 @@ classdef Explanatory ...
         varargout = checkUniqueLhs(varargin)
         varargout = declareSwitches(varargin)
         varargout = defineDependentTerm(varargin)
+        varargout = exclude(varargin)
         varargout = retrieve(varargin)
         varargout = getActualMinMaxShifts(varargin)
         varargout = lookup(varargin)
         varargout = parameterizeResidualModels(varargin)
         varargout = regress(varargin)
+        varargout = reset(varargin)
         varargout = simulate(varargin)
         varargout = simulateResidualModel(varargin)
         varargout = residuals(varargin)
@@ -635,6 +644,15 @@ classdef Explanatory ...
                 return
             end
             value = this.ResidualNamePattern(1) + this.LhsName + this.ResidualNamePattern(2);
+        end%
+
+
+        function value = get.InnovationName(this)
+            if this.IsIdentity
+                value = string.empty(1, 0);
+                return
+            end
+            value = this.InnovationNamePattern(1) + this.LhsName + this.InnovationNamePattern(2);
         end%
 
 

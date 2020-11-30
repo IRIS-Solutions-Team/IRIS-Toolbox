@@ -251,6 +251,7 @@ if any(inxNaNParameters)
     hereReportNaNParameters( );
 end
 
+
 %
 % Report LHS variables with NaN or Inf values
 %
@@ -261,6 +262,7 @@ inxNaNLhs = any(any(~isfinite(outputData.YXEPG(pos, baseRangeColumns, :)), 3), 2
 if any(inxNaNLhs)
     hereReportNaNSimulation( );
 end
+
 
 %
 % Create output databank with LHS, RHS and residual names
@@ -273,6 +275,7 @@ if storeToDatabank
     namesToInclude = [this.LhsName, this.ResidualName];
     outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], [ ], opt);
 end
+
 
 if nargout>=2
     info = struct( );
@@ -344,7 +347,9 @@ return
         skipWhenData__ = opt.SkipWhenData(eqn);
         for vv = 1 : numRuns
             if journal.IsActive && numRuns>1
+                %(
                 indent(journal, "Variant|Page " + sprintf("%g", vv));
+                %)
             end
             inxLhsData__ = ~isnan(subBlock(posLhs__, :, vv));
             for tt = baseRangeColumns
@@ -355,7 +360,9 @@ return
                     %
                     res(:, tt, vv) = this__.EndogenizeResiduals(subBlock, res, parameters__, tt, vv, controls);
                     if journal.IsActive
+                        %(
                         write(journal, "Exogenizing " + lhsName__ + "(" + residualName__ + ") " + dater.toDefaultString(extdRange(tt)));
+                        %)
                     end
                 else
                     %
@@ -366,13 +373,17 @@ return
                         % Skip
                         %
                         if journal.IsActive
+                            %(
                             write(journal, "Skipping " + lhsName__ + " " + dater.toDefaultString(extdRange(tt)));
+                            %)
                         end
                     else
                         subBlock(posLhs__, tt, vv) ...
                             = this__.Simulate(subBlock, res, parameters__, tt, vv, controls);
                         if journal.IsActive
+                            %(
                             write(journal, "Simulating " + lhsName__ + " " + dater.toDefaultString(extdRange(tt)));
+                            %)
                         end
                     end
                 end
@@ -382,7 +393,9 @@ return
                 end
 
                 if journal.IsActive && numRuns>1
+                    %(
                     deindent(journal);
+                    %)
                 end
             end
         end
