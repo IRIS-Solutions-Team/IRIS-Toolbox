@@ -115,7 +115,7 @@ classdef ParameterizedArmani ...
 
         function this = fromEviewsString(input)
             %
-            % EViews like input
+            % EViews-like input
             % x = y #ma{-1} #sma{-12} #ar{-1} #sar{-12};
             %
             input = string(input);

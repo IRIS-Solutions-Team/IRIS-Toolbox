@@ -132,7 +132,7 @@ classdef Armani
         end%
 
 
-        function this = alter(this, new, reset)
+        function this = alter(this, new)
             numVariants = countVariants(this);
             if new<numVariants
                 this.Parameters = this.Parameters(1, :, 1:new);
@@ -140,9 +140,11 @@ classdef Armani
                 this.Parameters(1, :, end+1:new) ...
                     = repmat(this.Parameters(1, :, end), 1, 1, new-numVariants);
             end
-            if ~isempty(this.Parameters) && nargin>=3 && isequaln(reset, NaN)
-                this.Parameters(1, :, :) = NaN;
-            end
+        end%
+
+
+        function this = reset(this)
+            this.Parameters(:, :, :) = NaN;
         end%
 
 

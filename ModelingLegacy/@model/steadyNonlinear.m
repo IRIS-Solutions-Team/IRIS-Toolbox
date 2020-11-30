@@ -182,6 +182,8 @@ return
         end
         % Use option NanInit= to assign NaNs.
         levelX(inx) = real(blazer.NanInit);
+        % levelX(inx & inxLogInBlazer) = real(blazer.NanInit);
+        % levelX(inx & ~inxLogInBlazer) = log(real(blazer.NanInit));
         
         % __Initialize growth rates of endogenous quantities__
         changeX = imag(this.Variant.Values(:, :, v));
@@ -206,28 +208,28 @@ return
 
 
     function hereCheckFixedToNaN( )
-        [levelToExclude, changeToExclude] = iris.utils.splitRealImag(blazer.QuantitiesToExclude);
+        [levelsToFix, changesToFix] = iris.utils.splitRealImag(blazer.QuantitiesToFix);
 
         % Check for levels fixed to NaN
-        inxToExclude = false(1, numQuantities);
-        inxToExclude(levelToExclude) = true;
-        inxNaN = any(isnan(steadyLevel), 3) & inxToExclude & ~inxZero.Level;
+        inxLevelsToFix = false(1, numQuantities);
+        inxLevelsToFix(levelsToFix) = true;
+        inxNaN = any(isnan(steadyLevel), 3) & inxLevelsToFix;
         if any(inxNaN)
-            throw( ...
-                exception.Base('Steady:LevelFixedToNan', 'error'), ...
-                this.Quantity.Name{inxNaN} ...
-            );
+            exception.error([
+                "Steady:LevelFixedToNaN"
+                "The steady level of this variable is fixed but its value is NaN: %s"
+            ], this.Quantity.Name{inxNaN});
         end
 
         % Check for change rates fixed to NaN
-        inxToExclude = false(1, numQuantities);
-        inxToExclude(changeToExclude) = true;
-        inxNaN = any(isnan(steadyChange), 3) & inxToExclude & ~inxZero.Change;
+        inxChangesToFix = false(1, numQuantities);
+        inxChangesToFix(levelsToFix) = true;
+        inxNaN = any(isnan(steadyChange), 3) & inxChangesToFix;
         if any(inxNaN)
-            throw( ...
-                exception.Base('Steady:GrowthFixedToNan', 'error'), ...
-                this.Quantity.Name{inxNaN} ...
-            );
+            exception.error([
+                "Steady:LevelFixedToNaN"
+                "The steady change of this variable is fixed but its value is NaN: %s"
+            ], this.Quantity.Name{inxNaN});
         end
     end%
 

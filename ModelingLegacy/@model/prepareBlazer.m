@@ -28,9 +28,11 @@ if isequal(classBlazer, "solver.blazer.Steady")
     % Steady state solution
     %
 
-    [inxPwL, inxLwP] = hereGetParameterLinks( ); % [^1]
-    % [^1]: inxPwL is the index of parameters that are LHS names in links;
-    % inxLwP is the index of equations that are links with parameters on
+    [inxPwL, inxLwP] = hereGetParameterLinks( ); % [^1] [^2]
+    %
+    % [^1]: inxPwL is the index of parameters that are LHS names in links
+    %
+    % [^2]: inxLwP is the index of equations that are links with parameters on
     % the LHS
 
     blz.InxEndogenous = inxYX | inxPwL;
