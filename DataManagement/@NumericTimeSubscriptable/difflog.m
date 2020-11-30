@@ -1,4 +1,3 @@
-function this = difflog(this, varargin)
 % diff  First difference of log
 %{
 % ## Syntax ##
@@ -35,7 +34,11 @@ function this = difflog(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function this = difflog(this, varargin)
+
+if isempty(this.Data)
+    return
+end
 
 this.Data = log(this.Data);
 this = diff(this, varargin{:});

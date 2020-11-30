@@ -82,13 +82,13 @@
 
 function this = roc(this, varargin)
 
-[shift, power] = dater.resolveShift(getRangeAsNumeric(this), varargin{:});
-
-%--------------------------------------------------------------------------
-
 if isempty(this.Data)
     return
 end
+
+[shift, power] = dater.resolveShift(getRangeAsNumeric(this), varargin{:});
+
+%--------------------------------------------------------------------------
 
 
 %==========================================================================

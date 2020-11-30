@@ -1,4 +1,3 @@
-function this = pct(this, varargin)
 % pct  Percent rate of change
 %{
 % ## Syntax ##
@@ -68,7 +67,11 @@ function this = pct(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function this = pct(this, varargin)
+
+if isempty(this.Data)
+    return
+end
 
 this = roc(this, varargin{:});
 this.Data = 100*(this.Data - 1);

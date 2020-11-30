@@ -32,6 +32,10 @@
 
 function this = apct(this, varargin)
 
+if isempty(this.Data)
+    return
+end
+
 this = pct(this, varargin{:}, "annualize", true);
 
 end%
