@@ -1,6 +1,6 @@
 classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
          TimeSubscriptable
-
+        % Exchange Rate Valuation Effect
     properties 
         % Start  Date of first observation in time series
         Start (1, 1) = DateWrapper.NaD
@@ -20,6 +20,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
     properties (Dependent)
+        Self
+
         % StartAsNumeric  Date of first observation in time series returned as numeric value (double)
         StartAsNumeric
 
@@ -93,6 +95,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = retrieveColumns(varargin)
         varargout = setData(varargin)
         varargout = shift(varargin)
+
+
+        function value = get.Self(this)
+            value = this;
+        end%
 
 
         function startDateAsNumeric = get.StartAsNumeric(this)

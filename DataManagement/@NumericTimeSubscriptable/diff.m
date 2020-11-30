@@ -44,6 +44,10 @@
 
 function this = diff(this, varargin)
 
+if isempty(this.Data)
+    return
+end
+
 if ~isempty(varargin) && isnumeric(varargin{1}) && numel(varargin{1})>1
     for shift = reshape(varargin{1}, 1, [ ]);
         this = diff(this, shift, varargin{2:end});
