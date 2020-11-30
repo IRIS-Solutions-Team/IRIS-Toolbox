@@ -64,11 +64,11 @@
 %     `Inf` means no rounding.
 %
 %
-% __`WriteTable=''`__ [ char | string ] 
+% __`WriteTable=""`__ [ string | cell ] 
 %
-%     If not empty, the table will be exported to a text or spreadsheet
+%     If non-empty, the table will be exported to a text or spreadsheet
 %     file (depending on the file extension provided) under this file name
-%     using the standard `writetable( )` function.
+%     using the standard `writetable( )` function;
 %
 %
 % Description
@@ -555,7 +555,7 @@ end%
 
 
 function flag = locallyValidateWriteTable(x)
-    if isempty(x) || isequal(x, false)
+    if isempty(x) || isequal(x, false) || (isstring(x) && x=="")
         flag = true;
         return
     end
