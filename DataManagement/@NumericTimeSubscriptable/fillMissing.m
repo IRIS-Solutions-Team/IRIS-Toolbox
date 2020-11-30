@@ -74,10 +74,6 @@ end
 arguments (Repeating)
     method
 end
-
-if isempty(this.Data)
-    return
-end
 %)
 % >=R2019b
 
