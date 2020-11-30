@@ -236,7 +236,6 @@ for q = find(inxToEstimate)
     residualModel = this__.ResidualModel;
     maxLag = this__.MaxLag;
     isLinear = this__.IsLinear;
-    incParameters = this__.IncParameters;
     residualName__ = this__.ResidualName;
     
     %
@@ -259,8 +258,6 @@ for q = find(inxToEstimate)
         % Retain the LHS and RHS data on the entire regression range to
         % report fitted values and residuals after estimation
         %
-        lhs4Fit__ = lhs__;
-        rhs4Fit__ = rhs__;
         subBlock4Fit__ = subBlock__;
 
         inxBaseRange__ = dataBlock.InxBaseRange;
@@ -433,8 +430,8 @@ return
         inx = dataBlock.InxBaseRange;
         columnsBaseRange = find(inx);
         res0 = zeros(1, numExtdPeriods);
-        fitted(q, columnsBaseRange, v) = this__.Simulate(subBlock4Fit__, res0, parameters__, columnsBaseRange, v, []); 
-        res(:, columnsBaseRange, v) = this__.EndogenizeResiduals(subBlock4Fit__, res0, parameters__, columnsBaseRange, v, []);
+        fitted(q, columnsBaseRange, v) = this__.Simulate(subBlock4Fit__, res0, parameters__, columnsBaseRange, 1, []); 
+        res(:, columnsBaseRange, v) = this__.EndogenizeResiduals(subBlock4Fit__, res0, parameters__, columnsBaseRange, 1, []);
         %)
     end%
 
