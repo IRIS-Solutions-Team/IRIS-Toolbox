@@ -34,9 +34,18 @@ function varargout = subsref(this, s, varargin)
 %--------------------------------------------------------------------------
 
 if isstruct(s) && isequal(s(1).type, '.')
-    % Give standartd dot access to properties
-    [varargout{1:nargout}] = builtin('subsref', this, s);
-    return
+    if string(s(1).subs)=="Self"
+        % Do nothing, proceed with `this`
+        s(1) = [];
+        if isempty(s)
+            varargout{1} = this;
+            return
+        end
+    else
+        % Give standartd dot access to properties
+        [varargout{1:nargout}] = builtin('subsref', this, s);
+        return
+    end
 end
 
 if ~isstruct(s)
