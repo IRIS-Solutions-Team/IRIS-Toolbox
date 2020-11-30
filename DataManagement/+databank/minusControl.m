@@ -66,17 +66,25 @@
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-function outputDb = minusControl(model, inputDb, controlDb)
+function outputDb = minusControl(model, inputDb, controlDb, opt)
 
-if isempty(controlDb)
-    range = databank.range(inputDb, "sourceNames", list);
-    if iscell(range)
+arguments
+    model Model
+    inputDb {validate.databank}
+    controlDb {validate.databank} = struct([])
+
+    opt.Range {validate.range} = Inf
+end
+
+if isempty(controlDb) || isempty(fieldnames(controlDb))
+    dbRange = databank.range(inputDb, "sourceNames", string(fieldnames(inputDb)));
+    if iscell(dbRange)
         exception.error([
             "Databank:MixedFrequency"
             "Input time series must be all of the same date frequency."
         ]);
     end
-    controlDb = steadydb(model, range);
+    controlDb = steadydb(model, dbRange);
 end
 
 quantity = getp(model, "Quantity");
