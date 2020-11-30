@@ -12,8 +12,6 @@ if isequal(opt.Growth, @auto)
     opt.Growth = hasGrowth(model);
 end
 
-%--------------------------------------------------------------------------
-
 numEquations = countEquations(model);
 this = solver.blazer.Steady(numEquations);
 this.SuccessOnly = opt.SuccessOnly;
@@ -60,7 +58,7 @@ end
 %
 % Process the Fix, FixLevel, FixChange options
 %
-processFixOptions(this, opt);
+processFixOptions(this, model, opt);
 
 end%
 

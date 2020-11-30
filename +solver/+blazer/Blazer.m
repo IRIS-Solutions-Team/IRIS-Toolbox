@@ -40,6 +40,9 @@ classdef (Abstract) Blazer ...
         % Blocks  Cell of solution or assignment blocks
         Blocks (1, :) cell = cell.empty(1, 0)
 
+        % QuantitiesToFix  Pointers to levels and or changes in quantities to keep fixed
+        QuantitiesToFix = double.empty(1, 0)
+
         % QuantitiesToExclude  Pointers to levels and or changes in quantities to exclude
         QuantitiesToExclude = double.empty(1, 0)
 

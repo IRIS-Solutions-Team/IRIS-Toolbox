@@ -18,6 +18,11 @@ classdef (CaseInsensitiveProperties=true) Options
 
         % Step Improvement Options
         Lambda
+
+        MinLambda
+        MaxLambda
+        LambdaMultiplier
+
         InflateStep
         DeflateStep
 
@@ -59,8 +64,13 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_STEP_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
         DEFAULT_TRIM_OBJECTIVE_FUNCTION = false
 
-        % Step Improvement Options
+        % Hybrid Step Lambda
         DEFAULT_LAMBDA = [0.1, 1, 10, 100]
+        DEFAULT_MIN_LAMBDA = 0.1
+        DEFAULT_MAX_LAMBDA = 1e6
+        DEFAULT_LAMBDA_MULTIPLIER = 10
+
+        % Step Improvement Options
         DEFAULT_INFLATE_STEP = 1.2
         DEFAULT_DEFLATE_STEP = 0.8
 
@@ -112,6 +122,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_MAX_ITERATIONS = 500;
                 this.DEFAULT_STEP_TOLERANCE = Inf;
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
+                this.DEFAULT_MAX_LAMBDA = 0;
                 this.DEFAULT_LAST_JACOB_UPDATE = -1;
                 this.DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR = true;
                 this.DEFAULT_LAST_STEP_SIZE_OPTIM = 1;
@@ -123,13 +134,14 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.Algorithm = 'Newton';
                 this.DEFAULT_FUNCTION_NORM = Inf;
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
+                this.DEFAULT_MAX_LAMBDA = 0;
                 this.DEFAULT_FUNCTION_TOLERANCE = 1e-5;
                 this.DEFAULT_STEP_TOLERANCE = Inf;
                 this.DEFAULT_SKIP_JACOB_UPDATE = 2;
             elseif locallyValidateSolver(solverName, {'IRIS-Newton', 'Newton'})
                 % Newton (Lambda=0)
                 this.Algorithm = 'Newton';
-                this.DEFAULT_LAMBDA = double.empty(1, 0);
+                this.DEFAULT_MAX_LAMBDA = 0;
             else
                 % Quasi Newton-steepest descend
                 this.Algorithm = 'Qnsd';
@@ -145,19 +157,6 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.( list{i} ) = opt.( list{i} );
             end
 
-            % Legacy option name Lambda for InitStepSize in QaD solver
-            if strcmpi(this.Algorithm, 'QaD')
-                if ~any(strcmpi(optionsParser.UsingDefaults, 'Lambda'))
-                    % ##### Obsolete since Sep 2018
-                    warning( 'IRIS:Obsolete', ...
-                             [ 'The option name Lambda= is obsolete in the IRIS-QaD solver, ', ...
-                               'and the use of the name will be disallowed in a future version. ', ...
-                               'Use the option InitStepSize= instead.' ] );
-                    this.InitStepSize = optionsParser.Results.Lambda;
-                    this.Lambda = this.DEFAULT_LAMBDA;
-                end
-            end
-
             this.Display = resolveDisplayMode(this.Display, pp.Results.DisplayMode);
         end%
             
@@ -169,6 +168,9 @@ classdef (CaseInsensitiveProperties=true) Options
             addParameter(pp, 'Display', this.DEFAULT_DISPLAY, @validateDisplay);
             addParameter(pp, 'Reset', this.DEFAULT_RESET, @(x) isequal(x, true) || isequal(x, false));
             addParameter(pp, 'Lambda', this.DEFAULT_LAMBDA, @(x) isequal(x, @default) || (isnumeric(x) && all(x>0) && all(isreal(x))));
+            addParameter(pp, 'MinLambda', this.DEFAULT_MIN_LAMBDA);
+            addParameter(pp, 'MaxLambda', this.DEFAULT_MAX_LAMBDA);
+            addParameter(pp, 'LambdaMultiplier', this.DEFAULT_LAMBDA_MULTIPLIER);
             addParameter(pp, 'JacobPattern', logical.empty(0), @islogical);
             addParameter(pp, 'JacobCalculation', this.DEFAULT_JACOB_CALCULATION, @(x) startsWith(x, ["Analytical", "ForwardDiff"], "ignoreCase", true));
             addParameter(pp, 'LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE);

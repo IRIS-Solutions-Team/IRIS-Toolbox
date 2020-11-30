@@ -47,6 +47,10 @@ end
 desktopStatus = iris.get('DesktopStatus');
 maxChgFunc = @(x, x0) full(max(abs(x(:)-x0(:))));
 
+minLambda = opt.MinLambda;
+maxLambda = opt.MaxLambda;
+lambdaMultiplier = opt.LambdaMultiplier;
+
 vecLambdas = opt.Lambda;
 vecLambdas(vecLambdas==0) = [ ];
 
@@ -57,7 +61,7 @@ else
 end
 
 lastStepSizeOptim = opt.LastStepSizeOptim;
-if ~isempty(vecLambdas)
+if maxLambda>0
     % Never optimize Hybrid step size
     lastStepSizeOptim = 0;
 end
@@ -261,7 +265,7 @@ while true
         end
     end
 
-    if isempty(vecLambdas)
+    if maxLambda==0
         hereMakeNewtonStep( );
     else
         hereMakeHybridStep( );
@@ -367,7 +371,7 @@ return
         headerInfo.FnNorm = strFnNorm;
 
         % Step type
-        if isempty(vecLambdas)
+        if maxLambda==0
             headerInfo.StepType = 'Newton';
         else
             headerInfo.StepType = 'Hybrid';
@@ -467,39 +471,46 @@ return
             minSingularValue = sj(end);
         end
         tol = numUnknowns * eps(maxSingularValue);
-        vecLambdas0 = vecLambdas;
-        if minSingularValue>tol
-            vecLambdas0 = [0, vecLambdas0];
-        end
-        lenLambda0 = numel(vecLambdas0);
         scale = tol * eye(numUnknowns);
-        
-        % Optimize lambda
-        D = cell(1, lenLambda0);
-        X = cell(1, lenLambda0);
-        F = cell(1, lenLambda0);
-        N = nan(1, lenLambda0);
-        boundsReport = repmat("", 1, lenLambda0);
-        for ii = 1 : lenLambda0
-            if vecLambdas0(ii)==0
-                % Lambda=0; run Newton step
-                D{ii} = -J0 \ F0;
-            else
-                % Lambda>0; run hybrid step
-                D{ii} = -( jj + vecLambdas0(ii)*scale ) \ J0.' * F0;
-            end
-            [X{ii}, boundsReport(ii)] = locallyEnforceBounds(X0 + step*D{ii}, bounds);
-            F{ii} = objectiveFuncReshaped(X{ii});
-            fnCount = fnCount + 1;
-            F{ii} = F{ii}(:);
-            N(ii) = fnNorm(F{ii});
+
+        if minSingularValue>tol
+            lambda = 0;
+        else
+            lambda = minLambda;
         end
-        [next.Norm, pos] = min(N);
-        next.Lambda = vecLambdas0(pos);
-        next.D = D{pos};
-        next.X = X{pos};
-        next.F = F{pos};
-        next.BoundsReport = boundsReport(pos);
+
+        J0t_F0 = J0.' * F0;
+        while true
+            if lambda==0
+                % Lambda=0; pure Newton step
+                D = -J0 \ F0;
+            else
+                % Lambda>0; hybrid Newton-Cauchy step
+                D = -( jj + lambda*scale ) \ J0t_F0; % J0.' * F0;
+            end
+            [X, boundsReport] = locallyEnforceBounds(X0 + step*D, bounds);
+            F = objectiveFuncReshaped(X);
+            fnCount = fnCount + 1;
+            F = F(:);
+            N = fnNorm(F);
+            if N<current.Norm || lambda>=maxLambda
+                break
+            end
+
+            % Update lambda and try again
+            if lambda==0
+                lambda = minLambda;
+            else
+                lambda = lambda*lambdaMultiplier;
+            end
+        end
+
+        next.Norm = N;
+        next.Lambda = lambda;
+        next.D = D;
+        next.X = X;
+        next.F = F;
+        next.BoundsReport = boundsReport;
     end%
 
 

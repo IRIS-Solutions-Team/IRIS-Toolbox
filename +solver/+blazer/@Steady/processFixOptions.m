@@ -1,4 +1,4 @@
-function processFixOptions(this, opt)
+function processFixOptions(this, model, opt)
 
 % Process Fix, FixLevel, FixChange, possible with Except
 TYPE = @int8;
@@ -72,8 +72,8 @@ if isfield(opt, 'ZeroMultipliers') && opt.ZeroMultipliers
     fixChange = fixChange | quantities.IxLagrange;
 end
 
-temp = [ ]; % this.Link.LhsPtrActive
-this.QuantitiesToExclude = [this.QuantitiesToExclude, find(fixLevel), 1i*find(fixChange), temp];
+this.QuantitiesToFix = [find(fixLevel), 1i*find(fixChange)];
+this.QuantitiesToExclude = [this.QuantitiesToExclude, this.QuantitiesToFix];
 
 end%
 
