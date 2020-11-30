@@ -102,9 +102,9 @@
 function this = grow(this, operator, growth, dates, shift, opt)
 
 arguments
-    this NumericTimeSubscriptable
+    this {locallyValidateLevelInput}
     operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "roc", "pct"])}
-    growth {locallyValidateGrowth(growth)}
+    growth {locallyValidateGrowthInput(growth)}
     dates {validate.properDates(dates)}
     shift {locallyValidateShift(shift)} = -1
 
@@ -120,9 +120,9 @@ function this = grow(this, operator, growth, dates, varargin)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Series/grow');
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(pp, 'level', @locallyValidateLevelInput);
     addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, 'function_handle'));
-    addRequired(pp, 'growth', @locallyValidateGrowth);
+    addRequired(pp, 'growth', @locallyValidateGrowthInput);
     addRequired(pp, 'dates', @DateWrapper.validateProperDateInput);
     addOptional(pp, 'shift', -1, @locallyValidateShift);
 
@@ -156,7 +156,13 @@ startAll = min([dates, datesShifted]);
 endAll = max([dates, datesShifted]);
 
 % Get level data
-levelData = getDataFromTo(this, startAll, endAll);
+if isnumeric(this)
+    numPeriods = round(endAll - startAll + 1);
+    sizeGrowth = size(growth.Data);
+    levelData = repmat(this, [numPeriods, sizeGrowth(2:end)]);
+else
+    levelData = getDataFromTo(this, startAll, endAll);
+end
 sizeLevelData = size(levelData);
 levelData = levelData(:, :);
 
@@ -195,21 +201,30 @@ if numel(sizeLevelData)>2
 end
 
 % Update output series
-this = setData(this, dater.colon(startAll, endAll), levelData);
+if isa(this, "NumericTimeSubscriptable")
+    this = setData(this, dater.colon(startAll, endAll), levelData);
+else
+    this = Series(DateWrapper(startAll), levelData);
+end
 
 return
 
     function hereCheckMissingObs( )
-        inxMissing = any(this.MissingTest(levelData(posDates, :)), 2);
+        if isa(this, "NumericTimeSubscriptable")
+            missingTest = this.MissingTest;
+        else
+            missingTest = @isnan;
+        end
+        inxMissing = any(missingTest(levelData(posDates, :)), 2);
         if ~any(inxMissing)
             return
         end
         report = join(dater.toDefaultString(dates(inxMissing)));
-        throw(exception.Base([ 
+        exception.warning([
             "Series:OutputWithMissingObs"
             "Output time series resulted in missing observations "
             "in some columns in these periods: %s"
-        ], "warning"), report);
+        ], report);
     end%
 end%
 
@@ -251,7 +266,7 @@ function func = locallyChooseFunction(operator, direction)
 end%
 
 
-function locallyValidateGrowth(input)
+function locallyValidateGrowthInput(input)
     %(
     if isa(input, 'NumericTimeSubscriptable') || validate.numericScalar(input)
         return
@@ -268,6 +283,17 @@ function locallyValidateShift(input)
     end
     error("Validation:Failed", "Input value must be a negative integer or one of {""YoY"", ""EoPY"", ""BoY""}");
     %)
+end%
+
+%
+% Local Validators
+%
+
+function locallyValidateLevelInput(input)
+    if isa(input, "NumericTimeSubscriptable") || validate.numericScalar(input)
+        return
+    end
+    error("Validation:Failed", "Input value for the level series must be a time series or a numeric scalar");
 end%
 
 
