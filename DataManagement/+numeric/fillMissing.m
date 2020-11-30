@@ -1,4 +1,3 @@
-function data = fillMissing(data, inxMissing, varargin)
 % fillMissing  Fill missing observations for numeric data
 %
 % Backend [IrisToolbox] function
@@ -7,7 +6,7 @@ function data = fillMissing(data, inxMissing, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function data = fillMissing(data, inxMissing, varargin)
 
 if ~any(inxMissing(:))
     return
