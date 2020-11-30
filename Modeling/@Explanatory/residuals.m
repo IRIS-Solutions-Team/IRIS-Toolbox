@@ -67,7 +67,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     [est2, outputDb3] = regress(est1, db1, baseRange, "residualsOnly", true);
     assertEqual(testCase, outputDb1.res_x.Data, outputDb2.res_x.Data);
     assertEqual(testCase, outputDb1.res_x.Data, outputDb3.res_x.Data);
-    assertEqual(testCase, est1, est2);
 
 ##### SOURCE END #####
 %}
