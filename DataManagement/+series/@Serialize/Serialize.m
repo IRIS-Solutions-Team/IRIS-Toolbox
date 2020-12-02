@@ -51,7 +51,11 @@ classdef Serialize ...
             outputRecord = struct( );
 
             if strlength(this.Name)>0
-                outputRecord.(this.Name) = char(name);
+                if nargin>=3 && ~isempty(name) && strlength(name)>0
+                    outputRecord.(this.Name) = char(name);
+                else
+                    outputRecord.(this.Name) = '';
+                end
             end
 
             if this.StartDateOnly
@@ -60,16 +64,24 @@ classdef Serialize ...
                 outputDate = reshape(inputSeries.RangeAsNumeric, [ ], 1);
             end
 
-            if ~isempty(outputDate)
-                outputRecord.(this.Dates) = cellstr(this.WriteDateFunc(outputDate));
+            if ~isempty(inputSeries.Data)
+                % Nonempty time series
+                if ~isempty(outputDate)
+                    outputRecord.(this.Dates) = cellstr(this.WriteDateFunc(outputDate));
+                else
+                    outputRecord.(this.Dates) = outputDate;
+                end
+                outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
+                if strlength(this.Frequency)>0 
+                    outputRecord.(this.Frequency) = char(this.letterFromFrequency(inputSeries.Frequency));
+                end
             else
-                outputRecord.(this.Dates) = outputDate;
-            end
-            
-            outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
-
-            if strlength(this.Frequency)>0
-                outputRecord.(this.Frequency) = char(this.letterFromFrequency(inputSeries.Frequency));
+                % Empty time series
+                outputRecord.(this.Dates) = string.empty(1, 0);
+                outputRecord.(this.Values) = double.empty(1, 0);
+                if strlength(this.Frequency)>0
+                    outputRecord.(this.Frequency) = NaN;
+                end
             end
 
             if strlength(this.Comment)>0
