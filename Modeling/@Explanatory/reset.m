@@ -19,7 +19,11 @@ for i = 1 : numel(this)
     listStatistics = reshape(string(fieldnames(this__.Statistics)), 1, [ ]);
     this__.Parameters(:, :, :) = NaN;
     for name = listStatistics
-        this__.Statistics.(name)(:, :, :) = NaN;
+        if iscell(this__.Statistics.(name))
+            this__.Statistics.(name)(:, :, :) = {[]};
+        else
+            this__.Statistics.(name)(:, :, :) = NaN;
+        end
     end
 
     this(i) = this__;
