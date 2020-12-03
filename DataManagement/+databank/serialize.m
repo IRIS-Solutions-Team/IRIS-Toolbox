@@ -148,7 +148,7 @@ for i = 1 : nList
     
     if isa(x, 'TimeSubscriptable')
         freq__ = x.FrequencyAsNumeric;
-        if opt.MatchFreq && userFreq~=freq__
+        if opt.MatchFreq && any(userFreq~=freq__)
             continue
         end
         if isRange
