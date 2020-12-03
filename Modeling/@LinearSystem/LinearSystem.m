@@ -25,7 +25,7 @@ classdef LinearSystem < shared.Kalman
         % SystemMatrices  State space system matrices {T, R, k, Z, H, d, U, Zb}
         SystemMatrices (1, 8) cell = cell(1, 8)
 
-        % CovarianceMatrices  Covariance matrices for transition and measurement shocks
+        % CovarianceMatrices  Covariance matrices for transition and measurement shocks {OmegaV, OmegaW}
         CovarianceMatrices (1, 2) cell = cell(1, 2)
 
         % StdVectors  Vectors of std deviations for transition and measurement shocks

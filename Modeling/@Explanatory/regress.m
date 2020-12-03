@@ -308,7 +308,7 @@ for q = find(inxToEstimate)
         %
         % Estimate parameters
         %
-        [parameters__, varResiduals__, covParameters__, fitted__, res__, inxMissing__, exitFlag__] ...
+        [parameters__, varResiduals__, covParameters__, fitted__, res__, inxMissing__, exitFlag__, optimOutput__] ...
             = locallyRegress(this__, lhs__, rhs__, subBlock__, F, fixed__, inxBaseRange__, v, opt.Optim);
 
         if journal.IsActive && ~isempty(exitFlag__)
@@ -334,6 +334,8 @@ for q = find(inxToEstimate)
         this__.Statistics.VarResiduals(:, :, v) = varResiduals__;
         this__.Statistics.CovParameters(:, :, v) = covParameters__;
         this__.Statistics.NumPeriodsFitted(1, :, v) = nnz(~inxMissing__);
+        this__.Statistics.ExitFlag(1, :, v) = exitFlag__;
+        this__.Statistics.OptimOutput{1, :, v} = optimOutput__;
         inxBaseRange{q, v} = inxBaseRange__;
 
 
@@ -516,7 +518,7 @@ function [fittedRange, missingObservations] = locallyResolveRange(this, inputDb,
 end%
 
 
-function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exitFlag] ...
+function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exitFlag, optimOutput] ...
         = locallyRegress(this, y, X, subBlock, F, fixed, inxBaseRange, v, optim)
     %(
     persistent DEFAULT_OPTIM
@@ -526,7 +528,8 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 
     inxFixed = ~isnan(fixed);
     numColumns = size(y, 2);
-    exitFlag = [];
+    exitFlag = NaN;
+    optimOutput = [];
 
     if this.IsLinear
         %
@@ -581,7 +584,7 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         if isempty(optim)
             optim = DEFAULT_OPTIM;
         end
-        [z, ~, ~, exitFlag] = lsqnonlin(@hereObjectiveFunc, z0, [], [], optim);
+        [z, ~, ~, exitFlag, optimOutput] = lsqnonlin(@hereObjectiveFunc, z0, [], [], optim);
 
         [~, parameters] = hereObjectiveFunc(z);
         parameters(~inxToEstimate & ~inxFixed) = NaN;

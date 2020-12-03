@@ -75,7 +75,7 @@ if isempty(pp) || isempty(INIT_EXPLANATORY)
 
     addRequired(pp, 'inputString', @validate.list);
 
-    addParameter(pp, 'ControlNames', string.empty(1, 0), @(x) isempty(x) || isa(x, 'string') || iscellstr(x));
+    addParameter(pp, 'ControlNames', string.empty(1, 0), @(x) isempty(x) || isstring(x) || iscellstr(x));
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
     addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
@@ -138,7 +138,6 @@ for j = 1 : numel(inputString)
     % Extract ResidualModel if present; this will remain in the InputString
     % of the Explanatory object
     %
-    residualModelString__ = "";
     if contains(inputString__, "#")
         residualModelString__ = "#" + extractAfter(inputString__, "#");
         inputString__ = extractBefore(inputString__, "#");
