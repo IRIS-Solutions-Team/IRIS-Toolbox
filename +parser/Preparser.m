@@ -309,7 +309,7 @@ classdef Preparser ...
 
                 addParameter(pp, 'AngleBrackets', true, @validate.logicalScalar);
                 addParameter(pp, {'Assigned', 'Assign'}, struct( ), @(x) isempty(x) || isstruct(x));
-                addParameter(pp, {'CloneTemplate', 'CloneString'}, '', @(x) isstring(x) && isequal(size(x), [1, 2]));
+                addParameter(pp, {'CloneTemplate', 'CloneString'}, ["", ""], @(x) isstring(x) && isequal(size(x), [1, 2]));
                 addParameter(pp, 'Skip', string.empty(1, 0), @isstring);
             end
             %)
