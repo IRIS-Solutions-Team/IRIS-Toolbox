@@ -8,11 +8,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % Release  IrisToolbox release (not customizable)
         Release = iris.Configuration.getIrisRelease( )
 
-        % DesktopStatus  True if Matlab is running in Java desktop
-        DesktopStatus = iris.Configuration.getDesktopStatus( )
-
         % Ellipsis  Ellipsis character
-        Ellipsis = iris.Configuration.getEllipsis( )
+        Ellipsis = char(8230)
 
         % Freq  Numeric representation of date frequencies (not customizable)
         Freq = iris.Configuration.DEFAULT_FREQ
@@ -212,8 +209,17 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods (Static)
+        function this = loadNoReset()
+            try
+                this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
+            catch
+                this = [];
+            end
+        end%
+
+
         function this = load( )
-            this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
+            this = iris.Configuration.loadNoReset();
             if ~isa(this, 'iris.Configuration')
                 thisWarning = [ 
                     "IrisToolbox:ConfigurationDamaged"
@@ -634,25 +640,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
                     ""
                 ];
                 error(thisError(1), join(thisError(2:end), string(newline)));
-            end
-        end%
-
-
-        function isDesktop = getDesktopStatus( )
-            try
-                jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-                isDesktop = ~isempty(jDesktop.getClient('Command Window'));
-            catch
-                isDesktop = false;
-            end
-        end%
-
-
-        function ellipsis = getEllipsis( )
-            if iris.Configuration.getDesktopStatus( )
-                ellipsis = char(8230);
-            else
-                ellipsis = '~';
             end
         end%
 

@@ -86,11 +86,6 @@ options = locallyResolveInputOptions(varargin{:});
 config = iris.reset(options);
 
 if ~options.Silent
-    if config.DesktopStatus
-        fprintfx = @(varargin) fprintf(varargin{:});       
-    else
-        fprintfx = @(varargin) fprintf('%s', locallyRemoveTags(sprintf(varargin{:})));
-    end
     hereDisplayIntro( );
     hereDisplayDetails( );
 end
@@ -101,19 +96,20 @@ return
         release = config.Release;
         % Intro message
         fprintf('\n');
-        fprintfx('\t<a href="http://www.iris-toolbox.com">[IrisToolbox] for Macroeconomic Modeling</a> ');
+        fprintf('\t[IrisToolbox] for Macroeconomic Modeling ');
         fprintf('Release %s', release);
         fprintf('\n');
         % Copyright
         fprintf('\tCopyright (c) 2007-%s ', datestr(now, 'YYYY'));
-        fprintfx('IRIS Solutions Team');
+        fprintf('IRIS Solutions Team');
         fprintf('\n\n');
     end%
         
 
     function hereDisplayDetails( )
         % IRIS root folder
-        fprintfx('\tRoot Folder: <a href="file:///%s">%s</a>\n', root, root);
+        fprintf('\tRoot Folder: %s', root);
+        fprintf('\n');
         
         % Default time series constructor
         defaultTimeSeriesConstructor = config.DefaultTimeSeriesConstructor;
@@ -122,35 +118,23 @@ return
         fprintf('\n');
         
         % LaTeX engine
-        fprintf('\tLaTeX Engine: ');
-        if isempty(config.PdfLaTeXPath)
-            fprintf('No PDF LaTeX engine configured');
-        else
-            fprintfx( ...
-                '<a href="file:///%s">%s</a>', ...
-                fileparts(config.PdfLaTeXPath), ...
-                config.PdfLaTeXPath ...
-            );
+        latex = config.PdfLaTeXPath;
+        if strlength(config.PdfLaTeXPath)==0
+            latex = 'No PDF LaTeX engine configured';
         end
+        fprintf('\tLaTeX Engine: %s', latex);
         fprintf('\n');
 
         % Ghostscript
-        fprintf('\tGhostscript Engine: ');
-        if isempty(config.GhostscriptPath)
-            fprintf('No Ghostscript engine configured');
-        else
-            fprintfx( ...
-                '<a href="file:///%s">%s</a>', ...
-                fileparts(config.GhostscriptPath), ...
-                config.GhostscriptPath ...
-            );
+        ghost = config.GhostscriptPath;
+        if strlength(ghost)==0
+            ghost = 'No Ghostscript engine configured';
         end
+        fprintf('\tGhostscript Engine: %s', ghost);
         fprintf('\n');
         
         % X12/X13 version
-        fprintfx('\t<a href="http://www.census.gov/srd/www/x13as/">');
-        fprintfx('X13-ARIMA-SEATS</a>: ');
-        fprintf('Version 1.1 Build 39 (March 10, 2017)');
+        fprintf('\tX13-ARIMA-SEATS: Version 1.1 Build 39 (March 10, 2017)');
         fprintf('\n');
 
         % IRIS folders removed
@@ -225,13 +209,5 @@ function options = locallyResolveInputOptions(varargin)
             options.TeX = false;
         end
     end
-end%
-
-
-function msg = locallyRemoveTags(msg)
-    msg = regexprep(msg, '<a[^<]*>', '');
-    msg = strrep(msg, '</a>', '');
-    msg = strrep(msg, '<strong>', '');
-    msg = strrep(msg, '</strong>', '');
 end%
 

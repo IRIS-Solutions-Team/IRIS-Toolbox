@@ -136,12 +136,7 @@ classdef GetterSetter
     
     methods (Hidden)
         function ccn = getClickableClassName(this)
-            className = class(this);
-            if iris.get('DesktopStatus')
-                ccn = sprintf('<a href="matlab: help %s">%s</a>', className, className);
-            else
-                ccn = className; %#ok<UNRCH>
-            end
+            ccn = class(this);
         end%
 
 

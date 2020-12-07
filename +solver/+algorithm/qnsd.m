@@ -44,7 +44,6 @@ else
     displayLevel = solver.DisplayLevel(opt.Display);
 end
 
-desktopStatus = iris.get('DesktopStatus');
 maxChgFunc = @(x, x0) full(max(abs(x(:)-x0(:))));
 
 minLambda = opt.MinLambda;
@@ -337,13 +336,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    if desktopStatus
-        fprintf('<strong>');
-    end
     hereReportIter( );
-    if desktopStatus
-        fprintf('</strong>');
-    end
     fprintf('\n');
 end
 

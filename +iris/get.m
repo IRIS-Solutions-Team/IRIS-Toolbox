@@ -1,10 +1,9 @@
-function varargout = get(varargin)
 % iris.get  Query current IRIS configuration settings
-%
+%{
 % __Syntax__
 %
 %     [Value, Value, ...] = iris.get(Query, Query, ...)
-%     Config = iris.get( )
+%     Config = iris.get()
 %
 %
 % __Input Arguments__
@@ -31,12 +30,12 @@ function varargout = get(varargin)
 %
 % * `'Version'` [ char ] - The current IRIS version string.
 %
-% When called without any input arguments, the `iris.get( )` function returns a
+% When called without any input arguments, the `iris.get()` function returns a
 % struct with all options and their current values.
 %
-% When used as input arguments in the `iris.get( )` function, the option
+% When used as input arguments in the `iris.get()` function, the option
 % names are case-insensitive. When referring to field names of an output
-% struct returned by the `iris.get( )` function, all option names are
+% struct returned by the `iris.get()` function, all option names are
 % lower-case and case-sensitive.
 %
 %
@@ -46,21 +45,22 @@ function varargout = get(varargin)
 %     ans =
 %     YFP
 % 
-%     g = iris.get( );
+%     g = iris.get();
 %     g.dateformat
 %     ans =
 %     YFP
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function varargout = get(varargin)
 
-irisConfig = iris.Configuration.load( );
+irisConfig = iris.Configuration.load();
 
 if isempty(irisConfig)
-    irisConfig = iris.reset( );
+    irisConfig = iris.reset();
 end
 
 if nargin==0
@@ -75,3 +75,4 @@ for i = 1 : nargin
 end
 
 end%
+
