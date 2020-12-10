@@ -60,7 +60,7 @@ function varargout = get(varargin)
 irisConfig = iris.Configuration.load();
 
 if isempty(irisConfig)
-    irisConfig = iris.reset();
+    irisConfig = iris.reset("silent", true, "checkId", false, "tex", false);
 end
 
 if nargin==0

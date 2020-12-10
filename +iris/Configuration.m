@@ -221,12 +221,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
         function this = load( )
             this = iris.Configuration.loadNoReset();
             if ~isa(this, 'iris.Configuration')
-                thisWarning = [ 
-                    "IrisToolbox:ConfigurationDamaged"
-                    "Configuration data for [IrisToolbox] need to be reset."
-                ];
-                warning(thisWarning(1), join(thisWarning(2:end), newline));
-                this = iris.reset( );
+                this = iris.reset("silent", true, "checkId", false, "tex", false);
             end
         end%
 

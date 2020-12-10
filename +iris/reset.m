@@ -1,4 +1,3 @@
-function irisConfig = reset(options)
 % iris.reset  Reset IRIS configuration options to start-up values
 %
 % Backend IRIS class
@@ -7,10 +6,13 @@ function irisConfig = reset(options)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-if nargin==0
-    options.SeriesConstructor = @Series;
-    options.CheckId = true;
-    options.TeX = false;
+function irisConfig = reset(options)
+
+arguments
+    options.Silent = false
+    options.SeriesConstructor = @Series
+    options.CheckId (1, 1) logical = true
+    options.TeX (1, 1) logical = false
 end
 
 %--------------------------------------------------------------------------

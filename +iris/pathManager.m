@@ -1,13 +1,12 @@
-function varargout = pathManager(req, varargin)
-% irispathManager  IRIS path manager
+% irispathManager  [IrisToolbox] path manager
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function varargout = pathManager(req, varargin)
 
 if strcmpi(req, 'CleanUp')
     % Remove all IRIS roots and subs found on the Matlab temporary
@@ -18,13 +17,14 @@ if strcmpi(req, 'CleanUp')
     thisRoot = pwd( );
     cd(currentFolder);
 
-    listOfRoots = [ which('irisstartup.m', '-all')
-                    which('irisping.m', '-all') ];
-    listOfRoots = unique(listOfRoots);
+    listRoots = unique([ 
+        which('irisstartup.m', '-all')
+        which('irisping.m', '-all')
+    ]);
 
     reportRootsRemoved = { };
-    for i = 1 : numel(listOfRoots)
-        ithRoot = fileparts(listOfRoots{i});
+    for i = 1 : numel(listRoots)
+        ithRoot = fileparts(listRoots{i});
         [~, allp] = generatePath(ithRoot);
         removePath(allp{:}, ithRoot);
         if ~strcmpi(ithRoot, thisRoot)
@@ -34,6 +34,7 @@ if strcmpi(req, 'CleanUp')
     varargout = cell(1, 2);
     varargout{1} = reportRootsRemoved;
     varargout{2} = thisRoot;
+    rehash path;
     
 elseif strcmpi(req, 'AddRoot')
     % Add the specified root to the temporary search paths.
