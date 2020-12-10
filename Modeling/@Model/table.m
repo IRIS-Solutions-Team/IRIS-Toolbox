@@ -212,12 +212,9 @@ else
     requests = cellstr(requests);
 end
 
-nv = numel(this.Variant);
-
 %--------------------------------------------------------------------------
 
 numRequests = numel(requests);
-inxShocks = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
 
 outputTable = table(this.Quantity.Name(:), 'VariableNames', {'Name'});
 
@@ -288,7 +285,7 @@ for i = 1 : numRequests
         addTable = tableDescription(this);
 
 
-    elseif any(strcmpi(requests{i}, {'Log'}))
+    elseif any(strcmpi(requests{i}, {'Log', 'LogStatus'}))
         addTable = tableLog(this);
 
 
@@ -381,7 +378,7 @@ end
 
 if any(strcmp(outputTable.Properties.VariableNames, 'Name'))
     tempNames = outputTable.Name;
-    try
+    try %#ok<TRYNC>
         outputTable = removevars(outputTable, 'Name');
         outputTable.Properties.RowNames = tempNames;
     end
@@ -480,21 +477,22 @@ end%
 
 function addTable = tableLog(this)
     values = this.Quantity.IxLog(:);
-    addTable = tableTopic(this, {'Log'}, [ ], values);
+    addTable = tableTopic(this, {'LogStatus'}, [ ], values);
 end%
 
 
 function addTable = tableStationary(this)
-    TYPE = @int8;
-    inx = getIndexByType(this, TYPE(1), TYPE(2));
-    names = this.Quantity.Name(inx);
-    numNames = numel(names);
-    temp = get(this, 'Stationary');
-    values = true(numNames, 1);
-    for i = 1 : numNames
-        values(i) = temp.(names{i});
+    names = reshape(string(this.Quantity.Name), 1, []);
+    stationary = get(this, 'Stationary');
+    values = logical.empty(0, 1);
+    for n = names
+        if ~isfield(stationary, n) || stationary.(n)
+            values = [values; true]; %#ok<AGROW>
+        else
+            values = [values; false]; %#ok<AGROW>
+        end
     end
-    addTable = tableTopic(this, {'Stationary'}, inx, values);
+    addTable = tableTopic(this, {'Stationary'}, [ ], values);
 end%
 
 
@@ -551,23 +549,6 @@ function outputTable = roundTable(outputTable, decimals)
         x = round(x, decimals);
         outputTable.(name) = x;
     end
-end%
-
-
-function flag = locallyValidateWriteTable(x)
-    if isempty(x) || isequal(x, false) || (isstring(x) && x=="")
-        flag = true;
-        return
-    end
-    if validate.stringScalar(x)
-        flag = true;
-        return
-    end
-    if iscell(x) && validate.stringScalar(x{1}) && iscellstr(x(2:2:end))
-        flag = true;
-        return
-    end
-    flag = false;
 end%
 
 
