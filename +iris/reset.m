@@ -1,6 +1,6 @@
 % iris.reset  Reset IRIS configuration options to start-up values
 %
-% Backend IRIS class
+% Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling

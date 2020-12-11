@@ -1,4 +1,3 @@
-function clickToExpand(axesHandles)
 % clickToExpand  Axes will open in a figure window when clicked on
 %
 % __Syntax__
@@ -20,6 +19,12 @@ function clickToExpand(axesHandles)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function clickToExpand(axesHandles)
+
+if nargin<1
+    axesHandles = gca();
+end
 
 persistent parser
 if isempty(parser)
