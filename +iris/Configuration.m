@@ -209,17 +209,21 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods (Static)
-        function this = loadNoReset()
+        % function this = loadNoReset()
+            % try
+                % this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
+            % catch
+                % this = [];
+            % end
+        % end%
+
+
+        function this = load( )
             try
                 this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
             catch
                 this = [];
             end
-        end%
-
-
-        function this = load( )
-            this = iris.Configuration.loadNoReset();
             if ~isa(this, 'iris.Configuration')
                 this = iris.reset("silent", true, "checkId", false, "tex", false);
             end
