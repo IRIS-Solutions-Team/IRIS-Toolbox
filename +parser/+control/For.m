@@ -127,39 +127,20 @@ classdef For < parser.control.Control
             for i = 1 : size(p.StoreForCtrl, 1)
                 ctrlName = p.StoreForCtrl{i, 1};
                 tkn = p.StoreForCtrl{i, 2};
-                For.checkObsolete(c, ctrlName);
                 if length(ctrlName)>1
                     upperCtrlName = ['?:', ctrlName(2:end)];
                     upperToken = upper(tkn);
                     lowerCtrlName = ['?.', ctrlName(2:end)];
                     lowerToken = lower(tkn);
-                    % Substitute lower case for for ?.name.
+                    % Substitute lower case for for ?.name
                     c = replace(c, lowerCtrlName, lowerToken);
-                    % Substitute upper case for for ?:name.
+                    % Substitute upper case for for ?:name
                     c = replace(c, upperCtrlName, upperToken);
                 end
                 % Substitute for ?name.
                 c = replace(c, ctrlName, tkn);
             end
         end%
-        
-        
-        
-        
-        function checkObsolete(c, controlName)
-            obsoleteFunc = @(syntax) regexp(c, regexptranslate('escape', syntax), 'match');
-            listDeprecated = [ obsoleteFunc([ '!lower',  controlName       ]), ...
-                               obsoleteFunc([ '!upper',  controlName       ]), ...
-                               obsoleteFunc([ '<lower(', controlName, ')>' ]), ...
-                               obsoleteFunc([ '<upper(', controlName, ')>' ]), ...
-                               obsoleteFunc([ 'lower(',  controlName, ')'  ]), ...
-                               obsoleteFunc([ 'upper(',  controlName, ')'  ])  ];
-            if isempty(listDeprecated)
-                return
-            end
-            listDeprecated = unique(listDeprecated);
-            throwCode( exception.ParseTime('Preparser:CTRL_OBSOLETE_UPPER_LOWER', 'error'), ...
-                       listDeprecated{:} );
-        end%             
     end
 end
+
