@@ -12,7 +12,7 @@ function [shift, power] = resolveShift(dates, shift, opt)
 
 arguments
     dates {mustBeReal}
-    shift (1, 1) {locallyValidateShift(shift)} = -1
+    shift (1, :) {locallyValidateShift} = -1
     opt.Annualize (1, 1) logical = false
 end
 %)

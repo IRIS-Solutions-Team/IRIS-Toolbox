@@ -1,3 +1,5 @@
+% run  Run simulation of a stacked-time block
+
 function [exitFlag, error] = run(this, data, exitFlagHeader)
 
 exitFlag = solver.ExitFlag.IN_PROGRESS;
