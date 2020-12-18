@@ -39,7 +39,7 @@ if isempty(this.Data)
     return
 end
 
-this = diff(this, varargin{:}, 'OutputFreq=', Frequency.YEARLY);
+this = diff(this, varargin{:}, "annualize", true);
 
 end%
 

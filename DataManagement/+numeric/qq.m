@@ -1,18 +1,11 @@
-function outputDate = qq(year, quarter)
-% numeric.qq  IRIS date code for quarterly dates
-% 
-% Backend IRIS function
-% No help provided
+% Type `web Dater/qq.md` for help on this function
+%
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function varargout = qq(varargin)
 
-%--------------------------------------------------------------------------
-
-if nargin<2
-    quarter = 1;
-end
-
-outputDate = numeric.datecode(4, year, quarter);
+[varargout{1:nargout}] = dater.qq(varargin{:});
 
 end%
+

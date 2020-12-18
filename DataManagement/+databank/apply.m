@@ -293,7 +293,7 @@ for i = 1 : numFields
             newName__ = extractAfter(newName__, strlength(opt.StartsWith));
         end
         if opt.RemoveEnd
-            newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.HasSuffix)+1);
+            newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.EndsWith)+1);
         end
         if ~isempty(opt.AddToStart)
             newName__ = [opt.AddToStart, newName__];

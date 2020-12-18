@@ -1,4 +1,3 @@
-function listSaved = toCSV(inputDatabank, fileName, varargin);
 % toCSV  Serialize databank and save to CSV file
 %{
 % ## Syntax ##
@@ -179,6 +178,8 @@ function listSaved = toCSV(inputDatabank, fileName, varargin);
 %                   x: [4x1 Series]
 %                   y: [4x1 Series]
 %}
+
+function listSaved = toCSV(inputDatabank, fileName, varargin);
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team

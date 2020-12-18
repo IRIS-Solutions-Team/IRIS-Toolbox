@@ -220,6 +220,15 @@ classdef validate
             end
             flag = false;
         end%
+
+
+        function flag = text(input)
+            if isstring(input) || ischar(input) || iscellstr(input)
+                flag = true;
+                return
+            end
+            flag = false;
+        end%
     end
 
 

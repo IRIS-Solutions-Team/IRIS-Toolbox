@@ -1,5 +1,5 @@
 % apct  Annualized percent rate of change
-%
+%{
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted
@@ -26,6 +26,7 @@
 %
 % __Example__
 %
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team

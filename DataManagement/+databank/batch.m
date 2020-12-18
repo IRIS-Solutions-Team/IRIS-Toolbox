@@ -1,10 +1,11 @@
-function outputDb = batch(inputDb, newNameTemplate, generator, varargin)
 % batch  Execute batch job within databank
 %{
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function outputDb = batch(inputDb, newNameTemplate, generator, varargin)
 
 persistent pp
 if isempty(pp)

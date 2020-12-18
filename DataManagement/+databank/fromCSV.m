@@ -1,219 +1,9 @@
-% fromCSV  Create databank by loading CSV file
-%{
-% ## Syntax ##
+% Type `web +databank/fromCSV.md` for help on this function
 %
-%
-%     outputDatabank = databank.fromCSV(fileName, ...)
-%
-%
-% ## Input Arguments ##
-%
-%
-% __`fileName`__ [ char | cellstr ] 
-% >
-% Name of the Input CSV data file or a cell array of CSV file names that
-% will be combined.
-%
-%
-% ## Output Arguments ##
-%
-%
-% __`outputDatabank`__ [ struct ]
-% >
-% Database created from the input CSV file(s).
-%
-%
-% ## Options ##
-%
-%
-% __`AddToDatabank`__ [ struct | Dictionary ]
-% >
-% Add the data loaded from the input file to an existing databank (struct
-% or Dictionary); the format (Matlab class) of `AddToDatabank=` must comply
-% with option `OutputType=`.
-%
-%
-% __`Case=''`__ [ `'lower'` | `'upper'` | empty ] 
-% >
-% Change case of variable names.
-%
-%
-% __`CommentRow={'Comment', 'Comments'}`__ [ char | cellstr | numeric ] 
-% >
-% Label at the start of row that will be used to create comments in time
-% series.
-%
-%
-% __`Continuous=false`__ [ false | `'Descending'` | `'Ascending'` ]
-% >
-% Indicate that dates are a continuous range, either acending or
-% descending.
-%
-%
-% __`DateFormat='YYYYFP'`__ [ char ] 
-% >
-% Format of dates in first column.
-%
-%
-% __`Delimiter=','`__ [ char ] 
-% >
-% Delimiter separating the individual values (cells) in the CSV file; if
-% different from a comma, all occurences of the delimiter will replaced
-% with commas -- note that this will also affect text in comments.
-%
-%
-% __`FirstDateOnly=false`__ [ `true` | `false` ] 
-% >
-% Read and parse only the first date string, and fill in the remaining
-% dates assuming a range of consecutive dates.
-%
-%
-% __`EnforceFrequency=false`__ [ Frequency | `false` ]
-% >
-% Advise frequency of dates; if empty, frequency will be automatically
-% recognised.
-%
-%
-% __`FreqLetters=@config`__ [ char | @config ] 
-% >
-% Letters representing frequency of dates in date column.
-%
-%
-% __`InputFormat='auto'`__ [ `'auto'` | `'csv'` | `'xls'` ] 
-% >
-% Format of input data file; `'auto'` means the format will be determined
-% by the file extension.
-%
-%
-% __`NamesHeader=["", "Variables", "Time"]`__ [ string | numeric ] 
-% >
-% String, or an array of strings, that is at the beginning
-% (in the first cell) of the row with variable names, or the line number at
-% which the row with variable names appears (first row is numbered 1).
-%
-%
-% __`NameFunc=[ ]`__ [ cell | function_handle | empty ] 
-% >
-% Function used to change or transform the variable names. If a cell array
-% of function handles, each function will be applied in the given order.
-%
-%
-% __`NaN="NaN"`__ [ string ] 
-% >
-% String representing missing observations (case insensitive).
-%
-%
-% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ]
-% >
-% Format (Matlab class) of the output databank.
-%
-%
-% __`Preprocess=[ ]`__ [ function_handle | cell | empty ] 
-% >
-% Apply this function, or cell array of functions, to the raw text file
-% before parsing the data.
-%
-%
-% __`Select={ }`__ [ char | cellstr | empty ] 
-% >
-% Only databank entries included on this list will be read in and returned
-% in the output databank `outputDatabank`; entries not on this list will be
-% discarded.
-%
-%
-% __`SkipRows=[ ]`__ [ char | cellstr | numeric | empty ] 
-% >
-% Skip rows whose first cell matches the string or strings (regular
-% expressions); or, skip a vector of row numbers.
-%
-%
-% __`DatabankUserData=Inf`__ [ char | `Inf` ] 
-% >
-% Field name under which the databank-wide user data loaded from the CSV
-% file (if they exist) will be stored in the output databank; `Inf` means
-% the field name will be read from the CSV file (and will be thus identical
-% to the originally saved databank).
-%
-%
-% __`UserDataField='.'`__ [ char ] 
-% >
-% A leading character denoting user data fields for individual time series;
-% if empty, no user data fields will be read in and created.
-%
-%
-% __`UserDataFieldList={ }`__ [ cellstr | numeric | empty ] 
-% >
-% List of row headers, or vector of row numbers, that will be included as
-% user data in each time series.
-%
-%
-% ## Description ##
-%
-%
-% Use the `'EnforeFrequency='` option whenever there is ambiguity in intepreting
-% the date strings, and IRIS is not able to determine the frequency
-% correctly (see Example).
-%
-% ### Structure of CSV data files_###
-%
-% The minimalist structure of a CSV data file has a leading row with
-% variables names, a leading column with dates in the basic IRIS format, 
-% and individual columns with numeric data:
-%
-%     |         |       Y |       P |
-%     |---------|---------|---------|--
-%     |  2010Q1 |       1 |      10 |
-%     |  2010Q2 |       2 |      20 |
-%     |         |         |         |
-%
-% You can add a comment row (must be placed before the data part, and start
-% with a label 'Comment' in the first cell) that will also be read in and
-% assigned as comments to the individual Series objects created in the
-% output databank.
-%
-%     |         |       Y |       P |
-%     |---------|---------|---------|--
-%     | Comment |  Output |  Prices |
-%     |  2010Q1 |       1 |      10 |
-%     |  2010Q2 |       2 |      20 |
-%     |         |         |         |
-%
-% You can use a different label in the first cell to denote a comment row;
-% in that case you need to set the option `CommentRow=` accordingly.
-%
-% All CSV rows whose names start with a character specified in the option
-% `UserDataField=` (a dot by default) will be added to output Series
-% objects as fields of their user data.
-%
-%     |         |       Y |       P |
-%     |---------|---------|---------|--
-%     | Comment |  Output |  Prices |
-%     | .Source |   Stat  |  IMFIFS |
-%     | .Update | 17Feb11 | 01Feb11 |
-%     | .Units  | Bil USD |  2010=1 |
-%     |  2010Q1 |       1 |      10 |
-%     |  2010Q2 |       2 |      20 |
-%     |         |         |         |
-%
-%
-% ## Example ##
-%
-%
-% Typical example of using the `EnforeFrequency=` option is a quarterly
-% databank with dates represented by the corresponding months, such as a
-% sequence 2000-01-01, 2000-04-01, 2000-07-01, 2000-10-01, etc. In this
-% case, you can use the following options:
-%
-%     d = databank.fromCSV( 'MyDataFile.csv', ...
-%                           'DateFormat=', 'YYYY-MM-01', ...
-%                           'EnforeFrequency=', Frequency.QUARTERLY );
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function outputDatabank = fromCSV(fileName, varargin)
+function outputDb = fromCSV(fileName, varargin)
 
 %( Input parser
 persistent pp
@@ -222,12 +12,12 @@ if isempty(pp)
     addRequired(pp, 'fileName', @validate.list);
 
     addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
-    addParameter(pp, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
-    addParameter(pp, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
+    addParameter(pp, {'Case', 'ChangeCase'}, "", @(x) isempty(x) || (validate.stringScalar(x) && any(lower(x)==["", "lower", "upper"])));
+    addParameter(pp, 'CommentsHeader', {'CommentRow', 'Comment', 'Comments', 'CommentsRow'}, @(x) validate.text(x) || validate.roundScalar(x, 1, Inf));
     addParameter(pp, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
     addParameter(pp, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
     addParameter(pp, 'FirstDateOnly', false, @validate.logicalScalar);
-    addParameter(pp, {'NamesHeader', 'NameRow', 'NamesRow', 'LeadingRow'}, ["", "Variables", "Time"], @(x) ischar(x) || isstring(x) || iscellstr(x) || validate.numericScalar(x));
+    addParameter(pp, {'NamesHeader', 'NameRow', 'NamesRow', 'LeadingRow'}, ["", "Variables", "Time"], @(x) validate.text(x) || validate.roundScalar(x, 1, Inf));
     addParameter(pp, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'NaN', "NaN", @validate.stringScalar);
     addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
@@ -237,7 +27,7 @@ if isempty(pp)
     addParameter(pp, {'SkipRows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
     addParameter(pp, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
     addParameter(pp, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
-    addParameter(pp, 'UserDataFieldList', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x));
+    addParameter(pp, 'UserDataFieldList', [], @(x) isempty(x) || validate.text(x) || isnumeric(x));
     addParameter(pp, 'VariableNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
     addDateOptions(pp);
 end
@@ -246,7 +36,7 @@ opt = parse(pp, fileName, varargin{:});
 fileName = cellstr(fileName);
 
 % Check consistency of options AddToDatabank= and OutputFormat=
-outputDatabank = databank.backend.ensureTypeConsistency( ...
+outputDb = databank.backend.ensureTypeConsistency( ...
     opt.AddToDatabank, ...
     opt.OutputType ...
 );
@@ -256,9 +46,9 @@ outputDatabank = databank.backend.ensureTypeConsistency( ...
 if numel(fileName)>1
     numFileNames = numel(fileName);
     for i = 1 : numFileNames
-        outputDatabank = databank.fromCSV( ...
+        outputDb = databank.fromCSV( ...
             fileName(i), varargin{:}, ...
-            'AddToDatabank=', outputDatabank ...
+            'AddToDatabank=', outputDb ...
         );
     end
     return
@@ -288,7 +78,7 @@ hereReadFile( );
 
 % Replace non-comma delimiter with comma; applies only to CSV files
 if ~strcmp(opt.Delimiter, ',')
-    file = strrep(file, sprintf(opt.Delimiter), ',');
+    file = replace(file, sprintf(opt.Delimiter), ',');
 end
 
 % **Read Headers**
@@ -420,8 +210,8 @@ return
             end
         end
         % Headers for comment rows
-        if ischar(opt.CommentRow)
-            opt.CommentRow = {opt.CommentRow};
+        if validate.text(opt.CommentsHeader)
+            opt.CommentsHeader = string(opt.CommentsHeader);
         end
     end%
 
@@ -486,21 +276,29 @@ return
 
             isDate = true;
             
-            % ## User Data Fields ##
+            %
+            % ## User Data Fields
+            %
             % Some of the user data fields can be reused as comments, hence
             % do this before anything else
-            if strncmp(ident, opt.UserDataField, 1) ...
+            %
+            if validate.text(opt.UserDataFieldList)
+                opt.UserDataFieldList = string(opt.UserDataFieldList);
+            end
+            opt.UserDataFieldList = reshape(opt.UserDataFieldList, 1, []);
+
+            if startsWith(ident, opt.UserDataField) ...
                     ...
                     || ( ...
-                        iscellstr(opt.UserDataFieldList) ...
+                        isstring(opt.UserDataFieldList) ...
                         && ~isempty(opt.UserDataFieldList) ...
-                        && any(strcmpi(ident, opt.UserDataFieldList)) ...
+                        && any(lower(ident)==lower(opt.UserDataFieldList)) ...
                     ) ...
                     ...
                     || ( ...
                         isnumeric(opt.UserDataFieldList) ...
                         && ~isempty(opt.UserDataFieldList) ...
-                        && any(rowCount==opt.UserDataFieldList(:).') ...
+                        && any(rowCount==opt.UserDataFieldList) ...
                     )
                 fieldName = regexprep(ident, '\W', '');
                 fieldName = matlab.lang.makeUniqueStrings(fieldName);
@@ -510,7 +308,7 @@ return
                 isDate = false;
             end
 
-            if strncmp(ident, '%', 1) || isempty(ident)
+            if strncmp(ident, '%', 1) || isempty(ident) || strlength(ident)==0
                 isDate = false;
             elseif strFindFunc(ident, 'userdata')
                 databankUserDataFieldName = getUserdataFieldName(tkn{1});
@@ -520,7 +318,7 @@ return
             elseif strFindFunc(ident, 'class[size]')
                 classRow = tkn(2:end);
                 isDate = false;
-            elseif hereTestCommentRow( )
+            elseif hereTestCommentsHeader( )
                 cmtRow = tkn(2:end);
                 isDate = false;
             elseif ~isempty(strfind(lower(ident), 'units'))
@@ -555,7 +353,7 @@ return
                 elseif isequal(opt.NamesHeader, rowCount)
                     flag = true;
                     return
-                elseif any(strcmpi(ident, opt.NamesHeader))
+                elseif any(lower(opt.NamesHeader)==lower(opt.NamesHeader))
                     flag = true;
                     return
                 end
@@ -563,11 +361,11 @@ return
             end%
 
 
-            function flag = hereTestCommentRow( )
-                if isequal(opt.CommentRow, rowCount)
+            function flag = hereTestCommentsHeader( )
+                if isequal(opt.CommentsHeader, rowCount)
                     flag = true;
                     return
-                elseif any(strcmpi(ident, opt.CommentRow))
+                elseif any(lower(ident)==lower(opt.CommentsHeader))
                     flag = true;
                     return
                 end
@@ -793,7 +591,7 @@ return
                 fnClass = str2func(cls);
                 newEntry = fnClass(data__);
             end
-            outputDatabank.(char(name)) = newEntry;
+            outputDb.(char(name)) = newEntry;
             count = count + numColumns;
         end
         
@@ -832,9 +630,9 @@ return
         if ~iscellstr(nameRow)
             throw( exception.Base('Dbase:InvalidOptionNameFunc', 'error') );
         end
-        if strcmpi(opt.Case, 'lower')
+        if startsWith(opt.Case, "lower", "ignoreCase", true)
             nameRow = lower(nameRow);
-        elseif strcmpi(opt.Case, 'upper')
+        elseif startsWith(opt.Case, "upper", "ignoreCase", true)
             nameRow = upper(nameRow);
         end
     end% 
@@ -844,7 +642,7 @@ return
 
     function hereCheckNames( )
         inxEmpty = cellfun(@isempty, nameRow);
-        if isstruct(outputDatabank)
+        if isstruct(outputDb)
             inxValid = cellfun(@isvarname, nameRow);
         else
             inxValid = true(size(nameRow));
@@ -874,7 +672,7 @@ return
             throw( exception.Base('Dbase:ErrorLoadingUserData', 'error'), ...
                    fileName, err.message ); %#ok<GTARG>
         end
-        outputDatabank.(char(databankUserDataFieldName)) = userDataField;
+        outputDb.(char(databankUserDataFieldName)) = userDataField;
     end%
 end%
 

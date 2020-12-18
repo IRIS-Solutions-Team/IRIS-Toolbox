@@ -39,6 +39,7 @@ NumericTimeSubscriptable ...
     methods
         varargout = acf(varargin)
         varargout = adiff(varargin)
+        varargout = adifflog(varargin)
         varargout = apply(varargin)
         varargout = arf(varargin)
         varargout = apct(varargin)

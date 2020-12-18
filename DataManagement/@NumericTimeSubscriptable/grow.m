@@ -1,99 +1,5 @@
-% grow  Cumulate time series at specified growth rates or differences
-%{
-% Syntax
-%--------------------------------------------------------------------------
+% Type `web Series/grow.md` for help on this function
 %
-% Input arguments marked with a `~` sign may be omitted
-%
-%     outputSeries = grow(inputSeries, operator, changeSeries, dates, ~shift)
-%
-%
-% Input arguments
-%--------------------------------------------------------------------------
-%
-% __`inputSeries`__ [ Series ] 
-%
-%>    Input time series including at least the initial condition for the level.
-%
-%
-% __`operator`__ [ `"diff"` | `"roc"` | `"pcr"` ]
-%
-%>    Function expressing the relationship between the resulting
-%>    `outputSeries` and the input `changeSeries` series.
-%
-%
-% __`changeSeries`__ [ Series | numeric ] 
-%
-%>    Time series or numeric scalar specifying the change in the input time
-%>    series (difference, gross rate of change, or percent change, see the
-%>    input argument `operator`).
-%
-%
-% __`dates`__ [ DateWrapper ] 
-%
-%>    Date range or a vector of dates on which the level series will be
-%>    cumulated.
-%
-%
-% __`shift=-1`__ [ numeric ]
-%
-%>    Negative number specifying the lag of the base period to which the change
-%>    `operator` function applies.
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __`outputSeries`__ [ Series ] 
-%
-%>    Output time series constructed from the input time series, `inputSeries`, extended by
-%>    its growth rates or differences, `growth`.
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-% __`Direction="Forward"`__ [ `"Forward"` | `"Backward"` ]
-% 
-%>    Direction of calculations in time; `Direction="Backward"` means that
-%>    the calculations start from the last date in `dates` going backwards
-%>    to the first one, and an inverse operator is applied.
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-% The function `grow(~)` calculates new values at `dates` (which may not
-% constitute a continuous range, and be discrete time periods instead)
-% using one of the the following formulas (depending on the `operator`):
-%
-% * $$ x_t = x_{t-k} \cdot g_t $$
-%
-% * $$ x_t = x_{t-k} + g_t $$
-%
-% * $$ x_t = x_{t-k} / g_t $$
-%
-% * $$ x_t = x_{t-k} - g_t $$
-%
-% where $$ k $$ is a time lag specified by the option `BaseShift=`, and the
-% values $$ g_t $$ are given by the second input series `growth`.
-% Alternatively, the operator applied to $$ x_{t-k} $$ and $$ g_t $$ can be
-% any user-specified function.
-%
-% Any values contained in the input time series `inputSeries` outside the
-% `dates` are preserved in the output time series unchanged.
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-% Extend a quarterly time series `x` using the gross rates of growth calculated
-% from another time series, `y`:
-%
-%     >> x = grow(x, '*', roc(y), qq(2020,1):qq(2030,4));
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
@@ -103,7 +9,7 @@ function this = grow(this, operator, growth, dates, shift, opt)
 
 arguments
     this {locallyValidateLevelInput}
-    operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "roc", "pct"])}
+    operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "difflog", "roc", "pct"])}
     growth {locallyValidateGrowthInput(growth)}
     dates {validate.properDates(dates)}
     shift {locallyValidateShift(shift)} = -1
@@ -250,6 +156,8 @@ function func = locallyChooseFunction(operator, direction)
                 else
                     func = @minus;
                 end
+            case "difflog"
+                func = @(x, y) x.*exp(y);
             case "/"
                 func = @rdivide;
             case "-"

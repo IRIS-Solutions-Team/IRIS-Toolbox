@@ -308,6 +308,7 @@ return
 
 
     function [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt)
+        fmt = char(fmt);
         field = cell(1, 0);
         isCalendar = strncmp(fmt, '$', 1);
         if isCalendar

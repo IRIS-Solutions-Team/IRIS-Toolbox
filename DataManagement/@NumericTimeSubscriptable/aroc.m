@@ -1,4 +1,3 @@
-function this = aroc(this, varargin)
 % aroc  Annualized gross rate of change
 %{
 % ## Syntax ##
@@ -11,17 +10,21 @@ function this = aroc(this, varargin)
 % ## Input Arguments ##
 %
 % __`x`__ [ NumericTimeSubscriptable ] - 
-% Input time series.
+%>
+%>    Input time series.
+%
 %
 % __`~shift=-1`__ [ numeric ] - 
-% Time shift, i.e. the number of periods over which the rate of change will
-% be calculated.
+%>
+%>    Time shift, i.e. the number of periods over which the rate of change
+%>    will be calculated.
 %
 %
 % ## Output Arguments ##
 %
 % __`x`__ [ NumericTimeSubscriptable ] - 
-% Annualized percentage rate of change in the input data.
+%
+%>    Annualized percentage rate of change in the input data.
 %
 %
 % ## Description ##
@@ -34,9 +37,9 @@ function this = aroc(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function this = aroc(this, varargin)
 
-this = roc(this, varargin{:}, 'OutputFreq=', Frequency.YEARLY);
+this = roc(this, varargin{:}, "annualize", true);
 
 end%
 

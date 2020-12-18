@@ -1,23 +1,11 @@
-function dateCode = ww(year, varargin)
-% numeric.ww  IRIS date code for weekly dates
+% Type `web Dater/ww.md` for help on this function
 % 
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function varargout = ww(varargin)
 
-%--------------------------------------------------------------------------
-
-if nargin==3
-    % * ww(year, month, day)
-    x = datenum(year, varargin{:});
-    dateCode = numeric.day2ww(x);
-else
-    % * ww(year, week)
-    % * ww(year)
-    dateCode = numeric.datecode(52, year, varargin{:});
-end
+[varargout{1:nargout}] = dater.ww(varargin{:});
 
 end%
 

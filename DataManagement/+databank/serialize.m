@@ -1,4 +1,3 @@
-function [c, listSerialized] = serialize(inputDatabank, varargin)
 % serialize  Serialize databank entries to character vector
 %{
 % ## Syntax ##
@@ -37,6 +36,7 @@ function [c, listSerialized] = serialize(inputDatabank, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function [c, listSerialized] = serialize(inputDatabank, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
@@ -460,3 +460,4 @@ function c = hereSerialize(oo, opt)
             s = sprintf(formatString, c{:});
         end%
 end%
+
