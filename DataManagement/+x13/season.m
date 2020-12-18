@@ -27,7 +27,7 @@ arguments
     specs.Series_Type string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Series_Type, ["stock", "flow"]) } = string.empty(1, 0)
     specs.Series_Save (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
-    specs.X11_Mode { validate.mustBeScalarOrEmpty, locallyValidateX11Mode } = string.empty(1, 0)
+    specs.X11_Mode { validate.mustBeScalarOrEmpty, locallyValidateX11Mode } = @auto % string.empty(1, 0)
     specs.X11_SeasonalMA (1, :) string = string.empty(1, 0)
     specs.X11_TrendMA { validate.mustBeScalarOrEmpty, mustBeInteger, validate.mustBeInRange(specs.X11_TrendMA, 3, 101) } = double.empty(1, 0)
     specs.X11_SigmaLim (1, :) { mustBeNumeric, mustBePositive } = double.empty(1, 0)
@@ -292,7 +292,7 @@ function specs = locallyResolveDataAttributes(specs)
         prefix = extractBefore(n, "_");
         series = specs.(n);
         if ~isa(series, "Series")
-            invalidDataSpecs(end+1) = n;
+            invalidDataSpecs(end+1) = n; %#ok<AGROW>
             continue
         end
         specs.(n) = locallyAdjustDataForNaNs(series.Data);
