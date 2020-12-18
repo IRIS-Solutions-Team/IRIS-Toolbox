@@ -13,7 +13,7 @@ if isempty(pp)
 
     addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, {'Case', 'ChangeCase'}, "", @(x) isempty(x) || (validate.stringScalar(x) && any(lower(x)==["", "lower", "upper"])));
-    addParameter(pp, 'CommentsHeader', {'CommentRow', 'Comment', 'Comments', 'CommentsRow'}, @(x) validate.text(x) || validate.roundScalar(x, 1, Inf));
+    addParameter(pp, {'CommentsHeader', 'CommentRow'}, {'CommentRow', 'Comment', 'Comments', 'CommentsRow'}, @(x) validate.text(x) || validate.roundScalar(x, 1, Inf));
     addParameter(pp, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
     addParameter(pp, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
     addParameter(pp, 'FirstDateOnly', false, @validate.logicalScalar);
