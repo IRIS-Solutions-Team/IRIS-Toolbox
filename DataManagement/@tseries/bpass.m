@@ -1,4 +1,3 @@
-function [this, trend] = bpass(this, band, varargin)
 % bpass  Band-pass filter
 %
 % __Syntax__
@@ -22,7 +21,7 @@ function [this, trend] = bpass(this, band, varargin)
 % * `Band` [ numeric ] - Band of periodicities to be retained in the output
 % data, `Band = [Low, High]`.
 %
-% * `~Range=Inf` [ DateWrapper ] - Date range on which the data will be
+% * `~Range=Inf` [ Dater ] - Date range on which the data will be
 % filtered; if omitted, the entire time series range will be used.
 %
 %
@@ -60,29 +59,19 @@ function [this, trend] = bpass(this, band, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-% Legacy input arguments
-if nargin>=3 && ~ischar(varargin{1})
-    range = varargin{1};
-    if length(band)~=2 && length(range)==2
-        % Swap input arguments
-        % ##### Feb 2018 OBSOLETE and scheduled for removal
-        throw( exception.Base('Obsolete:BPassInputs', 'warning') );
-        [range, band] = deal(band, range);
-        varargin{1} = range;
-    end
-end
+function [this, trend] = bpass(this, band, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.bpass');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    inputParser.addRequired('Band', @(x) isnumeric(x) && numel(x)==2);
-    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.bpass');
+    pp.KeepUnmatched = true;
+    pp.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    pp.addRequired('Band', @(x) isnumeric(x) && numel(x)==2);
+    pp.addOptional('Range', Inf, @validate.range);
 end
-inputParser.parse(this, band, varargin{:});
-range = inputParser.Results.Range;
-unmatched = inputParser.UnmatchedInCell;
+parse(pp, this, band, varargin{:});
+range = double(pp.Results.Range);
+unmatched = pp.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
@@ -92,13 +81,12 @@ if isempty(range) || isnan(this.Start) || isempty(this.Data)
     return
 end
 
-[inputData, range] = rangedata(this, range);
-startDate = range(1);
+[inputData, startDate] = getDataFromTo(this, range);
 
 % Run the band-pass filter
 [filterData, trendData] = numeric.bpass( ...
     inputData, band, ...
-    'StartDate=', startDate, ...
+    'StartDate', startDate, ...
     unmatched{:} ...
 );
 
@@ -113,4 +101,5 @@ if nargout>1
     trend = trim(trend);
 end
 
-end
+end%
+

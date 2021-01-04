@@ -1,4 +1,3 @@
-function [this, weights] = windex(this, weights, varargin)
 % windex  Plain weighted or Divisia index
 %
 % __Syntax__
@@ -15,7 +14,7 @@ function [this, weights] = windex(this, weights, varargin)
 % * `Weights` [ tseries | numeric ] - Fixed or time-varying weights on the
 % input time series.
 %
-% * `~Range=Inf` [ DateWrapper | `Inf` ] - Range on which the weighted index
+% * `~Range=Inf` [ Dater | `Inf` ] - Range on which the weighted index
 % is computed.
 %
 %
@@ -37,28 +36,31 @@ function [this, weights] = windex(this, weights, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('tseries.windex');
-    parser.KeepUnmatched = true;
-    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
-    parser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+function [this, weights] = windex(this, weights, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.windex');
+    pp.KeepUnmatched = true;
+    pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    pp.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
+    pp.addOptional('Range', Inf, @Dater.validateRangeInput);
 end
-parser.parse(this, weights, varargin{:});
-range = parser.Results.Range;
-unmatched = parser.UnmatchedInCell;
+parse(pp, this, weights, varargin{:});
+range = double(pp.Results.Range);
+unmatched = pp.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
 checkFrequency(this, range);
-[inputData, range] = getData(this, range);
+[inputData, from, to, range] = getDataFromTo(this, range);
+
 if isa(weights, 'TimeSubscriptable')
     checkFrequency(weights, range);
-    weightsData = getData(weights, range);
+    weightsData = getDataFromTo(weights, from, to);
 else
     weightsData = weights;
 end

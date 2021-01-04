@@ -1,4 +1,3 @@
-function varargout = datarequest(req, this, data, range, whichSet, expandMethod)
 % datarequest  Request model specific data from database
 %
 % Backend IRIS function
@@ -6,6 +5,8 @@ function varargout = datarequest(req, this, data, range, whichSet, expandMethod)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function varargout = datarequest(req, this, data, range, whichSet, expandMethod)
 
 %#ok<*CTCH>
 %#ok<*VUNUS>
@@ -21,7 +22,7 @@ try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 nv = length(this);
 range = double(range);
 range = range(1) : range(end);
-numPeriods = length(range);
+numPeriods = numel(range);
 
 if isempty(data)
     data = struct( );
@@ -164,7 +165,8 @@ return
         end
         % Xf MSE.
         if nargout>=3 && ~isempty(dMse)
-            xbInitMse = rangedata(dMse, range(1)-1);
+            tempDate = dater.plus(range(1), -1);
+            xbInitMse = getDataFromTo(dMse, tempDate);
             xbInitMse = ipermute(xbInitMse, [3, 2, 1, 4]);
         end
         % Detect NaN init conditions.

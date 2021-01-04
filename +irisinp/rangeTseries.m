@@ -1,15 +1,9 @@
 classdef rangeTseries < irisinp.range
-    properties
-        SpecRangeFlag
-    end
-    
-
     methods
-        function this = rangeTseries(SpecRangeFlag,varargin)
-            this = this@irisinp.range(varargin{:});
+        function this = rangeTseries()
+            this = this@irisinp.range();
             this.ReportName = 'Time Series Range';
             this.Omitted = Inf;
-            this.SpecRangeFlag = SpecRangeFlag;
         end
         
         
@@ -24,9 +18,9 @@ classdef rangeTseries < irisinp.range
                         ['Input range frequency fails to match ', ...
                         'input time series frequency.']);
                 end
-                this.Value = ...
-                    specrange(x,this.Value,this.SpecRangeFlag);
+                [~, ~, this.Value] = resolveRange(x, this.Value);
             end
         end
     end
 end
+

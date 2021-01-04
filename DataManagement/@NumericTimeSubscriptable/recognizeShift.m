@@ -1,13 +1,9 @@
-function [this, subs, sh] = recognizeShift(this, subs)
 % recognizeShift  Recognize lag or lead in subscripted reference, and shift
 %
-% Backend [IrisToolbox] class
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [this, subs, sh] = recognizeShift(this, subs)
 
 if numel(subs)>=1 ...
     && strcmp(subs(1).type, '{}') ...

@@ -76,51 +76,52 @@ classdef DateWrapper ...
 
         function this = plus(a, b)
             if isa(a, 'DateWrapper') && isa(b, 'DateWrapper')
-                throw( exception.Base('DateWrapper:InvalidInputsIntoPlus', 'error') );
+                exception.error([
+                    "Dater:InvalidInputs"
+                    "Invalid date addition; add an integer to a date or a date to an integer."
+                ]);
             end
             if ~all(double(a)==round(a)) && ~all(double(b)==round(b))
-                throw( exception.Base('DateWrapper:InvalidInputsIntoPlus', 'error') );
+                exception.error([
+                    "Dater:InvalidInputs"
+                    "Invalid date addition; add an integer to a date or a date to an integer."
+                ]);
             end
             x = double(a) + double(b);
             x = round(x*100)/100;
-            try
-                freq = dater.getFrequency(x);
-            catch
-                throw( exception.Base('DateWrapper:InvalidInputsIntoPlus', 'error') );
-            end
-            if isempty(x)
-                this = DateWrapper.empty(size(x));
-            else
-                serial = floor(x);
-                this = DateWrapper.fromSerial(freq(1), serial); 
-            end
+            this = DateWrapper(x);
         end%
         
         
         function this = minus(a, b)
-            if isa(a, 'DateWrapper') && isa(b, 'DateWrapper')
+            a = double(a);
+            b = double(b);
+            if all(a(:)~=round(a(:))) && all(b(:)~=round(b(:)))
                 if ~all(dater.getFrequency(a(:))==dater.getFrequency(b(:)))
-                    throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
+                    exception.error([
+                        "Dater:InvalidInputs"
+                        "Invalid date subtraction; subtract an integer from a date "
+                        "or two dates of the same frequency from each other."
+                    ]);
                 end
                 this = floor(a) - floor(b);
                 return
             end
-            if ~all(double(a)==round(a)) && ~all(double(b)==round(b))
+            if ~all(a==round(a)) && ~all(b==round(b))
                 throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
             end
             x = double(a) - double(b);
             x = round(x*100)/100;
             try
-                frequency = DateWrapper.getFrequency(x);
+                Frequency(dater.getFrequency(x));
             catch
-                throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
+                exception.error([
+                    "Dater:InvalidInputs"
+                    "Invalid date subtraction; subtract an integer from a date "
+                    "or two dates of the same frequency from each other."
+                ]);
             end
-            if isempty(x)
-                this = DateWrapper.empty(size(x));
-            else
-                serial = dater.getSerial(x);
-                this = DateWrapper.fromSerial(frequency(1), serial); 
-            end
+            this = DateWrapper(x);
         end%
         
         
@@ -178,53 +179,10 @@ classdef DateWrapper ...
         end%
 
 
-        function this = getFirst(this)
-            this = this(1);
+        function varargout = rnglen(varargin)
+            [varargout{1:nargout}] = dater.rangeLength(varargin{:});
         end%
 
-
-        function this = getLast(this)
-            this = this(end);
-        end%
-
-
-        function this = getIth(this, pos)
-            this = this(pos);
-        end%
-
-
-        function flag = isnad(this)
-            flag = isequaln(double(this), NaN);
-        end%
-
-
-        function n = rnglen(varargin)
-            if nargin==1
-                firstDate = getFirst(varargin{1});
-                lastDate = getLast(varargin{1});
-            else
-                firstDate = varargin{1};
-                lastDate = varargin{2};
-            end
-            if ~isa(firstDate, 'DateWrapper') || ~isa(lastDate, 'DateWrapper')
-                throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
-            end
-            firstFrequency = dater.getFrequency(firstDate(:));
-            lastFrequency = dater.getFrequency(lastDate(:));
-            if ~all(firstFrequency==lastFrequency)
-                throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
-            end
-            n = floor(lastDate) - floor(firstDate) + 1;
-        end%
-
-
-        function this = addTo(this, c)
-            if ~isa(this, 'DateWrapper') || ~isnumeric(c) || ~all(c==round(c))
-                throw( exception.Base('DateWrapper:InvalidInputsIntoAddTo', 'error') );
-            end
-            this = DateWrapper(double(this) + c);
-        end%
-            
 
         function datetimeObj = datetime(this, varargin)
             datetimeObj = dater.toMatlab(this, varargin{:});

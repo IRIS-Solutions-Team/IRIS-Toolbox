@@ -110,30 +110,29 @@ return
 
     
     function doPopulate( )
-        [expmu, range] = rangedata(db.mean.(name), Inf);
-        if isempty(range)
+        [expmu, startDate, endDate] = getDataFromTo(db.mean.(name));
+        if isnan(startDate)
             return
         end
-        sgm = rangedata(db.std.(name), range);
+        sgm = getDataFromTo(db.std.(name), startDate, endDate);
         sgm = log(sgm);
         sgm2 = sgm.^2;
         co = comment(db.mean.(name));
-        start = range(1);
         if Opt.median
             x = getMedian(expmu, sgm, sgm2);
-            db.(field('median')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
+            db.(field('median')).(name) = replace(TIME_SERIES_TEMPLATE, x, startDate, co);
         end
         if Opt.mode
             x = getMode(expmu, sgm, sgm2);
-            db.(field('mode')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
+            db.(field('mode')).(name) = replace(TIME_SERIES_TEMPLATE, x, startDate, co);
         end
         if Opt.mean
             x = getMean(expmu, sgm, sgm2);
-            db.(field('mean')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
+            db.(field('mean')).(name) = replace(TIME_SERIES_TEMPLATE, x, startDate, co);
         end
         if Opt.std
             x = getStd(expmu, sgm, sgm2);
-            db.(field('std')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
+            db.(field('std')).(name) = replace(TIME_SERIES_TEMPLATE, x, startDate, co);
         end
         if ~isequal(Opt.prctile, false) && ~isempty(Opt.prctile)
             x = [ ];
@@ -141,7 +140,7 @@ return
                 x = [x, getPrctile(expmu, sgm, sgm2, p/100)]; %#ok<AGROW>
             end
             co = repmat(co, 1, length(Opt.prctile));
-            db.(field('pct')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
+            db.(field('pct')).(name) = replace(TIME_SERIES_TEMPLATE, x, startDate, co);
         end
     end
 end

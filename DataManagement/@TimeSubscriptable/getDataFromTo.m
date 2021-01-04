@@ -1,22 +1,28 @@
-function [x, actualFrom, actualTo] = getDataFromTo(this, from, to)
 % getDataFromTo  Retrieve time series data from date to date
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%-------------------------------------------------------------------------- 
+function [x, actualFrom, actualTo, actualRange] = getDataFromTo(this, from, to)
 
 % No frequency check can be performed here; this is a responsibility of the
 % caller
 
+start = double(this.Start);
+
 if nargin==1
     x = this.Data;
-    actualFrom = this.Start;
-    actualTo = this.End;
+    actualFrom = start;
+    actualTo = this.EndAsNumeric;
+    if nargout>=4
+        actualRange = dater.colon(actualFrom, actualTo);
+    end
     return
+end
+
+if nargin==2 && (isequal(from, @all) || strcmp(from, ":"))
+    % Legacy range specifications: @all, :
+    from = Inf;
 end
 
 from = double(from);
@@ -33,6 +39,9 @@ if isnan(from) || isnan(to)
     x = this.Data(ref{:});
     actualFrom = from;
     actualTo = to;
+    if nargout>=4
+        actualRange = dater.colon(actualFrom, actualTo);
+    end
     return
 end
 
@@ -41,8 +50,8 @@ end
 serialFrom = dater.getSerial(from);
 serialTo = dater.getSerial(to);
 
-freqStart = dater.getFrequency(this.Start);
-serialStart = dater.getSerial(this.Start);
+freqStart = dater.getFrequency(start);
+serialStart = dater.getSerial(start);
 data = this.Data;
 sizeData = size(data);
 missingValue = this.MissingValue;
@@ -50,8 +59,9 @@ missingValue = this.MissingValue;
 if ~isinf(serialFrom) && ~isinf(serialTo) && serialTo<serialFrom
     x = repmat(missingValue, [0, sizeData(2:end)]);
     if nargout>=2
-        actualFrom = DateWrapper.empty(0, 0);
-        actualTo = DateWrapper.empty(0, 0);
+        actualFrom = double.empty(0, 0);
+        actualTo = double.empty(0, 0);
+        actualRange = double.empty(1, 0);
     end
     return
 end
@@ -64,8 +74,9 @@ if isnan(serialStart)
     end
     x = repmat(missingValue, [lenRange, sizeData(2:end)]);
     if nargout>=2
-        actualFrom = DateWrapper.empty(0, 0);
-        actualTo = DateWrapper.empty(0, 0);
+        actualFrom = double.empty(0, 0);
+        actualTo = double.empty(0, 0);
+        actualRange = double.empty(1, 0);
     end
     return
 end
@@ -108,6 +119,10 @@ end
 if nargout>=2
     actualFrom = dater.fromSerial(freqStart, serialStart + posFrom - 1);
     actualTo = dater.fromSerial(freqStart, serialStart + posTo - 1);
+end
+
+if nargout>=4
+    actualRange = dater.colon(actualFrom, actualTo);
 end
 
 end%

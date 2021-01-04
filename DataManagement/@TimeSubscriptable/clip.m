@@ -13,12 +13,12 @@
 % Input time series whose date range will be clipped.
 %
 %
-% __`newStart`__ [ DateWrapper | `-Inf` ]
+% __`newStart`__ [ Dater | `-Inf` ]
 % >
 % New start date; `-Inf` means keep the current start date.
 %
 %
-% __`newEnd`__ [ DateWrapper | `Inf` ]
+% __`newEnd`__ [ Dater | `Inf` ]
 % >
 % New end date; `Inf` means keep the current enddate.
 %
@@ -48,8 +48,8 @@ function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 
 arguments
     this TimeSubscriptable
-    newStart {validate.dateInput(newStart)}
-    newEnd {validate.mustBeScalarOrEmpty, validate.dateInput(newEnd)} = []
+    newStart {validate.mustBeDate(newStart)}
+    newEnd {validate.mustBeScalarOrEmpty, validate.mustBeDate(newEnd)} = []
 end
 
 newStart = double(newStart);
@@ -75,8 +75,8 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('TimeSubscriptable.clip');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    addRequired(pp, 'newStart', @(x) DateWrapper.validateDateInput(x));
-    addOptional(pp, 'newEnd', [ ], @(x) isempty(x) || (DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf)));
+    addRequired(pp, 'newStart', @(x) Dater.validateDateInput(x));
+    addOptional(pp, 'newEnd', [ ], @(x) isempty(x) || (Dater.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf)));
 end
 parse(pp, this, newStart, varargin{:});
 newStart = double(newStart);
@@ -91,33 +91,29 @@ newStart = newStart(1);
 
 %--------------------------------------------------------------------------
 
-if isa(this.Start, "DateWrapper")
-    outputDateFunc = @DateWrapper;
-else
-    outputDateFunc = @double;
-end
-
 thisStart = double(this.Start);
+thisEnd = this.EndAsNumeric;
+
 if isnan(thisStart) && isempty(this.Data)
-    newStart = outputDateFunc(thisStart);
-    newEnd = newStart;
+    newStart = NaN;
+    newEnd = NaN;
     return
 end
 
 if isequaln(newStart, NaN) || isequaln(newEnd, NaN)
     this = emptyData(this);
-    newStart = outputDateFunc(newStart);
-    newEnd = outputDateFunc(newEnd);
+    newStart = NaN;
+    newEnd = NaN;
     return
 end
 
-thisEnd = dater.plus(thisStart, size(this.Data, 1)-1);
 isStartInf = isequal(newStart, -Inf) || isequal(newStart, Inf);
 isEndInf = isequal(newEnd, Inf);
 if isStartInf && isEndInf
     if nargout>1
-        newStart = outputDateFunc(thisStart);
-        newEnd = outputDateFunc(thisEnd);
+        thisEnd = dater.plus(thisStart, size(this.Data, 1)-1);
+        newStart = thisStart;
+        newEnd = thisEnd;
     end
     return
 end
@@ -133,8 +129,8 @@ serialNewEnd = getSerialNewEnd( );
 % input start and the new end is after the input end
 if serialNewStart<=serialThisStart && serialNewEnd>=serialThisEnd
     if nargout>1
-        newStart = outputDateFunc(thisStart);
-        newEnd = outputDateFunc(thisEnd);
+        newStart = thisStart;
+        newEnd = thisEnd;
     end
     return
 end
@@ -148,8 +144,8 @@ if serialNewStart>serialNewEnd ...
    || (serialNewStart>serialThisEnd && serialNewEnd>serialThisEnd)
     this = this.empty(this);
     if nargout>1
-        newStart = outputDateFunc(thisStart);
-        newENd = outputDateFunc(thisEnd);
+        newStart = thisStart;
+        newEnd = thisEnd;
     end
     return
 end
@@ -159,7 +155,7 @@ ndimsData = ndims(this.Data);
 if serialNewStart>serialThisStart
     numRowsToRemove = round(serialNewStart - serialThisStart);
     this.Data(1:numRowsToRemove, :) = [ ];
-    this.Start = outputDateFunc(dater.fromSerial(freqThis, serialNewStart));
+    this.Start = dater.fromSerial(freqThis, serialNewStart);
 end
 
 if serialNewEnd<serialThisEnd
@@ -175,7 +171,6 @@ end
 this = trim(this);
 
 return
-
 
     function serialNewStart = getSerialNewStart( )
         if isStartInf
@@ -204,3 +199,4 @@ return
         end
     end%
 end%
+

@@ -1,4 +1,3 @@
-function this = empty(varargin)
 % empty  Create empty time series or empty an existing time series
 %
 % __Syntax__
@@ -32,12 +31,11 @@ function this = empty(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function this = empty(varargin)
 
-nanDate = DateWrapper(NaN);
 if nargin==1 && isa(varargin{1}, 'TimeSubscriptable')
     this = varargin{1};
-    this.Start = nanDate;
+    this.Start = TimeSubscriptable.StartDateWhenEmpty;
     newSize = size(this.Data);
     newSize(1) = 0;
     this.Data = repmat(this.MissingValue, newSize);
@@ -51,9 +49,10 @@ else
     if size(newData, 1)~=0
         throw( exception.Base('Series:TimeDimMustBeZero', 'error') );
     end
-    this.Start = nanDate;
+    this.Start = TimeSubscriptable.StartDateWhenEmpty;
     this.Data = newData;
     this = resetComment(this);
 end
 
-end
+end%
+

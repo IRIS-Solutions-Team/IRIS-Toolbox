@@ -19,6 +19,10 @@ classdef ( ...
 
     methods % Constructor
         function this = Series(varargin)
+% Type `web Series/Series.md` for help on this function
+%
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
             this = this@tseries(varargin{:});
         end%
 

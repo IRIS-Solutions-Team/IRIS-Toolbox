@@ -30,9 +30,6 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
         sizeX = sizeA;
     end
 
-    if isa(a.Start, "DateWrapper"), dateFunction = @DateWrapper;
-        else, dateFunction = @double; end
-
     startA = double(a.Start);
     startB = double(b.Start);
     if isnan(startA) && isnan(startB)
@@ -49,7 +46,9 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
             ], string(func2str(fn)), Frequency(freqA), Frequency(freqB));
         end
         startDate = min([startA, startB]);
-        endDate = max([startA+rowA-1, startB+rowB-1]);
+        endDateA = dater.plus(startA, rowA-1);
+        endDateB = dater.plus(startB, rowB-1);
+        endDate = max(endDateA, endDateB);
     end
     dataA = getDataFromTo(a, startDate, endDate);
     dataB = getDataFromTo(b, startDate, endDate);
@@ -66,7 +65,7 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
             "this function: %s "
         ], string(func2str(fn)));
     end
-    x.Start = dateFunction(startDate);
+    x.Start = startDate;
     x = resetComment(x);
     x = trim(x);
 else

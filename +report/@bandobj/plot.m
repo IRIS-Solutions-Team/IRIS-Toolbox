@@ -1,4 +1,3 @@
-function LegendEntry = plot(This,Ax)
 % plot [Not a public function] Draw report/band object.
 %
 % Backend IRIS function.
@@ -7,19 +6,21 @@ function LegendEntry = plot(This,Ax)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-%--------------------------------------------------------------------------
+function legendEntry = plot(this, Ax)
 
-if any(strcmpi(This.options.plottype,{'patch','line'}))
+if any(strcmpi(this.options.plottype, {'patch', 'line'}))
     % Create the line plot first using the parent's method.
-    [LegendEntry,h,range,cData,xCoor] = plot@report.seriesobj(This,Ax);
-    lData = rangedata(This.Low{1},range);
-    hData = rangedata(This.High{1},range);
-    tseries.myband(Ax,h,cData,xCoor,lData,hData,This.options);
+    [legendEntry, h, range, cData, xCoor] = plot@report.seriesobj(this, Ax);
+    range = double(range);
+    lData = getDataFromTo(this.Low{1}, range);
+    hData = getDataFromTo(this.High{1}, range);
+    this.myband(Ax, h, cData, xCoor, lData, hData, this.options);
 else
-    [~,~,~,data] = errorbar(Ax,This.options.range, ...
-        This.data{1},This.Low{1},This.High{1}, ...
-        'relative=',This.options.relative);
-    LegendEntry = mylegend(This,size(data,2));
+    [~, ~, ~, data] = errorbar(Ax, double(this.options.range), ...
+        this.data{1}, this.Low{1}, this.High{1}, ...
+        'relative=', this.options.relative);
+    legendEntry = mylegend(this, size(data, 2));
 end
 
-end
+end%
+

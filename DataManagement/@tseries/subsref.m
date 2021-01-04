@@ -1,4 +1,3 @@
-function varargout = subsref(this, s, varargin)
 % subsref  Subscripted reference function for time series
 %
 % __Syntax Returning Numeric Array__
@@ -17,7 +16,7 @@ function varargout = subsref(this, s, varargin)
 %
 % * `X` [ Series ] - Time series object.
 %
-% * `Dates` [ DateWrapper | numeric ] - Dates for which the time series
+% * `Dates` [ Dater ] - Dates for which the time series
 % observations will be returned, either as a numeric array or as another
 % tseries object.
 %
@@ -31,7 +30,7 @@ function varargout = subsref(this, s, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function varargout = subsref(this, s, varargin)
 
 if isstruct(s) && isequal(s(1).type, '.')
     if string(s(1).subs)=="Self"

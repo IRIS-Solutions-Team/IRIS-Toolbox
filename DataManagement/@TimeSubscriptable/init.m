@@ -4,15 +4,10 @@
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function this = init(this, dates, data)
 
-if isa(dates, "DateWrapper")
-    dateFunction = @DateWrapper;
-else
-    dateFunction = @double;
-end
 dates = double(dates);
 numDates = numel(dates);            
 
@@ -24,7 +19,7 @@ else
     if isempty(freq)
         freq = NaN;
     else
-        DateWrapper.checkMixedFrequency(freq);
+        Dater.checkMixedFrequency(freq);
         freq = freq(1);
     end
 end
@@ -127,7 +122,7 @@ this.Data(posData, :) = data;
 % dates input
 %
 start = dater.fromSerial(freq, startSerial);
-this.Start = dateFunction(start);
+this.Start = start;
 
 %
 % Trim leading and trailing rows containing MissinValues only
@@ -136,15 +131,13 @@ this = trim(this);
 
 end%
 
-
 %
-% Local functions
+% Local Functions
 %
-
 
 function this = locallyCreateEmptySeries(this, sizeData)
     sizeData(1) = 0;
-    this.Start = DateWrapper(NaN);
+    this.Start = TimeSubscriptable.StartDateWhenEmpty;
     this.Data = repmat(this.MissingValue, sizeData);
 end%
 

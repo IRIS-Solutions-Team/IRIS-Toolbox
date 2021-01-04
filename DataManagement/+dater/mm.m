@@ -1,22 +1,15 @@
-% numeric.mm  IRIS date code for monthly dates
+% Type `web Dater/mm.md` for help on this function
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function outputDate = mm(varargin)
 
-function outputDate = mm(year, month)
-
-if nargin<2
-    month = 1;
+if nargin>=2 && validate.text(varargin{2})
+    varargin{2} = dater.monthFromString(varargin{2});
 end
 
-if ischar(month) || isstring(month) || iscellstr(month)
-    month = dater.monthFromString(month);
-end
-
-outputDate = numeric.datecode(12, year, month);
+outputDate = dater.datecode(Frequency.MONTHLY, varargin{:});
 
 end%
 

@@ -1,26 +1,16 @@
-function this = fill(this, newData, newStart, newComment, newUserData)
 % fill  Safely replace time series data 
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function this = fill(this, newData, newStart, newComment, newUserData)
 
 this.Data = newData;
 
 if nargin>2
+    newStart = double(newStart);
     if numel(newStart)>1
-        newStart = double(newStart);
         newStart = newStart(1);
-    end
-    % Make new start date the same class as the old start date
-    if isa(this.Start, 'DateWrapper') && ~isa(newStart, 'DateWrapper')
-        newStart = DateWrapper(newStart);
-    elseif isa(this.Start, 'double') && ~isa(newStart, 'double')
-        newStart = double(newStart);
     end
     this.Start = newStart;
 end

@@ -1,4 +1,3 @@
-function dec = dat2dec(dat, pos)
 % dat2dec  Convert dates to decimal grid
 %
 % __Syntax__
@@ -30,6 +29,8 @@ function dec = dat2dec(dat, pos)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function dec = dat2dec(dat, pos)
 
 if nargin<2
     userPosition = '';

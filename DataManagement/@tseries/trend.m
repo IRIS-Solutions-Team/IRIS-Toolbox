@@ -46,32 +46,29 @@ function [this, tt, ts] = trend(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-if ~isempty(varargin) && DateWrapper.validateDateInput(varargin{1})
-    range = varargin{1};
+if ~isempty(varargin) && validate.range(varargin{1})
+    range = double(varargin{1});
     varargin(1) = [ ];
-    if ischar(range)
-        range = textinp2dat(range);
-    end
 else
-    range = @all;
+    range = Inf;
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.trend');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.trend');
+    pp.KeepUnmatched = true;
+    pp.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    pp.addOptional('Range', Inf, @validate.range);
 end
-inputParser.parse(this, varargin{:});
-opt = inputParser.Options;
-trendOpt = inputParser.UnmatchedInCell;
+parse(pp, this, varargin{:});
+trendOpt = pp.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
-[data, range] = rangedata(this, range);
+[data, ~, ~, range] = getDataFromTo(this, range);
+
 if isempty(range)
     this = this.empty(this);
     return

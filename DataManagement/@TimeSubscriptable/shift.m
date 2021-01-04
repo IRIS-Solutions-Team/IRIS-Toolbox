@@ -1,4 +1,3 @@
-function this = shift(this, sh)
 % shift  Shift times series by a lag or lead
 %{
 % Syntax
@@ -106,20 +105,15 @@ function this = shift(this, sh)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function this = shift(this, sh)
 
 if isempty(this) || isempty(sh) || isequal(sh, 0)
     return
 end
 
 if isscalar(sh)
-    if isa(this.Start, 'DateWrapper')
-        this.Start = addTo(this.Start, -sh);
-        return
-    else
-        this.Start = dater.plus(this.Start, -sh);
-        return
-    end
+    this.Start = dater.plus(this.Start, -sh);
+    return
 end
 
 sh = reshape(double(sh), 1, [ ]);

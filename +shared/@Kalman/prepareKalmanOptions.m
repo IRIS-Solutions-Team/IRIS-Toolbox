@@ -226,7 +226,7 @@ end
 
 opt.RollingColumns = [ ];
 if ~isequal(opt.Rolling, false)
-    opt.RollingColumns = rnglen(range(1), opt.Rolling);
+    opt.RollingColumns = dater.rangeLength(range(1), opt.Rolling);
     hereCheckRollingColumns( );
 end
 

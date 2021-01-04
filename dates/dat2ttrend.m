@@ -1,4 +1,3 @@
-function [trend, baseYear] = dat2ttrend(range, baseYear)
 % dat2ttrend  Construct linear time trend from date range
 %
 % __Syntax__
@@ -50,6 +49,8 @@ function [trend, baseYear] = dat2ttrend(range, baseYear)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function [trend, baseYear] = dat2ttrend(range, baseYear)
 
 DATECODE_TOLERANCE = 0.001;
 

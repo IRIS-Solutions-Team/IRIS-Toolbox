@@ -79,7 +79,7 @@ if isempty(pp)
     pp = extend.InputParser("@Series/filter");
     addRequired(pp, "inputSeries", @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, "model", @(x) isa(x, 'Armani'));
-    addRequired(pp, "range", @DateWrapper.validateRangeInput);
+    addRequired(pp, "range", @Dater.validateRangeInput);
     
     addParameter(pp, "FillMissing", 0);
 end

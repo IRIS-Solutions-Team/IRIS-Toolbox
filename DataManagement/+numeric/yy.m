@@ -1,15 +1,11 @@
-function outputDate = yy(year, varargin)
-% numeric.yy  IRIS numeric date code for yearly dates
-% 
-% Backend IRIS function
-% No help provided
+% Type `web Dater/yy.md` for help on this function
+%
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function varargout = yy(varargin)
 
-%--------------------------------------------------------------------------
-
-outputDate = numeric.datecode(1, year);
+[varargout{1:nargout}] = dater.yy(varargin{:});
 
 end%
 

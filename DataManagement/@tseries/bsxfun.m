@@ -54,26 +54,26 @@ pp.parse(Func, X, Y);
 
 %--------------------------------------------------------------------------
 
-if isa(X, 'tseries') && isa(Y, 'tseries')
-    range = min(X.start, Y.start) : ...
-        max(X.start+size(X.data, 1), Y.start+size(Y.data, 1))-1;
-    data1 = rangedata(X, range);
-    data2 = rangedata(Y, range);
-    nPer = length(range);
+if isa(X, 'NumericTimeSubscriptable') && isa(Y, 'NumericTimeSubscriptable')
+    minStart = min(double(X.Start), double(Y.Start));
+    maxEnd = max(X.EndAsNumeric, Y.EndAsNumeric);
+    data1 = getDataFromTo(X, minStart, maxEnd);
+    data2 = getDataFromTo(Y, minStart, maxEnd);
+    nPer = dater.rangeLength(minStart, maxEnd); 
     newCmt = [ ];
-    newStart = range(1);
-elseif isa(X, 'tseries')
-    data1 = X.data;
+    newStart = minStart;
+elseif isa(X, 'NumericTimeSubscriptable')
+    data1 = X.Data;
     data2 = Y;
-    nPer = size(X.data, 1);
+    nPer = size(X.Data, 1);
     newCmt = X.Comment;
-    newStart = X.start;
+    newStart = X.Start;
 else
     data1 = X;
-    data2 = Y.data;
-    nPer = size(Y.data, 1);
+    data2 = Y.Data;
+    nPer = size(Y.Data, 1);
     newCmt = Y.Comment;
-    newStart = Y.start;
+    newStart = Y.Start;
 end
 
 newData = bsxfun(Func, data1, data2);
@@ -84,10 +84,11 @@ if size(newData, 1)~=nPer
         'the size of input tseries in 1st dimension.']);
 end
 
-if isa(X, 'tseries')
+if isa(X, 'NumericTimeSubscriptable')
     X = replace(X, newData, newStart, newCmt);
 else
     X = replace(Y, newData, newStart, newCmt);
 end
 
-end
+end%
+

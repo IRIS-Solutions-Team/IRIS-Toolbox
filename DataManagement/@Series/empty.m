@@ -1,4 +1,3 @@
-function this = empty(varargin)
 % empty  Create empty time series or empty existing time series
 %
 % __Syntax__
@@ -29,15 +28,14 @@ function this = empty(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function this = empty(varargin)
 
-nanDate = DateWrapper(NaN);
 if nargin==1 && isa(varargin{1}, 'TimeSubscriptable')
     this = varargin{1};
-    this.Start = nanDate;
+    this.Start = TimeSubscriptable.StartDateWhenEmpty;
     newSize = size(this.Data);
     newSize(1) = 0;
     this.Data = double.empty(newSize);
@@ -48,11 +46,14 @@ else
     else
         newData = double.empty(varargin{:});
     end
-    assert( ...
-        size(newData, 1)==0, ...
-        exception.Base('Series:TimeDimMustBeZero', 'error') ...
-    );
-    this.Start = nanDate;
+    if size(newData, 1)~=0
+        exception.error([
+            "Series:InvalidEmptyData"
+            "When creating an empty time series, "
+            "first dimension (time dimension) must be zero."
+        ]);
+    end
+    this.Start = TimeSubscriptable.StartDateWhenEmpty;
     this.Data = newData;
     this = resetComment(this);
 end

@@ -1,13 +1,9 @@
-function this = loadobj(this, varargin)
 % loadobj  Prepare tseries object for loading from disk
 %
-% Backend IRIS function
-% No help provided
-
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function this = loadobj(this, varargin)
 
 if isstruct(this)
     s = this;
@@ -18,9 +14,7 @@ if isstruct(this)
     end 
 end
 
-if ~isa(this.Start, 'DateWrapper')
-    this.Start = DateWrapper(this.Start);
-end
+this.Start = double(this.Start);
 
 end%
 

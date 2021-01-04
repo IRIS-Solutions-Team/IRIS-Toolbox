@@ -1,4 +1,3 @@
-function [B, BStd, residuals, EStd, fitted, Range, BCov] = lasso(Y, X, varargin)
 % lasso  Least absolute shrinkage and selection operator
 %
 % __Syntax__
@@ -16,19 +15,19 @@ function [B, BStd, residuals, EStd, fitted, Range, BCov] = lasso(Y, X, varargin)
 % * `X` [ TimeSubscriptable ] - Time series of right-hand-side
 % (independent) observations. 
 %
-% * `~Range` [ numeric ] - Date range on which the lassoion will be run;
+% * `~Range` [ numeric ] - Date range on which the lasso will be run;
 % if omitted, the entire range available will be used.
 %
 %
 % __Output arguments__
 %
-% * `B` [ numeric ] - Vector of estimated lassoion coefficients.
+% * `B` [ numeric ] - Vector of estimated lasso coefficients.
 %
 % * `BStd` [ numeric ] - Vector of std errors of the estimates.
 %
-% * `Residuals` [ TimeSubscriptable ] - Time series with the lassoion residuals.
+% * `Residuals` [ TimeSubscriptable ] - Time series with the lasso residuals.
 %
-% * `EStd` [ numeric ] - Estimate of the std deviation of the lassoion
+% * `EStd` [ numeric ] - Estimate of the std deviation of the lasso
 % residuals.
 %
 % * `Fitted` [ TimeSubscriptable ] - Time series with fitted LHS
@@ -42,7 +41,7 @@ function [B, BStd, residuals, EStd, fitted, Range, BCov] = lasso(Y, X, varargin)
 % __Options__
 %
 % * `Intercept=false` [ `true` | `false` ] - Include an intercept in the
-% lassoion; if `true` the constant will be placed last in the matrix of
+% lasso; if `true` the constant will be placed last in the matrix of
 % lassoors.
 %
 % * `Weighting=[ ]` [ TimeSubscriptable | numeric | empty ] - Time series with weights on
@@ -53,30 +52,33 @@ function [B, BStd, residuals, EStd, fitted, Range, BCov] = lasso(Y, X, varargin)
 % __Description__
 %
 % This function calls the built-in `lscov` function.
-% %
+%
+%
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('TimeSubscriptable.lasso');
-    INPUT_PARSER.addRequired('Y', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
-    INPUT_PARSER.addRequired('X', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
-    INPUT_PARSER.addOptional('Range', Inf, @DateWrapper.validateDateInput);
-    INPUT_PARSER.addParameter({'Intercept', 'Constant', 'Const'}, false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter( ...
+function [B, BStd, residuals, EStd, fitted, range, BCov] = lasso(Y, X, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('TimeSubscriptable.lasso');
+    pp.addRequired('Y', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
+    pp.addRequired('X', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
+    pp.addOptional('range', Inf, @Dater.validateDateInput);
+    pp.addParameter({'Intercept', 'Constant', 'Const'}, false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter( ...
         'Weighting', [ ], ...
         @(x) isempty(x) ...
         || (isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data)) ...
         || (isnumeric(x) && isscalar(x) && x>0 && x<1) ...
     );
 end
-INPUT_PARSER.parse(Y, X, varargin{:});
-range = INPUT_PARSER.Results.Range;
-opt = INPUT_PARSER.Options;
+parse(pp, Y, X, varargin{:});
+range = double(pp.Results.range);
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -123,4 +125,5 @@ if nargout>2
     end
 end
 
-end
+end%
+

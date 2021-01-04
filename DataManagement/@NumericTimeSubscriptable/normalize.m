@@ -11,7 +11,7 @@
 %
 % * `X` [ tseries ] -  Input time series that will be normalized.
 %
-% * `~NormDate='NaNStart'` [ DateWrapper | `'Start'` | `'End'` |
+% * `~NormDate='NaNStart'` [ Dater | `'Start'` | `'End'` |
 % `'NanStart'` | `'NanEnd'` ] - Date relative to which the input data will
 % be normalize; see help on `tseries.get` to understand `'Start'`, `'End'`,
 % `'NaNStart'`, `'NaNEnd'`.

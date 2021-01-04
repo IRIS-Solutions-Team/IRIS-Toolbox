@@ -12,7 +12,7 @@
 %
 % * `X` [ Series | tseries ] -  Input time series that will be rebased.
 %
-% * `~BasePeriod='AllStart'` [ DateWrapper | `'AllStart'` | `'AllEnd'` ] -
+% * `~BasePeriod='AllStart'` [ Dater | `'AllStart'` | `'AllEnd'` ] -
 % Date relative to which the input data will be rebased (baseValue period);
 % `'AllStart'` means the first date for which all time series columns have
 % a NaN observation; `'AllEnd'` means the last such date.
@@ -43,7 +43,7 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tseries.rebase');
     inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    inputParser.addOptional('BasePeriod', 'AllStart', @(x) any(strcmpi(x, {'AllStart', 'AllEnd'})) || DateWrapper.validateDateInput(x));
+    inputParser.addOptional('BasePeriod', 'AllStart', @(x) any(strcmpi(x, {'AllStart', 'AllEnd'})) || Dater.validateDateInput(x));
     inputParser.addOptional('BaseValue', 1, @(x) isnumeric(x) && isscalar(x));
 end
 inputParser.parse(this, varargin{:});

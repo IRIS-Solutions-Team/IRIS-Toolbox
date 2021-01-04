@@ -1,15 +1,13 @@
-function [axesHandle, dates, inputSeries, plotSpec, unmatched] = preparePlot(varargin)
 % preparePlot  Preprocess common input arguments into NumericTimeSubscriptable plot functions
 %
-% Backend function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function [axesHandle, dates, inputSeries, plotSpec, unmatched] = preparePlot(varargin)
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable.preparePlot');
+    parser = extend.InputParser('@Series/preparePlot');
     parser.KeepUnmatched = true;
     parser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
     parser.addOptional('PlotSpec', cell.empty(1, 0), @validatePlotSpec);
@@ -28,7 +26,7 @@ if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
     dates = varargin{1};
     varargin(1) = [ ];
 elseif isnumeric(varargin{1})
-    dates = DateWrapper(varargin{1});
+    dates = Dater(varargin{1});
     varargin(1) = [ ];
 else
     dates = Inf;
@@ -99,5 +97,3 @@ function flag = validatePlotSpec(x)
     flag = true;
 end%
 
-    
-    

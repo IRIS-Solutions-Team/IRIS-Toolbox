@@ -3,7 +3,7 @@
 % ## Description ##
 %
 % Time series (tseries) are numeric arrays with their first dimension
-% (rows) dated using the DateWrapper class. The DateWrapper class
+% (rows) dated using the Dater class. The Dater class
 % implements dates of fixed calendar frequency: early, half-yearly,
 % quarterly, monthly, weekly, and daily, plus an undated integer frequency.
 % The size of time series date in 2nd and higher dimensions (columns,
@@ -44,8 +44,8 @@
 %   isequal - True if two time series are identical
 %   length - Length of time series data in time dimension
 %   ndims - Number of dimensions in time series data
+%   resolveRange - 
 %   size - Size of time series data
-%   specrange - Time series specific range
 %   tabular - Display time series in tabular view
 %
 %
@@ -109,7 +109,6 @@
 %   repmat - Repeat copies of time series data
 %   redate - Change time dimension of time series
 %   reshape - Reshape size of time series in 2nd and higher dimensions
-%   resize - Clip time series to specified date range
 %   sort - Sort time series by specified criterion
 %
 %
@@ -228,7 +227,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = regress(varargin)
         varargout = repmat(varargin)
         varargout = reshape(varargin)
-        varargout = resize(varargin)
         varargout = scatter(varargin)
         varargout = select(varargin)
 
@@ -243,7 +241,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = singledata(varargin)
         varargout = size(varargin)
         varargout = sort(varargin)
-        varargout = specrange(varargin)        
         varargout = spy(varargin)
         varargout = stem(varargin)
         varargout = subsasgn(varargin)
@@ -254,12 +251,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         
 
         function date = startdate(this)
-            date = this.Start;
+            date = Dater(this.Start);
         end%
         
 
         function date = enddate(this)
-            date = this.End;
+            date = Dater(this.End);
         end%   
 
         
@@ -274,7 +271,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Hidden)
         varargout = max(varargin)
         varargout = min(varargin)
-        varargout = cut(varargin)
         varargout = df(varargin)
         varargout = divisia(varargin)
 
@@ -288,8 +284,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = implementGet(varargin)
         varargout = maxabs(varargin)
         varargout = rearrangePred(varargin)
-        varargout = rangedata(varargin)
-        varargout = saveobj(varargin)
     end
     
     
@@ -306,8 +300,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods (Static, Hidden)
-        varargout = loadobj(varargin)        
-
+        varargout = loadobj(varargin)
         varargout = myband(varargin)
         varargout = mybarcon(varargin)
         varargout = myerrorbar(varargin)
@@ -324,7 +317,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Hidden)
         function index = end(this, k, varargin)
             if k==1
-                index = this.End;
+                index = this.EndAsNumeric;
             else
                 index = size(this.Data, k);
             end

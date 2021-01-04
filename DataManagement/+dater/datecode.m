@@ -15,6 +15,7 @@ end
 
 %--------------------------------------------------------------------------
 
+freq = round(freq);
 year = round(year);
 
 % Determine the size of the resulting date array
@@ -44,39 +45,39 @@ if numel(day)==1
     day = repmat(day, size(temp));
 end
 
-inxOfZero    = freq==0;
-inxOfDaily   = freq==365;
-inxOfWeekly  = freq==52;
-inxOfRegular = freq==1 | freq==2 | freq==4 | freq==6 | freq==12;
+inxZero = freq==0;
+inxDaily = freq==365;
+inxWeekly = freq==52;
+inxRegular = freq==1 | freq==2 | freq==4 | freq==6 | freq==12;
 
-if any(~inxOfRegular & ~inxOfZero & ~inxOfDaily & ~inxOfWeekly)
+if any(~inxRegular & ~inxZero & ~inxDaily & ~inxWeekly)
     throw( exception.Base('Dates:UnrecognizedFrequency', 'error') );
 end
 
-if any(inxOfRegular)
+if any(inxRegular)
     if isequal(per, 'end')
         per = nan(size(freq));
-        per(inxOfRegular) = freq(inxOfRegular);
+        per(inxRegular) = freq(inxRegular);
     end
-    serial = round(year(inxOfRegular)).*round(freq(inxOfRegular)) + round(per(inxOfRegular)) - 1;
-    dat(inxOfRegular) = serial + round(freq(inxOfRegular))/100;
+    serial = round(year(inxRegular)).*round(freq(inxRegular)) + round(per(inxRegular)) - 1;
+    dat(inxRegular) = serial + round(freq(inxRegular))/100;
 end
 
-if any(inxOfZero)
-    dat(inxOfZero) = round( per(inxOfZero) );
+if any(inxZero)
+    dat(inxZero) = round( per(inxZero) );
 end
 
-if any(inxOfDaily)
-    dat(inxOfDaily) = dd(year, per, day);
+if any(inxDaily)
+    dat(inxDaily) = dd(year, per, day);
 end
 
-if any(inxOfWeekly)
+if any(inxWeekly)
     if isequal(per, 'end')
         per = nan(size(year));
-        per(inxOfWeekly) = weeksinyear(year(inxOfWeekly));
+        per(inxWeekly) = weeksinyear(year(inxWeekly));
     end
-    day = fwymonday(year(inxOfWeekly)) + 7*(per(inxOfWeekly)-1);
-    dat(inxOfWeekly) = numeric.day2ww(day);
+    day = fwymonday(year(inxWeekly)) + 7*(per(inxWeekly)-1);
+    dat(inxWeekly) = numeric.day2ww(day);
 end
 
 end%

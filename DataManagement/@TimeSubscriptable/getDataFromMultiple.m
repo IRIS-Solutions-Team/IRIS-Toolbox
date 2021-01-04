@@ -9,19 +9,19 @@ freq = nan(1, numSeries);
 inxNaN = false(size(varargin));
 
 if numSeries==0
-    outputDates = DateWrapper.empty(1, 0);
+    outputDates = double.empty(1, 0);
     return
 end
 
 for i = 1 : numSeries
     startDate(i) = double(varargin{i}.Start);
-    endDate(i) = double(varargin{i}.End);
+    endDate(i) = varargin{i}.EndAsNumeric;
     freq(i) = dater.getFrequency(startDate(i));
     inxNaN(i) = isnan(startDate(i));
 end
 
 if all(inxNaN)
-    outputDates = DateWrapper.empty(1, 0);
+    outputDates = double.empty(1, 0);
     for i = 1 : numSeries
         varargout{i} = varargin{i}.Data;
     end
@@ -37,11 +37,11 @@ if isnumeric(dates)
 end
 
 if ~all(freq==freq(1))
-    throw(exception.Base([
+    exception.error([
         "Series:NonhomogeneousFrequency"
         "All the time series that are being combined must be "
         "of the same date frequency when long range or short range is requested. "
-    ], 'error'));
+    ]);
 end
 
 if startsWith(dates, "longRange", "ignoreCase", true)
@@ -90,15 +90,14 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 % Test Long Range
     [dates, x, y, z] = getDataFromMultiple("longRange", d.x, d.y, d.z);
-    assertEqual(testCase, dates, qq(2020,1):qq(2020,42), "absTol", 1e-12);
+    assertEqual(testCase, dates, dater.colon(dater.qq(2020,1), dater.qq(2020,42)), "absTol", 1e-12);
 
 
 %% Test Short Range
     [dates, x, y, z] = getDataFromMultiple("shortRange", d.x, d.y, d.z);
-    assertEqual(testCase, dates, qq(2020,3):qq(2020,38), "absTol", 1e-12);
+    assertEqual(testCase, dates, dater.colon(dater.qq(2020,3), dater.qq(2020,38)), "absTol", 1e-12);
 
 
 ##### SOURCE END #####
 %}
-
 

@@ -11,14 +11,6 @@ function [answ, flag] = implementGet(this, query, varargin)
 answ = [ ];
 flag = true;
 
-if isa(this.Start, "DateWrapper")
-    dateFunction = @DateWrapper;
-    freqFunction = @Frequency;
-else
-    dateFunction = @double;
-    freqFunction = @double;
-end
-
 start = double(this.Start);
 
 switch query
@@ -38,16 +30,17 @@ switch query
         
     case {'nanstart', 'nanstartdate', 'nanfirst', 'allstart', 'allstartdate'}
         if isnan(start) || isempty(this.Data)
-            answ = dateFunction(NaN);
+            answ = TimeSubscriptable.StartDateWhenEmpty;
         else
             sample = all(~isnan(this.Data(:, :)), 2);
             if isempty(sample) || ~any(sample)
-                answ = dateFunction(NaN);
+                answ = TimeSubscriptable.StartDateWhenEmpty;
             else
                 pos = find(sample, 1, 'first');
-                answ = dateFunction(dater.plus(start, pos-1));
+                answ = dater.plus(start, pos-1);
             end
         end
+        answ = Dater(answ);
         
         
     case {'end', 'enddate', 'last'}
@@ -56,20 +49,22 @@ switch query
         
     case {'nanend', 'nanenddate', 'nanlast', 'allend', 'allenddate'}
         if isnan(start) || isempty(this.Data)
-            answ = dateFunction(NaN);
+            answ = TimeSubscriptable.StartDateWhenEmpty;
         else
             sample = all(~isnan(this.Data(:, :)), 2);
             if isempty(sample) || ~any(sample)
-                answ = dateFunction(NaN);
+                answ = TimeSubscriptable.StartDateWhenEmpty;
             else
                 pos = find(sample, 1, 'last');
-                answ = dateFunction(dater.plus(start, pos-1));
+                answ = dater.plus(start, pos-1);
             end
         end
+        answ = Dater(answ);
         
         
     case {'freq', 'frequency', 'per', 'periodicity'}
-        answ = freqFunction(dater.getFrequency(start));
+        answ = dater.getFrequency(start);
+        answ = Frequency(answ);
     
         
     case {'data', 'value', 'values'}

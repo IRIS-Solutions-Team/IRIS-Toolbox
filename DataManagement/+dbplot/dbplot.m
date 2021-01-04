@@ -663,17 +663,15 @@ function appropriateRange = selectAppropriateRange(range, inputSeries)
     end
     appropriateRange = Inf;
     for i = 1 : numel(range)
-        if isa(range{i}, 'DateWrapper')
-            firstOfRange = getFirst(range{i});
-        elseif isnumeric(range{i})
-            firstOfRange = range{i}(1);
-        else
+        if ~isnumeric(range{i})
             continue
         end
-        ithFreq = dater.getFrequency(firstOfRange);
+        ithRange = double(range{i});
+        ithFreq = dater.getFrequency(ithRange(1));
         if freq==ithFreq
-            appropriateRange = range{i};
+            appropriateRange = ithRange;
             return
         end
     end
 end%
+

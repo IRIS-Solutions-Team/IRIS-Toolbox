@@ -10,7 +10,7 @@ function this = linearTrend(range, varargin)
 %
 % __Input Arguments__
 %
-% * `range` [ DateWrapper ] - Date range on which the trend time series
+% * `range` [ Dater ] - Date range on which the trend time series
 % will be created.
 %
 % * `~step=1` [ numeric ] - Difference between two consecutive dates in the

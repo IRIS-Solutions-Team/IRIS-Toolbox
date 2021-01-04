@@ -258,11 +258,11 @@ return
             ithX = nan(numPeriods, numDataSets);
             inxFreqMismatch(i) = true;
         else
-            k = 0;
+            sh = 0;
             if ~isempty(sw.LagOrLead)
-                k = sw.LagOrLead(i);
+                sh = sw.LagOrLead(i);
             end
-            ithX = rangedata(field, range+k);
+            ithX = getDataFromTo(field, dater.plus(range, sh));
             iSize = size(ithX);
             iSize(1) = [ ];
             if isempty(sizeOutput)

@@ -1,4 +1,3 @@
-function r = range(x)
 % range  Date range from the first to the last available observation.
 %
 % Syntax
@@ -33,16 +32,18 @@ function r = range(x)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function outputRange = range(x)
 
 if isempty(x.Data)
-    r = zeros(0, 1);
+    outputRange = nan(1, 0);
 else
-    r = x.Start : (x.Start + size(x.Data, 1) - 1);
+    numRows = size(x.Data, 1);
+    outputRange = dater.plus(double(x.Start), 0:numRows-1);
 end
-r = DateWrapper(r);
+outputRange = Dater(outputRange);
 
-end
+end%
+

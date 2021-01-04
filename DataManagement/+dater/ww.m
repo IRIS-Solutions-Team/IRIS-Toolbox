@@ -3,20 +3,20 @@
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function dateCode = ww(year, varargin)
+function dateCode = ww(varargin)
 
 if nargin==3
     % * ww(year, month, day)
-    if validate.text(varargin{1})
-        varargin{1} = dater.monthFromString(varargin{1});
+    if validate.text(varargin{2})
+        varargin{2} = dater.monthFromString(varargin{2});
     end
-    day = datenum(year, varargin{:});
+    day = datenum(varargin{:});
     dateCode = numeric.day2ww(day);
 else
     % * ww(year, week)
     % * ww(year, "end")
     % * ww(year)
-    dateCode = dater.datecode(Frequency.WEEKLY, year, varargin{:});
+    dateCode = dater.datecode(Frequency.WEEKLY, varargin{:});
 end
 
 end%

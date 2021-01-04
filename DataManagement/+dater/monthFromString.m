@@ -3,22 +3,23 @@
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function monthNumeric = convertMonth(monthString)
+function monthNumeric = monthFromString(monthString)
 
 monthNames = [
-    "jan"
-    "feb"
-    "mar"
-    "apr"
-    "may"
-    "jun"
-    "jul"
-    "aug"
-    "sep"
-    "oct"
-    "nov"
-    "dec" 
+    "January"
+    "February"
+    "March"
+    "April"
+    "May"
+    "June"
+    "July"
+    "August"
+    "September"
+    "October"
+    "November"
+    "December" 
 ];
+lowerMonthNames = lower(extractBefore(monthNames, 4));
 monthString = string(monthString);
 lowerMonthString = extractBefore(lower(monthString), 4);
 monthNumeric = nan(size(monthString));
@@ -28,7 +29,7 @@ for i = 1 : numel(monthString)
         monthNumeric(i) = 12;
         continue
     end
-    inx = lowerMonthString(i)==monthNames;
+    inx = lowerMonthString(i)==lowerMonthNames;
     if any(inx)
         monthNumeric(i) = find(inx);
         continue

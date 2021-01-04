@@ -17,7 +17,7 @@ function varargout = plot(varargin)
 % current axes will used.
 %
 %
-% __`range`__ [ DateWrapper | char ] 
+% __`range`__ [ Dater | `Inf` ] 
 % >
 % Date range to be plotted; if not specified or if `range=Inf` the
 % range will be determined from the input time series.
@@ -36,7 +36,7 @@ function varargout = plot(varargin)
 % Handles to lines plotted.
 %
 %
-% __`range`__ [ DateWrapper ] 
+% __`range`__ [ Dater ] 
 % >
 % Date range actually plotted.
 %
@@ -49,7 +49,7 @@ function varargout = plot(varargin)
 % Position of each date point within a given period span.
 %
 %
-% __`DateTick=Inf`__ [ numeric | `Inf` ] 
+% __`DateTick=Inf`__ [ Dater | `Inf` ] 
 % >
 % Vector of dates locating tick marks on the X-axis; Inf means they will be
 % created automatically.

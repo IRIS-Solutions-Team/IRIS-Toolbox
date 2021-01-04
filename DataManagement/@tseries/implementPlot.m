@@ -1,16 +1,14 @@
-function [ axesHandle, plotHandle, ...
-           inputRange, data, ...
-           xCoor, userRange, freq ] = implementPlot(plotFunc, varargin)
 % implementPlot  Implement plot function for tseries objects
 %
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % If the caller supplies empty `Func`, the graph will not be actually
 % rendered. This is a dry call to `implementPlot` used from within `plotyy`.
+
+function [ axesHandle, plotHandle, ...
+           inputRange, data, ...
+           xCoor, userRange, freq ] = implementPlot(plotFunc, varargin)
 
 persistent parser
 if isempty(parser)
@@ -30,19 +28,19 @@ else
     opt = parser.Options;
     varargin = parser.UnmatchedInCell;
 end
+inputRange = reshape(double(inputRange), 1, []);
 userRange = inputRange;
  
 %--------------------------------------------------------------------------
 
 % Resize input time series to input range if needed
 if ~isequal(inputRange, Inf) && ~isequal(inputRange, @all) && ~isnan(this.Start)
-    inputRange = inputRange(:).';    
     if ~all( freqcmp(this, inputRange) )
         THIS_ERROR = { 'tseries:DateFrequencyMismatch'
                        'Date frequency mismatch between input range and input time series' };
         throw( exception.Base(THIS_ERROR, 'error') );
     end
-    this = resize(this, inputRange);
+    this = clip(this, inputRange(1), inputRange(end));
 end
 
 if isempty(plotSpec)
@@ -52,7 +50,8 @@ elseif ischar(plotSpec)
 end
 
 this.data = this.data(:, :);
-inputRange = specrange(this, inputRange);
+[~, ~, inputRange] = resolveRange(this, inputRange);
+
 
 plotHandle = [ ];
 if isempty(inputRange)
@@ -87,15 +86,15 @@ if ~isempty(plotFunc) ...
     else
         xLim0 = get(axesHandle, 'xLim');
     end
-    inputRange = mergeRange(inputRange([1, end]), xLim0);
+    inputRange = locallyMergeRange(inputRange([1, end]), xLim0, opt.DatePosition);
 end
 
 % Make sure the new range and `UsrRng` both comprise the `Comprise`
 % dates; this is used in `plotyy`.
 if ~isempty(opt.Comprise)
-    inputRange = mergeRange(inputRange, opt.Comprise);
+    inputRange = locallyMergeRange(inputRange, opt.Comprise, opt.DatePosition);
     if ~isequal(userRange, Inf)
-        userRange = mergeRange(userRange, opt.Comprise);
+        userRange = locallyMergeRange(userRange, opt.Comprise, opt.DatePosition);
     end
 end
 
@@ -104,7 +103,7 @@ data = getData(this, inputRange);
 freq = dater.getFrequency(inputRange(1));
 isDaily = freq==Frequency.DAILY;
 if isDaily
-    xCoor = double(inputRange);
+    xCoor = inputRange;
 else
     xCoor = dat2dec(inputRange, opt.DatePosition);
 end
@@ -164,40 +163,36 @@ if opt.Tight
     grfun.yaxistight(axesHandle);
 end
 
+%
 % Datatip cursor
-%----------------
+%
+
 % Store the dates within each plotted object for later retrieval by
 % datatip cursor.
-for ih = plotHandle(:).'
+for ih = reshape(plotHandle, 1, [])
     setappdata(ih, 'IRIS_DATELINE', inputRange);
 end
 
-if true % ##### MOSW
-    % Use IRIS datatip cursor function in this figure; in
-    % `utils.datacursor` we also handle cases where the current figure
-    % includes both tseries and non-tseries graphs.
-    obj = datacursormode(gcf( ));
-    set(obj, 'UpdateFcn', @utils.datacursor);
-else
-    % Do nothing.
-end
+% Use IRIS datatip cursor function in this figure; in
+% `utils.datacursor` we also handle cases where the current figure
+% includes both tseries and non-tseries graphs.
+obj = datacursormode(gcf());
+set(obj, 'UpdateFcn', @utils.datacursor);
 
-return
+end%
 
+%
+% Local Functions
+%
 
-    function range = mergeRange(range, comprise)
-        % first = dec2dat(Comprise(1), Freq, Opt.DatePosition);
-        first = double(range(1));
-        % Make sure ranges with different frequencies are merged
-        % properly.
-        while dat2dec(first-1, opt.DatePosition)>=comprise(1)
-            first = first - 1;
-        end
-        % last = dec2dat(Comprise(end), Freq, Opt.DatePosition);
-        last = double(range(end));
-        while dat2dec(last+1, opt.DatePosition)<=comprise(end)
-            last = last + 1;
-        end
-        range = double(first) : double(last);
-    end%
+function range = locallyMergeRange(range, comprise, datePosition)
+    first = range(1);
+    while dat2dec(dater.plus(first, -1), datePosition)>=comprise(1)
+        first = dater.plus(first, -1);
+    end
+    last = range(end);
+    while dat2dec(dater.plus(last, 1), datePosition)<=comprise(end)
+        last = dater.plus(last, 1);
+    end
+    range = dater.colon(first, last);
 end%

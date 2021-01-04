@@ -1,4 +1,3 @@
-function varargout = x12(this, varargin)
 % x12  Access to X13-ARIMA-SEATS seasonal adjustment program.
 %
 %
@@ -226,33 +225,35 @@ function varargout = x12(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('tseries.x12');
-    parser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    parser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
-    parser.addParameter({'Backcast', 'Backcasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    parser.addParameter({'CleanUp', 'DeleteTempFiles', 'DeleteTempFile', 'DeleteX12Files', 'DeleteX12File', 'Delete'}, true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    parser.addParameter('DummyType', 'Holiday', @(x) ischar(x) && any(strcmpi(x, {'Holiday', 'TD', 'AO'})));
-    parser.addParameter('Display', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter({'Forecast', 'Forecasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('MaxIter', 1500, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
-    parser.addParameter('MaxOrder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2]));
-    parser.addParameter({'AllowMissing', 'Missing'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'})));
-    parser.addParameter('Output', 'd11', @(x) ischar(x) || iscellstr(x));
-    parser.addParameter('SaveAs', '', @ischar);
-    parser.addParameter('SpecFile', 'default', @validate.stringScalar);
-    parser.addParameter({'TDays', 'TDay'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('TempDir', '.', @(x) ischar(x) || isa(x, 'function_handle'));
-    parser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
-    parser.addParameter('Executable', @auto, @(x) isequal(x, @auto) || strcmpi(x, 'x12awin.exe'));
+function varargout = x12(this, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.x12');
+    pp.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    pp.addOptional('Range', Inf, @Dater.validateRangeInput);
+    pp.addParameter({'Backcast', 'Backcasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    pp.addParameter({'CleanUp', 'DeleteTempFiles', 'DeleteTempFile', 'DeleteX12Files', 'DeleteX12File', 'Delete'}, true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    pp.addParameter('DummyType', 'Holiday', @(x) ischar(x) && any(strcmpi(x, {'Holiday', 'TD', 'AO'})));
+    pp.addParameter('Display', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter({'Forecast', 'Forecasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    pp.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('MaxIter', 1500, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    pp.addParameter('MaxOrder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2]));
+    pp.addParameter({'AllowMissing', 'Missing'}, false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'})));
+    pp.addParameter('Output', 'd11', @(x) ischar(x) || iscellstr(x));
+    pp.addParameter('SaveAs', '', @ischar);
+    pp.addParameter('SpecFile', 'default', @validate.stringScalar);
+    pp.addParameter({'TDays', 'TDay'}, false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('TempDir', '.', @(x) ischar(x) || isa(x, 'function_handle'));
+    pp.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
+    pp.addParameter('Executable', @auto, @(x) isequal(x, @auto) || strcmpi(x, 'x12awin.exe'));
 end
-parser.parse(this, varargin{:});
-range = parser.Results.Range;
-opt = parser.Options;
+pp.parse(this, varargin{:});
+range = double(pp.Results.Range);
+opt = pp.Options;
 
 if strcmp(opt.Mode, 'sign')
     opt.Mode = 'auto';
@@ -261,11 +262,13 @@ end
 %--------------------------------------------------------------------------
 
 outputRequest( );
-numOfOutputs = length(opt.Output);
+numOutputs = length(opt.Output);
 co = comment(this);
-sizeOfData = size(this.data);
+sizeData = size(this.Data);
 checkFrequency(this, range);
-[data, range] = getData(this, range);
+
+[data, ~, ~, range] = getDataFromTo(this, range);
+
 data = data(:, :);
 
 % Extended range with backcasts and forecasts.
@@ -295,26 +298,26 @@ end
 [y, Outp, Logbk, Err, Mdl] = numeric.x13(data, startDate, dummy, opt);
 
 % Convert output data to time series
-for i = 1 : numOfOutputs
+for i = 1 : numOutputs
     if opt.Log
         Outp{i} = exp(Outp{i});
     end
-    Outp{i} = reshape(Outp{i}, [size(Outp{i}, 1), sizeOfData(2:end)]);
+    Outp{i} = reshape(Outp{i}, [size(Outp{i}, 1), sizeData(2:end)]);
     Outp{i} = replace(this, Outp{i}, startDate, co);
 end
 
 % Reshape the model spec struct to match the dimensions and size of input
 % and output time series
-if length(sizeOfData)>2
-    Mdl = reshape(Mdl, [1, sizeOfData(2:end)]);
+if length(sizeData)>2
+    Mdl = reshape(Mdl, [1, sizeData(2:end)]);
 end
 
 % Return input time series with forecasts and backcasts
-numOfExtendedPeriods = size(y, 1);
+numExtendedPeriods = size(y, 1);
 this.Start = xStartDate;
 this.Data = y;
-if numel(sizeOfData)>2
-    this.Data = reshape(this.Data, [numOfExtendedPeriods, sizeOfData(2:end)]);
+if numel(sizeData)>2
+    this.Data = reshape(this.Data, [numExtendedPeriods, sizeData(2:end)]);
 end
 this = trim(this);
 

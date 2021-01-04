@@ -1,11 +1,9 @@
-function this = setData(this, s, y)
 % setData  Assign data to TimeSubscriptable object
 %
-% Backend IRIS function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function this = setData(this, s, y)
 
 ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
                      'Error when assigning to time series\nMatlab says: %s ' };
@@ -14,18 +12,16 @@ testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
 % Simplified call
 if isa(s, 'DateWrapper') || isnumeric(s)
     temp = s;
-    s = struct( );
+    s = struct();
     s.type = '()';
     s.subs = {temp};
 end
 
 %--------------------------------------------------------------------------
 
-convertToDateWrapper = isa(this.Start, 'DateWrapper');
-
 % Pad LHS time series data with MissingValues to comply with references
 % Remove the rows from dates that do not pass the frequency test
-[this, s, dates, freqTest] = hereExpand(this, s);
+[this, s, dates, freqTest] = locallyExpand(this, s);
 
 % Get RHS time series object data
 if isa(y, 'TimeSubscriptable')
@@ -54,7 +50,7 @@ end
 
 % Report frequency mismatch
 % Remove the rows from RHS that do not pass the frequency test; LHS dates
-% have already been removed and a warning thrown in hereExpand(~)
+% have already been removed and a warning thrown in locallyExpand(~)
 sizeRhs = size(y);
 if any(~freqTest)
     if sizeRhs(1)==numel(freqTest)
@@ -76,11 +72,7 @@ end
 
 % Make sure empty time series have start date set to NaN no matter what
 if isempty(this.Data)
-    if convertToDateWrapper
-        this.Start = DateWrapper.NaD;
-    else
-        this.Start = NaN;
-    end
+    this.Start = TimeSubscriptable.StartDateWhenEmpty;
 end
 
 % If RHS is empty and first index is ':', then some of the columns could
@@ -93,21 +85,19 @@ this = trim(this);
 
 end%
 
-
 %
 % Local Functions
 %
 
-
-function [this, s, dates, freqTest] = hereExpand(this, s)
+function [this, s, dates, freqTest] = locallyExpand(this, s)
+    %(
     ERROR_GROW_AMBIGUOUS_DIM = { 'TimeSubscriptale:subsasgn', ...
                                  'Attempt to grow time series data array along ambiguous dimension' };
     testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
 
-    convertToDateWrapper = isa(this.Start, 'DateWrapper');
-    startThis = double(this.Start);
-    endThis = double(this.End);
-    freqThis = dater.getFrequency(startThis);
+    thisStart = double(this.Start);
+    thisEnd = this.EndAsNumeric;
+    freqThis = dater.getFrequency(thisStart);
 
     % If LHS data are complex, use NaN+NaNi to pad missing observations
     missingValue = this.MissingValue;
@@ -127,35 +117,36 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
     end
     if isnumeric(timeRef) && numel(timeRef)==2 && any(isinf(timeRef))
         if isequal(timeRef(1), -Inf)
-            timeRef(1) = startThis;
+            timeRef(1) = thisStart;
         end
         if isequal(timeRef(2), Inf)
-            timeRef(2) = endThis;
+            timeRef(2) = thisEnd;
         end
         timeRef = dater.colon(timeRef(1), timeRef(2));
     end
     if testColon(timeRef) || isequal(timeRef, Inf)
         s.subs{1} = ':';
-        if isnan(startThis)
+        if isnan(thisStart)
             % LHS is empty
             dates = double.empty(1, 0);
         else
-            dates = startThis + (0 : size(this.Data, 1)-1);
+            numRows = size(this.Data, 1);
+            dates = dater.plus(thisStart, 0:numRows-1);
         end
         freqTest = true(size(dates));
     elseif isnumeric(timeRef) && ~isempty(timeRef)
         dates = double(timeRef);
         if ~isempty(dates)
             freqDates = dater.getFrequency(dates);
-            if isnan(startThis)
+            if isnan(thisStart)
                 % If LHS series is empty time series, set start date to the minimum
                 % date with the same frequency as the first date
-                startThis = min(dates(freqDates==freqDates(1)));
+                thisStart = min(dates(freqDates==freqDates(1)));
                 freqThis = freqDates(1);
             end
             freqTest = freqThis==freqDates;
-            dates(~freqTest) = [ ];
-            s.subs{1} = round(dates - startThis + 1);
+            dates(~freqTest) = [];
+            s.subs{1} = round(dates - thisStart + 1);
         end
     else
         dates = double.empty(1, 0);
@@ -187,7 +178,7 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
             currentSize = size(this.Data);
             currentSize(1) = n;
             this.Data = [repmat(missingValue, currentSize); this.Data];
-            startThis = startThis - n;
+            thisStart = dater.plus(thisStart, -n);
             s.subs{1} = s.subs{1} + n;
         end
         % If index exceeds current size, add NaNs. This is different than
@@ -217,10 +208,7 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
         end
     end
 
-    if convertToDateWrapper && ~isa(startThis, 'DateWrapper')
-        startThis = DateWrapper(startThis);
-    end
-    this.Start = startThis;
+    this.Start = thisStart;
 
     %
     % Report frequency mismatch as an error
@@ -234,8 +222,9 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
         %throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'error'), ...
         throw( ...
             exception.Base(thisError, 'error'), ...
-            Frequency.toChar(freqThis), charFreqDates{:} ...
+            Frequency.toChar(thisFreq), charFreqDates{:} ...
         );
     end
+    %)
 end%
 

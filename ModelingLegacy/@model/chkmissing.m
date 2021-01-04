@@ -1,4 +1,3 @@
-function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
 % chkmissing  Check for missing initial values in simulation database.
 %
 % ## Syntax ##
@@ -41,12 +40,15 @@ function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
+
 opt = passvalopt('model.chkmissing',varargin{:});
 
 %--------------------------------------------------------------------------
 
 listOfMissing = cell.empty(1, 0);
 
+start = double(start);
 nv = length(this);
 [~, ~, nb, nf] = sizeSolution(this.Vector);
 vecXb = this.Vector.Solution{2}(nf+1:end);
@@ -58,7 +60,7 @@ lag = sh - 1;
 for j = 1 : nb
     name = this.Quantity.Name{ pos(j) };
     try
-        value = rangedata( d.(name), start+lag(j) );
+        value = getDataFromTo( d.(name), dater.plus(start, lag(j)) );
         value = value(:, :);
         if numel(value)==1 && nv>1
             value = repmat(value, 1, nv);

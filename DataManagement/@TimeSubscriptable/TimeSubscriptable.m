@@ -3,7 +3,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         % Exchange Rate Valuation Effect
     properties 
         % Start  Date of first observation in time series
-        Start (1, 1) = DateWrapper.NaD
+        Start (1, 1) = NaN
 
         % Comment  User comments attached to individual columns of time series
         Comment = { TimeSubscriptable.EMPTY_COMMENT }
@@ -38,7 +38,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         % EndAsNumeric  Date of last observation in time series returned as numeric value (double)
         EndAsNumeric
 
-        % EndAsDate  Date of last observation in time series returned as DateWrapper
+        % EndAsDate  Date of last observation in time series returned as IrisT date
         EndAsDate
         EndAsDateWrapper
 
@@ -57,7 +57,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         % RangeAsNumeric  Date range from first to last observation in time series returned as numeric value
         RangeAsNumeric
 
-        % RangeAsDate  Date range from first to last observation in time series returned as DateWrapper
+        % RangeAsDate  Date range from first to last observation in time series returned as IrisT date
         RangeAsDate
         RangeAsDateWrapper
     end
@@ -69,6 +69,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
     properties (Constant)
+        StartDateWhenEmpty = NaN 
         EMPTY_COMMENT = char.empty(1, 0)
     end
 
@@ -92,6 +93,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = redate(varargin)
         varargout = removeWeekends(varargin)
         varargout = resetComment(varargin)
+        varargout = resolveRange(varargin)
         varargout = retrieveColumns(varargin)
         varargout = setData(varargin)
         varargout = shift(varargin)
@@ -102,32 +104,24 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
 
 
-        function startDateAsNumeric = get.StartAsNumeric(this)
-            startDateAsNumeric = double(this.Start);
+        function value = get.StartAsNumeric(this)
+            value = double(this.Start);
         end%
          
 
-        function startAsDate = get.StartAsDate(this)
-            startAsDate = this.Start;
-            if ~isa(startAsDate, 'Date')
-                startAsDate = Date(startAsDate);
-            end
+        function value = get.StartAsDate(this)
+            value = Dater(this.StartAsNumeric);
         end%
          
 
-        function startAsDate = get.StartAsDateWrapper(this)
-            startAsDate = this.StartAsDate;
+        function value = get.StartAsDateWrapper(this)
+            value = this.StartAsDate;
         end%
 
 
         function value = get.BalancedStart(this)
-            if isa(this.Start, "DateWrapper")
-                outputFunction = @DateWrapper;
-            else
-                outputFunction = @double;
-            end
             if isnan(this.Start) || isempty(this.Data)
-                value = outputFunction(NaN);
+                value = Dater(NaN);
                 return
             end
             start = double(this.Start);
@@ -139,50 +133,38 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             else
                 value = NaN;
             end
-            value = outputFunction(value);
+            value = Dater(value);
         end%
                 
 
-        function endDate = get.End(this)
+        function value = get.End(this)
+            value = Dater(this.EndAsNumeric);
+        end%
+
+
+        function value = get.EndAsNumeric(this)
+            value = double(this.Start);
             if isnan(this.Start)
-                endDate = this.Start;
                 return
             end
             numRows = size(this.Data, 1);
-            if isa(this.Start, 'DateWrapper')
-                endDate = addTo(this.Start, numRows-1);
-            else
-                endDate = dater.plus(this.Start, numRows-1);
-            end
-        end%
-
-
-        function endDateAsNumeric = get.EndAsNumeric(this)
-            endDateAsNumeric = double(this.End);
+            value = dater.plus(value, numRows-1);
         end%
          
 
-        function endAsDate = get.EndAsDate(this)
-            endAsDate = this.End;
-            if ~isa(endAsDate, 'DateWrapper')
-                endAsDate = DateWrapper(endAsDate);
-            end
+        function value = get.EndAsDate(this)
+            value = this.End;
         end%
          
 
-        function endAsDate = get.EndAsDateWrapper(this)
-            endAsDate = this.EndAsDate;
+        function value = get.EndAsDateWrapper(this)
+            value = this.EndAsDate;
         end%
 
 
         function value = get.BalancedEnd(this)
-            if isa(this.Start, "DateWrapper")
-                outputFunction = @DateWrapper;
-            else
-                outputFunction = @double;
-            end
             if isnan(this.Start) || isempty(this.Data)
-                value = outputFunction(NaN);
+                value = Dater(NaN);
                 return
             end
             start = double(this.Start);
@@ -194,51 +176,47 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             else
                 value = NaN;
             end
-            value = outputFunction(value);
+            value = Dater(value);
         end%
          
 
-        function frequency = get.Frequency(this)
-            frequency = DateWrapper.getFrequency(double(this.Start));
+        function value = get.Frequency(this)
+            value = Frequency.fromNumeric(this.FrequencyAsNumeric); %#ok<PROP>
         end%
 
 
-        function frequency = get.FrequencyAsNumeric(this)
-            frequency = dater.getFrequency(double(this.Start));
+        function value = get.FrequencyAsNumeric(this)
+            value  = dater.getFrequency(this.Start);
         end%
 
 
-        function frequency = getFrequency(this)
-            frequency = dater.getFrequency(double(this.Start));
-            frequency = Frequency.fromNumeric(frequency);
+        function value = getFrequency(this)
+            value = getFrequencyAsNumeric(this);
+            value = Frequency.fromNumeric(value); %#ok<PROP>
         end%
 
 
-        function frequency = getFrequencyAsNumeric(this)
-            frequency = dater.getFrequency(double(this.Start));
+        function value = getFrequencyAsNumeric(this)
+            value = dater.getFrequency(double(this.Start));
         end%
 
 
         function numericRange = getRangeAsNumeric(this)
-            numericStart = double(this.Start);
-            numericRange = dater.plus(double(this.Start), 0:size(this.Data, 1)-1);
-            numericRange = reshape(numericRange, [ ], 1);
+            numPeriods = size(this.Data, 1);
+            numericRange = dater.plus(double(this.Start), 0:numPeriods-1);
+            numericRange = reshape(numericRange, 1, []);
         end%
 
 
         function range = getRange(this)
             range = getRangeAsNumeric(this);
-            if isa(this.Start, 'DateWrapper')
-               range = DateWrapper(range);
-            end 
+            range = Dater(range);
         end%
 
 
         function range = get.Range(this)
             range = this.RangeAsNumeric;
-            if isa(this.Start, 'DateWrapper')
-               range = DateWrapper(range);
-            end 
+            range = Dater(range);
         end%
 
 
@@ -251,7 +229,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
         function range = get.RangeAsDate(this)
             range = this.RangeAsNumeric;
-            range = DateWrapper(range);
+            range = Dater(range);
         end%
 
 
@@ -292,28 +270,10 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
-
-
     methods (Hidden)
         varargout = trim(varargin)
         varargout = resolveShift(varargin)
-        varargout = resolveRange(varargin)
     end
-
-
-
-
-    methods (Access=protected, Hidden)
-        function startDate = startDateWhenEmpty(this, varargin)
-            if isa(this.Start, 'DateWrapper')
-                startDate = DateWrapper.NaD( );
-            else
-                startDate = NaN;
-            end
-        end%
-    end
-
-
 
 
     methods
@@ -326,7 +286,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             end
             sizeOfData = size(this.Data);
             newSizeOfData = [0, sizeOfData(2:end)];
-            this.Start = startDateWhenEmpty(this);
+            this.Start = TimeSubscriptable.StartDateWhenEmpty;
             this.Data = repmat(this.MissingValue, newSizeOfData);
         end%
 

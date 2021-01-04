@@ -71,7 +71,7 @@ else
 end
 
 if isnumeric(varargin{1})
-    range = varargin{1};
+    range = double(varargin{1});
     varargin(1) = [ ];
 else
     range = Inf;
@@ -80,30 +80,28 @@ end
 this = varargin{1};
 varargin(1) = [ ];
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('tseries.spy');
-    parser.KeepUnmatched = true;
-    parser.addRequired('Axes', @(x) all(ishandle(x)));
-    parser.addRequired('Range', @DateWrapper.validateDateInput);
-    parser.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addParameter('ShowTrue', true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Squeeze', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Interpreter', 'none', @(x) isequal(x, @auto) || ischar(x) || isa(x, string));
-    parser.addParameter({'Names', 'Name'}, { }, @iscellstr);
-    parser.addParameter('Test', @isfinite, @(x) isa(x, 'function_handle'));
-    parser.addPlotOptions( );
-    parser.addDateOptions('tseries');
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.spy');
+    pp.KeepUnmatched = true;
+    pp.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
+    pp.addParameter('ShowTrue', true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Squeeze', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Interpreter', 'none', @(x) isequal(x, @auto) || ischar(x) || isa(x, string));
+    pp.addParameter({'Names', 'Name'}, { }, @iscellstr);
+    pp.addParameter('Test', @isfinite, @(x) isa(x, 'function_handle'));
+    pp.addPlotOptions( );
+    pp.addDateOptions('tseries');
 end
-parser.parse(axesHandle, range, this, varargin{:});
-opt = parser.Options;
+pp.parse(this, varargin{:});
+opt = pp.Options;
 freq = get(this, 'freq');
-unmatched = parser.UnmatchedInCell;
+unmatched = pp.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
-[x, range] = rangedata(this, range);
+[x, ~, ~, range] = getDataFromTo(this, range);
 x = x(:, :, 1);
 x = opt.Test(x.');
 if ~islogical(x)

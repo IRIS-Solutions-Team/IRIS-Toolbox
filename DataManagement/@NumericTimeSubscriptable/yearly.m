@@ -13,7 +13,7 @@ function data = yearly(this, varargin)
 % __`series`__ [ Series ] -
 % Input time series.
 %
-% __`~yearlyDates`__ [ DateWrapper ] -
+% __`~yearlyDates`__ [ Dater ] -
 % Years (dates of yearly frequency) for which the time series data will be
 % returned; one year per row; if omitted, the data will be returned from
 % the first year to the last year of the input `series`.
@@ -77,7 +77,7 @@ function flag = hereValidateDates(input)
         flag = true;
         return
     end
-    if DateWrapper.validateProperDateInput(input) ...
+    if Dater.validateProperDateInput(input) ...
        && all(dater.getFrequency(input)==Frequency.YEARLY)
         flag = true;
         return

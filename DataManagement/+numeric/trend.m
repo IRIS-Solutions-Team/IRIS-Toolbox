@@ -51,10 +51,10 @@ function [breakPoints, season] =  preprocessOptions(opt, numPeriods)
     breakPoints = opt.Break;
     if ~isempty(breakPoints)
         if ~isempty(opt.StartDate)
-            breakPoints = rnglen(opt.StartDate, breakPoints);
+            breakPoints = dater.rangeLength(opt.StartDate, breakPoints);
         end
-        breakPoints = breakPoints(:)';
-        breakPoints(breakPoints<1 | breakPoints>numPeriods) = [ ];
+        breakPoints = reshape(breakPoints, 1, []);
+        breakPoints(breakPoints<1 | breakPoints>numPeriods) = [];
         breakPoints = sort(unique(breakPoints));
     end
     % Seasonals

@@ -14,7 +14,7 @@ function this = expsm(this, beta, varargin)
 %
 % * `Beta` [ numeric ] - Exponential factor.
 %
-% * `~Range` [ DateWrapper ] - Range on which the exponential smoothing will
+% * `~Range` [ Dater ] - Range on which the exponential smoothing will
 % be performed; if omitted, the entire time series range is used.
 %
 %
@@ -41,21 +41,21 @@ function this = expsm(this, beta, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries.expsm');
-    INPUT_PARSER.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    INPUT_PARSER.addRequired('Beta', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1);
-    INPUT_PARSER.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
-    INPUT_PARSER.addParameter('Init', NaN, @(x) isnumeric(x) && isscalar(x));
-    INPUT_PARSER.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.expsm');
+    pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    pp.addRequired('Beta', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1);
+    pp.addOptional('Range', Inf, @Dater.validateRangeInput);
+    pp.addParameter('Init', NaN, @(x) isnumeric(x) && isscalar(x));
+    pp.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
 end
-INPUT_PARSER.parse(this, beta, varargin{:});
-range = INPUT_PARSER.Results.Range; 
+parse(pp, this, beta, varargin{:});
+range = double(pp.Results.Range);
 if ischar(range) || isa(range, 'string')
     range = textinp2dat(range);
 end
-opt = INPUT_PARSER.Options;
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -72,8 +72,9 @@ if opt.Log
     data = exp(data/100);
 end
 
-this.Start = range(1);
+this.Start = double(range(1));
 this.Data = data;
 this = trim(this);
 
-end
+end%
+

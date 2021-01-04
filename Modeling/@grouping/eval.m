@@ -86,7 +86,7 @@ for iVar = 1:numel(varNames)
     end
     
     % Do grouping
-    [oldData, range] = rangedata(s.(iName)) ;
+    [oldData, startDate] = getDataFromTo(s.(iName));
     oldCmt = comment(s.(iName));
     nPer = size(oldData, 1) ;
     
@@ -121,7 +121,7 @@ for iVar = 1:numel(varNames)
         newCmt = [newCmt, oldCmt] ; %#ok<AGROW>
     end
     
-    s.(iName) = replace(s.(iName), newData, range(1), newCmt) ;
+    s.(iName) = replace(s.(iName), newData, startDate, newCmt) ;
 end
 
 lg = this.GroupNames;

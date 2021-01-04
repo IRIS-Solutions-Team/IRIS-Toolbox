@@ -1,4 +1,3 @@
-function [h1, h2, h3, range, data] = plotpred(varargin)
 % plotpred  Visualize multi-step-ahead prediction
 %
 % __Syntax__
@@ -91,6 +90,8 @@ function [h1, h2, h3, range, data] = plotpred(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+function [h1, h2, h3, range, data] = plotpred(varargin)
+
 if isempty(varargin)
     return
 end
@@ -107,8 +108,8 @@ else
 end
 
 % Plot range
-if DateWrapper.validateRangeInput(varargin{1})
-    range = varargin{1};
+if Dater.validateRangeInput(varargin{1})
+    range = double(varargin{1});
     varargin(1) = [ ];
 else
     range = Inf;
@@ -152,13 +153,13 @@ if ~isempty(x1)
         throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
                Frequency.toChar(f1), Frequency.toChar(f2) );
     end
-    [data, fullRange] = rangedata([x1, x2], range);
+    [data, fullStart, fullEnd] = getDataFromTo([x1, x2], range);
 else
     numPeriods = size(x2.Data, 1);
     x1 = x2;
     x1.Data = nan(numPeriods, 1);
     x1 = resetComment(x1);
-    [data, fullRange] = rangedata(x2, range);
+    [data, fullStart, fullEnd] = getDataFromTo(x2, range);
 end
 numAhead = size(data, 2);
 
@@ -179,7 +180,7 @@ startPoint = findStartPoint( );
 % Determine the plot range.
 determinePlotRange( );
 
-x2 = replace(x2, data2, fullRange(1));
+x2 = replace(x2, data2, fullStart);
 
 % Store current `hold` settings.
 isHold = ishold(handleAxes);
@@ -242,7 +243,7 @@ return
                 startPoint(pos, iiCol) = data2(pos, iiCol);
             end
         end
-        startPoint = replace(x2, startPoint(1:numPeriods, :), fullRange(1));
+        startPoint = replace(x2, startPoint(1:numPeriods, :), fullStart);
     end%
 
 
@@ -250,12 +251,12 @@ return
         if isfinite(range(1))
             startDate = range(1);
         else
-            startDate = fullRange(1);
+            startDate = fullStart;
         end
         if isfinite(range(end))
             endDate = range(end);
         else
-            endDate = fullRange(end);
+            endDate = fullEnd;
         end
         range = startDate : endDate;
     end%

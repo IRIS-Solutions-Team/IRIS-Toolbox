@@ -1,10 +1,6 @@
-function len = rnglen(r)
+function varargout = rnglen(r)
 
-if isnan(r(1)) && isnan(r(end))
-    len = 0;
-    return
-end
+[varargout{1:nargout}] = dater.rangeLength(varargin{:});
 
-len = round(r(end) - r(1) + 1);
+end%
 
-end

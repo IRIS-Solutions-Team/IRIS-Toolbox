@@ -80,7 +80,7 @@ if isempty(parser)
     parser = extend.InputParser('TimeSubscriptable/chowlin');
     parser.addRequired('Y1', @(x) isa(x, 'TimeSubscriptable'));
     parser.addRequired('X2', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('Range', @DateWrapper.validateDateInput);
+    parser.addRequired('Range', @Dater.validateDateInput);
     parser.addParameter('Constant', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('NGrid', 200, @(x) isnumeric(x) && scalar(x) && x>=1);
@@ -120,17 +120,16 @@ if g~=round(g)
 end
 
 % Get low-frequency LHS observations.
-[y1Data, range1] = rangedata(Y1, Range);
+[y1Data, startDate1, endDate1] = getDataFromTo(Y1, Range);
 if opt.Log
     y1Data = log(y1Data);
 end
-nPer1 = length(range1);
+nPer1 = dater.rangeLength(startDate1, endDate1);
 
 % Set up High-frequency range.
-start2 = numeric.convert(range1(1), f2, 'ConversionMonth', 'first');
-end2 = numeric.convert(range1(end), f2, 'ConversionMonth', 'last');
-range2 = start2 : end2;
-nPer2 = length(range2);
+startDate2 = dater.convert(startDate1, f2, 'ConversionMonth', 'first');
+endDate2 = dater.convert(endDate1, f2, 'ConversionMonth', 'last');
+nPer2 = dater.rangeLength(startDate2, endDate2);
 
 % Aggregation matrix.
 c = ones(1, g) / g;
@@ -139,7 +138,7 @@ C = kron(eye(nPer1), c);
 % Convert high-frequency explanatory variables to low frequency by
 % averaging.
 if ~isempty(X2)
-    x2Data = rangedata(X2, range2);
+    x2Data = getDataFromTo(X2, startDate2, endDate2);
     if opt.Log
         x2Data = log(x2Data);
     end
@@ -219,9 +218,9 @@ if opt.Log
     y2Data = exp(y2Data);
     u2Data = exp(u2Data);
 end
-U1 = replace(Y1, u1Data, range1(1));
-Y2 = replace(Y1, y2Data, range2(1));
-U2 = replace(Y1, u2Data, range2(1));
+U1 = replace(Y1, u1Data, startDate1);
+Y2 = replace(Y1, y2Data, startDate2);
+U2 = replace(Y1, u2Data, startDate2);
 Rho = [rho1, rho2];
 
 end%

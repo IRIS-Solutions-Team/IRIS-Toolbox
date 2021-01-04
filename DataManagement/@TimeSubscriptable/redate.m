@@ -1,4 +1,3 @@
-function this = redate(this, oldDate, newDate)
 % redate  Change time dimension of time series
 %
 % __Syntax__
@@ -10,11 +9,11 @@ function this = redate(this, oldDate, newDate)
 %
 % * `x` [ tseries ] - Input time series.
 %
-% * `oldDate` [ DateWrapper ] - Base date that will be converted to a new
+% * `oldDate` [ Dater ] - Base date that will be converted to a new
 % date; `oldDate` does not need to be the stard date of `X` and does not
 % even need to be within the current date range of `X`.
 %
-% * `newDate` [ DateWrapper ] - A new date to which the base date `oldDate`
+% * `newDate` [ Dater ] - A new date to which the base date `oldDate`
 % will be changed; `newDate` need not be the same frequency as `oldDate`.
 %
 %
@@ -55,18 +54,19 @@ function this = redate(this, oldDate, newDate)
 %         User Data: empty
 %
 
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function this = redate(this, oldDate, newDate)
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('tseries.redate');
-    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('OldDate', @DateWrapper.validateDateInput);
-    parser.addRequired('NewDate', @DateWrapper.validateDateInput);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.redate');
+    pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    pp.addRequired('OldDate', @Dater.validateDateInput);
+    pp.addRequired('NewDate', @Dater.validateDateInput);
 end
-parser.parse(this, oldDate, newDate);
+parse(pp, this, oldDate, newDate);
 
 %--------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ end
 
 oldStart = double(this.Start);
 shift = round(oldStart - oldDate);
-this.Start = DateWrapper(dater.plus(newDate, shift));
+this.Start = dater.plus(newDate, shift);
 
 end%
 

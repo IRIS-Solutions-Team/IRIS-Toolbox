@@ -1,20 +1,19 @@
-function [b, stdB, e, stdE, fit, dates, covB] = regress(Y, X, varargin)
 % regress  Ordinary or weighted least-square regression
 %
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [B, StdB, E, StdE, YFit, Dates, CovB] = regress(Y, X, ~Dates, ...)
+%     [B, StdB, E, StdE, YFit, Dates, CovB] = regress(lhs, rhs, ~Dates, ...)
 %
 %
 % __Input arguments__
 %
-% * `Y` [ tseries ] - Tseries object with independent (LHS) variables.
+% * `lhs` [ tseries ] - Time Series with independent (LHS) variables.
 %
-% * `X` [ tseries] - Tseries object with regressors (RHS) variables.
+% * `rhs` [ tseries] - Tseries object with regressors (RHS) variables.
 %
-% * `~Dates=Inf` [ DateWrapper ] - Dates on which the regression will be
+% * `~Dates=Inf` [ Dater ] - Dates on which the regression will be
 % run; if omitted, the entire range available will be used.
 %
 %
@@ -58,26 +57,29 @@ function [b, stdB, e, stdE, fit, dates, covB] = regress(Y, X, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('tseries.regress');
-    parser.addRequired('Y', @(x) isa(x, 'tseries'));
-    parser.addRequired('X', @(x) isa(x, 'tseries'));
-    parser.addOptional('Dates', Inf, @DateWrapper.validateDateInput);
-    parser.addParameter({'Intercept', 'Constant'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter({'Weights', 'Weighting'}, [ ] , @(x) isempty(x) || isa(x, 'tseries'));
+function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@Series/regress');
+    pp.addRequired('lhs', @(x) isa(x, 'NumericTimeSubscriptable'));
+    pp.addRequired('rhs', @(x) isa(x, 'NumericTimeSubscriptable'));
+    pp.addOptional('Dates', Inf, @Dater.validateDateInput);
+    pp.addParameter({'Intercept', 'Constant'}, false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter({'Weights', 'Weighting'}, [ ] , @(x) isempty(x) || isa(x, 'tseries'));
 end
-parser.parse(Y, X, varargin{:});
-dates = parser.Results.Dates;
-opt = parser.Options;
+parse(pp, lhs, rhs, varargin{:});
+dates = pp.Results.Dates;
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
 dates = double(dates);
-checkFrequency(Y, dates);
-[dataY, dates] = getData(Y, dates);
-checkFrequency(X, dates);
-dataX = getData(X, dates);
+checkFrequency(lhs, dates);
+[dataY, dates] = getData(lhs, dates);
+dates = double(dates);
+checkFrequency(rhs, dates);
+dataX = getData(rhs, dates);
 if opt.Intercept
     dataX(:, end+1) = 1;
 end
@@ -94,14 +96,13 @@ end
 stdE = sqrt(eVar);
 
 if nargout>2
-    startDate = getFirst(dates);
     dataFit = dataX*b;
     dataE = dataY - dataFit;
-    e = Y.empty(Y);
+    e = lhs.empty(lhs);
     e = setData(e, dates, dataE);
     e = resetComment(e);
     if nargout>4
-        fit = Y.empty(Y);
+        fit = lhs.empty(lhs);
         fit = setData(fit, dates, dataFit);
         fit = resetComment(fit);
     end

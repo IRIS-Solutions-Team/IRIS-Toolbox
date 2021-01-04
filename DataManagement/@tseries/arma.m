@@ -96,8 +96,8 @@ nPer = length(Range);
 xRange = Range(1)-p : Range(end);
 nXPer = length(xRange);
 
-XData = rangedata(X, xRange);
-EData = rangedata(E, xRange);
+XData = getDataFromTo(X, xRange);
+EData = getDataFromTo(E, xRange);
 EData(isnan(EData)) = 0;
 for t = p+1 : nXPer
     XData(t, :) = ...

@@ -16,7 +16,7 @@
 %>    `range`) will be filled with values determined by the `method`.
 %
 %
-% __`range`__ [ DateWrapper | `Inf` ]
+% __`range`__ [ Dater | `Inf` ]
 %
 %>    Date range within which missing observations will be looked up in the
 %>    `inputSeries` and filled with values determined by the `method`.
@@ -90,7 +90,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable.fillMissing');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(pp, 'range', @DateWrapper.validateRangeInput);
+    addRequired(pp, 'range', @Dater.validateRangeInput);
     addRequired(pp, 'method', @(x) ~isempty(x));
 end
 %)
@@ -106,9 +106,9 @@ inxMissing = this.MissingTest(data) & inxRange;
 if nargout>=2
     if any(inxMissing)
         datesMissing = dater.plus(startDate, find(inxMissing)-1);
-        datesMissing = DateWrapper(datesMissing);
+        datesMissing = Dater(datesMissing);
     else
-        datesMissing = DateWrapper.empty(0, 1);
+        datesMissing = Dater.empty(0, 1);
     end
 end
 
@@ -134,7 +134,7 @@ function [startDate, endDate, inxRange] = locallyResolveDates(this, range)
     range = double(range);
     startMissing = range(1);
     endMissing = range(end);
-    startDate = this.StartAsNumeric;
+    startDate = double(this.Start);
     endDate = this.EndAsNumeric;
     if isinf(startMissing)
         startMissing = startDate;

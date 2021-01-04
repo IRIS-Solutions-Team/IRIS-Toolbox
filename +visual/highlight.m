@@ -1,4 +1,3 @@
-function [patchHandles, textHandles] = highlight(varargin)
 % highlight  Highlight specified range or date range in a graph
 %
 % __Syntax__
@@ -47,6 +46,8 @@ function [patchHandles, textHandles] = highlight(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+function [patchHandles, textHandles] = highlight(varargin)
+
 %#ok<*AGROW>
 
 patchHandles = gobjects(1, 0); % Handles to patch objects.
@@ -76,35 +77,33 @@ if isempty(range)
 elseif ~iscell(range)
     range = { range };
 end
-for i = 1 : numel(range)
-    if ischar(range{i})
-        range{i} = textinp2dat(range{i});
-    end
-end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('visual.highlight');
-    parser.KeepUnmatched = true;
-    parser.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
-    parser.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('visual.highlight');
+    pp.KeepUnmatched = true;
+    pp.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
+    pp.addRequired('Range', @(x) all(cellfun(@validate.date, x)));
 
-    parser.addParameter('Alpha', 1, @(x) validate.numericScalar(x, [0, 1]));
-    parser.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
-    parser.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
-    parser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    parser.addParameter('HandleVisibility', 'Off', @(x) validate.logicalScalar(x) || validate.anyString(x, 'On', 'Off'));
-    parser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+    pp.addParameter('Alpha', 1, @(x) validate.numericScalar(x, [0, 1]));
+    pp.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
+    pp.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
+    pp.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
+    pp.addParameter('HandleVisibility', 'Off', @(x) validate.logicalScalar(x) || validate.anyString(x, 'On', 'Off'));
+    pp.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+    pp.addParameter('Dates', true, @validate.logicalScalar);
 
+    %
     % Legacy options
-    parser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
-    parser.addParameter('VPosition', '');
-    parser.addParameter('HPosition', '');
+    % 
+    pp.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+    pp.addParameter('VPosition', '');
+    pp.addParameter('HPosition', '');
 end
-parser.parse(axesHandle, range, varargin{:});
-opt = parser.Options;
-unmatched = parser.UnmatchedInCell;
-usingDefaults = parser.UsingDefaultsInStruct;
+parse(pp, axesHandle, range, varargin{:});
+opt = pp.Options;
+unmatched = pp.UnmatchedInCell;
+usingDefaults = pp.UsingDefaultsInStruct;
 
 if isequal(axesHandle, @gca)
     axesHandle = gca( );
@@ -198,38 +197,35 @@ set(patchHandles, 'HandleVisibility', opt.HandleVisibility);
 end%
 
 
-
-
 function xData = getXData(h, range, opt)
-    if isa(range, 'DateWrapper')
-        startOfRange = double( getFirst(range) );
-        endOfRange = double( getLast(range) );
-        freq = dater.getFrequency(startOfRange);
-        xLim = get(h, 'XLim');
-        if isa(xLim, 'datetime')
-            switch lower(opt.DatePosition)
-                case 'start'
-                    xData = [ dater.toMatlab(startOfRange-1, 'middle'), ...
-                              dater.toMatlab(endOfRange, 'middle') ];
-                case 'middle'
-                    xData = [ dater.toMatlab(startOfRange, 'start'), ...
-                              dater.toMatlab(endOfRange, 'end') ];
-                case 'end'
-                    xData = [ dater.toMatlab(startOfRange, 'middle'), ...
-                              dater.toMatlab(endOfRange+1, 'middle') ];
-            end
-        else
-            xData = [ dat2dec(startOfRange, 'centre'), ...
-                      dat2dec(endOfRange, 'centre') ];
-        end
-    else
-        freq = NaN;
+    if ~opt.Dates
         xData = range([1, end]);
-    end
-    if isempty(xData)
         return
     end
-    if isnumeric(xData)
+
+    range = double(range);
+    startRange = range(1);
+    endRange = range(end);
+    freq = dater.getFrequency(startRange);
+    xLim = get(h, 'XLim');
+    if isa(xLim, 'datetime')
+        switch lower(opt.DatePosition)
+            case 'start'
+                xData = [ dater.toMatlab(startRange-1, 'middle'), ...
+                          dater.toMatlab(endRange, 'middle') ];
+            case 'middle'
+                xData = [ dater.toMatlab(startRange, 'start'), ...
+                          dater.toMatlab(endRange, 'end') ];
+            case 'end'
+                xData = [ dater.toMatlab(startRange, 'middle'), ...
+                          dater.toMatlab(endRange+1, 'middle') ];
+        end
+    else
+        xData = [ dat2dec(startRange, 'centre'), ...
+                  dat2dec(endRange, 'centre') ];
+    end
+
+    if ~isempty(xData)
         around = 0.5;
         if isequal(getappdata(h, 'IRIS_SERIES'), true)
             if any(freq==[2, 4, 6, 12])
@@ -241,15 +237,11 @@ function xData = getXData(h, range, opt)
 end%
 
 
-
-
 function yData = getYData(h, LIM_MULTIPLE)
     yData = get(h, 'YLim');
     height = yData(2) - yData(1);
     yData = [yData(1)-LIM_MULTIPLE*height, yData(2)+LIM_MULTIPLE*height];
 end%
-
-
 
 
 function handlePatch = drawPatch(handleAxes, xData, yData, opt, unmatched)

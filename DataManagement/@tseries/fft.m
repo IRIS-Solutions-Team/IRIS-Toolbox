@@ -1,11 +1,10 @@
-function [y,range,freq,per] = fft(x,range,varargin)
 % fft  Discrete Fourier transform of tseries object.
 % 
 % Syntax
 % =======
 %
-%     [y,range,freq,per] = fft(x)
-%     [y,range,freq,per] = fft(x,range,...)
+%     [y, range, freq, per] = fft(x)
+%     [y, range, freq, per] = fft(x, range, ...)
 %
 % Input arguments
 % ================
@@ -29,7 +28,7 @@ function [y,range,freq,per] = fft(x,range,varargin)
 % ========
 %
 % * `'full='` [ `true` | *`false`* ] - Return Fourier transform on the whole
-% interval [0,2*pi]; if false only the interval [0,pi] is returned.
+% interval [0, 2*pi]; if false only the interval [0, pi] is returned.
 %
 % Description
 % ============
@@ -40,51 +39,46 @@ function [y,range,freq,per] = fft(x,range,varargin)
 %}
 
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-options = passvalopt('tseries.fft',varargin{:});
+function [y, range, freq, per] = fft(this, opt)
 
-if nargin < 2
-   range = Inf;
+arguments
+    this NumericTimeSubscriptable
+    opt.Range {validate.mustBeRange} = Inf
+    opt.Full (1, 1) logical = false
 end
 
-%**************************************************************************
+sizeData = size(this.Data);
 
-tmpsize = size(x.data);
-
-if isempty(range)
-   y = zeros([0,tmpsize(2:end)]);
-   return
+if isempty(opt.Range)
+    y = zeros([0, sizeData(2:end)]);
+    return
 end
 
-if isequal(range,Inf)
-   data = x.data;
-   range = x.start + (0 : tmpsize(1)-1);
-else
-   range = range(1) : range(end);
-   data = rangedata(x,range);
-end
-nper = length(range);
+[data, ~, ~, range] = getDataFromTo(this, opt.Range);
+numPeriods = numel(range);
 
-% Run Fourier.
-y = fft(data(:,:));
+% Run Fourier
+y = fft(data(:, :));
 
-% Back out frequencies.
-freq = 2*pi*(0:nper-1) / nper;
+% Back out frequencies
+freq = 2*pi*(0:numPeriods-1) / numPeriods;
 
-% Convert frequencies to periodicities.
+% Convert frequencies to periodicities
 index = freq == 0;
 per = nan(size(freq));
 per(~index) = 2*pi./freq(~index);
 per(index) = Inf;
 
-if ~options.full
-   % Return only data points within [0,pi].
-   index = freq <= pi;
-   freq = freq(index);
-   y = y(index,:);
+if ~opt.Full
+    % Return only data points within [0, pi]
+    index = freq <= pi;
+    freq = freq(index);
+    y = y(index, :);
 end
-y = reshape(y,[size(y,1),tmpsize(2:end)]);
+y = reshape(y, [size(y, 1), sizeData(2:end)]);
 
-end
+end%
+

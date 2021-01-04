@@ -64,9 +64,6 @@ if numInputs==1
     return
 end
 
-if isa(varargin{1}.Start, "DateWrapper"), dateFunction = @DateWrapper;
-    else, dateFunction = @double; end;
-
 % Check date frequency
 freq = nan(1, numInputs);
 for i = 1 : numInputs
@@ -74,7 +71,7 @@ for i = 1 : numInputs
 end
 inxNaNFreq = isnan(freq);
 if any(~inxNaNFreq)
-    DateWrapper.checkMixedFrequency(freq(~inxNaNFreq));
+    Dater.checkMixedFrequency(freq(~inxNaNFreq));
     freq = freq( find(~inxNaNFreq, 1) );
 else
     freq = NaN;
@@ -84,7 +81,7 @@ sizeXData = size(x.Data);
 ndimsXData = ndims(x.Data);
 x.Data = x.Data(:, :);
 
-serialXStart = round(x.Start);
+serialXStart = dater.getSerial(x.Start);
 for i = 2 : numInputs
     y = varargin{i};
     sizeYData = size(y.Data);
@@ -107,7 +104,7 @@ for i = 2 : numInputs
             throw( exception.Base('Series:InconsistentSizeVertCat', 'error') )
         end
     end
-    serialYStart = round(y.Start);
+    serialYStart = dater.getSerial(y.Start);
     if isempty(y.Data) || isnan(serialYStart)
         continue
     end
@@ -122,8 +119,8 @@ for i = 2 : numInputs
 
     % Determine the range necessary
     serialStart = min(serialXStart, serialYStart);
-    serialXEnd = round(x.End);
-    serialYEnd = round(y.End);
+    serialXEnd = dater.getSerial(x.End);
+    serialYEnd = dater.getSerial(y.End);
     serialEnd = max(serialXEnd, serialYEnd);
     
     % Get continuous data from both series on the largest stretch range
@@ -148,7 +145,7 @@ for i = 2 : numInputs
     serialXStart = serialStart;
 end
 
-x.Start = dateFunction(dater.fromSerial(freq, serialXStart));
+x.Start = dater.fromSerial(freq, serialXStart);
 
 if ndimsXData>2
     x.Data = reshape(x.Data, [size(x.Data, 1), sizeXData(2:end)]);

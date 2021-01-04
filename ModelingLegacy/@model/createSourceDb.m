@@ -61,21 +61,16 @@ end
 [minSh, maxSh] = getActualMinMaxShifts(this);
 range = double(range);
 start = range(1);
-extStart = range(1);
-extEnd = range(end);
-if ~isa(range, 'DateWrapper')
-    start = DateWrapper(start);
-    extStart = DateWrapper(extStart);
-    extEnd = DateWrapper(extEnd);
-end
+extdStart = range(1);
+extdEnd = range(end);
 if opt.AppendPresample
-    extStart = addTo(extStart, minSh);
+    extdStart = dater.plus(extdStart, minSh);
 end
 if opt.AppendPostsample
-    extEnd = addTo(extEnd, maxSh);
+    extdEnd = dater.plus(extdEnd, maxSh);
 end
-extRange = extStart : extEnd;
-numExtPeriods = length(extRange);
+extdRange = dater.colon(extdStart, extdEnd);
+numExtdPeriods = numel(extdRange);
 
 label = this.Quantity.LabelOrName;
 
@@ -95,9 +90,9 @@ outputDb = struct( );
 %
 % Deterministic time trend
 %
-ttrend = dat2ttrend(extRange, this);
+ttrend = dat2ttrend(extdRange, this);
 
-X = zeros(numQuantities, numExtPeriods, nv);
+X = zeros(numQuantities, numExtdPeriods, nv);
 if ~opt.Deviation
     isDelog = false;
     X(inxYXG, :, :) = createTrendArray(this, Inf, isDelog, posYXG, ttrend);
@@ -123,7 +118,7 @@ for i = find(inxX)
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE ...
         , permute(X(i, :, :), [2, 3, 1]) ...
-        , extStart, label{i} ...
+        , extdStart, label{i} ...
     );
 end
 
@@ -162,7 +157,7 @@ for i = find(inxG)
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE ...
         , permute(X(i, :, :), [2, 3, 1]) ...
-        , extStart, label{i} ...
+        , extdStart, label{i} ...
     );
 end
 

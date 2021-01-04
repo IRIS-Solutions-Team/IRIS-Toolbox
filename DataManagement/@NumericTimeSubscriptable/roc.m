@@ -137,8 +137,6 @@ rx1 = roc(x, "EoPY");
 rx2 = Series();
 for t = reshape(x.Range, 1, [])
     t0 = qq(round(dater.getYearPeriodFrequency(t)-1), 4);
-    t
-    t0
     rx2(t) = x(t) / x(t0);
 end
 assertEqual(testCase, rx1.Data, rx2.Data, "absTol", 1e-10);

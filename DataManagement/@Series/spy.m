@@ -88,7 +88,7 @@ if isempty(parser)
     parser = extend.InputParser('Series.spy');
     parser.KeepUnmatched = true;
     parser.addRequired('Axes', @(x) all(ishandle(x)));
-    parser.addRequired('Range', @DateWrapper.validateDateInput);
+    parser.addRequired('Range', @Dater.validateDateInput);
     parser.addRequired('InputSeries', @(x) isa(x, 'Series'));
     parser.addParameter('ShowTrue', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));

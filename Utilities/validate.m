@@ -168,7 +168,7 @@ classdef validate
                 flag = true;
                 return
             end
-            if ~validate.dateInput(input)
+            if ~validate.date(input)
                 flag = false;
                 return
             end
@@ -200,7 +200,7 @@ classdef validate
         end%
 
 
-        function flag = dateInput(input)
+        function flag = date(input)
             if isa(input, "DateWrapper")
                 flag = true;
                 return
@@ -295,6 +295,30 @@ classdef validate
                 end
             end
             error("Input value must be a scalar text string.");
+        end%
+
+
+        function mustBeDate(x)
+            if isequal(validate.date(x), true)
+                return
+            end
+            error("Input value must be a date or an array of dates.");
+        end%
+
+
+        function mustBeRange(x)
+            if isequal(validate.range(x), true)
+                return
+            end
+            error("Input value must be a date range.");
+        end%
+
+
+        function mustBeDatabank(x)
+            if isequal(validate.databank(x), true)
+                return
+            end
+            error("Input value must be a databank (struct or Dictionary).");
         end%
     end
 end

@@ -29,7 +29,7 @@ if isempty(pp)
     addRequired(pp, 'level', @locallyValidateLevelInput);
     addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, 'function_handle'));
     addRequired(pp, 'growth', @locallyValidateGrowthInput);
-    addRequired(pp, 'dates', @DateWrapper.validateProperDateInput);
+    addRequired(pp, 'dates', @Dater.validateProperDateInput);
     addOptional(pp, 'shift', -1, @locallyValidateShift);
 
     addParameter(pp, "Direction", "Forward", @(x) any(strcmpi(x, ["Forward", "Backward"])));
@@ -110,7 +110,7 @@ end
 if isa(this, "NumericTimeSubscriptable")
     this = setData(this, dater.colon(startAll, endAll), levelData);
 else
-    this = Series(DateWrapper(startAll), levelData);
+    this = Series(startAll, levelData);
 end
 
 return

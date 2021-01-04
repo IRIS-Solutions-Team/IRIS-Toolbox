@@ -1,17 +1,11 @@
-function [data, dates, this] = getData(this, timeRef, varargin)
-% getData  Get data on specified range from TimeSubscriptable object
+% getData  Get data on specified range from time series
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function [data, dates, this] = getData(this, timeRef, varargin)
 
-ERROR_INVALID_FREQUENCY = { 'TimeSeries:subsref:InvalidFrequency'
-                            'Illegal date frequency in subscripted reference to %s object' };
 testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
-
-%--------------------------------------------------------------------------
 
 % References to 2nd and higher dimensions
 if ~isempty(varargin)
@@ -23,12 +17,13 @@ if ~isempty(varargin)
 end
 
 sizeData = size(this.Data);
-serialStart = dater.getSerial(this.Start);
-freqStart = dater.getFrequency(this.Start);
+thisStart = double(this.Start);
+serialStart = dater.getSerial(thisStart);
+freqStart = dater.getFrequency(thisStart);
 
 if nargin<2 || testColon(timeRef) || isequal(timeRef, Inf)
     data = this.Data;
-    dates = this.Range;
+    dates = this.RangeAsNumeric;
     return
 end
 
@@ -36,38 +31,35 @@ missingValue = this.MissingValue;
 
 if isempty(timeRef)
     data = repmat(missingValue, [0, sizeData(2:end)]);
-    dates = DateWrapper.empty(0, 1);
+    dates = double.empty(0, 1);
     if nargout>2
         this = emptyData(this);
     end
     return
 end
 
-if isnumeric(timeRef) && ~isa(timeRef, 'DateWrapper') ...
-   && all(round(timeRef)==timeRef)
-    timeRef = DateWrapper(timeRef);
-end
+switch locallyDetermineCase(thisStart, timeRef)
+    case {'NaN_[]', 'NaN_NaN', 'NaN_:'}
+        data = repmat(missingValue, [0, sizeData(2:end)]);
+        if nargout>1
+            dates = TimeSubscriptable.StartDateWhenEmpty;
+            if nargout>2
+                this = emptyData(this);
+            end
+        end
+        return
 
-switch subsCase(this, timeRef)
-    case {'NaD_[]', 'NaD_NaD', 'NaD_:'}
+    case {'Date_NaN', 'Empty_NaN'}
         data = repmat(missingValue, [0, sizeData(2:end)]);
         if nargout>1
-            dates = startDateWhenEmpty(this);
+            dates = TimeSubscriptable.StartDateWhenEmpty;
             if nargout>2
                 this = emptyData(this);
             end
         end
         return
-    case {'Date_NaD', 'Empty_NaD'}
-        data = repmat(missingValue, [0, sizeData(2:end)]);
-        if nargout>1
-            dates = startDateWhenEmpty(this);
-            if nargout>2
-                this = emptyData(this);
-            end
-        end
-        return
-    case 'NaD_Date'
+
+    case 'NaN_Date'
         numPeriods = numel(timeRef);
         data = repmat(missingValue, [numPeriods, sizeData(2:end)]);
         if nargout>1
@@ -77,6 +69,7 @@ switch subsCase(this, timeRef)
             end
         end
         return
+
     case 'Date_Date'
         checkFrequency(this, timeRef, 'warning');
         if nargout>=3
@@ -90,33 +83,24 @@ switch subsCase(this, timeRef)
         if nargout>1
             serialDates = serialStart + pos - 1;
             dates = dater.fromSerial(freqStart, serialDates); 
-            dates = dates(:);
-            if isa(this.Start, 'DateWrapper')
-                dates = DateWrapper(dates);
-            end
+            dates = reshape(dates, [], 1);
         end
         return
+
 end
 
 end%
-
 
 %
 % Local Functions
 %
 
-
-function c = subsCase(this, timeRef)
-    ERROR_INVALID_SUBSCRIPT = { 'TimeSubscriptable:subsCase:IllegalSubscript'
-                                'Illegal subscripted reference or assignment to %s object' };
-    testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
-
-    %--------------------------------------------------------------------------
-
-    start = this.Start;
+function output = locallyDetermineCase(start, timeRef)
+    %(
+    testColon = @(x) (ischar(x) || isstring(x)) && isequal(x, ':');
 
     if isequaln(timeRef, NaN)
-        ref = 'NaD';
+        ref = 'NaN';
     elseif isempty(timeRef)
         ref = '[]';
     elseif testColon(timeRef) || isequal(timeRef, Inf)
@@ -124,17 +108,20 @@ function c = subsCase(this, timeRef)
     elseif isnumeric(timeRef)
         ref = 'Date';
     else
-        throw( exception.Base(ERROR_INVALID_SUBSCRIPT, 'error'), ...
-               class(this) );
+        exception.error([
+            "Series:InvalidSubscript"
+            "Invalid subscripted reference or assignment to Series object."
+        ]);
     end
 
     freq = dater.getFrequency(start);
     if isnan(freq) || isempty(start)
-        start = 'NaD';
+        start = 'NaN';
     else
         start = 'Date';
     end
 
-    c = [start, '_', ref];
+    output = [start, '_', ref];
+    %)
 end%
 

@@ -28,7 +28,7 @@ function [rmse, error] = rmse(actual, prediction, varargin)
 %--------------------------------------------------------------------------
 %
 %
-% __`Range=Inf`__ [ DateWrapper | `Inf` ]
+% __`Range=Inf`__ [ Dater | `Inf` ]
 %
 %     Date range on which the prediction errors will be calculated; `Inf`
 %     means all observations available will be included in the
@@ -68,8 +68,8 @@ if isempty(pp)
     pp = extend.InputParser('@Series/rmse');
     addRequired(pp, 'actual', @(x) isa(x, 'NumericTimeSubscriptable') && ndims(x) == 2 && size(x, 2) == 1); %#ok<ISMAT>
     addRequired(pp, 'prediction', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addOptional(pp, 'legacyRange', Inf, @DateWrapper.validateRangeInput);
-    addParameter(pp, 'Range', Inf, @DateWrapper.validateRangeInput);
+    addOptional(pp, 'legacyRange', Inf, @Dater.validateRangeInput);
+    addParameter(pp, 'Range', Inf, @Dater.validateRangeInput);
 end
 [skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip

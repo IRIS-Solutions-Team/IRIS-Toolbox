@@ -50,7 +50,7 @@ if isempty(pp)
     addRequired(pp, 'order', @(x) isequal(x, 1) || isequal(x, 2));
     addRequired(pp, 'Lambda', @(x) isnumeric(x) && isscalar(x) && x>0);
 
-    addParameter(pp, 'Range', Inf, @DateWrapper.validateRangeInput);
+    addParameter(pp, 'Range', Inf, @Dater.validateRangeInput);
 end
 parse(pp, this, order, lambda, varargin{:});
 opt = pp.Options;

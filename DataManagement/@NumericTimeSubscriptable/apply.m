@@ -1,4 +1,3 @@
-function this = apply(func, this, dates, varargin)
 % apply  Apply function to time series period by period
 %{
 % ## Syntax ##
@@ -16,7 +15,7 @@ function this = apply(func, this, dates, varargin)
 % __`x`__ [ NumericTimeSubscriptable ] -
 % Input series to which the `func` will be applied period by period.
 %
-% __`dates`__ [ DateWrapper ] -
+% __`dates`__ [ Dater ] -
 % Dates at which the new values will be calculated for `x` and stored in
 % the output series.
 % 
@@ -84,7 +83,8 @@ function this = apply(func, this, dates, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+
+function this = apply(func, this, dates, varargin)
 
 if isempty(dates)
     return

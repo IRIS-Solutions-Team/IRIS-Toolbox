@@ -17,7 +17,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('Series.implementPlot');
     pp.KeepUnmatched = true;
-    pp.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
+    pp.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || Dater.validateDateInput(x));
     pp.addParameter('DateFormat', @default, @(x) isequal(x, @default) || isstring(x) || ischar(x) || iscellstr(x));
     pp.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
                          || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );

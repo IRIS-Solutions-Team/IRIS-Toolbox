@@ -1,19 +1,11 @@
-function outputDate = hh(year, halfyear)
-% numeric.hh  IRIS date code for half-yearly dates
-% 
-% Backend IRIS function
-% No help provided
+% Type `web Dater/hh.md` for help on this function
+%
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function varargout = hh(varargin)
 
-%--------------------------------------------------------------------------
-
-if nargin<2
-    halfyear = 1;
-end
-
-outputDate = numeric.datecode(2, year, halfyear);
+[varargout{1:nargout}] = dater.hh(varargin{:});
 
 end%
 

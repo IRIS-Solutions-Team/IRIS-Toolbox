@@ -22,26 +22,21 @@ end
 posFirstSeries = find(inxSeries, 1);
 firstSeries = inputs{posFirstSeries};
 outputSeries = firstSeries.empty(firstSeries);
-if isa(firstSeries.Start, "DateWrapper")
-    dateFunction = @DateWrapper;
-else
-    dateFunction = @double;
-end
 
 % Remove inputs with zero size in 2nd and higher dimensions
 % Remove empty numeric arrays
-indexToRemove = false(size(inputs));
+inxToRemove = false(size(inputs));
 for i = 1 : numel(inputs)
     if inxSeries(i) 
         size__ = size(inputs{i});
-        indexToRemove(i) = all(size__(2:end)==0);
+        inxToRemove(i) = all(size__(2:end)==0);
     elseif inxNumeric(i)
-        indexToRemove(i) = isempty(inputs{i});
+        inxToRemove(i) = isempty(inputs{i});
     end
 end
-inputs(indexToRemove) = [ ];
-inxSeries(indexToRemove) = [ ];
-inxNumeric(indexToRemove) = [ ]; %#ok<NASGU>
+inputs(inxToRemove) = [ ];
+inxSeries(inxToRemove) = [ ];
+inxNumeric(inxToRemove) = [ ]; %#ok<NASGU>
 
 if isempty(inputs)
     return
@@ -69,7 +64,7 @@ else
     numPeriods = 0;
 end
 
-outputSeries.Start = dateFunction(minStart);
+outputSeries.Start = minStart;
 outputData = outputSeries.Data;
 outputComment = outputSeries.Comment;
 

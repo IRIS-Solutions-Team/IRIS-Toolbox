@@ -14,7 +14,7 @@ if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable/project');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, 'function', @(x) isa(x, 'function_handle'));
-    addRequired(pp, 'dates', @DateWrapper.validateProperDateInput);
+    addRequired(pp, 'dates', @Dater.validateProperDateInput);
     addOptional(pp, 'arguments', @(x) all(cellfun(@(y) validate.numeric(y) || isa(y, 'NumericTimeSubscriptable'), x)));
 end
 %)
@@ -28,8 +28,8 @@ maxDate = max(dates);
 minDate = min(dates);
 [maxSh, minSh] = locallyDetermineShifts(func);
 
-startDate = min(minDate+minSh, double(this.Start));
-endDate = max(maxDate+maxSh, double(this.End));
+startDate = min(minDate+minSh, this.StartAsNumeric);
+endDate = max(maxDate+maxSh, this.EndAsNumeric);
 data = getDataFromTo(this, startDate, endDate);
 sizeData = size(data);
 posDates = round(dates - startDate + 1);
@@ -41,7 +41,7 @@ for c = 1 : prod(sizeData(2:end))
 end
 
 this.Data = data;
-this.Start = DateWrapper(startDate);
+this.Start = startDate;
 this = trim(this);
 
 end%

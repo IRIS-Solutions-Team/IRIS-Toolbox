@@ -1,17 +1,18 @@
 % resolveRange  Resolve start and end dates of series specific range
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [from, to] = resolveRange(this, varargin)
+function [from, to, range] = resolveRange(this, varargin)
 
 if nargin==1
     from = double(this.Start);
-    to = double(this.End);
+    to = this.EndAsNumeric;
     return
+end
+
+if strcmp(varargin{1}, ":") || isequal(varargin{1}, @all)
+    varargin{1} = Inf;
 end
 
 varargin{1} = double(varargin{1});
@@ -24,11 +25,19 @@ else
 end
 
 if isinf(from)
-    from = this.StartAsNumeric;
+    from = double(this.Start);
 end
 
 if isinf(to)
     to = this.EndAsNumeric;
+end
+
+if nargout>=3
+    if isnan(from) && isnan(to)
+        range = double.empty(0, 1);
+        return
+    end
+    range = dater.colon(from, to);
 end
 
 end%

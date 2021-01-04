@@ -536,50 +536,6 @@ NumericTimeSubscriptable ...
 
     methods
         function this = NumericTimeSubscriptable(varargin)
-% NumericTimeSubscriptable  Create new numeric time series object
-%{
-% __Syntax__
-%
-% Input arguments marked with a `~` sign may be omitted.
-%
-%     X = tseries( )
-%     X = tseries(Dates, Values, ~ColumnComments, ~UserData)
-%
-%
-% __Input Arguments__
-%
-% * `Dates` [ numeric | char ] - Dates for which observations will be
-% supplied; `dates` do not need to be sorted in ascending order or create a
-% continuous date range. If `dates` is scalar and `values` have multiple
-% rows, then the date is interpreted as the start date for the entire time
-% series.
-%
-% * `Values` [ numeric | function_handle ] - Numerical values
-% (observations) arranged columnwise, or a function that will be used to
-% create an N-by-1 array of values, where N is the number of `dates`.
-%
-% * `~Comment` [ char | cellstr | string ] - Comment or
-% comments attached to each column of observations; if omitted,
-% comments will be empty strings.
-%
-% * `~UserData` [ * ] - Any kind of user data attached to the
-% object; if omitted, user data will be empty.
-%
-%
-% __Output Arguments__
-%
-% * `X` [ tseries ] - New times series.
-%
-%
-% __Description__
-%
-%
-% __Example__
-%
-%}
-            
-            % -[IrisToolbox] for Macroeconomic Modeling
-            % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
             
             this = this@shared.GetterSetter( );
             this = this@shared.UserDataContainer( );
@@ -635,7 +591,7 @@ NumericTimeSubscriptable ...
                 pp = extend.InputParser('NumericTimeSubscriptable.NumericTimeSubscriptable');
                 pp.KeepDefaultOptions = true;
 
-                addRequired(pp, 'Dates', @DateWrapper.validateDateInput);
+                addRequired(pp, 'Dates', @Dater.validateDateInput);
                 addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle') || isstring(x));
                 addRequired(pp, 'Comment', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
                 addRequired(pp, 'UserData');

@@ -10,7 +10,7 @@ function this = cumsumk(this, range, varargin)
 %
 % * `X` [ tseries ] - Input time series.
 %
-% * `Range` [ DateWrapper | Inf ] - Range on which the cumulative sum
+% * `Range` [ Dater | Inf ] - Range on which the cumulative sum
 % will be computed and the output time series returned, not including the
 % presample or postsample needed.
 %
@@ -75,7 +75,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('tseries.cumsumk');
     addRequired(pp, 'TimeSeries', @(x) isa(x, 'tseries'));
-    addRequired(pp, 'Range', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'Range', @Dater.validateProperRangeInput);
     addParameter(pp, 'K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, 'Rho', 1, @(x) isnumeric(x) && isscalar(x));
     addParameter(pp, 'Log', false, @(x) islogical(x) && isscalar(x));

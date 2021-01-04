@@ -24,13 +24,11 @@ function varargout = hpf(varargin)
 % Input time series that will be filtered.
 %
 %
-% __`~range=@all`__ [ DateWrapper | char ]
+% __`~range=Inf`__ [ Dater | `Inf` ]
 % >
 % Date range on which the input data will be filtered; `range` can be
-% `@all`, `Inf`, `[startdata, Inf]`, or `[-Inf, enddate]`; if omitted,
-% `@all` (i.e. the entire available range of the input time series) is
-% used.
-%
+% `Inf`, `[startdata, Inf]`, or `[-Inf, enddate]`.
+% 
 %
 % ## Output Arguments ## 
 %

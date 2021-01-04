@@ -1,14 +1,9 @@
 function this = infoset2line(this, range)
 
-if ischar(range)
-    range = textinp2dat(range);
-end
-range = range(1) : range(end);
-
-data = rangedata(this, range);
-sz = size(data);
-nd = length(sz);
-if length(sz)>3
+[data, startDate] = getDataFromTo(this, double(range));
+sizeData = size(data);
+nd = length(sizeData);
+if length(sizeData)>3
     data = data(:,:,:);
 end
 
@@ -23,10 +18,11 @@ for i = 2 : nCol
     data((i-1)+(1:nRow), i, :) = x;
 end
 
-if length(sz)>3
-    data = reshape(data, [size(data, 1), size(data, 2), sz(3:end)]);
+if length(sizeData)>3
+    data = reshape(data, [size(data, 1), size(data, 2), sizeData(3:end)]);
 end
 
-this = replace(this, data, range(1));
+this = fill(this, data, startDate);
 
-end
+end%
+

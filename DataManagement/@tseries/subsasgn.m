@@ -1,12 +1,14 @@
-% subsasgn  Subscripted assignment to numeric time series
-%{
-% __Syntax__
+% # subsasgn
+%
+% Subscripted assignment to numeric time series
+%
+% ## Syntax
 %
 %     X(Dates) = Values
 %     X(Dates, I, J, K, ...) = Values
 %
 %
-% __Input Arguments__
+% ## Input Arguments
 %
 % * `X` [ tseries ] - Tseries object that will be assigned new
 % observations.
@@ -21,15 +23,15 @@
 % dates.
 %
 %
-% __Output Arguments__
+% ## Output Arguments
 %
 % * `X` [ tseries ] - Tseries object with newly assigned observations.
 %
 %
-% __Description__
+% ## Description
 %
 %
-% __Example__
+% ## Example
 %
 %}
 
@@ -39,7 +41,6 @@
 function this = subsasgn(this, s, y, varargin)
 
 if isstruct(s) && isequal(s(1).type, '.')
-    % Give standard dot access to properties
     this = builtin('subsasgn', this, s, y);
     return
 end
@@ -64,13 +65,15 @@ switch s(1).type
         if numel(s)~=1 || ~isequal(s(1).type, '()')
             exception.error([
                 "NumericTimeSubscriptable:InvalidSubscriptedAssignment"
-                "Invalid subscripted assignment to time series. "
+                "Invalid subscripted assignment to time series; use round "
+                "brackets to assign dated values to a time series."
             ]);
         end
         this = setData(this, s, y);
+
         % Shift start date back
         if sh~=0
-            this.Start = addTo(this.Start, sh);
+            this.Start = dater.plus(this.Start, sh);
         end
 end
 

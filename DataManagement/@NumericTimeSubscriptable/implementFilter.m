@@ -15,7 +15,7 @@ if isempty(pp)
     pp = extend.InputParser('@NumericTimeSubscriptable/implementFilter');
     addRequired(pp, 'order', @(x) validate.roundScalar(x, 0, Inf));
     addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addOptional(pp, 'range', Inf, @DateWrapper.validateRangeInput);
+    addOptional(pp, 'range', Inf, @Dater.validateRangeInput);
 
     addParameter(pp, {'Change', 'Growth'}, [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'Gamma', 1, @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x, 0, Inf));
@@ -143,12 +143,12 @@ end
 
 varargout{posLow} = this;
 varargout{posLow}.Start = filterStart;
-varargout{posLow}.data = tnd;
+varargout{posLow}.Data = tnd;
 varargout{posLow} = trim(varargout{posLow});
 
 varargout{posHigh} = this;
 varargout{posHigh}.Start = filterStart;
-varargout{posHigh}.data = gap;
+varargout{posHigh}.Data = gap;
 varargout{posHigh} = trim(varargout{posHigh});
 
 varargout{3} = cutoff;

@@ -48,8 +48,6 @@ lookupTable = {
     'DateWrapper:InvalidDateFormat', 'Invalid date format; must be char, string, cellstr, or struct'
     'DateWrapper:InvalidInputsIntoPlus', 'Invalid input arguments into a DateWrapper plus expression'
     'DateWrapper:InvalidInputsIntoMinus', 'Invalid input arguments into a DateWrapper minus expression'
-    'DateWrapper:InvalidInputsIntoAddTo', 'Invalid input arguments into DateWrapper.addTo(~)'
-    'DateWrapper:InvalidInputsIntoRnglen', 'Input arguments into DateWrapper.rnglen(~) must be dates of the same date frequency'
     'DateWrapper:InvalidInputsIntoUminus', 'Unary minus can only be applied to Inf or -Inf dates'
     'DateWrapper:InvalidStartEndInColon', 'Start and end dates in a DateWrapper colon expression must be scalar dates of the the same date frequency'
     'DateWrapper:InvalidStepInColon', 'Step in a DateWrapper colon expression must be a scalar integer'

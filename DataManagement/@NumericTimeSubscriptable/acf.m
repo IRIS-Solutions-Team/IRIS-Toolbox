@@ -70,7 +70,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable.acf');
     addRequired(pp, 'InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addOptional(pp, 'Dates', Inf, @DateWrapper.validateDateInput);
+    addOptional(pp, 'Dates', Inf, @Dater.validateDateInput);
 
     addParameter(pp, 'Demean', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);

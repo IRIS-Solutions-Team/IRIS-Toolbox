@@ -127,15 +127,15 @@ opt = parser.Options;
 %--------------------------------------------------------------------------
 
 eqtn = this.EqtnRhs;
-numOfEquations = numel(eqtn);
-numOfRhsNames = numel(this.NamesOfRhs);
-dates = dates(:).';
+numEquations = numel(eqtn);
+numRhsNames = numel(this.NamesOfRhs);
+dates = reshape(dates, 1, []);
 minDate = min(dates);
 maxDate = max(dates);
 maxSh = this.MaxSh;
 minSh = this.MinSh;
-extendedRange = minDate+minSh : maxDate+maxSh;
-numExtendedPeriods = numel(extendedRange);
+extdRange = dater.colon(dater.plus(minDate, minSh), dater.plus(maxDate, maxSh));
+numExtendedPeriods = numel(extdRange);
 isSteadyRef = ~isempty(this.NamesOfSteadyRef) && isa(m, 'model');
 
 D = struct( );
@@ -155,15 +155,15 @@ eqtn = strrep(eqtn, '?', 'D.');
 eqtn = regexprep(eqtn, '\{@(.*?)\}#', '(t$1, :)');
 eqtn = strrep(eqtn, '#', '(t, :)');
 
-fn = cell(1, numOfEquations);
-for i = 1 : numOfEquations
+fn = cell(1, numEquations);
+for i = 1 : numEquations
     fn{i} = str2func(['@(D, t, S)', eqtn{i}]);
 end
 
 % Evaluate equations sequentially period by period
 runTime = round(dates-minDate+1 - minSh);
 for t = runTime
-    for iEq = 1 : numOfEquations
+    for iEq = 1 : numEquations
         ithName = this.NamesOfLhs{iEq};
         lhs = D.(ithName);
         try
@@ -189,7 +189,7 @@ if ~opt.Fresh
     outputData = inputData;
 end
 
-for i = 1 : numOfEquations
+for i = 1 : numEquations
     ithName = this.NamesOfLhs{i};
     data = D.(ithName)(-minSh+1:end-maxSh, :);
     ithComment = this.Label{i};
@@ -204,7 +204,7 @@ return
 
 
     function s = createSteadyRefDbase( )
-        ttrend = dat2ttrend(extendedRange, m);
+        ttrend = dat2ttrend(extdRange, m);
         lsName = this.NamesOfSteadyRef;
         ell = lookup(m, this.NamesOfSteadyRef);
         pos = ell.PosName;
@@ -229,32 +229,32 @@ return
 
 
     function checkRhsNames( )
-        inxOfFound = true(1, numOfRhsNames);
-        inxOfValid = true(1, numOfRhsNames);
-        for ii = 1 : numOfRhsNames
+        inxFound = true(1, numRhsNames);
+        inxValid = true(1, numRhsNames);
+        for ii = 1 : numRhsNames
             iithName = this.NamesOfRhs{ii};
             isField = isfield(inputData, iithName);
-            inxOfFound(ii) = isField || any(strcmp(iithName, this.NamesOfLhs));
+            inxFound(ii) = isField || any(strcmp(iithName, this.NamesOfLhs));
             if ~isField
                 continue
             end
             if isa(inputData.(iithName), 'NumericTimeSubscriptable')
-                D.(iithName) = rangedata(inputData.(iithName), extendedRange);
+                D.(iithName) = getDataFromTo(inputData.(iithName), extdRange);
                 continue
             end
-            inxOfValid(ii) = isnumeric(inputData.(iithName)) && size(inputData.(iithName), 1)==1;
-            if inxOfValid(ii)
+            inxValid(ii) = isnumeric(inputData.(iithName)) && size(inputData.(iithName), 1)==1;
+            if inxValid(ii)
                 D.(iithName) = inputData.(iithName);
                 eqtn = regexprep(eqtn, ['\?', iithName, '#'], ['?', iithName]);
             end
         end
-        if any(~inxOfFound)
+        if any(~inxFound)
             throw( exception.Base('RptEq:RHS_NAME_DATA_NOT_FOUND', 'error'), ...
-                this.NamesOfRhs{~inxOfFound} );
+                this.NamesOfRhs{~inxFound} );
         end
-        if any(~inxOfValid)
+        if any(~inxValid)
             throw( exception.Base('RptEq:RHS_NAME_DATA_INVALID', 'error'), ...
-                this.NamesOfRhs{~inxOfFound} );
+                this.NamesOfRhs{~inxFound} );
         end        
     end%
 
@@ -262,7 +262,7 @@ return
 
 
     function preallocLhsNames( )
-        for ii = 1 : numOfEquations
+        for ii = 1 : numEquations
             iithName = this.NamesOfLhs{ii};
             if ~isfield(D, iithName)
                 D.(iithName) = nan(numExtendedPeriods, 1);
