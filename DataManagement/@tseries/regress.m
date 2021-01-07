@@ -69,12 +69,11 @@ if isempty(pp)
     pp.addParameter({'Weights', 'Weighting'}, [ ] , @(x) isempty(x) || isa(x, 'tseries'));
 end
 parse(pp, lhs, rhs, varargin{:});
-dates = pp.Results.Dates;
+dates = double(pp.Results.Dates);
 opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-dates = double(dates);
 checkFrequency(lhs, dates);
 [dataY, dates] = getData(lhs, dates);
 dates = double(dates);

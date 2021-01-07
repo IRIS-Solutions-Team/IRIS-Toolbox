@@ -83,7 +83,7 @@ switch locallyDetermineCase(thisStart, timeRef)
         if nargout>1
             serialDates = serialStart + pos - 1;
             dates = dater.fromSerial(freqStart, serialDates); 
-            dates = reshape(dates, [], 1);
+            dates = reshape(dates, 1, []);
         end
         return
 

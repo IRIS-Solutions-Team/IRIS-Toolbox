@@ -138,15 +138,14 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
 
     if oldFreq==Frequency.DAILY && opt.RemoveWeekends
         inxWeekend = dater.isWeekend(oldDates);
-        oldDates(inxWeekend) = [];
         newDates(inxWeekend) = [];
         oldData(inxWeekend, :) = [];
     end
 
 
     oldSize = size(oldData);
-    numColumns = size(oldData, 2);
     oldData = oldData(:, :);
+    numColumns = size(oldData, 2);
     newDatesSerial = dater.getSerial(newDates);
     newStartSerial = newDatesSerial(1);
     newEndSerial = newDatesSerial(end);
