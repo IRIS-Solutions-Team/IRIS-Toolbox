@@ -24,12 +24,12 @@ if isempty(pp)
     addRequired(pp, 'NewFreq', @Frequency.validateProperFrequency);
 
     addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || startsWith(x, "first", "ignoreCase", true) || startsWith(x, "last", "ignoreCase", true));
-    addParameter(pp, {'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'Last', 'Previous'}))) || validate.numericScalar(x));
+    addParameter(pp, {'RemoveMissing', 'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, "RemoveWeekends", false, @validate.logicalScalar);
+    addParameter(pp, 'Missing', @default, @(x) isequal(x, @default) || validate.anyString(x, ["previous", "next"]) || validate.numericScalar(x));
     addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.stringScalar(x) || isnumeric(x));
     addParameter(pp, 'Position', 'center', @(x) validate.stringScalar(x) && startsWith(x, ["s", "b", "f", "c", "m", "e", "l"], "IgnoreCase", true));
     addParameter(pp, 'Select', Inf, @(x) isnumeric(x));
-    addParameter(pp, "RemoveWeekends", false, @validate.logicalScalar);
 end
 %)
 opt = parse(pp, this, newFreq, varargin{:});
@@ -41,7 +41,7 @@ end
 
 %--------------------------------------------------------------------------
 
-if isnan(this.Start) && isempty(this.Data)
+if isnan(this.Start) || isempty(this.Data)
     return
 end
 
@@ -52,109 +52,111 @@ end
 
 oldFreq = dater.getFrequency(this.Start);
 
-if oldFreq==newFreq
-    return
-end
-
 if oldFreq==0 || newFreq==0
     throw( exception.Base('Series:CannotConvertIntegerFreq', 'error') )
 end
 
-if oldFreq>newFreq
-    % Aggregate
+if oldFreq==newFreq
+    % No conversion
+    conversionFunc = [];
+elseif oldFreq>newFreq
+    % Aggregation
     conversionFunc = @locallyAggregate;
 else
-    % Interpolate matching sum or average
     if validate.stringScalar(opt.Method) && startsWith(opt.Method, ["quadSum", "quadAvg", "quadMean"], "ignoreCase", true)
+        % Sum- or average-matching interpolation
         conversionFunc = @locallyInterpolateAndMatch;
     else
-        % Built-in interp1
+        % Non-matching interpolation
         conversionFunc = @locallyInterpolate;
     end
 end
 
-[oldStart, oldEnd] = resolveRange(this, range(1), range(end));
-[newData, newStart] = conversionFunc(this, oldStart, oldEnd, oldFreq, newFreq, opt);
+this = locallyPreprocessMissing(this, opt);
+
+if ~isempty(conversionFunc)
+    [oldStart, oldEnd] = resolveRange(this, range);
+    [newData, newStart] = conversionFunc(this, oldStart, oldEnd, oldFreq, newFreq, opt);
+    this = fill(this, newData, newStart, this.Comment, this.UserData);
+end
 
 if newFreq==Frequency.DAILY && opt.RemoveWeekends
-    range = round(newStart + (0 : size(newData, 1)-1));
-    inxWeekend = dater.isWeekend(range);
-    newData(inxWeekend, :) = NaN;
+    this = removeWeekends(this);
 end
-this = fill(this, newData, newStart, this.Comment, this.UserData);
 
 end%
-
 
 %
 % Local functions
 %
 
+function this = locallyPreprocessMissing(this, opt)
+    %(
+    if ~isequal(opt.Missing, @default)
+        this = fillMissing(this, Inf, opt.Missing);
+    end
+    %)
+end%
+
 
 function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
-    charMethod = char(opt.Method);
-    if startsWith(charMethod, "Default", "ignoreCase", true)
-        opt.Method = @mean;
-    elseif startsWith(charMethod, "Last", "ignoreCase", true)
-        opt.Method = "last";
-    elseif startsWith(charMethod, "First", "ignoreCase", true)
-        opt.Method = "first";
-    elseif startsWith(charMethod, "Random", "ignoreCase", true)
-        opt.Method = "random";
-    end
 
+    %  
+    % Handle Method="default", "first", "last", "random", in char, string
+    % or function_handle
+    %
+    opt.Method = locallyResolveSpecialAggregationMethods(opt.Method);
+
+
+    %
     % Stretch the original range from the beginning of first year until the end
-    % of last year
+    % of last year; then convert the old dates to a vector of new dates of the
+    % same size
+    %
     if oldFreq==Frequency.DAILY
         [oldStartYear, ~, ~] = datevec(oldStart);
         [oldEndYear, ~, ~] = datevec(oldEnd);
-        oldStart = numeric.dd(oldStartYear, 1, 1);
-        oldEnd = numeric.dd(oldEndYear, 12, 'end');
-        if newFreq==52
-            newDates = numeric.day2ww(oldStart:oldEnd);
+        oldStart = dater.dd(oldStartYear, 1, 1);
+        oldEnd = dater.dd(oldEndYear, 12, "end");
+        oldDates = dater.colon(oldStart, oldEnd);
+        if newFreq==Frequency.WEEKLY
+            newDates = dater.day2ww(oldDates);
         else
-            [newYears, newMonths] = datevec(oldStart:oldEnd);
-            newDates = numeric.datecode(newFreq, newYears, ceil(newFreq*newMonths/12));
+            [newYears, newMonths] = datevec(oldDates);
+            newDates = dater.datecode(newFreq, newYears, ceil(newFreq*newMonths/12));
         end
     else
         oldStartYear = dat2ypf(oldStart);
         oldEndYear = dat2ypf(oldEnd);
-        oldStart = numeric.datecode(oldFreq, oldStartYear, 1);
-        oldEnd = numeric.datecode(oldFreq, oldEndYear, 'end');
-        newDates = numeric.convert( ...
-            oldStart:oldEnd, newFreq, ...
-            'ConversionMonth=', opt.ConversionMonth ...
-        );
+        oldStart = dater.datecode(oldFreq, oldStartYear, 1);
+        oldEnd = dater.datecode(oldFreq, oldEndYear, "end");
+        oldDates = dater.colon(oldStart, oldEnd);
+        newDates = dater.convert(oldDates, newFreq, "ConversionMonth", opt.ConversionMonth);
     end
 
     oldData = getDataFromTo(this, oldStart, oldEnd);
-    oldSize = size(oldData);
-    oldData = oldData(:, :);
-    numColumns = size(oldData, 2);
 
-    % Treat missing observations in input daily series
-    for row = 1 : size(oldData, 1)
-        inxNaN = isnan(oldData(row, :));
-        if any(inxNaN)
-            if any(strcmpi(opt.Missing, {'last', 'previous'}))
-                if row>1
-                    oldData(row, inxNaN) = oldData(row-1, inxNaN);
-                else
-                    oldData(row, inxNaN) = NaN;
-                end
-            else
-                oldData(row, inxNaN) = opt.Missing;
-            end
-        end
+    if oldFreq==Frequency.DAILY && opt.RemoveWeekends
+        inxWeekend = dater.isWeekend(oldDates);
+        oldDates(inxWeekend) = [];
+        newDates(inxWeekend) = [];
+        oldData(inxWeekend, :) = [];
     end
 
+
+    oldSize = size(oldData);
+    numColumns = size(oldData, 2);
+    oldData = oldData(:, :);
     newDatesSerial = dater.getSerial(newDates);
     newStartSerial = newDatesSerial(1);
     newEndSerial = newDatesSerial(end);
     numNewPeriods = newEndSerial - newStartSerial + 1;
-
-    % Apply function period by period, column by column
+    
+    %
+    % Apply the aggregation function period by period, column by column
+    %
     newData = nan(0, numColumns);
+    missingTest = this.MissingTest;
     for newSerial = newStartSerial : newEndSerial
         inxRows = newSerial==newDatesSerial;
         newAdd = nan(1, numColumns);
@@ -168,8 +170,8 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
 
                 col__ = oldAdd(:, col);
 
-                if opt.RemoveNaN
-                    inxToKeep = ~isnan(col__);
+                if opt.RemoveMissing
+                    inxToKeep = ~missingTest(col__);
                     col__ = col__(inxToKeep);
                     if isnumeric(method__) && ~isempty(method__)
                         method__ = method__(inxToKeep);
@@ -219,6 +221,24 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
 end%
 
 
+function method = locallyResolveSpecialAggregationMethods(method)
+    %(
+    charMethod = char(method); % [^1]   
+    % [^1]: Convert to char; this works both for char, string and function_handle
+
+    if startsWith(charMethod, "default", "ignoreCase", true)
+        method = @mean;
+    elseif startsWith(charMethod, "last", "ignoreCase", true)
+        method = "last";
+    elseif startsWith(charMethod, "first", "ignoreCase", true)
+        method = "first";
+    elseif startsWith(charMethod, "random", "ignoreCase", true)
+        method = "random";
+    end
+    %)
+end%
+
+
 function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     %(
     if isequal(opt.Method, @default) || startsWith(opt.Method, "default", "ignoreCase", true)
@@ -237,8 +257,8 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
         oldEndMonth = per2month(oldEndPer, oldFreq, 'last');
         oldStartDay = datenum(oldStartYear, oldStartMonth, 1);
         oldEndDay = datenum(oldEndYear, oldEndMonth, eomday(oldEndYear, oldEndMonth));
-        newStart = numeric.day2ww(oldStartDay);
-        newEnd = numeric.day2ww(oldEndDay);
+        newStart = dater.day2ww(oldStartDay);
+        newEnd = dater.day2ww(oldEndDay);
         % Cut off the very first and very last week; it helps handle some weird
         % cases
         % Disabled until we describe the weird cases
@@ -251,8 +271,8 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
         else
             startMonth = per2month(oldStartPer, oldFreq, 'first');
             endMonth = per2month(oldEndPer, oldFreq, 'last');
-            newStart = numeric.dd(oldStartYear, startMonth, 1);
-            newEnd = numeric.dd(oldEndYear, endMonth, eomday(oldEndYear, endMonth));
+            newStart = dater.dd(oldStartYear, startMonth, 1);
+            newEnd = dater.dd(oldEndYear, endMonth, eomday(oldEndYear, endMonth));
         end
     else
         newStartYear = oldStartYear;
@@ -263,8 +283,8 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
         % Find the latest freq2 period contained (at least partially) in freq1 end
         % period.
         newEndPer = ceil((oldEndPer)*newFreq/oldFreq);
-        newStart = numeric.datecode(newFreq, newStartYear, newStartPer);
-        newEnd = numeric.datecode(newFreq, newEndYear, newEndPer);
+        newStart = dater.datecode(newFreq, newStartYear, newStartPer);
+        newEnd = dater.datecode(newFreq, newEndYear, newEndPer);
     end
 
     oldData = getDataFromTo(this, oldStart, oldEnd);
@@ -292,8 +312,8 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
 
 
         function newData = hereFlat( )
-            newRange = newStart : newEnd;
-            oldRange = oldStart : oldEnd;
+            newRange = dater.colon(newStart, newEnd);
+            oldRange = dater.colon(oldStart, oldEnd);
             newConverted = convert(newRange, oldFreq);
             newSize = oldSize;
             newSize(1) = numel(newRange);
@@ -324,7 +344,7 @@ end%
 function [newData, newStart] = locallyInterpolateAndMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     n = newFreq/oldFreq;
     if n~=round(n)
-        utils.error('tseries:convert', ...
+        utils.error('NumericTimeSubscriptable:convert', ...
             ['Source and target frequencies are incompatible ', ...
             'in ''%s'' interpolation.'], ...
             opt.Method);
@@ -344,7 +364,7 @@ function [newData, newStart] = locallyInterpolateAndMatch(this, oldStart, oldEnd
     newStartPer = 1 + floor((oldStartPer-1)*newFreq/oldFreq);
     % Find the latest freq2 period contained (at least partially) in freq1 end
     % period
-    newStart = numeric.datecode(newFreq, newStartYear, newStartPer);
+    newStart = dater.datecode(newFreq, newStartYear, newStartPer);
 
     [newData, flag] = interpolateAndMatchEval(oldData, n);
     if ~flag
@@ -425,4 +445,39 @@ function data = random(data, varargin)
         data = data(pos, :);
     end
 end%
+
+
+
+
+%
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Series/convertUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+%% Test Business Daily
+
+x1 = Series(dd(2020,1,1):dd(2020,3,"end"), @rand);
+x2 = removeWeekends(x1);
+
+y1 = convert(x1, Frequency.MONTHLY);
+y2 = convert(x2, Frequency.MONTHLY);
+y3 = convert(x1, Frequency.MONTHLY, "removeWeekends", true);
+y4 = convert(x2, Frequency.MONTHLY, "method", @nanmean);
+y5 = convert(x2, Frequency.MONTHLY, "missing", -100);
+y6 = convert(x2, Frequency.MONTHLY, "removeMissing", true);
+
+assertEqual(testCase, size(y1.Data, 1), 3);
+assertTrue(testCase, isempty(y2));
+assertEqual(testCase, size(y3.Data, 1), 3);
+assertNotEqual(testCase, y1.Data, y3.Data);
+assertEqual(testCase, y3.Data, y4.Data, "absTol", 1e-12);
+assertLessThan(testCase, y5.Data, 0);
+assertEqual(testCase, y3.Data, y6.Data, "absTol", 1e-12);
+
+##### SOURCE END #####
+%}
 

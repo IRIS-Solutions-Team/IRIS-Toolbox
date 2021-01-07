@@ -4,45 +4,84 @@ function outputNames = filterFields(inputDb, options)
 %(
 arguments
     inputDb (1, 1) { validate.databank(inputDb) }
-    options.Name  (1, 1) function_handle = @all
-    options.Value  (1, 1) function_handle = @all
+    options.Name (1, 1) function_handle = @all
+    options.Class (1, :) {locallyValidateClass} = @all
+    options.Value (1, 1) function_handle = @all
 end
 %)
 % >=R2019b
 
 isNameFilter = ~isequal(options.Name, @all);
+isClassFilter = ~isequal(options.Class, @all);
 isValueFilter = ~isequal(options.Value, @all);
 
 allKeys = reshape(string(fieldnames(inputDb)), 1, [ ]);
-if ~isNameFilter && ~isValueFilter
+if ~isNameFilter && ~isClassFilter && ~isValueFilter
     outputNames = allKeys;
     return
 end
 
+shortlist = allKeys;
+
 if isNameFilter
-    inxName = logical.empty(1, 0);
-    for n = allKeys
-        inxName(end+1) = options.Name(n);
+    shortlistUpdate = string.empty(1, 0);
+    for n = shortlist
+        if isequal(options.Name(n), true)
+            shortlistUpdate(end+1) = n;
+        end
     end
-else
-    inxName = true(size(allKeys));
+    shortlist = shortlistUpdate;
+end
+
+
+if isClassFilter
+    options.Class = reshape(string(options.Class), 1, []);
+    shortlistUpdate = string.empty(1, 0);
+    for n = shortlist
+        if isa(inputDb, "Dictionary")
+            value = retrieve(inputDb, n);
+        else
+            value = inputDb.(n);
+        end
+        for c = options.Class
+            if isa(value, c)
+                shortlistUpdate(end+1) = n;
+                break
+            end
+        end
+    end
+    shortlist = shortlistUpdate;
 end
 
 if isValueFilter
-    inxValue = logical.empty(1, 0);
-    for n = allKeys
-       if isa(inputDb, "Dictionary")
-           value = retrieve(inputDb, n);
-       else
-           value = inputDb.(n);
-       end
-       inxValue(end+1) = isequal(options.Value(value), true);
+    shortlistUpdate = string.empty(1, 0);
+    for n = shortlist
+        if isa(inputDb, "Dictionary")
+            value = retrieve(inputDb, n);
+        else
+            value = inputDb.(n);
+        end
+        if isequal(options.Value(value), true)
+            shortlistUpdate(end+1) = n;
+        end
     end
-else
-    inxValue = true(size(allKeys));
+    shortlist = shortlistUpdate;
 end
 
-outputNames = allKeys(inxName & inxValue);
+outputNames = shortlist;
 
+end%
+
+%
+% Local Validators
+%
+
+function locallyValidateClass(x)
+    %( 
+    if isequal(x, @all) || isstring(x)
+        return
+    end
+    error("Input value must be a string or array of strings.");
+    %)
 end%
 

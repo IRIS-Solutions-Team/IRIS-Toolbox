@@ -56,7 +56,11 @@ from = double(from);
 to = double(to);
 step = double(step);
 
-output = (round(100*from) : round(100*step) : round(100*to)) / 100;
+if isequal(from, -Inf) || isequal(to, Inf)
+    output = [from, to];
+else
+    output = (round(100*from) : round(100*step) : round(100*to)) / 100;
+end
 
 end%
 

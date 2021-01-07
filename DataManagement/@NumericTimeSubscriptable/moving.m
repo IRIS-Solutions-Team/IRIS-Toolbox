@@ -82,7 +82,7 @@ if ~isequal(range, @all) && ~isequal(range, Inf)
     this = clip(this, range(1), range(end));
 end
 
-this = unop(@numeric.moving, this, 0, opt.Window, opt.Function);
+this = unop(@series.moving, this, 0, opt.Window, opt.Function);
 
 end%
 

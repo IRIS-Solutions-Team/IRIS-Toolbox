@@ -320,6 +320,14 @@ classdef validate
             end
             error("Input value must be a databank (struct or Dictionary).");
         end%
+
+
+        function mustBeProperRange(x)
+            if isequal(validate.properRange(x), true)
+                return
+            end
+            error("Input value must be a proper range.");
+        end%
     end
 end
 

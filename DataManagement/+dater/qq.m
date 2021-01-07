@@ -5,7 +5,7 @@
 
 function outputDate = qq(varargin)
 
-outputDate = dater.datecode(4, varargin{:});
+outputDate = dater.datecode(Frequency.QUARTERLY, varargin{:});
 
 end%
 

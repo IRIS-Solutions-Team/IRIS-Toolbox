@@ -29,6 +29,7 @@ if all(inxNaN)
 end
 
 if isnumeric(dates)
+    locallyVerifyFrequencyWhenProperDates(dates, freq);
     outputDates = double(dates);
     for i = 1 : numSeries
         varargout{i} = getDataNoFrills(varargin{i}, dates);
@@ -36,18 +37,16 @@ if isnumeric(dates)
     return
 end
 
-if ~all(freq==freq(1))
-    exception.error([
-        "Series:NonhomogeneousFrequency"
-        "All the time series that are being combined must be "
-        "of the same date frequency when long range or short range is requested. "
-    ]);
+locallyVerifyFrequencyWhenImproperDates(freq);
+
+if isequal(dates, @all)
+    dates = "unbalanced";
 end
 
-if startsWith(dates, "longRange", "ignoreCase", true)
+if startsWith(dates, ["unbalanced", "longRange"], "ignoreCase", true)
     from = min(startDate); 
     to = max(endDate); 
-elseif startsWith(dates, "shortRange", "ignoreCase", true)
+elseif startsWith(dates, ["balanced", "shortRange"], "ignoreCase", true)
     from = max(startDate); 
     to = min(endDate); 
 else
@@ -64,6 +63,37 @@ end
 outputDates = dater.colon(from, to);
 
 end%
+
+%
+% Localy Functions
+%
+
+function locallyVerifyFrequencyWhenProperDates(dates, freq)
+    if isempty(dates)
+        locallyVerifyFrequencyWhenImproperDates(freq);
+        return
+    end
+    freqDates = dater.getFrequency(dates(1));
+    if all(freq==freqDates)
+        return
+    end
+    exception.error([
+        "Series:FrequencyMismatch"
+        "Date frequency of some time series is incosistent with the dates requested."
+    ]);
+end%
+
+
+function locallyVerifyFrequencyWhenImproperDates(freq)
+    if all(freq==freq(1))
+        return
+    end
+    exception.error([
+        "Series:FrequencyMismatch"
+        "All time series must be the same date frequency when they are being combined."
+    ]);
+end%
+
 
 %
 % Unit Tests

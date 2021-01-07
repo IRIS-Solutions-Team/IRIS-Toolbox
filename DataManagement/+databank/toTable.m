@@ -79,7 +79,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank/toTimetable');
     addRequired(pp, 'inputDb', @validate.databank);
-    addOptional(pp, 'names', @all, @(x) isequal(x, @all) || isstring(x) || iscellstr(x) || ischar(x));
+    addOptional(pp, 'names', @all, @(x) isa(x, 'function_handle') || isstring(x) || iscellstr(x) || ischar(x));
     addOptional(pp, 'dates', "longRange", @(x) (isstring(x) && startsWith(x, ["longRange", "shortRange", "head", "tail"], "ignoreCase", true) || DateWrapper.validateProperRangeInput));
     addParameter(pp, 'Timetable', false, @(x) isequal(x, true) || isequal(x, false));
 end
@@ -90,24 +90,10 @@ dates = pp.Results.dates;
 
 %--------------------------------------------------------------------------
 
-if isequal(names, @all)
-    names = databank.filter(inputDb, "Class=", "Series");
-end
-names = reshape(string(names), 1, [ ]);
-
-if isa(inputDb, 'Dictionary')
-    allSeries = arrayfun(@(n) retrieve(inputDb, n), names, 'uniformOutput', false);
-else
-    allSeries = arrayfun(@(n) inputDb.(n), names, 'uniformOutput', false);
-end
-
-[dates, transform] = locallyResolveDates(dates);
-        
-data = cell(size(allSeries));
-[dates, data{:}] = getDataFromMultiple(dates, allSeries{:});
-dates = reshape(double(dates), [ ], 1);
+[data, names, dates, transform] = databank.backend.extractSeriesData(inputDb, names, dates);
 freq = dater.getFrequency(dates(1));
 
+dates = reshape(dates, [], 1);
 if freq>0
     dt = dater.toMatlab(dates);
 else
@@ -125,21 +111,3 @@ if ~isempty(transform)
 end
 
 end%
-
-%
-% Local Functions
-%
-
-function [dates, transform] = locallyResolveDates(dates)
-    transform = [ ];
-    if isstring(dates)
-        if startsWith(dates, "head", "ignoreCase", true)
-            transform = @head;
-            dates = "longRange";
-        elseif startsWith(dates, "tail", "ignoreCase", true)
-            transform = @tail;
-            dates = "longRange";
-        end
-    end
-end%
-

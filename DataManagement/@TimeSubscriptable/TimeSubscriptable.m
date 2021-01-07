@@ -104,22 +104,32 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
 
 
-        function value = get.StartAsNumeric(this)
+        function value = getStartAsNumeric(this)
             value = double(this.Start);
         end%
          
 
-        function value = get.StartAsDate(this)
-            value = Dater(this.StartAsNumeric);
+        function value = getStart(this)
+            value = Dater(this.Start);
         end%
          
 
         function value = get.StartAsDateWrapper(this)
-            value = this.StartAsDate;
+            value = getStart(this);
         end%
 
 
-        function value = get.BalancedStart(this)
+        function value = get.StartAsNumeric(this)
+            value = getStartAsNumeric(this);
+        end%
+         
+
+        function value = get.StartAsDate(this)
+            value = getStart(this);
+        end%
+         
+
+        function value = getBalancedStartAsNumeric(this)
             if isnan(this.Start) || isempty(this.Data)
                 value = Dater(NaN);
                 return
@@ -133,16 +143,25 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             else
                 value = NaN;
             end
-            value = Dater(value);
         end%
+
+
+        function value = getBalancedStart(this)
+            value = Dater(getBalancedStartAsNumeric(this));
+        end%
+
+
+        function value = get.BalancedStart(this)
+            value = getBalancedStart(this);
+        end%:w
                 
-
-        function value = get.End(this)
-            value = Dater(this.EndAsNumeric);
+        
+        function value = getEnd(this)
+            value = Dater(getEndAsNumeric(this));
         end%
 
 
-        function value = get.EndAsNumeric(this)
+        function value = getEndAsNumeric(this)
             value = double(this.Start);
             if isnan(this.Start)
                 return
@@ -150,19 +169,29 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             numRows = size(this.Data, 1);
             value = dater.plus(value, numRows-1);
         end%
+
+
+        function value = get.End(this)
+            value = getEnd(this);
+        end%
+
+
+        function value = get.EndAsNumeric(this)
+            value = getEndAsNumeric(this);
+        end%
          
 
         function value = get.EndAsDate(this)
-            value = this.End;
+            value = getEnd(this);
         end%
          
 
         function value = get.EndAsDateWrapper(this)
-            value = this.EndAsDate;
+            value = getEnd(this);
         end%
 
 
-        function value = get.BalancedEnd(this)
+        function value = getBalancedEndAsNumeric(this)
             if isnan(this.Start) || isempty(this.Data)
                 value = Dater(NaN);
                 return
@@ -176,7 +205,16 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             else
                 value = NaN;
             end
-            value = Dater(value);
+        end%
+
+
+        function value = getBalancedEnd(this)
+            value = Dater(getBalancedEndAsNumeric(this));
+        end%
+
+
+        function value = get.BalancedEnd(this)
+            value = getBalancedEnd(this);
         end%
          
 
@@ -208,33 +246,28 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
 
 
-        function range = getRange(this)
-            range = getRangeAsNumeric(this);
-            range = Dater(range);
+        function value = getRange(this)
+            value = Dater(getRangeAsNumeric(this));
         end%
 
 
-        function range = get.Range(this)
-            range = this.RangeAsNumeric;
-            range = Dater(range);
+        function value = get.Range(this)
+            value = getRange(this);
         end%
 
 
-        function numericRange = get.RangeAsNumeric(this)
-            numericStart = double(this.Start);
-            numericRange = dater.plus(double(this.Start), 0:size(this.Data, 1)-1);
-            numericRange = reshape(numericRange, [ ], 1);
+        function value = get.RangeAsNumeric(this)
+            value = getRangeAsNumeric(this);
         end%
 
 
-        function range = get.RangeAsDate(this)
-            range = this.RangeAsNumeric;
-            range = Dater(range);
+        function value = get.RangeAsDate(this)
+            value = getRange(this);
         end%
 
 
         function range = get.RangeAsDateWrapper(this)
-            range = this.RangeAsDate;
+            value = getRange(this);
         end%
 
 

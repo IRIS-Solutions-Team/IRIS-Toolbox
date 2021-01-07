@@ -23,40 +23,50 @@ __`newFreq`__ [ Frequency ]
 > for frequency formats allowed.
 
 
-__`range=Inf`__ [ Dater ] -
+__`range=Inf`__ [ Dater ]
 
 > Date range on which the input data will be converted; `Inf` means the
-> conversion will be done on the entire range.
+> conversion will be done on the entire time series range.
 
 
 ## Output Arguments
 
-__`outputSeries`__ [ Series ] -
+__`outputSeries`__ [ Series ]
 
-> Output tseries created by converting `x` to the new
-> frequency.
+> Output tseries created by converting the `inputSeries` to the new
+> frequency (aggregating or interpolating).
 
 
 ## Options
 
-__`RemoveNaN=false`__ [ `true` | `false` ] -
+__`RemoveNaN=false`__ [ `true` | `false` ]
 
-> Exclude NaNs from agreggation.
+> Exclude `NaN` values from agreggation.
 
 
-__`Missing=NaN`__ [ numeric | `"previous"` ] -
+__`Missing=@default`__ [ `@default` | numeric | `"previous"` | `"next"` ]
 
-> Replace missing observations with this value.
+> Fill missing observations with this value before conversion:
+>
+> * `@default` means no preprocessing;
+>
+> * `"previous"` or `"next"` means fill in the nearest preceding or nearest
+> following value available in the time series.
 
 
 ## Options for High- to Low-Frequency Aggregation
-
 
 __`Method="mean"`__ [ "mean" | "sum" | "first" | "last" | function_handle ]
 
 > Aggregation method; `"first"`, `"last"` and `"random"` select the
 > first, last or a random observation from the high-frequency periods
 > contained in the correspoding low-frequency period.
+
+
+__`RemoveWeekends=false`__ [ `true` | `false` ]
+
+> For daily frequency time series only: remove all weekend observations
+> before aggregation.
 
 
 __`Select=Inf`__ [ numeric ]
@@ -67,16 +77,25 @@ __`Select=Inf`__ [ numeric ]
 
 ### Options for Low- to High-Frequency Interpolation
 
-__`Method="pchip"`__ [ string | `"quadSum"` | `"quadMean"` | `"flat"` | `"first"` | `"last"` ] -
+__`Method="pchip"`__ [ string | `"quadSum"` | `"quadMean"` | `"flat"` | `"first"` | `"last"` ]
 
 > Interpolation method; any option valid for the built-in function
 > `interp1` can be used, or `'QuadSum'` or `'QuadMean'`; these two options
 > use quadratic interpolation preserving the sum or the average of
 > observations within each period.
 
+
 __`Position="center"`__ [ `"center"` | `"start"` | `"end"` ] 
 
 > Position of dates within each period in the low-frequency date grid.
+
+
+__`RemoveWeekends=false`__ [ `true` | `false` ]
+
+> For interpolation to daily frequency only: replace all weekend
+> observations in the final time series (after interpolation) with `NaN`
+> (or the default missing value as defined in the time series object
+> property `.MissingValue`).
 
 
 ## Description

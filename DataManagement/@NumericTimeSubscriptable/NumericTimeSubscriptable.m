@@ -48,6 +48,7 @@ NumericTimeSubscriptable ...
         varargout = bwf(varargin)
         varargout = bwf2(varargin)
         varargout = cat(varargin)
+        varargout = convert(varargin)
         varargout = cumsumk(varargin)
 
         varargout = destdize(varargin)
@@ -67,6 +68,7 @@ NumericTimeSubscriptable ...
         varargout = horzcat(varargin)
         varargout = llf(varargin)
         varargout = llf2(varargin)
+        varargout = moving(varargin)
         varargout = normalize(varargin)
         varargout = hpf(varargin)
         varargout = hpf2(varargin)

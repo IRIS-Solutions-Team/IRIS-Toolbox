@@ -32,7 +32,7 @@ function outputDate = yy(year, varargin)
 
 %--------------------------------------------------------------------------
 
-outputDate = DateWrapper(dater.yy(year, varargin{:}));
+outputDate = Dater(dater.yy(year, varargin{:}));
 
 end%
 

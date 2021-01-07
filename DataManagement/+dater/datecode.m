@@ -15,8 +15,8 @@ end
 
 %--------------------------------------------------------------------------
 
-freq = round(freq);
-year = round(year);
+freq = double(freq);
+year = double(year);
 
 % Determine the size of the resulting date array
 temp = nan(size(freq)) + nan(size(year));

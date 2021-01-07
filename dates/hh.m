@@ -33,8 +33,7 @@ function outputDate = hh(year, varargin)
 
 %--------------------------------------------------------------------------
 
-dateCode = numeric.hh(year, varargin{:});
-outputDate = DateWrapper(dateCode);
+outputDate = Dater(dater.hh(year, varargin{:}));
 
 end%
 

@@ -43,8 +43,7 @@ function outputDate = mm(year, varargin)
 
 %--------------------------------------------------------------------------
 
-dateCode = numeric.mm(year, varargin{:});
-outputDate = DateWrapper(dateCode);
+outputDate = Dater(dater.mm(year, varargin{:}));
 
 end%
 

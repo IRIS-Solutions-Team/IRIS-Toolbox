@@ -107,6 +107,7 @@ classdef ( ...
         varargout = implementPlot(varargin)
         varargout = empty(varargin)
         varargout = seasonDummy(varargin)
+        varargout = randomlyGrowing(varargin)
 
         function this = template(varargin)
             persistent persistentSeries
