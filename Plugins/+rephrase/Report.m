@@ -49,7 +49,7 @@ classdef Report ...
             if isempty(this.DataRequests) || isempty(keys(reportDb))
                 dataJson = string(jsonencode(cell.empty(1, 0)));
             else
-                requestDb = databank.copy(reportDb, "SourceNames=", this.DataRequests);
+                requestDb = databank.copy(reportDb, "sourceNames", this.DataRequests);
                 serial = series.Serialize( );
                 dataJson = string(jsonencode(serial.jsonFromDatabank(requestDb)));
             end
