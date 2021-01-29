@@ -1,42 +1,45 @@
-# `qq`, `dater.qq`
+# `qq`, `Dater.qq`, `dater.qq`
 
-Quarterly date
+{== Create quarterly dates ==}
 
 
-## Syntax Creating Dater Objects
+## Shortcut Syntax to Create Dater Objects
 
     date = qq(year, quarter)
     date = qq(year, "end")
     date = qq(year)
 
 
-## Syntax Creating Numeric Date Codes
+## Syntax to Create Dater Objects
 
-    dateCode = dater.qq(year, quarter)
-    dateCode = dater.qq(year, "end")
-    dateCode = dater.qq(year)
+    date = Dater.qq(...)
+
+
+## Syntax to Create Numeric Date Codes
+
+    dateCode = dater.qq(...)
 
 
 ## Input Arguments
 
-* `year` [ numeric ] 
+__`year`__ [ numeric ] 
 
 > Calendar year.
 
 
-* `quarter=1` [ numeric ]
+__`quarter=1`__ [ numeric | `"end"` ]
 
-> Quarter of the year; "end" means `quarter=4`.
+> Quarter of the year; `"end"` means `quarter=4`.
 
 
 ## Output Arguments
 
-* `date` [ Dater ]
+__`date`__ [ Dater ]
 
 > Quarterly date returned as a Dater object.
 
 
-* `dateCode` [ numeric ]
+__`dateCode`__ [ numeric ]
 
 > Quarterly date returned as a numeric datecode.
 

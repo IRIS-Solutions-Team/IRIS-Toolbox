@@ -1,42 +1,45 @@
-# `mm`, `dater.mm`
+# `mm`, `Dater.mm`, `dater.mm`
 
-Monthly date
+{== Create monthly dates ==}
 
 
-## Syntax Creating Dater Objects
+## Shortcut Syntax to Create Dater Objects
 
     date = mm(year, month)
     date = mm(year, "end")
     date = mm(year)
 
 
-## Syntax Creating Numeric Date Codes
+## Syntax to Create Dater Objects
 
-    dateCode = dater.mm(year, month)
-    dateCode = dater.mm(year, "end")
-    dateCode = dater.mm(year)
+    date = mm(...)
+
+
+## Syntax to Create Numeric Date Codes
+
+    dateCode = dater.mm(...)
 
 
 ## Input Arguments
 
-* `year` [ numeric ] 
+`year` [ numeric ] 
 
 > Calendar year.
 
 
-* `month=1` [ numeric ]
+`month=1` [ numeric ]
 
 > Month of the year; "end" means `month=12`.
 
 
 ## Output Arguments
 
-* `date` [ Dater ]
+`date` [ Dater ]
 
 > Monthly date returned as a Dater object.
 
 
-* `dateCode` [ numeric ]
+`dateCode` [ numeric ]
 
 > Monthly date returned as a numeric datecode.
 

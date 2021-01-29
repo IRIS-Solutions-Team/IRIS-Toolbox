@@ -1,33 +1,38 @@
-# `yy`, `dater.yy`
+# `yy`, `Dater.yy`, `dater.yy`
 
-Yearly date
+{== Create yearly dates ==}
 
 
-## Syntax Creating Dater Objects
+## Shortcut Syntax to Create Dater Objects
 
     date = yy(year)
 
 
-## Syntax Creating Numeric Date Codes
+## Syntax to Create Dater Objects
 
-    dateCode = dater.yy(year)
+    date = Dater.yy(...)
+
+
+## Syntax to Create Numeric Date Codes
+
+    dateCode = dater.yy(...)
 
 
 ## Input Arguments
 
-* `year` [ numeric ] 
+`year` [ numeric ] 
 
 > Calendar year.
 
 
 ## Output Arguments
 
-* `date` [ Dater ]
+`date` [ Dater ]
 
 > Yearly date returned as a Dater object.
 
 
-* `dateCode` [ numeric ]
+`dateCode` [ numeric ]
 
 > Yearly date returned as a numeric datecode.
 

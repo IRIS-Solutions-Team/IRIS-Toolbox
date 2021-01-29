@@ -1,11 +1,11 @@
 # `toString`
 
-Print IrisT dates as formatted strings
+{== Print IrisT dates as formatted strings ==}
 
 
 ## Syntax
 
-    outputString = function(inputDate, format)
+    outputString = toString(inputDate, format)
 
 
 ## Input Arguments
@@ -25,7 +25,8 @@ __`outputString`__ [ string ]
 
 __`format`__ [ string ]
 
-> Formatting string; see Description.
+> Formatting string; see Description for formatting tokens that can be used
+> in the `format`.
 
 
 ## Options
@@ -48,10 +49,13 @@ __`Close=""`__ [ string ]
 
 ## Description
 
-The formatting string consists of date formatting tokens and literal text.
+The formatting string may consist of date formatting tokens and literal
+text. If you need to use plain literal text whose part or parts coincide with the
+formatting tokens, use the options `Open` and/or `Close` to delineate those
+tokens and differentiate them from plain literal text; see Example of Open/Close options.
 
-This is the list of the date formatting tokens available; they are case
-sensitive:
+This is the list of the date formatting tokens available; all date
+formatting tokens are case sensitive:
 
 | Token             | Result                                                   |
 |-------------------|----------------------------------------------------------|
@@ -66,18 +70,63 @@ sensitive:
 | "N"               | Month in upper-case romanu numeral                       |
 | "pp"              | Two-digit period                                         |
 | "p"               | Plain numeric period with as many digits as needed       |
-| "q"               | Period in lower-case roman numerals                      |
-| "Q"               | Period in upper-case roman numerals                      |
+| "r"               | Period in lower-case roman numerals                      |
+| "R"               | Period in upper-case roman numerals                      |
 | "f"               | Frequency in lower-case letter                           |
 | "F"               | Frequency in upper-case letter                           |
 | "dd"              | Two-digit day                                            |
 | "d"               | Plain numeric day with as many digits as needed          |
 
 
-## Example
+## Example of Plain Vanilla Date Formatting
+
+Format Dater objects:
+
+```
+    t = qq(2020,1);
+    toString(t, "yyyy-p")
+```
+
+Format plain numeric dates:
+
+```
+    t = dater.qq(2020,1);
+    dater.toString(t, "yyyy-p");
+    ans =
+        "2020-1"
+```
 
 
+## Example of `Open`/`Close` Options
 
--[IrisToolbox] for Macroeconomic Modeling
--Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
+Print a quarterly date as `"y2020-q1"`. Because the leading literal `"y"`
+conflicts with the formatting token `"y"`, specify at least one of the options
+`Open` and/or `Close` to differentiate between plain text and formatting
+tokens:
+
+```python
+def bubble_sort(items):
+    for i in range(len(items)):
+        for j in range(len(items) - 1 - i):
+            if items[j] > items[j + 1]:
+                items[j], items[j + 1] = items[j + 1], items[j]
+```
+
+cccc
+
+```
+    t = qq(2020,1)
+    toString(t, "y(yyyy)-q(p)", "open", "(", "close", ")")
+    ans =
+        "y2020-q1"
+```
+
+Alternatively, do the same using the option `Open` only:
+
+```matlab
+    t = qq(2020,1)
+    toString(t, "y%yyyy-q%p", "open", "%")
+    ans =
+        "y2020-q1"
+```
 

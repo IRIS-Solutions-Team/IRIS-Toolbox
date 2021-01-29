@@ -1,42 +1,45 @@
-# `hh`, `dater.hh`
+# `hh`, `Dater.hh`, `dater.hh`
 
-Halfyearly date
+{== Create half-yearly dates ==}
 
 
-## Syntax Creating Dater Objects
+## Shortcut Syntax to Create Dater Objects
 
     date = hh(year, half)
     date = hh(year, "end")
     date = hh(year)
 
 
-## Syntax Creating Numeric Date Codes
+## Syntax to Create Dater Objects
 
-    dateCode = dater.hh(year, half)
-    dateCode = dater.hh(year, "end")
-    dateCode = dater.hh(year)
+    date = hh(...)
+
+
+## Syntax to Create Numeric Date Codes
+
+    dateCode = dater.hh(...)
 
 
 ## Input Arguments
 
-* `year` [ numeric ] 
+`year` [ numeric ] 
 
 > Calendar year.
 
 
-* `half=1` [ numeric ]
+`half=1` [ numeric ]
 
 > Halfyear of the year; "end" means `half=2`.
 
 
 ## Output Arguments
 
-* `date` [ Dater ]
+`date` [ Dater ]
 
 > Halfyearly date returned as a Dater object.
 
 
-* `dateCode` [ numeric ]
+`dateCode` [ numeric ]
 
 > Halfyearly date returned as a numeric datecode.
 
