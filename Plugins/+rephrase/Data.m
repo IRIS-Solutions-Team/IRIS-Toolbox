@@ -23,7 +23,7 @@ classdef (Abstract) Data ...
             end
             values = values(:, 1);
             output = struct( );
-            output.Dates = DateWrapper(dates);
+            output.Dates = dates; %DateWrapper(dates);
             output.Values = reshape(values, 1, [ ]);
         end%
     end

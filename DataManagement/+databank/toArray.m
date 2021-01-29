@@ -1,4 +1,4 @@
-% toArray  Retrieve data from time series into plain numeric array
+% toArray  Collect time series data into plain numeric array
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team

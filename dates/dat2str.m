@@ -257,7 +257,7 @@ for iDat = 1 : nDat
     
     for j = 1 : numOfFields
         switch field{j}(1)
-            case 'Y'
+            case {'Y', 'y'}
                 if isCalendar
                     subs{j} = doYear(iYearC);
                 else
@@ -316,11 +316,11 @@ return
         end
         isMonthNeeded = false;
         
-        fragile = 'YPFfRrQqMmEWDA';
+        fragile = 'YyPFfRrQqMmEWDA';
         fmt = regexprep(fmt, ['%([', fragile, '])'], '&$1');
         
         ptn = ['(?<!&)(', ...
-            'YYYY|YY|Y|', ...
+            'YYYY|YY|Y|yyyy|yy|y|', ...
             'PP|P|', ...
             'R|r|', ...
             'F|f|', ...
@@ -333,12 +333,8 @@ return
         
         while true
             found = false;
-            if true % ##### MOSW
-                replaceFunc = @replace; %#ok<NASGU>
-                fmt = regexprep(fmt, ptn, '${replaceFunc($1)}', 'once');
-            else
-                fmt = mosw.dregexprep(fmt, ptn, @doReplace, 1, 'once'); %#ok<UNRCH>
-            end
+            replaceFunc = @replace; %#ok<NASGU>
+            fmt = regexprep(fmt, ptn, '${replaceFunc($1)}', 'once');
             if ~found
                 break
             end
@@ -370,14 +366,14 @@ return
             return
         end
         switch field{j}
-            case 'YYYY'
+            case {'YYYY', 'yyyy'}
                 Subs = sprintf('%04g', Y);
-            case 'YY'
+            case {'YY', 'yy'}
                 Subs = sprintf('%04g', Y);
                 if length(Subs)>2
                     Subs = Subs(end-1:end);
                 end
-            case 'Y'
+            case {'Y', 'y'}
                 Subs = sprintf('%g', Y);
         end
     end% 

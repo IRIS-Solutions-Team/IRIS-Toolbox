@@ -229,6 +229,15 @@ classdef validate
             end
             flag = false;
         end%
+
+
+        function flag = func(input)
+            if isa(input, 'function_handle')
+                flag = true;
+                return
+            end
+            flag = false;
+        end%
     end
 
 
@@ -327,6 +336,14 @@ classdef validate
                 return
             end
             error("Input value must be a proper range.");
+        end%
+
+
+        function mustBeFunc(x)
+            if isequal(validate.func(x), true)
+                return
+            end
+            error("Input value must be a function handle.");
         end%
     end
 end

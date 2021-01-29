@@ -114,7 +114,6 @@ for i = 1 : numel(range)
         name = names(i);
     else
         [name, isMissing, isValid] = hereRetrieveName(range(i));
-        comment = hereRetrieveComment(range(i));
         if isMissing
             continue
         end
@@ -123,6 +122,7 @@ for i = 1 : numel(range)
             continue
         end
     end
+    comment = hereRetrieveComment(range(i));
     x = retrieveSeries(this, range(i));
     x.Comment = comment;
     hereAddEntryToOutputDatabank(name, x);
@@ -139,6 +139,7 @@ end
 return
 
     function [name, isMissing, isValid] = hereRetrieveName(location)
+        %(
         if this.Orientation=="Row"
             name = this.Buffer{location, this.NamesLocation};
         else
@@ -158,10 +159,12 @@ return
             name = opt.NameFunc(name);
         end
         isValid = ~isstruct(outputDb) || isvarname(name);
+        %)
     end%
 
 
     function comment = hereRetrieveComment(location)
+        %(
         if isempty(this.CommentsLocation) || ~isscalar(this.CommentsLocation) || ismissing(this.CommentsLocation)
             comment = "";
             return
@@ -176,10 +179,12 @@ return
         if all(ismissing(comment)) || isempty(comment) || all(strlength(comment)==0)
             comment = "";
         end
+        %)
     end%
 
 
     function hereAddEntryToOutputDatabank(name, newSeries)
+        %(
         if opt.UpdateWhenExists && isfield(outputDb, name) && ~isempty(outputDb.(name))
             if isstruct(outputDb)
                 outputDb.(name) = [outputDb.(name); newSeries];
@@ -193,6 +198,7 @@ return
                 store(outputDb, name, newSeries);
             end
         end
+        %)
     end%
 end%
 

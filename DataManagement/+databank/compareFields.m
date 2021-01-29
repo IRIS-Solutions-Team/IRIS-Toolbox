@@ -23,8 +23,8 @@ info.SeriesDataNotEqual = string.empty(1, 0);
 info.NumericDataNotEqual = string.empty(1, 0);
 info.OtherDataNotEqual = string.empty(1, 0);
 
-keys1 = databank.keys(d1);
-keys2 = databank.keys(d2);
+keys1 = databank.fieldNames(d1);
+keys2 = databank.fieldNames(d2);
 
 if isequal(opt.Keys, @all)
     info.FieldNamesMatch = isequal(sort(keys1), sort(keys2));

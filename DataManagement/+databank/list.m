@@ -1,7 +1,9 @@
-function list(inputDatabank, keyFilter, valueFilter)
-% list  Display databank fields
+% Type `web +databank/list.md` for help on this function
+%
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function list(inputDatabank, keyFilter, valueFilter)
 
 if nargin<2
     keyFilter = [ ];

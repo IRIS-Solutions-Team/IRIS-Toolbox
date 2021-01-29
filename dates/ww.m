@@ -1,11 +1,11 @@
 % Type `web Dater/ww.md` for help on this function
 %
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function date = ww(varargin)
+function varargout = ww(varargin)
 
-date = Dater(dater.ww(varargin{:}));
+[varargout{1:nargout}] = Dater.ww(varargin{:});
 
 end%
 

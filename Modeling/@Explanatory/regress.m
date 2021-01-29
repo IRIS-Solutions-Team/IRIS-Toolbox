@@ -1,109 +1,5 @@
-% regress  Estimate parameters of regression terms in Explanatory object or array
-%{
-%% Syntax
-%--------------------------------------------------------------------------
+% Type `web Explanatory/regress.md` for help on this function
 %
-%     [expy, outputDb] = regress(expy, inputDb, fittedRange, ...)
-%
-%
-%% Input Arguments
-%--------------------------------------------------------------------------
-%
-% __`expy`__ [ Explanatory ]
-%
-%     Explanatory object or array whose parameters (associated with
-%     regression terms) will be estimated by running a single-equation
-%     linear regression; only those parameters that have the corresonding
-%     element in `.Fixed` set to `NaN` will be estimated.k
-%
-%
-% __`inputDb`__ [ struct | Dictionary ]
-%
-%     Input databank from which the time series for each variable in the
-%     Explanatory object or array will be retrieved.
-%    
-%
-% __`fittedRange`__ [ DateWrapper ]
-%
-%     Date range on which the linear regression(s) will be fitted; this
-%     range does not include the pre-sample initial condition if there are
-%     lags in the Explanatory object or array.
-%
-% 
-%% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __`expy`__ [ Explanatory ]
-% 
-%     Output Explanatory object or array with the parameters estimated.
-%
-%
-% __`outputDb`__ [ struct | Dictionary ]
-%
-%     Output databank inclusive of the fitted values and residuals (whose
-%     names will be created using the `.FittedNamePattern` and
-%     `.ResidualNamePattern`.
-%    
-%
-%% Options
-%--------------------------------------------------------------------------
-%
-% __`AppendInput=false`__ [ `true` | `false` ]
-%
-%     Append post-sample data from the `inputDb` to the `outputDb`.
-%
-%
-% __`MissingObservations='Warning'` [ `'Error'` | `'Warning'` | `'Silent'` ]
-%
-%     Action taken when some within-sample observations are missing:
-%     `'Error'` means an error message will be thrown; `'Warning'` means
-%     these observations will be excluded from the estimation sample with a
-%     warning; `'Silent'` means these observations will be excluded from
-%     the estimation sample silently.
-%
-%
-% __`PrependInput=false`__ [ `true` | `false` ]
-%
-%     Prepend pre-sample data from the `inputDb` to the `outputDb`.
-%
-%
-%% Description
-%--------------------------------------------------------------------------
-%
-%
-%% Example
-%--------------------------------------------------------------------------
-%
-% Create an Explanatory object from a string inclusive of three regression
-% terms, i.e. additive terms preceded by `+@*` or `-@*`:
-%
-%     expy0 = Explanatory.fromString("difflog(x) = @ + @*difflog(x{-1}) + @*log(z)");
-%     expy0.Parameters
-% 
-% Assign some parameters to the three regression terms:
-%
-%     expy0.Parameters = [0.002, 0.8, 1];
-% 
-% 
-% Simulate the equation period by period, using random shocks (names `'res_x'`
-% by default) and random observations for `z`:
-%
-%     rng(981);
-%     d0 = struct();
-%     d0.x = Series(qq(2020,1), ones(40,1));
-%     d0.z = Series(qq(2020,1), exp(randn(40, 1)/10));
-%     d0.res_x = Series(qq(2020,1), randn(40, 1)/50);
-% 
-%     d1 = simulate(expy0, d0, qq(2021,1):qq(2029,4));
-% 
-% Estimate the parameters using the simulated data, and compare the
-% parameter estimates and the estimated residuals with their "true" values:
-%
-%     [expy2, d2] = regress(expy0, d1, qq(2021,1):qq(2029,4));
-%     [ expy0.Parameters; expy2.Parameters ]
-%     plot([d0.res_x, d2.res_x]);
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
@@ -122,8 +18,11 @@ arguments
     opt.OutputType (1, 1) string {validate.databankType} = "struct"
     opt.MissingObservations = @auto
     opt.Optim = []
-    opt.Progress (1, 1) logical = false
     opt.ResidualsOnly (1, 1) logical = false
+    opt.Regularize (1, 1) double = 0
+    opt.WhenEstimationFails (1, 1) string {mustBeMember(opt.WhenEstimationFails, ["error", "warning", "silent"])} = "error"
+
+    opt.Progress (1, 1) logical = false
     opt.Journal = false
 end
 %)
@@ -203,7 +102,7 @@ this = runtime(this, dataBlock, "regress");
 % Preallocate space for parameters and statistics, reset all to NaN unless
 % this call is to evaluate residuals only
 %
-inxBaseRange = cell(numEquations, numPages);
+inxFitted = cell(numEquations, numPages);
 inxToEstimate = ~[this.IsIdentity];
 this = alter(this, numPages);
 if ~opt.ResidualsOnly
@@ -214,7 +113,8 @@ if opt.Progress
     progress = ProgressBar("@Explanatory/regress", nnz(inxToEstimate)*numPages);
 end
 
-exitFlags = nan(numEquations, numPages);
+exitFlagsParameters = nan(numEquations, numPages);
+exitFlagsResidualModels = nan(numEquations, numPages);
 
 if journal.IsActive
     for q = find(~inxToEstimate)
@@ -290,7 +190,7 @@ for q = find(inxToEstimate)
                 = locallyEstimateResidualModel(lhs__, rhs__, fixed__, residualModel, inxBaseRange__, opt.Optim);
             residualModel.Parameters(1, :, v) = gamma__;
             residualModel = update(residualModel, gamma__);
-            exitFlags(q, v) = exitFlag__;
+            exitFlagsResidualModels(q, v) = exitFlag__;
             write(journal, "Exit flag " + sprintf("%g", exitFlag__));
             write(journal, "Parameters estimated " + sprintf("%g ", gamma__));
             deindent(journal);
@@ -309,7 +209,9 @@ for q = find(inxToEstimate)
         % Estimate parameters
         %
         [parameters__, varResiduals__, covParameters__, fitted__, res__, inxMissing__, exitFlag__, optimOutput__] ...
-            = locallyRegress(this__, lhs__, rhs__, subBlock__, F, fixed__, inxBaseRange__, v, opt.Optim);
+            = locallyRegress(this__, lhs__, rhs__, subBlock__, F, fixed__, inxBaseRange__, v, opt.Optim, opt.Regularize);
+
+        exitFlagsParameters(q, v) = exitFlag__;
 
         if journal.IsActive && ~isempty(exitFlag__)
             write(journal, "Exit flag " + sprintf("%g", exitFlag__));
@@ -336,8 +238,7 @@ for q = find(inxToEstimate)
         this__.Statistics.NumPeriodsFitted(1, :, v) = nnz(~inxMissing__);
         this__.Statistics.ExitFlag(1, :, v) = exitFlag__;
         this__.Statistics.OptimOutput{1, :, v} = optimOutput__;
-        inxBaseRange{q, v} = inxBaseRange__;
-
+        inxFitted{q, v} = inxBaseRange__ & ~inxMissing__;
 
         %
         % Evaluate fitted values and residuals on the entire regression
@@ -392,8 +293,20 @@ if ~isempty(reportEmptyData)
     hereReportEmptyData();
 end
 
-if any(~isnan(exitFlags) & exitFlags<=0)
-    hereReportFailedResidualModels();
+
+%
+% Handle failed exit flags
+%
+
+if lower(opt.WhenEstimationFails)=="silent"
+    % Do nothing
+else
+    if any(~isnan(exitFlagsResidualModels) & exitFlagsResidualModels<=0) 
+        locallyReportFailedEstimation(exitFlagsResidualModels, this, "Residual model", opt.WhenEstimationFails)
+    end
+    if any(~isnan(exitFlagsParameters) & exitFlagsParameters<=0)
+        locallyReportFailedEstimation(exitFlagsParameters, this, "Parameter", opt.WhenEstimationFails);
+    end
 end
 
 
@@ -449,21 +362,6 @@ return
         %)
     end%
 
-
-    function hereReportFailedResidualModels()
-        %(
-        lhsNames = collectAllLhsNames(this);
-        [q, v] = find(~isnan(exitFlags) & exitFlags<=0);
-        qv = sortrows([q, v], 1);
-        temp = reshape([reshape(string(qv(:,2)), 1, []); reshape(lhsNames(qv(:,1)), 1, [])], [], 1);
-        exception.error([
-            "Explanatory:ResidualModelFailed"
-            "ResidualModel for this LHS variable failed to converge [Parameter|Variant:%s]: %s "
-        ], temp);
-        %)
-    end%
-
-
     function hereReportMissing(inxMissing, qq)
         %(
         if startsWith(opt.MissingObservations, "warning", "ignoreCase", true)
@@ -487,11 +385,13 @@ return
     function info = herePopulateOutputInfo()
         %(
         info = struct();
-        info.FittedPeriods = cell(size(inxBaseRange));
+        info.FittedPeriods = cell(numEquations, numPages);
         extendedRange = double(dataBlock.ExtendedRange);
-        for i = 1 : numel(inxBaseRange)
-            info.FittedPeriods{i} = DateWrapper(extendedRange(inxBaseRange{i}));
+        for i = 1 : numel(inxFitted)
+            info.FittedPeriods{i} = DateWrapper(extendedRange(inxFitted{i}));
         end
+        info.ExitFlagsResidualModels = exitFlagsResidualModels;
+        info.ExitFlagsParameters = exitFlagsParameters;
         %)
     end%
 end%
@@ -519,7 +419,7 @@ end%
 
 
 function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exitFlag, optimOutput] ...
-        = locallyRegress(this, y, X, subBlock, F, fixed, inxBaseRange, v, optim)
+        = locallyRegress(this, y, X, subBlock, F, fixed, inxBaseRange, v, optim, regularize)
     %(
     persistent DEFAULT_OPTIM
     if isempty(DEFAULT_OPTIM)
@@ -533,11 +433,15 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 
     if this.IsLinear
         %
-        % Adjust for within-sample missing observations
+        % Linear regression
         %
+
+        % Adjust for within-sample missing observations
+
         inxMissing = any(~isfinite([y; X]), 1);
         y(:, inxMissing) = 0;
         X(:, inxMissing) = 0;
+
 
         if ~any(inxFixed)
             y1 = y;
@@ -563,41 +467,51 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         numParametersEstimated = nnz(~inxFixed);
 
     else
+        %
+        % Nonlinear (iterative) regression
+        %
+
+        if isempty(optim)
+            optim = DEFAULT_OPTIM;
+        end
+
         endogenizeResidualsFunc = this.EndogenizeResiduals;
         simulateFunc = this.Simulate;
 
         columnsBaseRange = find(inxBaseRange);
         numParameters = this.NumParameters;
         inxToEstimate = ~inxFixed & this.IncParameters;
+        numParametersEstimated = nnz(inxToEstimate);
         e = zeros(1, size(y, 2));
 
-        %
-        % Evaluate endogenizeResidualsFunc once before to find columns
-        % resulting in NaNs; these are replaced with zeros when filtering
-        % the residuals
-        %
+
+        % Evaluate endogenizeResidualsFunc for random parameters (to
+        % minimize the change of singularity) once before to find
+        % within-sample columns resulting in NaNs; these are replaced with
+        % zeros when filtering the residuals
+
         inxMissing = [];
-        z0 = rand(1, nnz(inxToEstimate));
-        obj0 = hereObjectiveFunc(z0);
-        inxMissing = ~isfinite(obj0);
+        zTest = rand(1, numParametersEstimated);
+        [~, ~, objTest] = hereObjectiveFunc(zTest);
+        inxMissing = ~isfinite(objTest);
 
-        if isempty(optim)
-            optim = DEFAULT_OPTIM;
-        end
+
+        % Initialize parameters to be estimated at zero, and call the
+        % Optimization Toolbox
+
+        z0 = zeros(1, numParametersEstimated);
         [z, ~, ~, exitFlag, optimOutput] = lsqnonlin(@hereObjectiveFunc, z0, [], [], optim);
-
         [~, parameters] = hereObjectiveFunc(z);
         parameters(~inxToEstimate & ~inxFixed) = NaN;
 
-        %
+
         % Calculate fitted values using the simulate function
-        %
+
         fitted = nan(1, numColumns);
         fitted(:, columnsBaseRange) ...
             = simulateFunc(subBlock, e, parameters, columnsBaseRange, v, []); 
         fitted(:, inxMissing) = NaN;
 
-        numParametersEstimated = nnz(inxToEstimate);
         covParameters = nan(numParameters);
     end
 
@@ -612,19 +526,24 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
     fitted(:, inxMissing) = NaN;
 
     return
-        function [obj, p] = hereObjectiveFunc(z)
+
+        function [obj, p, objRegress, objRegularize] = hereObjectiveFunc(z)
             p = zeros(1, numParameters);
             p(inxFixed) = fixed(inxFixed);
             p(inxToEstimate) = z;
-            obj = zeros(1, numColumns);
-            obj(:, columnsBaseRange) = endogenizeResidualsFunc(subBlock, e, p, columnsBaseRange, v, []);
-            if isempty(inxMissing)
-                return
+            objRegress = zeros(1, numColumns);
+            objRegress(:, columnsBaseRange) = endogenizeResidualsFunc(subBlock, e, p, columnsBaseRange, v, []);
+            if ~isempty(inxMissing)
+                objRegress(:, inxMissing) = 0;
+                if ~isempty(F)
+                    objRegress = transpose(F\transpose(objRegress));
+                end
             end
-            obj(:, inxMissing) = 0;
-            if ~isempty(F)
-                obj = transpose(F\transpose(obj));
+            objRegularize = zeros(1, 0);
+            if regularize>0
+                objRegularize = regularize*z;
             end
+            obj = [objRegress, objRegularize];
         end%
     %)
 end%
@@ -713,6 +632,24 @@ function [lhs, rhs, subBlock, inxBaseRange] = locallyBlackout(lhs, rhs, subBlock
     %)
 end%
 
+
+function locallyReportFailedEstimation(exitFlags, this, context, whenEstimationFailed)
+    %(
+    if lower(whenEstimationFailed)=="error"
+        func = @exception.error;
+    else
+        func = @exception.warning;
+    end
+    lhsNames = collectLhsNames(this);
+    [q, v] = find(~isnan(exitFlags) & exitFlags<=0);
+    qv = sortrows([q, v], 1);
+    temp = reshape([reshape(string(qv(:,2)), 1, []); reshape(lhsNames(qv(:,1)), 1, [])], [], 1);
+    func([
+        "Explanatory:ResidualModelFailed"
+        context + " estimation for this LHS variable failed to converge [Page|Variant:%s]: %s "
+    ], temp);
+    %)
+end%
 
 
 

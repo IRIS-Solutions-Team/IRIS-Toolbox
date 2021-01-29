@@ -1,40 +1,5 @@
-% clip  Clip all time series in databank to a new range
-%{
-% ## Syntax ##
+% Type `web +databank/clip.md` for help on this function
 %
-%     outputDatabank = databank.clip(inputDatabank, newStart, newEnd)
-%
-%
-% ## Input Arguments ##
-%
-% __`inputDatabank`__ [ struct | Dictionary ] - 
-% Input databank whose time series (of the matching frequency) will be
-% clipped to a new range defined by `newStart` and `newEnd`.
-%
-% __`newStart`__ [ DateWrapper | `-Inf` ] - 
-% A new start date to which all time series of the matching frequency will
-% be clipped; `-Inf` means the start date will not be altered.
-%
-% __`newEnd`__ [ DateWrapper | `-Inf` ] - 
-% A new end date to which all time series of the matching frequency will be
-% clipped; `Inf` means the end date will not be altered.
-%
-%
-% ## Output Arguments ##
-%
-% __`outputDatabank`__ [ struct | Dictionary ] - 
-% Output databank in which all time series (of the matching frequency) are
-% clipped to the new range.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%
-%}
-
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 

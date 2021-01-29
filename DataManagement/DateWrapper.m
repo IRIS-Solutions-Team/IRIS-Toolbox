@@ -200,8 +200,13 @@ classdef DateWrapper ...
         end%
 
 
-        function defaultString = toDefaultString(varargin)
-            defaultString = dater.toDefaultString(varargin{:});
+        function dateString = toDefaultString(varargin)
+            dateString = dater.toDefaultString(varargin{:});
+        end%
+
+
+        function dateString = toString(varargin)
+            dateString = dater.toString(varargin{:});
         end%
 
 

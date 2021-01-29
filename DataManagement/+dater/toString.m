@@ -42,7 +42,7 @@ end%
 function [dateFormat, map] = locallyParseDateFormat(dateFormat, options)
     tokensAvailable = [
         "yyyy"; "yy"; "y"
-        "mmmm"; "mmm"; "mm"; "m"; "q"; "Q"
+        "mmmm"; "mmm"; "mm"; "m"; "n"; "N"
         "pp"; "p"; "r"; "R"
         "f"; "F"
         "dd"; "d"; "ee"; "e"
@@ -52,6 +52,13 @@ function [dateFormat, map] = locallyParseDateFormat(dateFormat, options)
     for token = reshape(tokensAvailable, 1, [])
         extendedToken = options.Open + token + options.Close;
         if contains(dateFormat, extendedToken)
+            if count>=32
+                exception.error([
+                    "Dater:TooManyFormattingTokens"
+                    "The number of formatting tokens is limited to 32 in"
+                    "one DateFormat string."
+                ]);
+            end
             standin = char(count);
             dateFormat = replace(dateFormat, extendedToken, standin);
             map(:, end+1) = [token; standin];
@@ -65,7 +72,7 @@ function print = locallyPrintToken(date, token, year, period, freq)
     month = [];
     day = [];
     eomd = [];
-    if startsWith(token, ["m", "q", "d", "e"], "ignoreCase", true)
+    if startsWith(token, ["m", "n", "d", "e"], "ignoreCase", true)
         [month, day, eomd] = locallyGetMonthDay(date);
     end
 
@@ -89,9 +96,9 @@ function print = locallyPrintToken(date, token, year, period, freq)
             print = compose("%02g", month);
         case "m"
             print = compose("%g", month);
-        case "q"
+        case "n"
             print = locallyGetRoman(month);
-        case "Q"
+        case "N"
             print = upper(locallyGetRoman(month));
         case "dd"
             print = compose("%02g", day); 
@@ -108,13 +115,13 @@ function print = locallyPrintToken(date, token, year, period, freq)
         case "r"
             print = compose("%s", locallyGetRoman(period));
         case "R"
-            print = compose("%s", uppere(locallyGetRoman(period)));
+            print = compose("%s", upper(locallyGetRoman(period)));
         case {"f", "F"}
             freqLetters = repmat("", 1, 366);
             freqLetters(0+1) = "i";
             freqLetters(1+1) = "y";
             freqLetters(2+1) = "h";
-            freqLetters(4+1) = "q";
+            freqLetters(4+1) = "n";
             freqLetters(12+1) = "m";
             freqLetters(52+1) = "m";
             freqLetters(101+1) = "?";

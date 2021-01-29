@@ -1,38 +1,11 @@
-function outputDate = yy(year, varargin)
-% yy  IrisT yearly date
+% Type `web Dater/yy.md` for help on this function
 %
-% Syntax
-% =======
-%
-%     d = yy(year)
-%
-%
-% Input arguments
-% ================
-%
-% * `year` [ numeric ] - Calendar year.
-%
-%
-% Output arguments
-% =================
-%
-% * `d` [ dates.date ] - IRIS serial date numbers.
-%
-%
-% Description
-% ============
-%
-%
-% Example
-% ========
-%
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function varargout = yy(varargin)
 
-outputDate = Dater(dater.yy(year, varargin{:}));
+[varargout{1:nargout}] = Dater.yy(varargin{:});
 
 end%
 

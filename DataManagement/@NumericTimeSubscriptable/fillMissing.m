@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function [this, datesMissing] = fillMissing(this, range, method)
@@ -36,8 +35,22 @@ method = pp.Results.method;
 %}
 % <=R2019a
 
+
+% Return immediately if the range is empty
+
+if isempty(range)
+    datesMissing = Dater.empty(1, 0);
+    return
+end
+
+
+% Resolve dates depending on the input time series
+
 [startDate, endDate, inxRange] = locallyResolveDates(this, range);
 data = getDataFromTo(this, startDate, endDate);
+
+
+% Look up missing observations within the input range
 
 inxMissing = this.MissingTest(data) & inxRange;
 if nargout>=2

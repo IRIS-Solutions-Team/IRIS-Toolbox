@@ -56,10 +56,10 @@ if isempty(pp)
     addParameter(pp, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
     addParameter(pp, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(pp, 'Nan', 'NaN', @validate.string);
-    addParameter(pp, 'UserData', 'UserData', @(x) validate.string(x) && isvarname(x));
     addParameter(pp, 'UserDataFields', cell.empty(1, 0), @validate.list);
     addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'Delimiter', ',', @validate.string);
+    addParameter(pp, 'QuoteStrings', true, @validate.logicalScalar);
 
     addDateOptions(pp);
 end
@@ -74,7 +74,7 @@ else
     format = ['%.', sprintf('%g', opt.Decimals), 'f'];
 end
 
-opt.UserDataFields = cellstr(opt.UserDataFields);
+opt.UserDataFields = reshape(string(opt.UserDataFields), 1, []);
 
 %--------------------------------------------------------------------------
 
@@ -109,20 +109,6 @@ end
 % Create saving struct
 o = struct( );
 
-% Handle userdata first, and remove them from the database so that they are
-% not processed as a regular field
-if ~isempty(opt.UserData) && isfield(inputDatabank, opt.UserData)
-    if isa(inputDatabank, 'containers.Map')
-        o.UserData = inputDatabank(opt.UserData);
-        o.UserDataFieldName = opt.UserData;
-        inputDatabank = remove(inputDatabank, opt.UserData);
-    else
-        o.UserData = inputDatabank.(opt.UserData);
-        o.UserDataFieldName = opt.UserData;
-        inputDatabank = rmfield(inputDatabank, opt.UserData);
-    end
-end
-
 % Handle custom delimiter
 o.Delimiter = opt.Delimiter;
 
@@ -140,7 +126,7 @@ data = cell(1, nList); % nan(length(dates), 1);
 nameRow = { };
 classRow = { };
 commentRow = { };
-userDataFields = hereCreateUserDataFields( );
+userDataFields = locallyInitializeUserDataFields(opt);
 inxSerialized = false(size(list));
 
 for i = 1 : nList
@@ -191,7 +177,7 @@ for i = 1 : nList
         comment__(1, end+1:numColumns__) = {''};
     end 
     commentRow = [commentRow, comment__]; %#ok<AGROW>
-    hereAddUserDataFields(userData__, numColumns__);
+    userDataFields = locallyAddUserDataFields(userDataFields, userData__, numColumns__);
 end
 
 %
@@ -208,7 +194,7 @@ data = [ data{:} ];
 %
 % Report names of serialized fields
 %
-listSerialized = list(inxSerialized);
+listSerialized = reshape(string(list(inxSerialized)), 1, []);
 
 
 % We need to remove double quotes from the date format string because the
@@ -223,43 +209,17 @@ o.Format = format;
 if opt.Comments
     o.CommentRow = commentRow;
 end
-if ~isempty(opt.UserDataFields)
-    o.UserDataFields = userDataFields;
-end
 if opt.Class
     o.ClassRow = classRow;
 end
+if ~isempty(fieldnames(userDataFields))
+    o.UserDataFields = userDataFields;
+end
 
-c = hereSerialize(o, opt);
+c = locallySerialize(o, opt);
 
 return
 
-
-    function userDataFields = hereCreateUserDataFields( )
-        userDataFields = struct( );
-        for ii = 1 : numel(opt.UserDataFields)
-            fieldName = opt.UserDataFields{ii};
-            userDataFields.(fieldName) = cell.empty(1, 0);
-        end
-    end%
-
-
-    function hereAddUserDataFields(ithUserData, numColumns)
-        if numColumns==0
-            return
-        end
-        for ii = 1 : numel(opt.UserDataFields)
-            valueToSave = repmat({char.empty(1, 0)}, 1, numColumns);
-            fieldName = opt.UserDataFields{ii};
-            if isfield(ithUserData, fieldName)
-                fieldValue = ithUserData.(fieldName); 
-                if ischar(fieldValue) || isa(fieldValue, 'string')
-                    valueToSave{1} = char(fieldValue);
-                end
-            end
-            userDataFields.(fieldName) = [userDataFields.(fieldName), valueToSave];
-        end
-    end%
 end%
 
 
@@ -267,8 +227,32 @@ end%
 % Local Functions
 %
 
+function userDataFields = locallyInitializeUserDataFields(opt)
+    userDataFields = struct( );
+    for n = opt.UserDataFields
+        userDataFields.(n) = cell.empty(1, 0);
+    end
+end%
 
-function c = hereSerialize(oo, opt)
+
+function udf = locallyAddUserDataFields(udf, ithUserData, numColumns)
+    if numColumns==0
+        return
+    end
+    for n = reshape(string(fieldnames(udf)), 1, [])
+        valueToSave = repmat({''}, 1, numColumns);
+        if isstruct(ithUserData) && isfield(ithUserData, n)
+            fieldValue = ithUserData.(n); 
+            if isstring(fieldValue) || ischar(fieldValue)
+                valueToSave{1} = char(fieldValue);
+            end
+        end
+        udf.(n) = [udf.(n), valueToSave];
+    end
+end%
+
+
+function c = locallySerialize(oo, opt)
     nameRow = oo.NameRow;
     strDat = oo.StrDat;
     data = oo.Data;
@@ -278,7 +262,11 @@ function c = hereSerialize(oo, opt)
     else
         delimiter = ', ';
     end
-    formatString = [delimiter, '"%s"'];
+
+    formatString = '%s';
+    if opt.QuoteStrings
+        formatString = ['"', formatString, '"'];
+    end
 
     if isfield(oo, 'CommentRow')
         commentRow = oo.CommentRow;
@@ -326,25 +314,18 @@ function c = hereSerialize(oo, opt)
     % Create an empty buffer
     c = '';
 
-    % Write database user data
-    if isUserData
-        userData = utils.any2str(oo.UserData);
-        userData = strrep(userData, '"', '''');
-        c = [c, '"Userdata[', oo.UserDataFieldName, '] ->"', delimiter, '"', userData, '"', newline( )];
-    end
-
     % Write name row.
     if isHighlight
         nameRow = [{''}, nameRow];
     end
-    c = [c, sprintf('"%s"', opt.NamesHeader), herePrintCharCells(nameRow)];
+    c = [c, sprintf(formatString, opt.NamesHeader), herePrintCharCells(nameRow)];
 
     % Write comments
     if ~isempty(commentRow)
         if isHighlight
             commentRow = [{''}, commentRow];
         end
-        c = [c, newline( ), sprintf('"%s"', opt.CommentsHeader), herePrintCharCells(commentRow)];
+        c = [c, newline( ), sprintf(formatString, opt.CommentsHeader), herePrintCharCells(commentRow)];
     end
 
     % Write unit
@@ -352,7 +333,7 @@ function c = hereSerialize(oo, opt)
         if isHighlight
             unitRow = [{''}, unitRow];
         end
-        c = [c, newline( ), sprintf('"%s"', opt.UnitsHeader), herePrintCharCells(unitRow)];
+        c = [c, newline( ), sprintf(formatString, opt.UnitsHeader), herePrintCharCells(unitRow)];
     end
 
     % Write class
@@ -360,20 +341,25 @@ function c = hereSerialize(oo, opt)
         if isHighlight
             classRow = [{''}, classRow];
         end
-        c = [c, newline( ), sprintf('"%s"', opt.ClassHeader), herePrintCharCells(classRow)];
+        c = [ ...
+            c, newline( ) ...
+            , sprintf(formatString, opt.ClassHeader) ...
+            , herePrintCharCells(classRow) ...
+        ];
     end
 
     % Write user data fields
     if isfield(oo, 'UserDataFields')
-        fieldNames = fieldnames(oo.UserDataFields);
-        for ii = 1 : numel(fieldNames)
-            ithFieldName = fieldNames{ii};
-            ithRow = oo.UserDataFields.(ithFieldName);
+        for n = reshape(string(fieldnames(oo.UserDataFields)), 1, [])
+            ithRow = oo.UserDataFields.(n);
             if isHighlight
                 ithRow = [{''}, ithRow];
             end
-            c = [ c, newline( ), ...
-                  sprintf('".%s"', ithFieldName), herePrintCharCells(ithRow)];
+            c = [
+                c, newline( ) ...
+                , sprintf(formatString, ['.', char(n)]) ...
+                , herePrintCharCells(ithRow) ...
+            ];
         end
     end
 
@@ -429,7 +415,7 @@ function c = hereSerialize(oo, opt)
     nDat = numel(strDat);
     cellData(1, 1:nDat) = strDat(:);
     cellData(2:end, :) = num2cell(xData.');
-    cc = sprintf(['\n"%s"', formatLine], cellData{:});
+    cc = sprintf(['\n', formatString, formatLine], cellData{:});
 
     % NaNi is never printed with the leading sign. Replace NaNi with +NaNi. We
     % should also control for the occurence of NaNi in date strings but we
@@ -457,7 +443,7 @@ function c = hereSerialize(oo, opt)
             if isempty(c) || ~iscellstr(c)
                 return
             end
-            s = sprintf(formatString, c{:});
+            s = sprintf([delimiter, formatString], c{:});
         end%
 end%
 

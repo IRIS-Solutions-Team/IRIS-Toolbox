@@ -1,39 +1,11 @@
-function outputDate = hh(year, varargin)
-% hh  IRIS serial date number for half-yearly date
+% Type `web Dater/hh.md` for help on this function
 %
-% Syntax
-% =======
-%
-%     Dat = hh(Y)
-%     Dat = hh(Y,H)
-%
-% Input arguments
-% ===============
-%
-% * `Y` [ numeric ] - Year.
-%
-% * `H` [ numeric ] - Half-year; if missing, first half-year (January-June)
-% is assumed.
-%
-% Output arguments
-% =================
-%
-% * `Dat` [ numeric ] - IRIS serial date numbers representing the
-% half-yearly date.
-%
-% Description
-% ============
-%
-% Example
-% ========
-%
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function varargout = hh(varargin)
 
-%--------------------------------------------------------------------------
-
-outputDate = Dater(dater.hh(year, varargin{:}));
+[varargout{1:nargout}] = Dater.hh(varargin{:});
 
 end%
 

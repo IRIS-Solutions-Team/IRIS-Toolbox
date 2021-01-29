@@ -93,6 +93,7 @@ end%
 
 
 function window = locallyResolveWindow(window, inputSeries)
+    %(
     if isnumeric(window) 
         if ~all(window==round(window))
             thisError = [
@@ -115,10 +116,12 @@ function window = locallyResolveWindow(window, inputSeries)
         throw(exception.Base(thisError, 'error'));
     end
     window = (-freq+1):0;
+    %)
 end%
 
 
 function locallyValidateWindow(input)
+    %(
     if isa(input, "function_handle")
         return
     end
@@ -126,5 +129,6 @@ function locallyValidateWindow(input)
         return
     end
     error("Validation:Failed", "Input value must be an array of integers");
+    %)
 end%
 

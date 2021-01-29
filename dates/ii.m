@@ -1,6 +1,6 @@
-function date = ii(input)
+function varargout = ii(varargin)
 
-date = Dater(input);
+[varargout{1:nargout}] = Dater.ii(varargin{:});
 
 end%
 

@@ -40,6 +40,7 @@ end%
 %
 
 function [year, month] = locallyPatchNonpositiveMonths(year, month)
+    %(
     inx = month<=0;
     if numel(year)==1 && numel(month)>1
         year = repmat(year, size(month));
@@ -50,5 +51,6 @@ function [year, month] = locallyPatchNonpositiveMonths(year, month)
     yearOffset = ceil(month(inx)/12) - 1;
     year(inx) = year(inx) + yearOffset;
     month(inx) = mod(month(inx)-1, 12) + 1;
+    %)
 end%
 

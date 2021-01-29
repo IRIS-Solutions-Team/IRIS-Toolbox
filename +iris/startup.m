@@ -199,7 +199,7 @@ function options = locallyResolveInputOptions(varargin)
         return
     end
 
-    inputOptions = cellfun(@string, varargin);
+    inputOptions = string(varargin);
     inputOptions = strip(erase(inputOptions, "-"));
     for n = inputOptions
         if contains(n, ["Shutup", "Silent"], "IgnoreCase", true)
