@@ -1,7 +1,7 @@
 function this = add(this, input, varargin)
 
 if isstring(input)
-    addCharts = databank.chartpack.Chart.fromString(input, varargin{:});
+    addCharts = databank.chartpack.Chart.fromString(input, "expand", this.Expand, varargin{:});
 else
     addCharts = databank.chartpack.Chart(varargin{:});
     addCharts.Data = input;
@@ -14,4 +14,3 @@ end
 this.Charts = [this.Charts, addCharts];
 
 end%
-

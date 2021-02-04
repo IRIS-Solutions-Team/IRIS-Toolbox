@@ -35,6 +35,9 @@ for x = this.Charts
     countChartsInWindow = countChartsInWindow + 1;
     currentAxes = subplot(tiles(1), tiles(2), countChartsInWindow);
     axesHandles{end}(end+1) = currentAxes;
+    if this.Round<Inf
+        x.Data = round(x.Data, this.Round);
+    end
     plotHandles{end}{end+1} = this.PlotFunc(range, x.Data, this.PlotSettings{:});
 
     titleHandles{end}(end+1) = locallyCreateTitle(x, currentAxes);

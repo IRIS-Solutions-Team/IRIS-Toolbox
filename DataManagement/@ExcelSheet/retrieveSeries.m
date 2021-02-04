@@ -61,12 +61,12 @@ if ~iscell(locationRef)
 end
 location = cell(size(locationRef));
 if strcmpi(this.Orientation, "Row")
-    [location{:}] = ExcelReference.decodeRow(locationRef{:});
-    dataCutout = this.Buffer([location{:}], dataRange);
+    location = ExcelReference.decodeRow(locationRef{:});
+    dataCutout = this.Buffer(location, dataRange);
     dataCutout = transpose(dataCutout);
 else
-    [location{:}] = ExcelReference.decodeColumn(locationRef{:});
-    dataCutout = this.Buffer(dataRange, [location{:}]);
+    location = ExcelReference.decodeColumn(locationRef{:});
+    dataCutout = this.Buffer(dataRange, location);
 end
 data = nan(size(dataCutout));
 inxValid = cellfun(@isnumeric, dataCutout);

@@ -8,10 +8,18 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         Expression (1, 1) string = ""
         Data = []
 
+        Expand (1, :) cell = cell.empty(1, 0)
         ApplyTransform = true
         Transform = []
 
         PlotSettings = cell.empty(1, 0)
+    end
+
+
+    properties (Constant)
+        SEPARATE_CAPTION = ":"
+        EXCLUDE_FROM_TRANSFORM = "^"
+        EXPANSION_MARK = "?"
     end
 
 
@@ -25,8 +33,12 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
         function evaluate(this, inputDb)
             parent = this.ParentChartpack;
-            if isempty(this.Data) && ~ismissing(this.Expression) && strlength(this.Expression)>0
-                this.Data = databank.eval(inputDb, this.Expression);
+            expression = this.Expression;
+            if isempty(this.Data) && ~ismissing(expression) && strlength(expression)>0
+                if ~isempty(this.Expand)
+                    expression = expand(this, expression);
+                end
+                this.Data = databank.eval(inputDb, expression);
                 if this.ApplyTransform && ~isempty(parent.Transform)
                     this.Data = parent.Transform(this.Data);
                     this.Transform = parent.Transform;
@@ -34,6 +46,19 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             end
         end%
 
+        
+        function expression = expand(this, expression)
+            for i = 1 : 2 : numel(this.Expand)
+                if contains(expression, this.Expand{i})
+                    newExpression = string.empty(1, 0);
+                    for n = reshape(string(this.Expand{i+1}), 1, [])
+                        newExpression(end+1) = replace(expression, this.Expand{i}, n);
+                    end
+                    expression = "[" + join(newExpression, ", ") + "]";
+                    break
+                end
+            end
+        end%
 
         function caption = resolveCaption(this)
             parent = this.ParentChartpack;
@@ -82,16 +107,16 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             arguments
                 inputString (1, 1) string
             end
-            temp = strip(split(inputString, ":"));
+            temp = strip(split(inputString, databank.chartpack.Chart.SEPARATE_CAPTION));
             if numel(temp)==1
                 caption = "";
                 expression = temp;
             else
                 caption = temp(1);
-                expression = join(temp(2:end), ":");
+                expression = join(temp(2:end), databank.chartpack.Chart.SEPARATE_CAPTION);
             end
             applyTransform = true;
-            if startsWith(expression, "^")
+            if startsWith(expression, databank.chartpack.Chart.EXCLUDE_FROM_TRANSFORM)
                 expression = extractAfter(expression, 1);
                 applyTransform = false;
             end

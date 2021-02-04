@@ -8,6 +8,9 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         Highlight {locallyValidateHighlight} = double.empty(1, 0)
         Transform = []
         NewLine = "//"
+        
+        Round = Inf
+        Expand (1, :) cell = cell.empty(1, 0)
 
         Tiles = @auto
         MaxTilesPerWindow = 40

@@ -95,12 +95,7 @@ for v = variantsRequested
             blk, this.Link, levelX, changeX, addStdCorr, header ...
         );
         outputInfo.ExitFlags{v}(i) = exitFlag;
-        if ~isempty(error.EvaluatesToNan)
-            throw( ...
-                exception.Base('Steady:EvaluatesToNan', 'error'), ...
-                this.Equation.Input{error.EvaluatesToNan} ...
-            );
-        end
+        hereHandleErrors();
     end
 
 
@@ -272,6 +267,24 @@ return
             this.Variant.Values(:, :, v) = realValues__;
         else
             this.Variant.Values(:, :, v) = realValues__ + 1i*imagValues__;
+        end
+    end%
+
+
+    function hereHandleErrors()
+        if ~isempty(error.EvaluatesToNan)
+            throw( ...
+                exception.Base('Steady:EvaluatesToNan', 'error'), ...
+                this.Equation.Input{error.EvaluatesToNan} ...
+            );
+        end
+        if ~isempty(error.LogAssignedNonpositive)
+            name = string(this.Quantity.Name{error.LogAssignedNonpositive});
+            exception.error([
+                "Model:SteadyLogAssignedNonpositive"
+                "This variable is declared a log-variable "
+                "but has been assigned a zero or negative steady value: %s "
+            ], name);
         end
     end%
 end%

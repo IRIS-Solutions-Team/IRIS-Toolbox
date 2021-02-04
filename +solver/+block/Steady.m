@@ -47,7 +47,7 @@ classdef Steady < solver.block.Block
         function [lx, gx, exitFlag, error] = run(this, link, lx, gx, addStdCorr, exitFlagHeader)
             %(
             exitFlag = solver.ExitFlag.IN_PROGRESS;
-            error = struct( 'EvaluatesToNan', [ ] );
+            error = struct("EvaluatesToNan", [], "LogAssignedNonpositive", []);
             inxLogWithinModel = this.ParentBlazer.Model.Quantity.InxLog;
                 
             if isEmptyBlock(this.Type) || isempty(this.PtrQuantities)
@@ -98,6 +98,7 @@ classdef Steady < solver.block.Block
             
             lx(ptrLevel) = z(1:numLevels);
             gx(ptrChange) = z(numLevels+1:end);
+
             if any(isnan(z(:)) | isinf(z(:)))
                 exitFlag = solver.ExitFlag.NAN_INF_SOLUTION;
             end
@@ -150,6 +151,7 @@ classdef Steady < solver.block.Block
                     end
                     if any(inxLog__) && any(z<=0)
                         exitFlag = solver.ExitFlag.LOG_NEGATIVE_ASSIGNED;
+                        error.LogAssignedNonpositive = ptrLevel;
                     else
                         exitFlag = solver.ExitFlag.ASSIGNED;
                     end

@@ -171,17 +171,17 @@ classdef ExcelSheet ...
             end
             location = cell(size(locationRef));
             if strcmpi(this.Orientation, 'Row')
-                [location{:}] = ExcelReference.decodeRow(locationRef{:});
+                location = ExcelReference.decodeRow(locationRef{:});
                 description = cell.empty(0);
                 if ~isnan(this.Description)
-                    description = this.Buffer([location{:}], this.Description);
+                    description = this.Buffer(location, this.Description);
                     description = transpose(description);
                 end
             else
-                [location{:}] = ExcelReference.decodeColumn(locationRef{:});
+                location = ExcelReference.decodeColumn(locationRef{:});
                 description = cell.empty(0);
                 if ~isnan(this.Description)
-                    description = this.Buffer(this.Description, [location{:}]);
+                    description = this.Buffer(this.Description, location);
                 end
             end
             if isa(opt.Aggregator, 'function_handle')
