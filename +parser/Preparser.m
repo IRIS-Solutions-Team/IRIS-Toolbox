@@ -1,5 +1,8 @@
+ 
 classdef Preparser ...
     < model.File
+
+    %#ok<*AGROW>
 
     properties
         UserComment = char.empty(1, 0)  % User comment line read from code
@@ -13,32 +16,32 @@ classdef Preparser ...
         Export = shared.Export.empty(1, 0) % Files to be saved into working folder
         CtrlParameters (1, :) string = string.empty(1, 0) % List of parameter names occuring in control expressions and interpolations
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors
-        
+
         StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements
         StoreSubstitutions = struct( ) % Store substitution names and bodies
     end
-    
-    
-    
-    
+
+
+
+
     properties (Constant)
         EVAL_DBASE_PREFIX = 'varargin{2}.'
         EVAL_TEMP_PREFIX = '?.'
-        
+
         EVAL_WARNING = struct( 'If',{{ }}, ...
                                'Switch',{{ }}, ...
                                'Case',{{ }} )
-        
+
         CODE_SEPARATOR = sprintf('\n\n');
         FILE_NAME_SEPARATOR = ' & ';
     end
 
 
-    
-    
+
+
     methods
         function this = Preparser( ...
-            modelFile, inpCode, assigned ...
+            modelFile, inputCode, assigned ...
             , cloneTemplate, angleBrackets, skip ...
         )
 
@@ -48,44 +51,54 @@ classdef Preparser ...
                 return
             end
 
-            try, angleBrackets;
+            try, angleBrackets; %#ok<VUNUS>
                 catch, angleBrackets = false; end
 
-            try, skip;
+            try, skip; %#ok<VUNUS>
                 catch, skip = string.empty(1, 0); end
 
-            if ~isempty(modelFile)
+            if ~isempty(inputCode) && any(strlength(inputCode)>0)
+                % Input code from input string(s)
+                inputCode = reshape(string(inputCode), 1, []);
+                inputCode(inputCode=="") = [];
+                for n = inputCode
+                    % Because Preparser is a handle class we need to create separate instances for
+                    % each file name inside the for loop
+                    add = parser.Preparser();
+                    add.Code = char(n);
+                    this(end+1) = add;
+                end                
+            else
                 if ~isa(modelFile, 'model.File')
-                    fileName = strtrim(cellstr(modelFile));
-                    %
                     % Remove model file names starting with a hat ^
-                    %
-                    inxToRemove = cellfun(@(x) strncmp(x, '^', 1), fileName);
-                    fileName(inxToRemove) = [ ];
+                    fileName = reshape(strip(string(modelFile)), 1, []);
+                    fileName(startsWith(fileName, "^")) = [];
 
-                    %
                     % Throw an error if there is no model file name to read
-                    %
-                    numModelFiles = numel(fileName);
-                    if numModelFiles==0
-                        thisError = { 'Preparser:NoModelFileEntered'
-                                      'No model file specified' };
-                        throw( exception.ParseTime(thisError, 'error') );
+                    if isempty(fileName)
+                        exception.exception([
+                            "Preparser:NoModelFileSpecified"
+                            "No model source file specified"
+                        ]);
                     end
 
-                    %
                     % Create an array of model.File objects
-                    %
-                    modelFile = model.File.empty(1, 0);
-                    for i = 1 : numModelFiles
-                        modelFile = [modelFile, model.File(fileName{i})];
-                    end
+                    % modelFile = model.File.empty(1, 0);
+                    % for n = fileName
+                        % modelFile = [modelFile, model.File(n)];
+                    % end
+
+                    % Combine all input model source files in one model
+                    % file; this is to make the substitutions global across
+                    % all source files
+                    modelFile = model.File(fileName);
                 end
+
                 for i = 1 : numel(modelFile)
                     % Because Preparser is a handle class we need to create separate instances for
                     % each file name inside the loop
-                    this(i) = parser.Preparser( ); %#ok<AGROW>
-                    this(i).FileName = modelFile(i).FileName;
+                    this(i) = parser.Preparser( );
+                    this(i).FileName = string(modelFile(i).FileName);
                     code = modelFile(i).Code;
                     if isa(code, 'string')
                         code = join(code, newline( ));
@@ -93,21 +106,12 @@ classdef Preparser ...
                     end
                     this(i).Code = code;
                 end
-            else
-                % Input code from input string(s) (char or cellstr)
-                inpCode = cellstr(inpCode);
-                for i = 1 : numel(inpCode)
-                    % Because Preparser is a handle class we need to create separate instances for
-                    % each file name inside the for loop
-                    this(i) = parser.Preparser( ); %#ok<AGROW>
-                    this(i).Code = inpCode{i}; %#ok<AGROW>
-                end
             end
 
             for i = 1 : numel(this)
-                this(i).Assigned = assigned; %#ok<AGROW>
+                this(i).Assigned = assigned;
                 this(i).AngleBrackets = angleBrackets;
-                this(i).CloneTemplate = cloneTemplate; %#ok<AGROW>
+                this(i).CloneTemplate = cloneTemplate;
             end
 
             for i = 1 : numel(this)
@@ -124,7 +128,7 @@ classdef Preparser ...
                 % necessary because we're replacing two characters with
                 % one, e.g. `$[` with `<`
                 % this__.Code = parser.Interp.replaceSquareBrackets(this__.Code);
-                
+
                 %
                 % Preparse individual components
                 %
@@ -140,12 +144,12 @@ classdef Preparser ...
                     parser.control.Control.parse(this__);
                 end
 
-                %
+
                 % Resolve interpolations *after* controls so that interpolated expressions
                 % can refer to !for control variables. Interpolations between !for and
                 % !do keywords are resolved separately within For.writeFinal( ) in the
                 % previous step.
-                %
+
                 if ~any(skip=="Interp")
                     parser.Interp.parse(this__);
                 end
@@ -170,11 +174,12 @@ classdef Preparser ...
                 end
                 throwEvalWarning(this__);
             end     
+
             % Reset parsed file name
-            exception.ParseTime.storeFileName( );            
+            exception.ParseTime.storeFileName( );
         end%
-        
-        
+
+
         function fixEmptyLines(this)
             c = this.Code;
             % Remove leading and trailing empty lines
@@ -184,39 +189,26 @@ classdef Preparser ...
             c = model.File.addLineBreak(c);
             this.Code = c;            
         end%
-        
-        
-        function f = getFileName(this)
-            import parser.Preparser
-            f = '';
-            n = numel(this);
-            for i = 1 : n
-                f = [ f, char(this(i).FileName) ]; %#ok<AGROW>
-                if i<n
-                    f = [ f, Preparser.FILE_NAME_SEPARATOR ]; %#ok<AGROW>
-                end
-            end 
-        end%
-        
-        
+
+
         function c = createFinalCut(this)
             import parser.Preparser;
             c = '';
             nThis = numel(this);
             for iThis = 1 : nThis
-                c = [ c, this(iThis).Code ]; %#ok<AGROW>
+                c = [ c, this(iThis).Code ];
                 if iThis<nThis
-                    c = [ c, Preparser.CODE_SEPARATOR ]; %#ok<AGROW>
+                    c = [ c, Preparser.CODE_SEPARATOR ];
                 end
             end
         end%
-        
-        
+
+
         function c = applyFinalCutCommands(this, c) %#ok<INUSL>
             c = parser.List.parse(c);
         end%
-        
-        
+
+
         function d = createCtrlDatabase(this)
             assigned = this(1).Assigned;
             d = struct( );
@@ -227,8 +219,8 @@ classdef Preparser ...
                 end
             end
         end%
-        
-        
+
+
         function throwEvalWarning(this)
             if ~isempty(this.EvalWarning.If)
                 throwCode( exception.ParseTime('Preparser:CTRL_EVAL_IF_FAILED', 'warning'), ...
@@ -243,22 +235,22 @@ classdef Preparser ...
                            this.EvalWarning.Case{:} );
             end
         end%
-        
-        
+
+
         function add(this, ctrlDatabase, export)
             addCtrlParameter(this, ctrlDatabase);
             this.Export = [this.Export, export];
         end%
-        
-        
+
+
         function addCtrlParameter(this, add)
             if ~isstring(add)
                 add = string(add);
             end
             this.CtrlParameters = [this.CtrlParameters, reshape(add, 1, [ ])];
         end%
-        
-        
+
+
         function addEvalWarning(type, this, message)
             if isa(message,'parser.Preparser')
                 add = message.EvalWarning;
@@ -270,7 +262,7 @@ classdef Preparser ...
 
 
         function substitutions = mergeSubstitutions(this)
-            substitutions = struct( );
+            substitutions = struct();
             for i = 1 : numel(this)
                 list = fieldnames(this(i).StoreSubstitutions);
                 for j = 1 : numel(list)
@@ -279,17 +271,15 @@ classdef Preparser ...
             end
         end%
     end
-    
-    
+
+
     methods (Static)
-        function [ ...
-            finalCut, fileName, export ...
-            , ctrlParameters, userComment, substitutions ...
-        ] = parse(modelFile, inpCode, varargin)
+        function [finalCut, fileName, export, controls, comment, substitutions] ...
+            = parse(modelFile, inputCode, varargin)
 
             import parser.Preparser
 
-            if ~isempty(varargin) && isa(varargin{1}, 'parser.Preparser')
+            if ~isempty(varargin) && isa(varargin{1}, "parser.Preparser")
                 temp = struct( );
                 temp.AngleBrackets = varargin{1}.AngleBrackets;
                 temp.Assigned = varargin{1}.Assigned;
@@ -302,10 +292,10 @@ classdef Preparser ...
             if isempty(pp)
                 pp = extend.InputParser('@Preparser/parse');
                 pp.KeepUnmatched = true;
-                addRequired(pp, 'modelFile', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x) || isa(x, 'model.File'));
-                addRequired(pp, 'inputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+                addRequired(pp, 'modelFile', @(x) isempty(x) || ischar(x) || isstring(x) || iscellstr(x) || isa(x, 'model.File'));
+                addRequired(pp, 'inputCode', @(x) isempty(x) || ischar(x) || isstring(x) || iscellstr(x));
 
-                addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
+                addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x) || isstring(x));
 
                 addParameter(pp, 'AngleBrackets', true, @validate.logicalScalar);
                 addParameter(pp, {'Assigned', 'Assign'}, struct( ), @(x) isempty(x) || isstruct(x));
@@ -313,28 +303,27 @@ classdef Preparser ...
                 addParameter(pp, 'Skip', string.empty(1, 0), @isstring);
             end
             %)
-            opt = parse(pp, modelFile, inpCode, varargin{:});
-            
-            %
+            opt = parse(pp, modelFile, inputCode, varargin{:});
+
             % Create @Preparser object and parse the components
-            %
             this = parser.Preparser( ...
-                modelFile, inpCode, ...
+                modelFile, inputCode, ...
                 opt.Assigned, opt.CloneTemplate, opt.AngleBrackets, reshape(opt.Skip, 1, [ ]) ...
             );
 
-            % Combine file names
-            fileName = getFileName(this); 
+            % Store all file names in a string array
+            fileName = [this(:).FileName];
+
             % Compose final code
             finalCut = createFinalCut(this);
             % Apply preparsing commands to the final cut
             finalCut = applyFinalCutCommands(this, finalCut);
             % Return list of control parameters
-            ctrlParameters = unique([this(:).CtrlParameters]);
+            controls = unique([this(:).CtrlParameters]);
             % Merge all exported files
             export = [ this(:).Export ];
             % First-line comment from the first file
-            userComment = this(1).UserComment;
+            comment = this(1).UserComment;
             % Return database of substitutions
             substitutions = mergeSubstitutions(this);
             % Save preparsed code to disk file if requested
@@ -342,10 +331,10 @@ classdef Preparser ...
                 Preparser.saveAs(finalCut, opt.SaveAs);
             end
         end%
-        
 
 
-        
+
+
         function c = convertEols(c)
             % convertEols - Convert any style EOLs to Unix style.
             % Windows:
@@ -354,7 +343,7 @@ classdef Preparser ...
             c = replace(c, sprintf('\r'), newline( ));            
         end%
 
-        
+
         function varargout = eval(varargin)
             if isempty(regexp(varargin{1}, "[A-Za-z]", "once"))
                 % No letters means no variables, evaluate right away
@@ -364,7 +353,7 @@ classdef Preparser ...
                 varargout{1} = eval(varargin{1});
             end
         end%
-        
+
 
         function evalPopulateWorkspace(expn, assigned, p)
             import parser.White
@@ -388,24 +377,15 @@ classdef Preparser ...
                 addCtrlParameter(p, namesAssigned(inxControl));
             end
         end%
-        
 
-        
-        
-        function saveAs(codeToSave, fileName)
-            if ~isempty(fileName)
-                try
-                    char2file(codeToSave, fileName);
-                catch
-                    throw( exception.ParseTime('Preparser:CANNOT_SAVE', 'error'), ...
-                           fileName ); %#ok<GTARG>
-                end
+
+        function saveAs(code, fileName)
+            if ~isempty(fileName) && any(strlength(fileName)>0)
+                writematrix(code, fileName, "fileType", "text", "quoteString", false);
             end
         end%
-        
 
 
-        
         function code = removeInsignificantWhs(code)
             code = strtrim(code);
             code = regexprep(code,'\s+',' ');

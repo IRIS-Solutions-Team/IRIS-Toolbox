@@ -1,33 +1,29 @@
-function this = postparse(this, qty, eqn, log, euc, puc, collector, opt, optimalOpt)
 % postparse  Postparse model code
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+function this = postparse(this, qty, eqn, log, euc, puc, collector, opt, optimalOpt)
 
-%--------------------------------------------------------------------------
+TYPE = @int8;
 
 exception.ParseTime.storeFileName(this.FileName);
 
 %
-% Data preprocessor and postprocessor
+% __Retrieve data preprocessors and postprocessors__
 %
 removeFromLog = string.empty(1, 0);
 for processor = ["Preprocessor", "Postprocessor"]
     collector.(processor) = regexprep(collector.(processor), '\s+', '');
     if ~isempty(collector.(processor))
-        f = model.File( );
-        f.FileName = this.FileName;
-        f.Code = collector.(processor);
-        f.Preparsed = true;
-        this.(processor) = ExplanatoryEquation.fromFile(f);
+        mf = model.File( );
+        mf.FileName = this.FileName;
+        mf.Code = collector.(processor);
+        mf.Preparsed = true;
+        this.(processor) = Explanatory.fromFile(mf);
         [this.(processor).Context] = deal("Preprocessor");
         this.(processor) = initializeLogStatus(this.(processor), log);
-        removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [ ])];
+        removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [])];
     end
 end
 if ~isempty(removeFromLog)
@@ -113,9 +109,9 @@ posLossEqtn = NaN;
 % Presence of a floor constraint
 isFloor = false;
 % Positions of the floor variable, floor multiplier and floor parameter
-posFloorVariable = [ ];
-posFloorMultiplier = [ ];
-posFloorParameter = [ ];
+posFloorVariable = [];
+posFloorMultiplier = [];
+posFloorParameter = [];
 % Name of the multiplier associated with nonegativity constraint.
 floorVariableName = '';
 if  isOptimal
@@ -166,7 +162,7 @@ eqn = locallyEnsureSemicolon(eqn);
 
 
 %
-% Postparse Equations
+% __Postparse Equations__
 %
 
 % Check for steady references in the wrong equations
@@ -233,14 +229,14 @@ if isOptimal
     last = find(eqn.Type==2, 1, 'last');
     eqn.Input(posLossEqtn:last) = new.Input(posLossEqtn:last);
     eqn.Dynamic(posLossEqtn:last) = new.Dynamic(posLossEqtn:last);
-    
+
     % Add steady equations. Note that we must at least replace the old equation
     % in `lossPos` position (which was the objective function) with the new
     % equation (which is a derivative wrt to the first variables).
     eqn.Steady(posLossEqtn:last) = new.Steady(posLossEqtn:last);
     % Update the nonlinear equation flags.
     eqn.IxHash(posLossEqtn:last) = new.IxHash(posLossEqtn:last);
-    
+
     % Update incidence matrices to include the new equations.
     indexUpdateIncidence = false(size(eqn.Input));
     indexUpdateIncidence(posLossEqtn:last) = true;
@@ -274,7 +270,6 @@ this.Equation = eqn;
 
 return
 
-    
     function hereCheckTimeAndSteadyRef( )
         % Check for { in dynamic and steady equations
         inxOrphan = contains(eqn.Dynamic, '{') | contains(eqn.Steady, '{');
@@ -377,7 +372,7 @@ return
                 posFloorParameter = find(inxPre, 1, 'last') + 1;
             end
         end
-        
+
         % Loss function is always moved to last position among transition equations.
         posLossEqtn = length(eqn.Input);
         if isFloor
@@ -394,7 +389,7 @@ return
             posFloorVariable = find(inxFloorVariable);
             posFloorMultiplier = find( strcmp(qty.Name, floorVariableName) );
         end
-        
+
         % Add a total of `numEquationsToAdd` new transition equations, i.e. the
         % derivatives of the Lagrangian wrt the existing transition
         % variables. At the same time, remove the loss function so

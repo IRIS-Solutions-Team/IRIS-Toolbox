@@ -1,9 +1,8 @@
-function listOfMatches = lookupNames(this, varargin)
 % lookupNames  Look up names based on regular expression
 %
 % __Syntax__
 %
-%     listOfMatches = lookupNames(model, query)
+%     matches = lookupNames(model, query)
 %
 %
 % __Input Arguments__
@@ -17,7 +16,7 @@ function listOfMatches = lookupNames(this, varargin)
 %
 % __Output Arguments__
 %
-% * `listOfMatches` [ cellstr ] - Names from the model object matching the
+% * `matches` [ cellstr ] - Names from the model object matching the
 % regular expression or expressions specified in `query`.
 %
 %
@@ -30,6 +29,8 @@ function listOfMatches = lookupNames(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+function matches = lookupNames(this, varargin)
+
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.lookup');
@@ -40,15 +41,15 @@ parse(parser, this, varargin);
 
 %--------------------------------------------------------------------------
 
-numOfQueries = numel(varargin);
-listOfMatches = cell.empty(1, 0);
-if numOfQueries==0
+numQueries = numel(varargin);
+matches = cell.empty(1, 0);
+if numQueries==0
     return
 end
 
 % Combine the results of all queries into one
 ell = lookup(this.Quantity, varargin{1});
-for i = 2 : numOfQueries
+for i = 2 : numQueries
     ithEll = lookup(this.Quantity, varargin{i});
     ell.IxName = ell.IxName | ithEll.IxName;
     ell.IxStdCorr = ell.IxStdCorr | ithEll.IxStdCorr;
@@ -56,33 +57,37 @@ end
 
 if any(ell.IxName)
     % Add names of variables, shocks, parameters
-    listOfMatches = [ listOfMatches, ...
-                      this.Quantity.Name(ell.IxName) ];
+    matches = [
+        matches, ...
+        this.Quantity.Name(ell.IxName)
+    ];
 end
 
 if any(ell.IxStdCorr)
     TYPE = @int8;
-    indexOfShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-    numOfShocks = nnz(indexOfShocks);
-    if any(ell.IxStdCorr(1:numOfShocks))
+    inxShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+    numShocks = nnz(inxShocks);
+    if any(ell.IxStdCorr(1:numShocks))
         % Add names of std deviations
-        listOfMatches = [ listOfMatches, ...
-                          getStdNames(this.Quantity, ell.IxStdCorr(1:numOfShocks)) ];
+        matches = [
+            matches, ...
+            getStdNames(this.Quantity, ell.IxStdCorr(1:numShocks))
+        ];
     end
-    if any(ell.IxStdCorr(numOfShocks+1:end))
+    if any(ell.IxStdCorr(numShocks+1:end))
         % Add names of correlations
-        listOfMatches = [ listOfMatches, ...
-                          getCorrNames(this.Quantity, ell.IxStdCorr(numOfShocks+1:end)) ];
+        matches = [ 
+            matches, ...
+            getCorrNames(this.Quantity, ell.IxStdCorr(numShocks+1:end))
+        ];
     end
 end
 
 end%
 
-
 %
 % Local Functions
 %
-
 
 function flag = validateQuery(input)
     if isempty(input)

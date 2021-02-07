@@ -1,5 +1,5 @@
 function outputDb = mtimes(inputDb, list)
-% retrieve  Retrieve selected fields from databan
+% retrieve  Retrieve selected fields from databank
 %{
 %% Syntax
 %--------------------------------------------------------------------------

@@ -2,10 +2,8 @@ classdef Export < parser.control.ExternalFile
     properties
         Body
     end
-    
-    
-    
-    
+
+
     methods
         function this = Export(varargin)
             if isempty(varargin)
@@ -14,29 +12,25 @@ classdef Export < parser.control.ExternalFile
             c = varargin{1};
             sh = varargin{2};
             construct(this, c, sh);
-        end
-        
-        
-        
-        
+        end%
+
+
         function c = writeFinal(this, p, varargin)
             import parser.control.For;
             c = '';
             fileName = this.FileName;
-            if ~isempty(p.StoreForCtrl) && ~isempty(strfind(fileName, '?'))
+            if ~isempty(p.StoreForCtrl) && any(contains(fileName, '?'))
                 fileName = For.substitute(fileName, p);
             end
-            fileName = strtrim(fileName);
+            fileName = strip(fileName);
             contents = writeFinal(this.Body, p, varargin{:});
             contents = textfun.removeltel(contents);
             contents = completeFileContents(this, contents);
             addExport = shared.Export(fileName, contents);
             p.Export = [p.Export, addExport];
-        end
-        
-        
-        
-        
+        end%
+
+
         function construct(this, c, sh)
             import parser.control.*;
             c0 = c;
@@ -48,14 +42,12 @@ classdef Export < parser.control.ExternalFile
                     c0 ...
                     );
             end
-            this.FileName = fileName;
+            this.FileName = string(fileName);
             this.Body = CodeSegments(c, [ ], sh);
-        end
-        
-        
-        
-        
+        end%
+
+
         function c = completeFileContents(this, c) %#ok<INUSL>
-        end
+        end%
     end
 end

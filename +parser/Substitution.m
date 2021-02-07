@@ -5,17 +5,14 @@ classdef Substitution < handle
         Body  = cell.empty(1, 0) % Substitution bodies
         Code  = cell.empty(1, 0) % Code with substition blocks removed
     end
-    
-    
-    
+
+
     properties (Constant)
         SUBSTITUTION_PATTERN = '!substitutions(.*?)(?=![a-zA-Z]|$)'
         NAME_BODY_PATTERN    = '(\<[a-zA-Z]\w*\>)\s*:?\s*=\s*([^;]*)\s*;'
     end
-    
-    
-    
-    
+
+
     methods
         function this = Substitution(c)
             if nargin==0
@@ -26,10 +23,8 @@ classdef Substitution < handle
             readNameBody(this);
             checkUnique(this);
         end%
-        
-        
-        
-        
+
+
         function readBlock(this)
             block = cell.empty(1, 0);
             % Read the blocks one by one to preserve their order in the
@@ -47,10 +42,10 @@ classdef Substitution < handle
             this.Code = c;
             this.Block = block;
         end%
-        
-        
-        
-        
+
+
+
+
         function readNameBody(this)
             % Read substitution names and bodies; do block by block to preserve their
             % order.
@@ -84,7 +79,7 @@ classdef Substitution < handle
 
 
 
-        
+
         function checkUnique(this)
             [~, pos] = unique(this.Name);
             numNames = length(this.Name);
@@ -94,10 +89,10 @@ classdef Substitution < handle
                        this.Name{pos} );
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function c = writeFinal(this)
             c = this.Code;
             % Expand substitutions in other substitutions first.
@@ -119,10 +114,8 @@ classdef Substitution < handle
             this.Code = c;
             checkUndefined(this);
         end%
-        
-        
-        
-        
+
+
         function checkUndefined(this)
             c = this.Code;
             undefined = regexp(c, '\$\<[A-Za-z]\w*\>\$', 'match');
@@ -132,9 +125,8 @@ classdef Substitution < handle
             end
         end%
     end
-    
-    
-    
+
+
     methods (Static)
         function parse(p)
             c = p.Code;

@@ -1,8 +1,11 @@
 classdef File ...
     < matlab.mixin.Copyable
 
+    %#ok<*NASGU>
+    %#ok<*GTARG>
+    
     properties
-        FileName (1, 1) string = ""
+        FileName (1, :) string = string.empty(1, 0)
         Code = char.empty(1, 0)
         Preparsed (1, 1) logical = false
         ClonePattern (1, 2) string = ["", ""]
@@ -31,14 +34,13 @@ classdef File ...
             if nargin==0
                 return
             end
-            if nargin==1 && isa(varargin{1}, 'model.File')
+            if nargin==1 && isa(varargin{1}, "model.File")
                 this = varargin{1};
                 return
             end
-            sourceFiles = reshape(string(varargin{1}), 1, []);
-            this.FileName = join(sourceFiles, " & ");
+            this.FileName = reshape(string(varargin{1}), 1, []);
             this.Code = '';
-            for n = sourceFiles
+            for n = this.FileName
                 code = fileread(n);
                 code = model.File.removeUTF(code);
                 code = model.File.convertEOL(code);
@@ -120,11 +122,7 @@ classdef File ...
         
         
         function set.Code(this, value)
-            if isstring(value)
-                value = join(value, string(newline()));
-                value = char(value);
-            end
-            this.Code = value;
+            this.Code = char(join(string(value), newline()));
         end%
 
 
@@ -160,13 +158,11 @@ classdef File ...
             fid = fopen(outputFileName, 'w+');
             if fid==-1
                 throw( exception.Base('Model:File:CannotOpenTextFile', 'error'), ...
-                       outputFileName );
+                       outputFileName ); 
             end
-            if iscellstr(text)
-                text = sprintf('%s\n', text{:});
-                if ~isempty(text)
-                    text(end) = '';
-                end
+            text = join(string(text), newline());
+            if strlength(text)>0
+                text = extractBefore(text, strlength(text));
             end
             count = fwrite(fid, text, 'char');
             fclose(fid);
@@ -200,7 +196,7 @@ classdef File ...
         end%
 
         
-        function code = restoreKeywords(code);
+        function code = restoreKeywords(code)
             code = replace(code, model.File.PROTECTED_KEYWORDS(:, 2), model.File.PROTECTED_KEYWORDS(:, 1));
         end%
 
@@ -212,7 +208,7 @@ classdef File ...
                     code = regexprep(code, model.File.NAME_PATTERN, clonePattern(1) + "$0" + clonePattern(2));
                 end
             else
-                replaceFunc = replace;
+                replaceFunc = replace; 
                 code = regexprep(code, model.File.NAME_PATTERN, "${replaceFunc($0)}");
             end
         end%

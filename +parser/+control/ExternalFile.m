@@ -1,7 +1,7 @@
 classdef ExternalFile < parser.control.Control
     properties
         % FileName  Name of external file
-        FileName = '' 
+        FileName (1, :) string =  string.empty(1, 0)
     end
     
         

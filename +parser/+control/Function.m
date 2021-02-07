@@ -35,7 +35,7 @@ classdef Function < parser.control.Export
             if isempty(fileName)
                 error('IRIS:Preparser:Controls:MissingFunctionFileName', c0);
             end
-            this.FileName = [fileName, '.m'];
+            this.FileName = string(fileName) + ".m";
             this.FirstLine = firstLine;
             this.Body = CodeSegments(c, [ ], sh);
         end
@@ -55,7 +55,7 @@ classdef Function < parser.control.Export
     
     methods (Static)
         function [fileName, firstLine, c, sh] = getFunctionName(key, c, sh)
-            import parser.control.*;
+            import parser.control.*
             c0 = c;
             [firstLine, to] = regexp(c, '^[^\n]*\n', 'once', 'match', 'end');
             c = c(to+1:end);
@@ -68,6 +68,7 @@ classdef Function < parser.control.Export
                     throwCode ( exception.ParseTime('Preparser:CTRL_MISSING_FILE_NAME', 'error'), c0 );
                 end
             end
-        end
+            fileName = string(fileName);
+        end%
     end
 end

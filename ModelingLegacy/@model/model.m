@@ -10,7 +10,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
     properties (GetAccess=public, SetAccess=protected)
         % FileName  Name of model file or files from which the model object was created
-        FileName = ''
+        FileName (1, :) string = string.empty(1, 0)
 
         % IsLinear  True for models designated by user as linear
         IsLinear = false

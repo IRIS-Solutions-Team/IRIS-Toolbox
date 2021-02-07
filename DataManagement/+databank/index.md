@@ -35,6 +35,7 @@ handling tasks.
 | [`databank.eval`](eval.md)                            | {{ databank.eval }} |
 | [`databank.filterFields`](filterFields.md)            | {{ databank.filterFields }} |
 | [`databank.merge`](merge.md)                          | {{ databank.merge }} |
+| [`databank.retrieveColumns`](retrieveColumns.md)      | {{ databank.retrieveColumns }} |
 
 
 ### Creating Charts from Databank

@@ -9,6 +9,8 @@ classdef Explanatory ...
     & shared.Plan
 
     properties
+% Fixed  Row vector of parameter values (if the parameter is fixed to that
+% value) or NaNs (if the parameter can be changed or estimated)
         Fixed (1, :, :) double = double.empty(1, 0, 1)
 
 
@@ -521,44 +523,6 @@ classdef Explanatory ...
         end%
 
 
-        function this = set.Parameters(this, value)
-            %(
-            if ~isnumeric(value)
-                exception.error([
-                    "Explanatory:InvalidParametersAssigned"
-                    "Parameters in Explanatory objects must be numeric values"
-                ]);
-            end
-            if size(value, 1)~=1 || size(value, 2)~=this.NumParameters
-                exception.error([
-                    "Explanatory:InvalidFixedParametersAssigned"
-                    "Invalid dimension of the parameters being assigned to an Explanatory object"
-                ]);
-            end
-            this.Parameters = double(value);
-            %)
-        end%
-
-
-        function this = set.Fixed(this, value)
-            %(
-            if ~isnumeric(value)
-                exception.error([
-                    "Explanatory:InvalidFixedAssigned"
-                    "Fixed parameters in Explanatory objects must be numeric values"
-                ]);
-            end
-            if size(value, 1)~=1 || size(value, 2)~=this.NumParameters 
-                exception.error([
-                    "Explanatory:InvalidFixedParametersAssigned"
-                    "Invalid dimension of the fixed parameters being assigned to an Explanatory object"
-                ]);
-            end
-            this.Fixed = double(value);
-            %)
-        end%
-
-
         function this = set.ResidualModel(this, value)
             %(
             nv = countVariants(this);
@@ -719,8 +683,6 @@ classdef Explanatory ...
             label = strip(string(label));
             %)
         end%
-
-
 
 
         function [inputString, attributes] = extractAttributes(inputString)

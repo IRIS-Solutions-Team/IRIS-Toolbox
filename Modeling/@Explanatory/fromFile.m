@@ -69,7 +69,7 @@ if isa(sourceFiles, 'model.File') && sourceFiles.Preparsed
     %
     % Model file already preparsed
     %
-    fileName = sourceFiles.FileName;
+    fileName = join(string(sourceFiles.FileName), " & ");
     code = sourceFiles.Code;
     export__ = [ ];
     comment = [ ];

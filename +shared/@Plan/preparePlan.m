@@ -35,7 +35,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         "!variables x, y, z !shocks ex, ey, ez "
         "!equations x=x{-1}+ex+0.1*ey+0.1*ez; y=0.1*ex+ey+0.1*ez; z=0.1*ex+0.1*ey+ez;"
     ]);
-    m = Model(f, 'Linear=', true);
+    m = Model(f, "linear", true);
     p = Plan(m, 1:10);
     assertEqual(testCase, p.SigmasExogenous, [nan(3,1), ones(3,10)]);
     m8 = alter(m, 8);

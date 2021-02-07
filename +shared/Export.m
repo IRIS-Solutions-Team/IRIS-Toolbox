@@ -8,8 +8,8 @@
 
 classdef Export < handle
     properties
-        FileName = char.empty(1, 0)
-        Contents = char.empty(1, 0)
+        FileName (1, :) string = string.empty(1, 0)
+        Contents (1, :) char = char.empty(1, 0)
     end
     
     
@@ -23,7 +23,7 @@ classdef Export < handle
             if nargin==0
                 return
             end
-            this.FileName = varargin{1};
+            this.FileName = string(varargin{1});
             this.Contents = varargin{2};
         end%
         
@@ -43,7 +43,7 @@ classdef Export < handle
             for i = 1 : n
                 fileName = this(i).FileName;
                 contents = this(i).Contents;
-                if isempty(fileName)
+                if isempty(fileName) || all(strlength(fileName)==0)
                     return
                 end
                 fileName = fullfile(pwd( ), fileName);
