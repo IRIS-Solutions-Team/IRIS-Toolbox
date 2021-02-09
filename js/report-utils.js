@@ -103,10 +103,10 @@ function createChartSeries(seriesObj, limits, color, chartLib) {
   }
   switch (chartLib.toLowerCase()) {
     case "chartjs":
-      return $ru.createSeriesForChartJs(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings.Type, colors, limits);
+      return $ru.createSeriesForChartJs(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings, colors, limits);
     case "plotly":
     default:
-      return $ru.createSeriesForPlotly(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings.Type, colors);
+      return $ru.createSeriesForPlotly(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings, colors);
   }
 }
 
@@ -229,7 +229,7 @@ function createChartForChartJs(data, limits, dateFormat, highlight) {
 }
 
 // create series object for Chart.js chart
-function createSeriesForChartJs(title, dates, values, seriesType, colors, limits) {
+function createSeriesForChartJs(title, dates, values, seriesSettings, colors, limits) {
   var tsData = [];
   for (var i = 0; i < values.length; i++) {
     const thisDate = dates[i];
@@ -241,7 +241,7 @@ function createSeriesForChartJs(title, dates, values, seriesType, colors, limits
       y: values[i]
     });
   }
-  const seriesPlotType = seriesType || "line";
+  const seriesPlotType = seriesSettings.Type || "line";
   var seriesObj = {
     data: tsData,
     label: title || "",
@@ -367,8 +367,8 @@ function createChartForPlotly(data, limits, dateFormat, highlight, interactive) 
 }
 
 // create series object for Plotly chart
-function createSeriesForPlotly(title, dates, values, seriesType, colors) {
-  const seriesPlotType = seriesType || "scatter";
+function createSeriesForPlotly(title, dates, values, seriesSettings, colors) {
+  const seriesPlotType = seriesSettings.Type || "scatter";
   var seriesObj = {
     x: dates,
     y: values,
