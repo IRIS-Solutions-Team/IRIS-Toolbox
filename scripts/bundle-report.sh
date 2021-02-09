@@ -18,7 +18,7 @@ declare -a js_vendor_list_no_plotly=(
   "../js/vendor/marked.min.js"
   "../js/vendor/highlight.min.js"
 )
-declare -a js_vendor_list=("${js_vendor_list_no_plotly[@]}" "../js/vendor/plotly.js")
+declare -a js_vendor_list=("${js_vendor_list_no_plotly[@]}" "../js/vendor/plotly.min.js")
 uglifyjs $(IFS=" " ; echo "${js_vendor_list[*]}") -o ../dist/lib/vendor.min.js -c
 uglifyjs $(IFS=" " ; echo "${js_vendor_list_no_plotly[*]}") -o ../dist/lib/vendor-no-plotly.min.js -c
 
