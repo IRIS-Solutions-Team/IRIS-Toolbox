@@ -86,13 +86,13 @@ html_web = re.sub(
 )
 html = re.sub(
     "<!\-\- build:user:css \-\->.*<!\-\- endbuild:user:css \-\->",
-    '<link rel="stylesheet" href="user-defined.css">',
+    '<style>/* user-defined-css-here */</style>',
     html,
     flags=re.DOTALL | re.MULTILINE,
 )
 html_web = re.sub(
     "<!\-\- build:user:css \-\->.*<!\-\- endbuild:user:css \-\->",
-    '<link rel="stylesheet" href="user-defined.css">',
+    '<style>/* user-defined-css-here */</style>',
     html_web,
     flags=re.DOTALL | re.MULTILINE,
 )

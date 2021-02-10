@@ -30,10 +30,8 @@ declare -a css_vendor_list=(
 )
 cleancss -o ../dist/lib/vendor.min.css $(IFS=" " ; echo "${css_vendor_list[*]}")
 
-# minify main report CSS file and copy it together with the example 
-# of custom.css to ./dist
+# minify main report CSS file and copy it to ./dist
 cleancss -o ../dist/lib/report.min.css ../css/main.css
-cp ../css/custom.css ../dist/user-defined.css
 
 # minify, concat and copy all report rendering scripts into one ./dist/lib/render.min.js
 declare -a js_report_list=(

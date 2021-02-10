@@ -58,7 +58,7 @@ jobs:
         cd $GITHUB_WORKSPACE/master
         zip -r $GITHUB_WORKSPACE/report-unbundled.zip ./dist -x *report-template.bundle.html -x *no-plotly* -x *web-source*
         zip -r $GITHUB_WORKSPACE/report-unbundled-no-plotly.zip ./dist -x *report-template*.bundle.html -x *vendor.min.js* -x */report-template.html -x *web-source*
-        cp ./dist/{user-defined.css,report-template.bundle.html,report-template-no-plotly.bundle.html,report-template-web-source.html,report-template-web-source-no-plotly.html} $GITHUB_WORKSPACE/
+        cp ./dist/{report-template.bundle.html,report-template-no-plotly.bundle.html,report-template-web-source.html,report-template-web-source-no-plotly.html} $GITHUB_WORKSPACE/
         cd $GITHUB_WORKSPACE
     - name: Create Release
       id: create_release
@@ -81,17 +81,7 @@ jobs:
         asset_name: report-unbundled.zip
         asset_content_type: application/zip
     - name: Upload Release Asset II
-      id: upload-release-asset-2 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./user-defined.css
-        asset_name: user-defined.css
-        asset_content_type: text/css
-    - name: Upload Release Asset III
-      id: upload-release-asset-3 
+      id: upload-release-asset-2
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,8 +90,8 @@ jobs:
         asset_path: ./report-template.bundle.html
         asset_name: report-template.bundle.html
         asset_content_type: text/html
-    - name: Upload Release Asset IV
-      id: upload-release-asset-4
+    - name: Upload Release Asset III
+      id: upload-release-asset-3
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,8 +100,8 @@ jobs:
         asset_path: ./report-template-no-plotly.bundle.html
         asset_name: report-template-no-plotly.bundle.html
         asset_content_type: text/html
-    - name: Upload Release Asset V
-      id: upload-release-asset-5
+    - name: Upload Release Asset IV
+      id: upload-release-asset-4
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -120,8 +110,8 @@ jobs:
         asset_path: ./report-template-web-source.html
         asset_name: report-template-web-source.html
         asset_content_type: text/html
-    - name: Upload Release Asset VI
-      id: upload-release-asset-6
+    - name: Upload Release Asset V
+      id: upload-release-asset-5
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
