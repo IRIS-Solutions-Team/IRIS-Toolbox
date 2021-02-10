@@ -209,6 +209,7 @@ h6, .h6 {
 .rephrase-diff-table-button {
   /* any button from the DIFF table button group */
   font-weight: normal;
+  min-width: 120px;
 }
 
 .rephrase-diff-table-button-show-diff {
