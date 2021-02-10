@@ -396,7 +396,8 @@ function createSeriesForPlotly(title, dates, values, seriesSettings, colors) {
 
 function createMatrix(parent, matrixObj) {
   // by default do not round matrix numbers
-  const nDecimals = matrixObj.Settings.NumDecimals || -1;
+  const nDecParsed = parseInt(matrixObj.Settings.NumDecimals);
+  const nDecimals = isNaN(nDecParsed) ? -1 : nDecParsed;
   var matrixParent = document.createElement("div");
   $(matrixParent).addClass("rephrase-matrix");
   // apply custom css class to .rephrase-matrix div
@@ -797,7 +798,8 @@ function createTable(parent, tableObj) {
 
 function createTableSeries(tbodyRow, tableRowObj) {
   // number of decimals when showing numbers
-  const nDecimals = tableRowObj.Settings.NumDecimals || 2;
+  const nDecParsed = parseInt(tableRowObj.Settings.NumDecimals);
+  const nDecimals = isNaN(nDecParsed) ? 2 : nDecParsed;
   const diffMethod = (tableRowObj.Settings.Method || "Difference").toLowerCase();
   var tbodyTitleCell = document.createElement("td");
   $(tbodyTitleCell).addClass('rephrase-table-data-row-title');
