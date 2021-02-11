@@ -801,6 +801,9 @@ function createTableSeries(tbodyRow, tableRowObj) {
   const nDecParsed = parseInt(tableRowObj.Settings.NumDecimals);
   const nDecimals = isNaN(nDecParsed) ? 2 : nDecParsed;
   const diffMethod = (tableRowObj.Settings.Method || "Difference").toLowerCase();
+  const nanValue = (tableRowObj.Settings.NaN === undefined || tableRowObj.Settings.NaN === null)
+    ? NaN
+    : tableRowObj.Settings.NaN;
   var tbodyTitleCell = document.createElement("td");
   $(tbodyTitleCell).addClass('rephrase-table-data-row-title');
   tbodyTitleCell.innerText = tableRowObj.Title || "";
@@ -840,8 +843,8 @@ function createTableSeries(tbodyRow, tableRowObj) {
       ? $ru.databank.getSeriesContent(tableRowObj.Content[1])
       : tableRowObj.Content[1];
     for (var j = 0; j < Math.max(baselineSeries.Values.length, alternativeSeries.Values.length); j++) {
-      const v1 = baselineSeries.Values[j];
-      const v2 = alternativeSeries.Values[j];
+      const v1 = (baselineSeries.Values[j] === null) ? NaN : baselineSeries.Values[j];
+      const v2 = (alternativeSeries.Values[j] === null) ? NaN : alternativeSeries.Values[j];
       const vDiff = (diffMethod === "ratio")
         ? v2 / v1
         : ((diffMethod === "percent")
@@ -849,15 +852,15 @@ function createTableSeries(tbodyRow, tableRowObj) {
           : v2 - v1); // difference
       var baselineDataCell = document.createElement("td");
       $(baselineDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-baseline']);
-      baselineDataCell.innerText = v1.toFixed(nDecimals);
+      baselineDataCell.innerText = isNaN(v1) ? nanValue : v1.toFixed(nDecimals);
       baselineRow.appendChild(baselineDataCell);
       var alternativeDataCell = document.createElement("td");
       $(alternativeDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-alternative']);
-      alternativeDataCell.innerText = v2.toFixed(nDecimals);
+      alternativeDataCell.innerText = isNaN(v2) ? nanValue : v2.toFixed(nDecimals);
       alternativeRow.appendChild(alternativeDataCell);
       var diffDataCell = document.createElement("td");
       $(diffDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-diff']);
-      diffDataCell.innerText = vDiff.toFixed(nDecimals) + ((diffMethod === "percent") ? "%" : "");
+      diffDataCell.innerText = isNaN(vDiff) ? nanValue : vDiff.toFixed(nDecimals) + ((diffMethod === "percent") ? "%" : "");
       diffRow.appendChild(diffDataCell);
     }
     $(tbodyRow).after(baselineRow);
@@ -868,10 +871,10 @@ function createTableSeries(tbodyRow, tableRowObj) {
       tableRowObj.Content = $ru.databank.getSeriesContent(tableRowObj.Content);
     }
     for (var j = 0; j < tableRowObj.Content.Values.length; j++) {
-      const v = tableRowObj.Content.Values[j];
+      const v = (tableRowObj.Content.Values[j] === null) ? NaN : tableRowObj.Content.Values[j];
       var tbodyDataCell = document.createElement("td");
       $(tbodyDataCell).addClass('rephrase-table-data-cell');
-      tbodyDataCell.innerText = v.toFixed(nDecimals);
+      tbodyDataCell.innerText = isNaN(v) ? nanValue : v.toFixed(nDecimals);
       tbodyRow.appendChild(tbodyDataCell);
     }
   }
