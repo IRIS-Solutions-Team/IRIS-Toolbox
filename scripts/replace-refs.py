@@ -1,11 +1,6 @@
 import re
-import argparse
 
-# parse input arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("version", help="release version of the bundle")
-args = parser.parse_args()
-ver = args.version
+ver = "#VERSION#"
 
 # load HTML files
 with open("../dist/report-template.html", "r") as f:

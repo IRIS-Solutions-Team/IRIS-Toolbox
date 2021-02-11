@@ -21,11 +21,6 @@ jobs:
       with:
         ref: dist
         path: dist
-    - name: Set outputs
-      id: vars
-      run: |
-        cd $GITHUB_WORKSPACE/master
-        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
     - name: Setup node 12
       uses: actions/setup-node@v1
       with:
@@ -35,15 +30,30 @@ jobs:
     - name: Create new dist
       run: |
         cd $GITHUB_WORKSPACE/master/scripts
-        ./bundle-report.sh 'release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}'
-    - name: Push new dist to MASTER
+        ./bundle-report.sh
+    - name: Commit new dist to MASTER
       run: |
         cd $GITHUB_WORKSPACE/master
-        echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > $GITHUB_WORKSPACE/master/dist/.release
         git config --global user.name 'Sergey Plotnikov'
         git config --global user.email 'nul0m@users.noreply.github.com'
         git add -A
-        git commit -m "Automated build on push to <master>"
+        git commit -m "Automated build on push to <master> :: create bundle"
+    - name: Set outputs
+      id: vars
+      run: |
+        cd $GITHUB_WORKSPACE/master
+        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+    - name: Set release version and push new dist to MASTER
+      run: |
+        cd $GITHUB_WORKSPACE/master
+        echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > $GITHUB_WORKSPACE/master/dist/.release
+        cd $GITHUB_WORKSPACE/master/scripts
+        python set-version.py 'release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}'
+        cd $GITHUB_WORKSPACE/master
+        git config --global user.name 'Sergey Plotnikov'
+        git config --global user.email 'nul0m@users.noreply.github.com'
+        git add -A
+        git commit -m "Automated build on push to <master> :: set release version"
         git push
     - name: Copy MASTER's dist/ to DIST branch
       run: |
