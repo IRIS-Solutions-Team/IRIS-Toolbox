@@ -1,6 +1,6 @@
 git checkout master
-git pull gh-origin master
-git push
+git pull gh-origin master --tags
+git push --tags
 git checkout dist
 git pull gh-origin dist
 git push
