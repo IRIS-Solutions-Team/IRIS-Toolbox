@@ -38,7 +38,7 @@ jobs:
         git config --global user.email 'nul0m@users.noreply.github.com'
         git add -A
         git commit -m "Automated build on push to <master> :: create bundle"
-    - name: Set outputs
+    - name: Get SHA of the new bundle commit
       id: vars
       run: |
         cd $GITHUB_WORKSPACE/master
@@ -70,6 +70,11 @@ jobs:
         zip -r $GITHUB_WORKSPACE/report-unbundled-no-plotly.zip ./dist -x *report-template*.bundle.html -x *vendor.min.js* -x */report-template.html -x *web-source*
         cp ./dist/{report-template.bundle.html,report-template-no-plotly.bundle.html,report-template-web-source.html,report-template-web-source-no-plotly.html} $GITHUB_WORKSPACE/
         cd $GITHUB_WORKSPACE
+    - name: Get SHA of the new bundle commit
+      id: vars_new
+      run: |
+        cd $GITHUB_WORKSPACE/master
+        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -78,6 +83,7 @@ jobs:
       with:
         tag_name: release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
         release_name: Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
+        commitish: ${{ steps.vars_new.outputs.sha_short }}
         draft: false
         prerelease: false
     - name: Upload Release Asset I
