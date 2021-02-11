@@ -74,7 +74,7 @@ jobs:
       id: vars_new
       run: |
         cd $GITHUB_WORKSPACE/master
-        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        echo "::set-output name=sha_long::$(git rev-parse HEAD)"
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -83,7 +83,7 @@ jobs:
       with:
         tag_name: release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
         release_name: Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
-        commitish: ${{ steps.vars_new.outputs.sha_short }}
+        commitish: ${{ steps.vars_new.outputs.sha_long }}
         draft: false
         prerelease: false
     - name: Upload Release Asset I
