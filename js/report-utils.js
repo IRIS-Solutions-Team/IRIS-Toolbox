@@ -263,6 +263,9 @@ function createSeriesForChartJs(title, dates, values, seriesSettings, colors, li
 
 // create chart elements using Plotly library
 function createChartForPlotly(data, limits, dateFormat, highlight, interactive) {
+  const DEFAULT_GRID_COLOR = '#ddd';
+  const DEFAULT_SHOW_AXIS = true;
+  const DEFAULT_AXIS_COLOR = '#ddd';
   var chartBody = document.createElement("div");
   $(chartBody).addClass("rephrase-chart-body");
   const layout = {
@@ -274,6 +277,9 @@ function createChartForPlotly(data, limits, dateFormat, highlight, interactive) 
       range: [limits.min, limits.max],
       type: 'date',
       tickformat: $ru.momentJsDateFormatToD3TimeFormat(dateFormat),
+      gridcolor: DEFAULT_GRID_COLOR,
+      showline: DEFAULT_SHOW_AXIS,
+      linecolor: DEFAULT_AXIS_COLOR
       // tickformatstops: [
       //   {
       //     "dtickrange": [null, 604800000],
@@ -292,7 +298,10 @@ function createChartForPlotly(data, limits, dateFormat, highlight, interactive) 
     yaxis: {
       autorange: true,
       type: 'linear',
-      fixedrange: true
+      fixedrange: true,
+      gridcolor: DEFAULT_GRID_COLOR,
+      showline: DEFAULT_SHOW_AXIS,
+      linecolor: DEFAULT_AXIS_COLOR
     },
     legend: {
       x: 0.5,
@@ -343,6 +352,8 @@ function createChartForPlotly(data, limits, dateFormat, highlight, interactive) 
   // of the charts is not 100% known before document is ready (that's how
   //  "cell auto" of XY grid behaves)
   $(document).ready(function () {
+    var bBox = chartBody.getBoundingClientRect();
+    layout.height = bBox.width / 1.5;
     Plotly.newPlot(chartBody, data, layout, config);
   });
 
