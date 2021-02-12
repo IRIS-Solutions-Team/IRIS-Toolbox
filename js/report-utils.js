@@ -265,7 +265,7 @@ function createSeriesForChartJs(title, dates, values, seriesSettings, colors, li
 function createChartForPlotly(data, limits, dateFormat, highlight, interactive) {
   const DEFAULT_GRID_COLOR = '#ddd';
   const DEFAULT_SHOW_AXIS = true;
-  const DEFAULT_AXIS_COLOR = '#ddd';
+  const DEFAULT_AXIS_COLOR = '#aaa';
   var chartBody = document.createElement("div");
   $(chartBody).addClass("rephrase-chart-body");
   const layout = {
