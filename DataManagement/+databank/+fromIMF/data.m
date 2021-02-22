@@ -58,6 +58,7 @@ arguments
     options.EndDate (1, 1) double {locallyValidateDate(options.EndDate, freq)} = Inf
     options.URL (1, 1) string {locallyValidateURL} = "http://dataservices.imf.org/REST/SDMX_JSON.svc/CompactData/"
     options.WebReadOptions = weboptions("TimeOut", 9999)
+    options.ApplyMultiplier (1, 1) logical = true
 
     nameOptions.IncludeArea (1, 1) logical = true
     nameOptions.AreaSeparator (1, 1) string = "_"
@@ -91,7 +92,7 @@ outputDb = options.AddToDatabank;
 request = options.URL + request;
 response = webread(request, options.WebReadOptions);
 
-outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, nameOptions);
+outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, options, nameOptions);
 
 info = struct( );
 info.Request = request;
@@ -103,7 +104,7 @@ end%
 % Local Functions
 %
 
-function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, nameOptions)
+function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, options, nameOptions)
     try
         allResponseData = response.CompactData.DataSet.Series;
     catch
@@ -161,6 +162,10 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
 
 
         function [dates, values] = hereGetDatesValues( )
+            multiplier = 1;
+            if isfield(responseData, "x_UNIT_MULT")
+                multiplier = double(string(responseData.x_UNIT_MULT));
+            end
             if isstruct(responseData.Obs)
                 % Struct array
                 if isfield(responseData.Obs, "x_TIME_PERIOD") && isfield(responseData.Obs, "x_OBS_VALUE")
@@ -184,7 +189,7 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
                     try
                         addDates = obs{:}.x_TIME_PERIOD;
                         addValues = obs{:}.x_OBS_VALUE;
-                        if isempty(addDates) || isempty(addValues) || numel(addDates)~=numel(addValues)
+                        if isempty(addDates) || isempty(addValues)
                             continue
                         end
                         dates = [dates; {addDates}];
@@ -194,6 +199,9 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
             end
             dates = DateWrapper.fromIMFString(freq, string(dates));
             values = double(string(values));
+            if options.ApplyMultiplier && multiplier~=1
+                values = values * 10^multiplier;
+            end
         end%
 end%
 
