@@ -1,6 +1,6 @@
 # `x13.season`
 
-Interface to X13-Arima seasonal adjustment procedure
+{== Interface to X13-Arima seasonal adjustment procedure ==}
  
 
 ## Syntax
@@ -12,29 +12,29 @@ Interface to X13-Arima seasonal adjustment procedure
 ## Input Arguments
 
 __`inputSeries`__ [ Series ]
-
+>
 > Input time series that will be subjected to a X13-ARIMA seasonal
 > adjustment procedure.
-
+>
 
 __`range=Inf`__ [ Dater ]
-
+>
 > Date range on which the seasonal adjustment will be performed; any
 > observations outside the `range` will be clipped off before running
 > the procedure; if not specified, all observations available will be
 > used.
-
+>
 
 ## Output Arguments
 
 __`outputSeries`__ [ Series ]
-
+>
 > One or more output time series that correspond to the type of output
 > requested in the option `Output`.
-
+>
 
 __`info`__ [ struct ] 
-
+>
 > Information struct with details on the X13-ARIMA procedure run. The
 > `info` struct includes the following fields and nested fields:
 > 
@@ -60,35 +60,35 @@ __`info`__ [ struct ]
 > file name wkithout and extension (the same file name with different
 > extensions is used for both input and output files); when `Cleanup=true`,
 > the input and output files are all deleted automatically.
-
+>
 
 ## General Options
 
 __`Output="d10"`__ [ string ]
-
+>
 > Types of output requested to be returned as time series from the
 > X13-ARIMA procedure; see the Output Tables in Description; the number
 > of the `outputSeries` arguments corresponds to the number of elements
 > in this option.
-
+>
 
 __`Range=Inf`__ [ Dater ]
-
+>
 > Date range that will be extracted from the `inputSeries` before
 > running the X13-ARIMA procedure; the observations outside the range
 > will be discarded.
-
+>
 
 __`Display=false`__ [ `true` | `false` ]
-
+>
 > Print the screen output produced by the X13-ARIMA procedure; the
 > message is also captured in the output argument `info.Message`.
-
+>
 
 __`Cleanup=true`__ [ `true` | `false` ]
-
+>
 > Delete all input and output files automatically.
-
+>
 
 ## X13-ARIMA Options
 
@@ -343,11 +343,15 @@ The following output tables (i.e. output series) can be requested in the option 
 
 A plain vanilla call
 
-    xsa = x13.season(x)
+```matlab
+xsa = x13.season(x)
+```
 
 or
 
-    [xsa, info] = x13.season(x)
+```matlab
+[xsa, info] = x13.season(x)
+```
 
 produces a seasonally adjusted series `xsa` with all default settings
 (hence no ARIMA model estimated).
@@ -360,7 +364,9 @@ procedures, use the ARIMA information in the seasonal
 adjustment, and return the estimated ARIMA model in the output `info`
 struct:
 
-    [xsa, info] = x13.season(x, "Automdl", true, "Estimate_Save", "mdl")
+```
+[xsa, info] = x13.season(x, "Automdl", true, "Estimate_Save", "mdl")
+```
 
 
 ## Example
@@ -368,7 +374,9 @@ struct:
 Request additional output series: the seasonally adjusted series, the
 seasonal factors and the trend cycle component:
 
-    [xsa, xsf, xtc, info] = x13.season(x, "Output", ["d11", "d10", "d12"]);
+```matlab
+[xsa, xsf, xtc, info] = x13.season(x, "Output", ["d11", "d10", "d12"]);
+```
 
 
 ## Example
@@ -377,27 +385,26 @@ Run seasonal adjustment based on an automatically selected ARIMA model
 with dummy variables of additive outliers in period 2017Q3, 2017Q4 and
 2018Q1:
 
-    xsa = x13.season(x ...
-        , "Automdl", true ...
-        , "Regression_Variables", "aos2017.3-2018.1" ...
-    );
+```matlab
+xsa = x13.season(x ...
+    , "Automdl", true ...
+    , "Regression_Variables", "aos2017.3-2018.1" ...
+);
+```
 
 This call is equivalent to creating the dummies manually (a time series
 object with three columns), and using the option `Regression_Data`
 instead:
 
-    dummy = Series(startDate:endDate, zeros(1, 3));
-    dummy(qq(2017,3), 1) = 1;
-    dummy(qq(2017,4), 2) = 1;
-    dummy(qq(2018,1), 3) = 1;
+```matlab
+dummy = Series(startDate:endDate, zeros(1, 3));
+dummy(qq(2017,3), 1) = 1;
+dummy(qq(2017,4), 2) = 1;
+dummy(qq(2018,1), 3) = 1;
 
-    xsa = x13.season(x ...
-        , "Automdl", true ...
-        , "Regression_Data", dummy ...
-    );
-
-
-
--[IrisToolbox] for Macroeconomic Modeling
--Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+xsa = x13.season(x ...
+    , "Automdl", true ...
+    , "Regression_Data", dummy ...
+);
+```
 

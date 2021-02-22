@@ -1,6 +1,6 @@
 # `grow`
 
-Cumulate level time series from differences or rates of growth
+{== Cumulate level time series from differences or rates of growth ==}
 
 
 ## Syntax

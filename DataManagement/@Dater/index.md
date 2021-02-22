@@ -19,18 +19,18 @@ the following date frequencies:
 
 | Function      | Description       |
 |---            |---                |
-| [`yy`](yy.md) | {{ Dater.yy }} |
-| [`hh`](hh.md) | {{ Dater.hh }} |
-| [`qq`](qq.md) | {{ Dater.qq }} |
-| [`mm`](mm.md) | {{ Dater.mm }} |
-| [`ww`](ww.md) | {{ Dater.ww }} |
-| [`dd`](dd.md) | {{ Dater.dd }} |
-| [`ii`](ii.md) | {{ Dater.ii }} |
+| [`yy`](yy.md) | {{ dates.yy }} |
+| [`hh`](hh.md) | {{ dates.hh }} |
+| [`qq`](qq.md) | {{ dates.qq }} |
+| [`mm`](mm.md) | {{ dates.mm }} |
+| [`ww`](ww.md) | {{ dates.ww }} |
+| [`dd`](dd.md) | {{ dates.dd }} |
+| [`ii`](ii.md) | {{ dates.ii }} |
 
 
 ### Converting Dates
 
 | Function      | Description       |
 |---            |---                |
-| [`toString`](toString.md) | {{ Dater.toString }} |
+| [`toString`](toString.md) | {{ dates.toString }} |
 

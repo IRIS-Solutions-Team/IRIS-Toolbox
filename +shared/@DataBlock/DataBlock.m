@@ -5,6 +5,9 @@ classdef DataBlock ...
         % YXEPG  NumQuantities-by-NumExtdPeriods-by-NumPages matrix of variables 
         YXEPG (:, :, :) double = double.empty(0, 0, 0)
 
+        % CleanYXEPG  Clean copy of input data
+        CleanYXEPG (:, :, :) double = double.empty(0, 0, 0)
+
         % Names  Names corresponding to rows in `YXEPG`
         Names (1, :) string = string.empty(1, 0)
 

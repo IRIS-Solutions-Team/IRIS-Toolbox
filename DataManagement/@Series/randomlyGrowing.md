@@ -1,6 +1,7 @@
-# randomlyGrowing
+# `randomlyGrowing`
 
 {== Create randomly growing time series ==}
+
 
 ## Syntax
 

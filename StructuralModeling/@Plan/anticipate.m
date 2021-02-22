@@ -53,7 +53,7 @@ end
 %)
 
 if this.NumOfEndogenizedPoints>0 || this.NumOfExogenizedPoints>0
-    exeption.error([
+    exception.error([
         "Plan:CannotChangeAnticipateAfterEndogenize"
         "Cannot change anticipation status in a Plan object "
         "after some names have been already exogenized or endogenized"

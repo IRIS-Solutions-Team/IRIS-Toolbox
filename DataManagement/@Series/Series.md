@@ -1,6 +1,6 @@
-# Series
+# `Series`
 
-Create new time series object
+{== Create new time series object ==}
 
 
 ## Syntax

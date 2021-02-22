@@ -1,4 +1,4 @@
-# `retrieveColumns`
+# `databank.retrieveColumns`
 
 {== Retrieve selected columns from databank fields ==}
 

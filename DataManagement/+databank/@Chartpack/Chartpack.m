@@ -8,6 +8,8 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         Highlight {locallyValidateHighlight} = double.empty(1, 0)
         Transform = []
         NewLine = "//"
+        ShowFormulas = false
+        ShowTransform = false
         
         Round = Inf
         Expand (1, :) cell = cell.empty(1, 0)

@@ -1,6 +1,6 @@
 # `convert`
 
-Convert time series to another frequency
+{== Convert time series to another frequency ==}
 
     
 ## Syntax

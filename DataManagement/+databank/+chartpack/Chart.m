@@ -64,17 +64,24 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             parent = this.ParentChartpack;
             if ~ismissing(this.Caption) && strlength(this.Caption)>0
                 caption = this.Caption;
-            elseif ~ismissing(this.Expression) && strlength(this.Expression)>0
-                caption = this.Expression;
-                if ~isempty(this.Transform)
-                    caption(1) = caption(1) + "; " + string(func2str(this.Transform));
+                if parent.ShowFormulas
+                    caption = [caption; hereCreateFormula()];
                 end
+            elseif ~ismissing(this.Expression) && strlength(this.Expression)>0
+                caption = hereCreateFormula();
             else
                 caption = string(missing);
             end
             if ~ismissing(parent.NewLine) && strlength(parent.NewLine)>0
                 caption = strip(split(caption, parent.NewLine));
             end
+
+            function formula = hereCreateFormula()
+                formula = this.Expression;
+                if ~isempty(this.Transform) && parent.ShowTransform
+                    formula(1) = formula(1) + "; " + string(func2str(this.Transform));
+                end
+            end%
         end%
     end
 

@@ -2,6 +2,7 @@
 
 {== Copy fields of source databank to target databank ==}
 
+
 ## Syntax
 
     targetDb = databank.copy(sourceDb, ...)

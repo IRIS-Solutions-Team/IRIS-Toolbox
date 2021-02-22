@@ -22,6 +22,9 @@ prepareBlazer(model, this);
 
 this = processLogOptions(this, opt);
 
+opt.Exogenize = locallyPreprocessFlips(opt.Exogenize);
+opt.Endogenize = locallyPreprocessFlips(opt.Endogenize);
+
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
     [namesToExogenize, namesToEndogenize] = resolveAutoswap(model, "steady", opt.Exogenize, opt.Endogenize);
 else
@@ -32,12 +35,7 @@ end
 %
 % Process the Endogenize option
 %
-if ischar(namesToEndogenize)
-    namesToEndogenize = regexp(namesToEndogenize, "\w+", "match");
-elseif ~iscellstr(namesToEndogenize)
-    namesToEndogenize = cellstr(namesToEndogenize);
-end
-namesToEndogenize = unique(namesToEndogenize);
+namesToEndogenize = unique(cellstr(namesToEndogenize));
 if ~isempty(namesToEndogenize)
     endogenize(this, namesToEndogenize);
 end
@@ -45,12 +43,7 @@ end
 %
 % Process the Exogenize option
 %
-if ischar(namesToExogenize)
-    namesToExogenize = regexp(namesToExogenize, "\w+", "match");
-elseif ~iscellstr(namesToExogenize)
-    namesToExogenize = cellstr(namesToExogenize);
-end
-namesToExogenize = unique(namesToExogenize);
+namesToExogenize = unique(cellstr(namesToExogenize));
 if ~isempty(namesToExogenize)
     exogenize(this, namesToExogenize);
 end
@@ -60,5 +53,27 @@ end
 %
 processFixOptions(this, model, opt);
 
+end%
+
+%
+% Local functions
+%
+
+function list = locallyPreprocessFlips(list)
+    %(
+    if ~validate.text(list)
+        return
+    end
+    list = string(list);
+    if isempty(list)
+        return
+    end
+    if isscalar(list)
+        list = regexp(list, "\^?\w+", "match");
+    end
+    list = strip(list);
+    list(startsWith(list, "^")) = [];
+    list = unique(reshape(list, 1, []));
+    %)
 end%
 

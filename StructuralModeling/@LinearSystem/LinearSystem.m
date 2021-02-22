@@ -6,7 +6,9 @@
 %
 %
 
-classdef LinearSystem < shared.Kalman
+classdef LinearSystem ...
+    < shared.Kalman
+
     properties
         % Tolerance  Tolerance level object
         Tolerance = shared.Tolerance( )

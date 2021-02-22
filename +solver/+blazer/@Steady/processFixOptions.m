@@ -8,12 +8,13 @@ numQuantities = numel(quantities.Name);
 inxP = quantities.Type==TYPE(4);
 inxCanBeFixed = this.InxEndogenous;
 namesCanBeFixed = quantities.Name(inxCanBeFixed);
-list = ["Fix", "FixLevel", "FixChange"];
-for fixOption = list
+
+
+for fixOption = ["Fix", "FixLevel", "FixChange"]
     temp = opt.(fixOption);
+    opt.(fixOption) = double.empty(1, 0);
 
     if isempty(temp)
-        opt.(fixOption) = double.empty(1, 0);
         continue
     end
 
@@ -22,21 +23,17 @@ for fixOption = list
     end
 
     if ischar(temp) || (isstring(temp) && isscalar(string))
-        temp = regexp(temp, '\w+', 'match');
-        if isempty(temp)
-            opt.(fixOption) = double.empty(1, 0);
-            continue
-        end
-        temp = cellstr(temp);
-    elseif isstring(temp)
-        temp = cellstr(temp);
+        temp = strip(split(temp, [",", ";"]));
     end
+    temp = cellstr(temp);
+
+    % Remove empty entries and names starting with ^
+    temp(startsWith(temp, "^") | strlength(temp)==0) = [];
 
     if isempty(temp)
-        opt.(fixOption) = double.empty(1, 0);
         continue
     end
-
+    
     ell = lookup(quantities, temp, TYPE(1), TYPE(2), TYPE(4));
     posToFix = ell.PosName;
     inxValid = ~isnan(posToFix);
@@ -49,6 +46,7 @@ for fixOption = list
     end
     opt.(fixOption) = posToFix;
 end
+
 
 fixLevel = false(1, numQuantities);
 fixLevel(opt.Fix) = true;

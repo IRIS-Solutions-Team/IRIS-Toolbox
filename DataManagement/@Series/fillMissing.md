@@ -1,4 +1,4 @@
-# fillMissing
+# `fillMissings`
 
 {== Fill missing time series observations ==}
 

@@ -171,59 +171,62 @@ if opt.Method==solver.Method.SELECTIVE && ~any(this.Equation.InxOfHashEquations)
     ]);
 end
 
+
 [opt.Window, baseRange, opt.Plan] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange, opt.Plan);
 plan = locallyResolvePlan(this, baseRange, opt.Plan, opt.Anticipate, usingDefaults);
 isAsynchronous = isequal(inputDb, "asynchronous");
+numVariants = countVariants(this);
 opt.Solver = locallyParseSolverOption(opt.Solver, opt.Method);
-
-%--------------------------------------------------------------------------
-
 opt.Terminal = locallyResolveTerminal(opt.Terminal, opt.Method);
 
-%
+
+% Maintain a clean copy of input data if there are more than sequential
+% simulation plans
+needsCleanCopy = false;
+
+
 % All simulation methods except PERIOD require a solved Model
-%
 locallyCheckSolvedModel(this, opt.Method, opt.StartIterationsFrom, opt.Terminal);
 
-nv = countVariants(this);
 
-
-%
 % Prepare running data
-%
-runningData = simulate.InputOutputData( );
+runningData = simulate.InputOutputData();
 runningData.InxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
 runningData.IsAsynchronous = isAsynchronous;
 runningData.PrepareOutputInfo = nargout>=2;
 runningData.PrepareFrameData = nargout>=3;
 
+
 % Retrieve data from intput databank, set up ranges
-herePrepareData( );
+[inputYXEPG, extdRange, maxShift, timeTrend] = hereExtractInputData()
+herePrepareRunningData();
 
 % Check Contributions= only after preparing data and resolving the number
 % of runs (variants, pages)
-hereResolveContributionsConflicts( );
+hereResolveContributionsConflicts();
 
-hereCopyOptionsToRunningData( );
+hereCopyOptionsToRunningData();
 
 if opt.Contributions
     % Expand and set up YXEPG to prepare contributions simulation
-    herePrepareContributions( );
+    herePrepareContributions();
 end
 
-%
-% Define time frames and check for deficiency of simulation plans; can be
-% done only after we expand the data for contributions
-%
-defineFrames(runningData, opt);
 
 % Check initial conditions for NaNs
-hereCheckInitialConditions( );
+hereCheckInitialConditions();
+
 
 % Set up Blazer objects
-hereSetupDefaultBlazers( );
+hereSetupDefaultBlazers();
 
-systemProperty = hereSetupSystemProperty( );
+
+% Define time frames and check for deficiency of simulation plans; can be
+% done only after we expand the data for contributions
+defineFrames(runningData, opt);
+
+
+systemProperty = hereSetupSystemProperty();
 if ~isequal(opt.SystemProperty, false)
     outputDb = systemProperty;
     return
@@ -247,26 +250,26 @@ end
 
 
 if opt.Contributions
-    herePostprocessContributions( );
+    herePostprocessContributions();
 end
 
 if isAsynchronous
     return
 end
 
-outputDb = hereCreateOutputData( );
+outputDb = hereCreateOutputData();
 
 if runningData.PrepareOutputInfo
-    outputInfo = hereCreateOutputInfo( );
+    outputInfo = hereCreateOutputInfo();
 end
 
 if runningData.PrepareFrameData
-    frameDb = hereCreateFrameDb( );
+    frameDb = hereCreateFrameDb();
 end
 
 return
 
-    function hereResolveContributionsConflicts( )
+    function hereResolveContributionsConflicts()
         %(
         if opt.Contributions && plan.NumOfExogenizedPoints>0
             exception.error([
@@ -285,7 +288,7 @@ return
     end%
 
 
-    function hereCopyOptionsToRunningData( )
+    function hereCopyOptionsToRunningData()
         %(
         numRuns = runningData.NumPages;
         runningData.Plan = plan;
@@ -300,43 +303,41 @@ return
     end%
 
 
-    function herePrepareData( )
+    function hereExtractInputData()
         %(
-        numDummyPeriods = hereCalculateNumDummyPeriods( );
-        baseStart = baseRange(1);
-        baseEnd = baseRange(end);
-        endBaseRangePlusDummy = baseEnd + numDummyPeriods;
-        baseRangePlusDummy = [baseStart, endBaseRangePlusDummy];
+        numDummyPeriods = hereCalculateNumDummyPeriods();
+        baseRangePlusDummy = [baseRange(1), baseRange(end) + numDummyPeriods];
 
         % Check the input databank; treat all names as optional, and check for
         % missing initial conditions later
         requiredNames = string.empty(1, 0);
         optionalNames = this.Quantity.Name(this.Quantity.Type~=TYPE(4));
-        dbInfo = checkInputDatabank(this, inputDb, baseRange, requiredNames, optionalNames);
+        checkInputDatabank(this, inputDb, baseRange, requiredNames, optionalNames);
 
-        %
         % Retrieve data from the input databank
-        %
-        [ ... 
-            runningData.YXEPG, ~, extdRange, ~ ...
-            , runningData.MaxShift, runningData.TimeTrend ...
-            , dbInfo ...
-        ] = data4lhsmrhs( ...
-            this, inputDb, baseRangePlusDummy ...
-            , "ResetShocks=", true ...
-            , "IgnoreShocks=", opt.IgnoreShocks ...
-            , "NumDummyPeriods", numDummyPeriods ...
-        );
+        [runningData.YXEPG, ~, extdRange, ~, runningData.MaxShift, runningData.TimeTrend] ...
+            = data4lhsmrhs( ...
+                this, inputDb, baseRangePlusDummy ...
+                , "ResetShocks=", true ...
+                , "IgnoreShocks=", opt.IgnoreShocks ...
+                , "NumDummyPeriods", numDummyPeriods ...
+            );
+
+        if needsCleanCopy
+            runningData.CleanYXEPG = runningData.YXEPG;
+        end
 
         extdStart = extdRange(1);
         extdEnd = extdRange(end);
         runningData.ExtendedRange = [extdStart, extdEnd];
-        runningData.BaseRangeColumns = colon( round(baseStart - extdStart + 1), ...
-                                              round(baseEnd - extdStart + 1) );
+        runningData.BaseRangeColumns = colon(
+            round(baseRange(1) - extdStart + 1) ...
+            , round(baseRange(end) - extdStart + 1) ...
+        );
         numPages = runningData.NumPages;
-        if numPages==1 && nv>1
+        if numPages==1 && numVariants>1
             % Expand number of data sets to match number of parameter variants
-            runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, nv);
+            runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numVariants);
         end
         numRuns = runningData.NumPages;
         runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
@@ -347,7 +348,7 @@ return
     end%
 
 
-    function herePrepareContributions( )
+    function herePrepareContributions()
         %(
         firstColumnToSimulate = runningData.BaseRangeColumns(1);
         inxLog = this.Quantity.InxLog;
@@ -390,7 +391,7 @@ return
     end%
 
 
-    function hereSetupDefaultBlazers( )
+    function hereSetupDefaultBlazers()
         %(
         switch opt.Method
             case solver.Method.STACKED
@@ -410,10 +411,10 @@ return
                     exogenizedBlazer = [ ];
                 end
             case solver.Method.SELECTIVE
-                defaultBlazer = solver.blazer.Selective( );
+                defaultBlazer = solver.blazer.Selective();
                 exogenizedBlazer = defaultBlazer;
             otherwise
-                defaultBlazer = solver.blazer.FirstOrder( );
+                defaultBlazer = solver.blazer.FirstOrder();
                 exogenizedBlazer = [ ];
         end
         runningData.DefaultBlazer = defaultBlazer;
@@ -422,7 +423,7 @@ return
     end%
 
 
-    function systemProperty = hereSetupSystemProperty( )
+    function systemProperty = hereSetupSystemProperty()
         %(
         systemProperty = SystemProperty(this);
         systemProperty.Function = @simulateFrames;
@@ -439,7 +440,7 @@ return
     end%
 
 
-    function hereCheckInitialConditions( )
+    function hereCheckInitialConditions()
         %(
         if isAsynchronous
             return
@@ -452,7 +453,7 @@ return
     end%
 
 
-    function numDummyPeriods = hereCalculateNumDummyPeriods( )
+    function numDummyPeriods = hereCalculateNumDummyPeriods()
         %(
         numDummyPeriods = opt.Window - 1;
         if ~strcmpi(opt.Method, 'FirstOrder')
@@ -466,7 +467,7 @@ return
     end%
 
 
-    function outputDb = hereCreateOutputData( )
+    function outputDb = hereCreateOutputData()
         %(
         if startsWith(opt.OutputData, "databank", "ignoreCase", true)
             columns = 1 : runningData.BaseRangeColumns(end);
@@ -482,9 +483,9 @@ return
     end%
 
 
-    function outputInfo = hereCreateOutputInfo( )
+    function outputInfo = hereCreateOutputInfo()
         %(
-        outputInfo = struct( );
+        outputInfo = struct();
         outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
         outputInfo.ExtendedRange = DateWrapper(runningData.ExtendedRange);
         outputInfo.StartIterationsFrom = opt.StartIterationsFrom;
@@ -499,7 +500,7 @@ return
     end%
 
 
-    function frameDb = hereCreateFrameDb( )
+    function frameDb = hereCreateFrameDb()
         %(
         frameDb = cell(1, numRuns);
         for i = 1 : numRuns
@@ -511,7 +512,7 @@ return
     end%
 
 
-    function herePostprocessContributions( )
+    function herePostprocessContributions()
         %(
         inxLog = this.Quantity.InxLog;
         if runningData.Method(end)~=solver.Method.NONE

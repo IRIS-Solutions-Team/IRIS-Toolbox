@@ -53,7 +53,7 @@ if isempty(pp)
     addParameter(pp, {'Comments', 'Comment'}, true, @validate.logicalScalar);
     addParameter(pp, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, {'Decimals', 'Decimal'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
-    addParameter(pp, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
+    addParameter(pp, 'Format', '%.8e', @(x) validate.string(x) && startsWith(x, "%") && ~contains(x, ["$", "-"]));
     addParameter(pp, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(pp, 'Nan', 'NaN', @validate.string);
     addParameter(pp, 'UserDataFields', cell.empty(1, 0), @validate.list);
@@ -217,8 +217,6 @@ if ~isempty(fieldnames(userDataFields))
 end
 
 c = locallySerialize(o, opt);
-
-return
 
 end%
 

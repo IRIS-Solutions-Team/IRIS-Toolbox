@@ -12,35 +12,28 @@ handling tasks.
 
 | Function      | Description       |
 |---            |---                |
-| [`databank.fromCSV`](fromCSV.md)                      | {{ databank.fromCSV }} |
-| [`databank.toCSV`](toCSV.md)                          | {{ databank.toCSV }} |
-| [`databank.withEmpty`](withEmpty.md)                  | {{ databank.withEmpty }} |
+| [`databank.fromCSV`](fromCSV.md)                      | {{ databank._fromCSV }} |
+| [`databank.toCSV`](toCSV.md)                          | {{ databank._toCSV }} |
+| [`databank.withEmpty`](withEmpty.md)                  | {{ databank._withEmpty }} |
 
 
 ### Getting Information about Databanks
 
 | Function      | Description       |
 |---            |---                |
-| [`databank.fieldNames`](fieldNames.md)                | {{ databank.fieldNames }} |
-| [`databank.list`](list.md)                            | {{ databank.list }} |
+| [`databank.fieldNames`](fieldNames.md)                | {{ databank._fieldNames }} |
+| [`databank.list`](list.md)                            | {{ databank._list }} |
 
 
 ### Processing Databanks
 
 | Function      | Description       |
 |---            |---                |
-| [`databank.apply`](apply.md)                          | {{ databank.apply }} |
-| [`databank.clip`](clip.md)                            | {{ databank.clip }} |
-| [`databank.copy`](copy.md)                            | {{ databank.copy }} |
-| [`databank.eval`](eval.md)                            | {{ databank.eval }} |
-| [`databank.filterFields`](filterFields.md)            | {{ databank.filterFields }} |
-| [`databank.merge`](merge.md)                          | {{ databank.merge }} |
-| [`databank.retrieveColumns`](retrieveColumns.md)      | {{ databank.retrieveColumns }} |
-
-
-### Creating Charts from Databank
-
-| Function      | Description       |
-|---            |---                |
-| [`databank.Chart`](Chart.md)                          | {{ databank.Chart }} |
+| [`databank.apply`](apply.md)                          | {{ databank._apply }} |
+| [`databank.clip`](clip.md)                            | {{ databank._clip }} |
+| [`databank.copy`](copy.md)                            | {{ databank._copy }} |
+| [`databank.eval`](eval.md)                            | {{ databank._eval }} |
+| [`databank.filterFields`](filterFields.md)            | {{ databank._filterFields }} |
+| [`databank.merge`](merge.md)                          | {{ databank._merge }} |
+| [`databank.retrieveColumns`](retrieveColumns.md)      | {{ databank._retrieveColumns }} |
 
