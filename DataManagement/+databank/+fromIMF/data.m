@@ -50,13 +50,14 @@ function [outputDb, info] = data(dataset, freq, areas, items, options, nameOptio
 arguments
     dataset (1, 1) string
     freq (1, 1) Frequency {locallyValidateFrequency}
-    areas string
-    items string
+    areas (1, :) string
+    items (1, :) string
 
     options.AddToDatabank (1, 1) {validate.databank} = struct( )
     options.StartDate (1, 1) double {locallyValidateDate(options.StartDate, freq)} = -Inf
     options.EndDate (1, 1) double {locallyValidateDate(options.EndDate, freq)} = Inf
     options.URL (1, 1) string {locallyValidateURL} = "http://dataservices.imf.org/REST/SDMX_JSON.svc/CompactData/"
+    options.WebReadOptions = weboptions("TimeOut", 9999)
 
     nameOptions.IncludeArea (1, 1) logical = true
     nameOptions.AreaSeparator (1, 1) string = "_"
@@ -65,16 +66,16 @@ end
 %)
 % >=R2019b
 
-[areas, areaMap] = locallyCreateNameMap(areas);
-[items, itemMap] = locallyCreateNameMap(items);
+[areas, areaMap, areasString] = locallyCreateNameMap(areas);
+[items, itemMap, itemsString] = locallyCreateNameMap(items);
 
 
 request = sprintf( ...
     "%s/%s.%s.%s?" ...
     , dataset ...
     , Frequency.toIMFLetter(freq) ...
-    , join(areas, "+") ...
-    , join(items, "+") ...
+    , areasString ...
+    , itemsString ...
 );
 
 if ~isinf(options.StartDate) 
@@ -88,7 +89,7 @@ end
 outputDb = options.AddToDatabank;
 
 request = options.URL + request;
-response = webread(request);
+response = webread(request, options.WebReadOptions);
 
 outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, nameOptions);
 
@@ -116,8 +117,13 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
     for i = 1 : numel(allResponseData)
         responseData = hereGetIthReponse( );
         name = hereCreateName( );
-        [dates, values] = hereGetDatesValues( );
-        series = Series(dates, values, "", rmfield(responseData, "Obs"), "--skip");
+        disp(name)
+        if isstruct(responseData) && isfield(responseData, "Obs")
+            [dates, values] = hereGetDatesValues( );
+            series = Series(dates, values, "", rmfield(responseData, "Obs"), "--skip");
+        else
+            series = Series();
+        end
         if isDictionary
             store(outputDb, name, series);
         else
@@ -157,17 +163,34 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
 
         function [dates, values] = hereGetDatesValues( )
             if isstruct(responseData.Obs)
-                dates = {responseData.Obs.x_TIME_PERIOD};
-                values = {responseData.Obs.x_OBS_VALUE};
+                % Struct array
+                if isfield(responseData.Obs, "x_TIME_PERIOD") && isfield(responseData.Obs, "x_OBS_VALUE")
+                    dates = {responseData.Obs.x_TIME_PERIOD};
+                    values = {responseData.Obs.x_OBS_VALUE};
+                else
+                    dates = double.empty(0, 1);
+                    values = double.empty(0, 1);
+                    return
+                end
+                if isempty(dates) || isempty(values) || numel(dates)~=numel(values)
+                    dates = double.empty(0, 1);
+                    values = double.empty(0, 1);
+                    return
+                end
             else
-                dates = [ ];
-                values = [ ];
+                % Cell array of structs
+                dates = cell.empty(0, 1);
+                values = cell.empty(0, 1);
                 for obs = reshape(responseData.Obs, 1, [ ])
-                    if ~isfield(obs{:}, "x_TIME_PERIOD") || ~isfield(obs{:}, "x_OBS_VALUE")
-                        continue
+                    try
+                        addDates = obs{:}.x_TIME_PERIOD;
+                        addValues = obs{:}.x_OBS_VALUE;
+                        if isempty(addDates) || isempty(addValues) || numel(addDates)~=numel(addValues)
+                            continue
+                        end
+                        dates = [dates; {addDates}];
+                        values = [values; {addValues}];
                     end
-                    dates = [dates; {obs{:}.x_TIME_PERIOD}];
-                    values = [values; {obs{:}.x_OBS_VALUE}];
                 end
             end
             dates = DateWrapper.fromIMFString(freq, string(dates));
@@ -176,7 +199,12 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
 end%
 
 
-function [list, map] = locallyCreateNameMap(list)
+function [list, map, requestString] = locallyCreateNameMap(list)
+    if isempty(list)
+        map = list;
+        requestString = "";
+        return
+    end
     map = struct( );
     inx = contains(list, "->");
     if any(inx)
@@ -188,6 +216,7 @@ function [list, map] = locallyCreateNameMap(list)
         end
         list(inx) = inputName(inx);
     end
+    requestString = join(list, "+");
 end%
 
 %
