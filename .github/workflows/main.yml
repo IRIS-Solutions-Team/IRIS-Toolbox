@@ -20,6 +20,7 @@ jobs:
         ref: dist
         path: rephrase
         token: ${{ secrets.PAT_ALL_SCOPES }}
+        fetch-depth: 0
         
     - name: Get short hash of latest rephrase commit
       id: rephrase_commit
