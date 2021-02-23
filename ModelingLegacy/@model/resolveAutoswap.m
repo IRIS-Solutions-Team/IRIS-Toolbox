@@ -6,7 +6,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [namesExogenized, namesEndogenized] = resolveAutoswap(this, kind, namesExogenized, namesEndogenized)
+function [namesToExogenize, namesToEndogenize] = resolveAutoswap(this, kind, namesToExogenize, namesToEndogenize)
 
 PTR = @int16;
 
@@ -20,49 +20,65 @@ else
     ptrAutoswap = [ ];
 end
 
-isExgAuto = isequal(namesExogenized, @auto);
-isEndgAuto = isequal(namesEndogenized, @auto);
-if ischar(namesExogenized)
-    namesExogenized = regexp(namesExogenized, '\w+', 'match');
+isAutoExogenize = isequal(namesToExogenize, @auto);
+isAutoEndogenize = isequal(namesToEndogenize, @auto);
+
+if ~isAutoExogenize
+    namesToExogenize = string(namesToExogenize);
+    if isscalar(namesToExogenize) && strlength(namesToExogenize)>0
+        namesToExogenize = regexp(namesToExogenize, "\w+", "match");
+    end    
 end
-if ischar(namesEndogenized)
-    namesEndogenized = regexp(namesEndogenized, '\w+', 'match');
-end
-if iscellstr(namesExogenized)
-    ellExg = lookup(this.Quantity, namesExogenized);
-    inxValid = isfinite(ellExg.PosName);
-    if any(~inxValid)
-        throw( exception.Base('Blazer:CannotExogenize', 'error'), ...
-               namesExogenized{~inxValid} );
-    end
-end
-if iscellstr(namesEndogenized)
-    ellEndg = lookup(this.Quantity, namesEndogenized);
-    inxValid = isfinite(ellEndg.PosName);
-    if any(~inxValid)
-        throw( exception.Base('Blazer:CannotEndogenize', 'error'), ...
-               namesEndogenized{~inxValid} );
+
+if ~isAutoEndogenize
+    namesToEndogenize = string(namesToEndogenize);
+    if isscalar(namesToEndogenize) && strlength(namesToEndogenize)>0
+        namesToEndogenize = regexp(namesToEndogenize, "\w+", "match");
     end
 end
 
-if isExgAuto && isEndgAuto
+if isstring(namesToExogenize) && ~isempty(namesToExogenize) && any(strlength(namesToExogenize)>0)
+    ellExogenize = lookup(this.Quantity, cellstr(namesToExogenize));
+    inxValid = isfinite(ellExogenize.PosName);
+    if any(~inxValid)
+        exception.error([
+            "Model:CannotExogenize"
+            "This name cannot be exogenized: %s"
+        ], namesToExogenize(~inxValid));
+    end
+end
+
+if isstring(namesToEndogenize) && ~isempty(namesToEndogenize) && any(strlength(namesToEndogenize)>0)
+    ellEndogenize = lookup(this.Quantity, cellstr(namesToEndogenize));
+    inxValid = isfinite(ellEndogenize.PosName);
+    if any(~inxValid)
+        exception.error([
+            "Model:CannotEndogenize"
+            "This name cannot be endogenized: %s"
+        ], namesToEndogenize(~inxValid));
+    end
+end
+
+if isAutoExogenize && isAutoEndogenize
     % Use all exogenized-endogenized names
     ix = ptrAutoswap>PTR(0);
     ptr = ptrAutoswap(ix);
-    namesExogenized = this.Quantity.Name(ix);
-    namesEndogenized = this.Quantity.Name(ptr);
-elseif isEndgAuto
+    namesToExogenize = this.Quantity.Name(ix);
+    namesToEndogenize = this.Quantity.Name(ptr);
+elseif isAutoEndogenize
     % List of exogenized names, look up the corresponding endogenized names
-    ptr = ptrAutoswap( ellExg.PosName );
+    ptr = ptrAutoswap( ellExogenize.PosName );
     inxValid = ptr>PTR(0);
     if any(~inxValid)
-        throw( exception.Base('Blazer:CannotAutoexogenize', 'error'), ...
-               namesExogenized{~inxValid} );
+        exception.error([
+            "Model:CannotAutoexogenize"
+            "This name cannot be autoexogenized: %s"
+        ], namesToExogenize(~inxValid));
     end
-    namesEndogenized = this.Quantity.Name(ptr);
-elseif isExgAuto
+    namesToEndogenize = this.Quantity.Name(ptr);
+elseif isAutoExogenize
     % List of endogenized names, look up the corresponding exogenized names
-    ptr = ellEndg.PosName;
+    ptr = ellEndogenize.PosName;
     nPtr = numel(ptr);
     pos = nan(1, nPtr);
     for i = 1 : nPtr
@@ -73,10 +89,12 @@ elseif isExgAuto
         end
     end
     if any(~inxValid)
-        throw( exception.Base('Blazer:CannotAutoendogenize', 'error'), ...
-               namesEndogenized{~inxValid} );
+        exception.error([
+            "Model:CannotAutoendogenize"
+            "This name cannot be autoendogenized: %s"
+        ], namesToEndogenize(~inxValid));
     end
-    namesExogenized = this.Quantity.Name(pos);
+    namesToExogenize = this.Quantity.Name(pos);
 end
 
 end%

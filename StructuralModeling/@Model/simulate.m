@@ -198,8 +198,8 @@ runningData.PrepareFrameData = nargout>=3;
 
 
 % Retrieve data from intput databank, set up ranges
-[inputYXEPG, extdRange, maxShift, timeTrend] = hereExtractInputData()
-herePrepareRunningData();
+hereExtractInputData();
+
 
 % Check Contributions= only after preparing data and resolving the number
 % of runs (variants, pages)
@@ -330,7 +330,7 @@ return
         extdStart = extdRange(1);
         extdEnd = extdRange(end);
         runningData.ExtendedRange = [extdStart, extdEnd];
-        runningData.BaseRangeColumns = colon(
+        runningData.BaseRangeColumns = colon( ...
             round(baseRange(1) - extdStart + 1) ...
             , round(baseRange(end) - extdStart + 1) ...
         );

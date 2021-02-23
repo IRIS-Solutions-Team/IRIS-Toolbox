@@ -1,7 +1,7 @@
 classdef CommentContainer
     properties
         % Comment  User comment attached to the object
-        Comment = ''
+        Comment (1, :) string = ""
     end
 
 
@@ -13,7 +13,7 @@ classdef CommentContainer
             if isa(varargin{1}, 'shared.CommentContainer')
                 this = varargin{1};
             else
-                this.Comment = varargin{1};
+                this.Comment = string(varargin{1});
             end
         end%
     end
@@ -26,9 +26,16 @@ classdef CommentContainer
 
     methods (Access=protected, Hidden)
         function implementDisp(this, varargin)
-            dispIndent = iris.get('DispIndent');
+            dispIndent = string(iris.get("DispIndent"));
+            comment = """" + this.Comment + """";
             fprintf(dispIndent);
-            fprintf('Comment: %s\n', this.Comment);
+            if isempty(comment)
+                fprintf("Comment: empty\n")
+            elseif isscalar(comment)
+                fprintf("Comment: %s\n", comment);
+            else
+                fprintf("Comment: [%s]\n", join(comment, ", "));
+            end
         end%
     end
 end

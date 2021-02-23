@@ -5,7 +5,7 @@ classdef Preparser ...
     %#ok<*AGROW>
 
     properties
-        UserComment = char.empty(1, 0)  % User comment line read from code
+        UserComment (1, :) string = ""  % User comment line read from code
         White = char.empty(1, 0)  % Code with all labels whited out
         Assigned = struct.empty( ) % Database with control parameters
 
@@ -323,7 +323,7 @@ classdef Preparser ...
             % Merge all exported files
             export = [ this(:).Export ];
             % First-line comment from the first file
-            comment = this(1).UserComment;
+            comment = [ this(:).UserComment ];
             % Return database of substitutions
             substitutions = mergeSubstitutions(this);
             % Save preparsed code to disk file if requested

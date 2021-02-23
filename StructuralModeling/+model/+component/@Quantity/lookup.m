@@ -1,8 +1,5 @@
-% lookup  Look up names of variables, std and corr
+% lookup  Look up names of variables, std and corr in Quantity component
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 

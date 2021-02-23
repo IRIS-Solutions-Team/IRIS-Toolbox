@@ -1,20 +1,18 @@
 classdef UserComment < handle
     properties (Constant)
-        USER_COMMENT_PATTERN = '(?<=^\n*%%+)[^%][^\n]+'
+        USER_COMMENT_PATTERN = "(?<=^\s*%+)[^%][^\n]+"
     end
-    
-    
-    
-    
+
+
     methods (Static)
         function parse(p)
             import parser.UserComment
             match = regexp( ...
                 p.Code, ...
                 UserComment.USER_COMMENT_PATTERN, ...
-                'match','once' ...
+                "match","once" ...
             );
-            p.UserComment = strtrim(match);
+            p.UserComment = strip(string(match));
         end%
     end
 end
