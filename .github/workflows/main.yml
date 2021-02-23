@@ -36,7 +36,7 @@ jobs:
     - name: Update subtree, push new commit
       run: |
         cd $GITHUB_WORKSPACE/iris
-        git subtree pull -P Plugins/.rephrase --squash ../rephrase dist -m "Update rephrase subtree from dist ${{ steps.rephrase_commit.outputs.sha_short }}"
+        git subtree pull -P Plugins/.rephrase ../rephrase dist -m "Update rephrase"
         #git add .
         #git commit -m "Update rephrase subtree from dist ${{ steps.rephrase_commit.outputs.sha_short }}"
         git push
