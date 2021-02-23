@@ -3,8 +3,9 @@
 name: Update rephrase plugin
 
 on:
-  repository_dispatch:
-    types: [rephrase-release-event]
+  workflow_dispatch:
+  #repository_dispatch:
+    #types: [rephrase-release-event]
 
 jobs:
   build:
