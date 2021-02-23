@@ -290,6 +290,42 @@ h6, .h6 {
   /* nothing so far */
 }
 
+.rephrase-pager {
+  /* parent DIV of the report pager */
+  margin-left: 20%;
+  margin-right: 20%;
+}
+
+.rephrase-pager-title {
+  /* pager title H element */
+  padding-top: 50px;
+}
+
+.rephrase-pager-page {
+  /* parent DIV of the pager's page */
+  /* nothing so far */
+}
+
+.rephrase-pager-slider-area {
+  /* parent DIV of the pager's slider area*/
+  /* nothing so far */
+}
+
+.rephrase-pager-slider-prev-button {
+  /* parent DIV of the pager's slider PREVIOUS button*/
+  /* nothing so far */
+}
+
+.rephrase-pager-slider-next-button {
+  /* parent DIV of the pager's slider NEXT button*/
+  /* nothing so far */
+}
+
+.rephrase-pager-slider {
+  /* parent DIV of the pager's slider */
+  /* nothing so far */
+}
+
 .rephrase-text-block {
   /* parent DIV of the report text block */
   /* nothing so far */

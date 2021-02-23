@@ -580,6 +580,122 @@ var $reportWithoutData = {
       "Content": null
     },
     {
+      "Type": "PAGER",
+      "Title": "Historical Curves",
+      "Settings": {
+        "Class": "",
+        "StartPage": 0
+      },
+      "Content": [
+        {
+          "Type": "CHART",
+          "Title": "Date: 2020-10-12",
+          "Settings": {
+            "Class": "",
+            "DateFormat": "YYYY:Q",
+            "IsTitlePartOfChart": false,
+            "Highlight": [
+              {
+                "EndDate": "2020-12-31"
+              },
+              {
+                "StartDate": "2022-04-01",
+                "Color": "rgba(100, 0, 200, 0.1)"
+              }
+            ],
+            "StartDate": "2020-01-01",
+            "EndDate": "2024-12-31"
+          },
+          "Content": [
+            {
+              "Type": "SERIES",
+              "Title": "Series 101",
+              "Settings": {
+                "Class": "",
+                "Type": "bar"
+              },
+              "Content": "PtkeOkuClHzhOfpmBevf"
+            },
+            {
+              "Type": "SERIES",
+              "Title": "Series 102",
+              "Settings": {
+                "Class": ""
+              },
+              "Content": "ZinudJuZuGitiNTsJpBR"
+            }
+          ]
+        },
+        {
+          "Type": "CHART",
+          "Title": "Date: 2020-11-05",
+          "Settings": {
+            "Class": "",
+            "DateFormat": "YYYY:Q",
+            "IsTitlePartOfChart": false,
+            "StartDate": "2020-01-01",
+            "EndDate": "2024-12-31",
+            "ChartLibrary": "chartjs"
+          },
+          "Content": [
+            {
+              "Type": "SERIES",
+              "Title": "Series 201",
+              "Settings": {
+                "Class": ""
+              },
+              "Content": "NMMfJylfQjiIUAKhXCJb"
+            },
+            {
+              "Type": "SERIES",
+              "Title": "Series 202",
+              "Settings": {
+                "Class": ""
+              },
+              "Content": "lteHjcLsItGbVPMQtGDB"
+            }
+          ]
+        },
+        {
+          "Type": "CHART",
+          "Title": "Date: 2020-12-25",
+          "Settings": {
+            "Class": "",
+            "DateFormat": "YYYY:Q",
+            "IsTitlePartOfChart": false,
+            "StartDate": "2020-01-01",
+            "EndDate": "2024-12-31"
+          },
+          "Content": [
+            {
+              "Type": "SERIES",
+              "Title": "Series 301",
+              "Settings": {
+                "Class": ""
+              },
+              "Content": "hljcfGWsvZXJZNrImpJB"
+            },
+            {
+              "Type": "SERIES",
+              "Title": "Series 302",
+              "Settings": {
+                "Class": ""
+              },
+              "Content": "AwZQzUhuWVLGrWgLHRuM"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Type": "PAGEBREAK",
+      "Title": "",
+      "Settings": {
+        "Class": ""
+      },
+      "Content": null
+    },
+    {
       "Type": "TABLE",
       "Title": "Table 2",
       "Settings": {

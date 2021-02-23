@@ -12,6 +12,7 @@ var $ru = {
   createTable: createTable,
   createTableSeries: createTableSeries,
   createGrid: createGrid,
+  createPager: createPager,
   createMatrix: createMatrix,
   addReportElement: addReportElement,
   getColorList: getColorList,
@@ -68,12 +69,9 @@ function createChart(parent, chartObj) {
       data.push($ru.createChartSeries(seriesObj, limits, colorList[i], chartLib));
     }
   }
-  const interactive = (!chartObj.Settings.hasOwnProperty("InteractiveCharts"))
-    ? true
-    : chartObj.Settings.InteractiveCharts;
   const chartBody = (chartLib.toLowerCase() === "chartjs")
-    ? $ru.createChartForChartJs(data, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [])
-    : $ru.createChartForPlotly(data, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [], interactive);
+    ? $ru.createChartForChartJs(data, limits, chartObj.Settings)
+    : $ru.createChartForPlotly(data, limits, chartObj.Settings);
   chartParent.appendChild(chartBody);
 }
 
@@ -147,7 +145,7 @@ function getSeriesContent(name) {
 }
 
 // add div that would force page break when printing
-function addPageBreak(parent, breakObj) {
+function addPageBreak(parent, _breakObj) {
   var pageBreakDiv = document.createElement("div");
   $(pageBreakDiv).addClass("page-break");
   pageBreakDiv.innerHTML = "&nbsp;";
@@ -155,7 +153,9 @@ function addPageBreak(parent, breakObj) {
 }
 
 // create chart elements using Chart.js library
-function createChartForChartJs(data, limits, dateFormat, highlight) {
+function createChartForChartJs(data, limits, settings) {
+  const dateFormat = settings.DateFormat;
+  const highlight = settings.Highlight || [];
   var canvas = document.createElement("canvas");
   $(canvas).addClass("rephrase-chart-body");
   // draw chart in canvas
@@ -262,10 +262,15 @@ function createSeriesForChartJs(title, dates, values, seriesSettings, colors, li
 
 
 // create chart elements using Plotly library
-function createChartForPlotly(data, limits, dateFormat, highlight, interactive) {
+function createChartForPlotly(data, limits, settings) {
   const DEFAULT_GRID_COLOR = '#ddd';
   const DEFAULT_SHOW_AXIS = true;
   const DEFAULT_AXIS_COLOR = '#aaa';
+  const dateFormat = settings.DateFormat;
+  const highlight = settings.Highlight || [];
+  const interactive = (!settings.hasOwnProperty("InteractiveCharts"))
+    ? true
+    : settings.InteractiveCharts;
   var chartBody = document.createElement("div");
   $(chartBody).addClass("rephrase-chart-body");
   const layout = {
@@ -927,6 +932,95 @@ function createGrid(parent, gridObj) {
   }
 }
 
+function createPager(parent, pagerObj) {
+  // create a parent div element for the pager
+  var pagerParent = document.createElement("div");
+  $(pagerParent).addClass(["rephrase-pager"]);
+  parent.appendChild(pagerParent);
+  // create pager title
+  if (pagerObj.Title) {
+    var pagerTitle = document.createElement("h2");
+    $(pagerTitle).addClass("rephrase-pager-title");
+    pagerTitle.innerText = pagerObj.Title;
+    pagerParent.appendChild(pagerTitle);
+  }
+  const nPages = pagerObj.Content.length;
+  var sliderArea = $("<div class='rephrase-pager-slider-area grid-x grid-margin-x'></div>");
+  $(pagerParent).append(sliderArea);
+  var sliderParent = $("<div data-slider></div>")
+    .addClass(["rephrase-pager-slider", "slider"])
+    .append("<span class='slider-handle' data-slider-handle role='slider' tabindex='1'></span>")
+    .append("<span class='slider-fill' data-slider-fill></span>")
+    .append("<input type='hidden'>");
+  if (nPages == 1) {
+    sliderParent.addClass("disabled");
+  }
+  $(sliderArea).append($("<div class='cell auto'></div>").append(sliderParent));
+  var sliderButtons = $("<div class='cell small-2'></div>");
+  var prevButton = $("<a class='button hollow rephrase-pager-slider-prev-button'>&lt;&lt;</a>")
+    .on("click", function () {
+      updateSlider(-1);
+    });
+  var nextButton = $("<a class='button hollow rephrase-pager-slider-next-button'>&gt;&gt;</a>")
+    .on("click", function () {
+      updateSlider(1);
+    });
+  sliderButtons.append(prevButton);
+  sliderButtons.append(nextButton);
+  $(sliderArea).append(sliderButtons);
+  sliderParent.on('changed.zf.slider', function () {
+    showPage(sliderParent.find("input")[0].value);
+  });
+  var s = new Foundation.Slider(sliderParent, {
+    initialStart: pagerObj.Settings.StartPage || 0,
+    end: nPages - 1
+  });
+  // show 1st page or the page specified in StartPage 
+  showPage(pagerObj.Settings.StartPage || 0);
+  // function updating value of the slider
+  function updateSlider(sign) {
+    var input = sliderParent.find("input");
+    const oldVal = +input.val();
+    const newVal = Math.min(nPages, Math.max(0, oldVal + sign));
+    if (oldVal !== newVal) {
+      input.val(newVal).trigger('change');
+      updateButtons();
+    }
+  }
+  function updateButtons() {
+    const val = sliderParent.find("input").val();
+    if (val != 0) {
+      prevButton.removeClass("disabled");
+      prevButton.removeAttr("aria-disabled");
+    } else {
+      prevButton.addClass("disabled");
+      prevButton.attr("aria-disabled", "");
+    }
+    if (val != nPages - 1) {
+      nextButton.removeClass("disabled");
+      nextButton.removeAttr("aria-disabled");
+    } else {
+      nextButton.addClass("disabled");
+      nextButton.attr("aria-disabled", "");
+    }
+  }
+  // function showing or creating selected page and hiding the others
+  function showPage(p) {
+    $(pagerParent).find(".rephrase-pager-page").hide();
+    var thisPage = $(pagerParent).find("#page" + p + ".rephrase-pager-page");
+    if (!thisPage.length) {
+      var page = document.createElement("div");
+      $(page).addClass(["rephrase-pager-page"]);
+      $(page).attr("id", "page" + p);
+      pagerParent.appendChild(page);
+      $ru.addReportElement(page, pagerObj.Content[p], pagerObj.Settings);
+    } else {
+      thisPage.show();
+    }
+    updateButtons();
+  }
+}
+
 // wrapper element for cascading its settings down the ladder
 function createWrapper(parent, wrapperObj) {
   for (let i = 0; i < wrapperObj.Content.length; i++) {
@@ -953,6 +1047,9 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
       break;
     case "grid":
       $ru.createGrid(parentElement, elementObj);
+      break;
+    case "pager":
+      $ru.createPager(parentElement, elementObj);
       break;
     case "text":
       $ru.createTextBlock(parentElement, elementObj);
