@@ -3,7 +3,8 @@
 name: Update rephrase plugin
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [master]
   #repository_dispatch:
     #types: [rephrase-release-event]
 
