@@ -7,8 +7,7 @@ elseif ismac( )
 else
     executableName = "x13asunix";
 end
-
-x13path = string(fullfile(iris.root( ), "+thirdparty", "x13", executableName));
+x13path = fullfile(iris.get("X13Path"), executableName);
 
 specsFileTitle = string(tempname("."));
 fid = fopen(specsFileTitle + ".spc", "w+t");

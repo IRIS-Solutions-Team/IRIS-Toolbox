@@ -68,6 +68,9 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % SeriesMaxWSpace  Maximum number of spaces between time series columns when being displayed
         SeriesMaxWSpace = iris.Configuration.DEFAULT_SERIES_MAX_WSPACE
 
+        % X13Path  Path to the X13 executable
+        X13Path = @auto
+
         % PdfLatexPath  Path to the PDFLATEX executable
         PdfLatexPath = [ ]
 
@@ -370,6 +373,29 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
      
 
+        function this = set.X13Path(this, value)
+            try
+                if iris.Configuration.validateX13Path(value)
+                    this.X13Path = string(value);
+                    return
+                end
+            end
+            error( ...
+                "IrisToolbox:ConfigurationOptionFailedValidation" ...
+                , "Value being assigned to this [IrisToolbox] configuration option is invalid: PdfLatexPath" ...
+            );
+        end%
+
+
+        function value = get.X13Path(this)
+            if isequal(this.X13Path, @auto) || strlength(this.X13Path)==0
+                value = string(fullfile(iris.root(), "+thirdparty", "x13"));
+            else
+                value = string(this.X13Path);
+            end
+        end%
+
+
         function this = set.PdfLatexPath(this, newValue)
             try
                 if iris.Configuration.validatePdfLatexPath(newValue)
@@ -638,21 +664,21 @@ classdef (CaseInsensitiveProperties=true) Configuration
             numFrequencies = iris.Configuration.NUM_FREQUENCIES;
             numX = numel(x);
             flag = isequal(x, @config) || ( ...
-                ((ischar(x) || isa(x, 'string')) && isequal(x, unique(x, 'stable')) ) && numX==numFrequencies-2 ...
+                ((ischar(x) || isstring(x)) && isequal(x, unique(x, 'stable')) ) && numX==numFrequencies-2 ...
             );
         end%
 
 
         function flag = validateDateFormat(x)
             flag =  isequal(x, @config) || isequal(x, @excel) ...
-                || ischar(x) || iscellstr(x) || isa(x, 'string') ...
+                || ischar(x) || iscellstr(x) || isstring(x) ...
                 || iris.Configuration.validateDateFormatStruct(x);
         end%
 
 
         function flag = validatePlotDateFormat(x)
             flag =  isequal(x, @config) ...
-                || ischar(x) || iscellstr(x) || isa(x, 'string') ...
+                || ischar(x) || iscellstr(x) || isstring(x) ...
                 || iris.Configuration.validateDateFormatStruct(x);
         end%
 
@@ -693,7 +719,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
         function flag = validateSeriesFormat(x)
-            flag = ischar(x) || isa(x, 'string');
+            flag = ischar(x) || isstring(x);
         end%
 
 
@@ -702,13 +728,18 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
+        function flag = validateX13Path(x)
+            flag = isequal(x, @auto) || ischar(x) || (isstring(x) && isscalar(x));
+        end%
+
+
         function flag = validatePdfLatexPath(x)
-            flag = ischar(x) || isa(x, 'string');
+            flag = ischar(x) || isstring(x);
         end%
 
 
         function flag = validateEpsToPdfPath(x)
-            flag = ischar(x) || isa(x, 'string');
+            flag = ischar(x) || isstring(x);
         end%
     end
 end
