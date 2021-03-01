@@ -1,12 +1,9 @@
 % binop  Binary operators and functions on NumericTimeSubscriptable objects
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [x, varargout] = binop(fn, a, b, varargin)
+function [outputSeries, varargout] = binop(fn, a, b, varargin)
 
 if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     sizeA = size(a.Data);
@@ -20,44 +17,42 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
         % multiple columns. Expand the first NumericTimeSubscriptable to match the size of the
         % second in 2nd and higher dimensions.
         a.Data = repmat(a.Data, 1, colB);
-        sizeX = sizeB;
+        sizeOutputData = sizeB;
     elseif colA~=1 && colB==1
         % First NumericTimeSubscriptable non-scalar; second
         % NumericTimeSubscriptable scalar
         b.Data = repmat(b.Data, 1, colA);
-        sizeX = sizeA;
+        sizeOutputData = sizeA;
     else
-        sizeX = sizeA;
+        sizeOutputData = sizeA;
     end
 
-    startA = double(a.Start);
-    startB = double(b.Start);
-    if isnan(startA) && isnan(startB)
-        startDate = NaN;
-        endDate = NaN;
-    else
-        freqA = dater.getFrequency(startA);
-        freqB = dater.getFrequency(startB);
-        if freqA~=freqB
-            exception.error([
-                "Series:FrequencyMismatch"
-                "Date frequency mismatch between input time series when evaluating "
-                "this function: %s(%s, %s) "
-            ], string(func2str(fn)), Frequency(freqA), Frequency(freqB));
-        end
-        startDate = min([startA, startB]);
-        endDateA = dater.plus(startA, rowA-1);
-        endDateB = dater.plus(startB, rowB-1);
-        endDate = max(endDateA, endDateB);
-    end
-    dataA = getDataFromTo(a, startDate, endDate);
-    dataB = getDataFromTo(b, startDate, endDate);
+    % startA = double(a.Start);
+    % startB = double(b.Start);
+    % freqA = dater.getFrequency(startA);
+    % freqB = dater.getFrequency(startB);
+    % if ~isnan(freqA) && ~isnan(freqB) && freqA~=freqB
+        % exception.error([
+            % "Series:FrequencyMismatch"
+            % "Date frequency mismatch between input time series when evaluating "
+            % "this function: %s(%s, %s) "
+        % ], string(func2str(fn)), Frequency(freqA), Frequency(freqB));
+    % end
+
+    [dates, dataA, dataB] = getDataFromMultiple("unbalanced", string(func2str(fn)), a, b);
+
+    % startDate = min([startA, startB], [], "OmitNaN");
+    % endDateA = dater.plus(startA, rowA-1);
+    % endDateB = dater.plus(startB, rowB-1);
+    % endDate = max([endDateA, endDateB], [], "OmitNaN");
+    % dataA = getDataFromTo(a, startDate, endDate);
+    % dataB = getDataFromTo(b, startDate, endDate);
+
     % Evaluate the operator or function
-    [dataX, varargout{1:nargout-1}] = fn(dataA, dataB, varargin{:}); 
-    % Create output series
-    x = a;
+    [outputData, varargout{1:nargout-1}] = fn(dataA, dataB, varargin{:}); 
+
     try
-        x.Data = reshape(dataX, [size(dataX, 1), sizeX(2:end)]);
+        outputData = reshape(outputData, [size(outputData, 1), sizeOutputData(2:end)]);
     catch %#ok<CTCH>
         exception.error([
             "Series:DimensionMismatch"
@@ -65,15 +60,20 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
             "this function: %s "
         ], string(func2str(fn)));
     end
-    x.Start = startDate;
-    x = resetComment(x);
-    x = trim(x);
+
+    % Create output series
+    outputSeries = a;
+    outputSeries.Data = outputData;
+    outputSeries.Start = dates(1);
+    outputSeries = resetComment(outputSeries);
+    outputSeries = trim(outputSeries);
+
 else
     sizeB = size(b);
     sizeA = size(a);
     strFn = func2str(fn);
     if isa(a, 'TimeSubscriptable')
-        x = a;
+        outputSeries = a;
         a = a.Data;
         if any(strcmp(strFn, ...
                 {'times', 'plus', 'minus', 'rdivide', 'mdivide', 'power'})) ...
@@ -83,7 +83,7 @@ else
             b = repmat(b, sizeA(1), 1);
         end
     else
-        x = b;
+        outputSeries = b;
         b = b.Data;
         if any(strcmp(strFn, ...
                 {'times', 'plus', 'minus', 'rdivide', 'mdivide', 'power'})) ...
@@ -95,20 +95,20 @@ else
     end
     [y, varargout{1:nargout-1}] = fn(a, b, varargin{:});
     sizeY = size(y);
-    sizeX = size(x.Data);
-    if sizeY(1)==sizeX(1)
+    sizeOutputData = size(outputSeries.Data);
+    if sizeY(1)==sizeOutputData(1)
         % Size of the numeric result in 1st dimension matches the size of the
         % input NumericTimeSubscriptable object. Return a NumericTimeSubscriptable object with the original
         % number of periods.
-        x.Data = y;
-        if numel(sizeY)~=numel(sizeX) || any(sizeY(2:end)~=sizeX(2:end))
-            x.Comment = repmat({''}, [1, sizeY(2:end)]);
+        outputSeries.Data = y;
+        if numel(sizeY)~=numel(sizeOutputData) || any(sizeY(2:end)~=sizeOutputData(2:end))
+            outputSeries.Comment = repmat({''}, [1, sizeY(2:end)]);
         end
-        x = trim(x);
+        outputSeries = trim(outputSeries);
     else
         % Size of the numeric result has changed in 1st dimension from the
         % size of the input NumericTimeSubscriptable object. Return a numeric array.
-        x = y;
+        outputSeries = y;
     end
 end
 

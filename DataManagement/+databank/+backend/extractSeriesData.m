@@ -19,7 +19,8 @@ end
 
 [dates, dateTransform] = locallyResolveDates(dates);
 data = cell(size(allSeries));
-[dates, data{:}] = getDataFromMultiple(dates, allSeries{:});
+context = "";
+[dates, data{:}] = getDataFromMultiple(dates, context, allSeries{:});
 dates = reshape(double(dates), 1, []);
 
 end%

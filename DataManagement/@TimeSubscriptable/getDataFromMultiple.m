@@ -1,12 +1,25 @@
-function [outputDates, varargout] = getDataFromMultiple(dates, varargin)
+function [outputDates, varargout] = getDataFromMultiple(dates, context, inputSeries)
 
-numSeries = numel(varargin);
+arguments
+    dates {validate.mustBeA(dates, ["double", "string"])}
+    context (1, 1) string
+end
+
+arguments (Repeating)
+    inputSeries
+end
+
+if ~isstring(dates)
+    dates = double(dates);
+end
+
+numSeries = numel(inputSeries);
 varargout = cell(1, numSeries);
 
 startDate = nan(1, numSeries);
 endDate = nan(1, numSeries);
 freq = nan(1, numSeries);
-inxNaN = false(size(varargin));
+inxNaN = false(size(inputSeries));
 
 if numSeries==0
     outputDates = double.empty(1, 0);
@@ -14,8 +27,8 @@ if numSeries==0
 end
 
 for i = 1 : numSeries
-    startDate(i) = double(varargin{i}.Start);
-    endDate(i) = varargin{i}.EndAsNumeric;
+    startDate(i) = double(inputSeries{i}.Start);
+    endDate(i) = inputSeries{i}.EndAsNumeric;
     freq(i) = dater.getFrequency(startDate(i));
     inxNaN(i) = isnan(startDate(i));
 end
@@ -23,23 +36,23 @@ end
 if all(inxNaN)
     outputDates = double.empty(1, 0);
     for i = 1 : numSeries
-        varargout{i} = varargin{i}.Data;
+        varargout{i} = inputSeries{i}.Data;
     end
     return
 end
 
 if isnumeric(dates)
-    locallyVerifyFrequencyWhenProperDates(dates, freq);
+    locallyVerifyFrequencyWhenProperDates(dates, freq, context);
     outputDates = double(dates);
     for i = 1 : numSeries
-        varargout{i} = getDataNoFrills(varargin{i}, dates);
+        varargout{i} = getDataNoFrills(inputSeries{i}, dates);
     end
     return
 end
 
-locallyVerifyFrequencyWhenImproperDates(freq);
+locallyVerifyFrequencyWhenImproperDates(freq, context);
 
-if isequal(dates, @all)
+if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
     dates = "unbalanced";
 end
 
@@ -58,7 +71,7 @@ else
 end
 
 for i = 1 : numSeries
-    varargout{i} = getDataFromTo(varargin{i}, from, to);
+    varargout{i} = getDataFromTo(inputSeries{i}, from, to);
 end
 outputDates = dater.colon(from, to);
 
@@ -68,9 +81,10 @@ end%
 % Localy Functions
 %
 
-function locallyVerifyFrequencyWhenProperDates(dates, freq)
+function locallyVerifyFrequencyWhenProperDates(dates, freq, context)
+    %(
     if isempty(dates)
-        locallyVerifyFrequencyWhenImproperDates(freq);
+        locallyVerifyFrequencyWhenImproperDates(freq, context);
         return
     end
     freqDates = dater.getFrequency(dates(1));
@@ -81,18 +95,26 @@ function locallyVerifyFrequencyWhenProperDates(dates, freq)
         "Series:FrequencyMismatch"
         "Date frequency of some time series is incosistent with the dates requested."
     ]);
+    %)
 end%
 
 
-function locallyVerifyFrequencyWhenImproperDates(freq)
-    if all(freq==freq(1))
+function locallyVerifyFrequencyWhenImproperDates(freq, context)
+    %(
+    freq0 = freq;
+    freq(isnan(freq)) = [];
+    if isempty(freq) || all(freq==freq(1))
         return
     end
+    freq0 = unique(string(Frequency(freq0)));
     exception.error([
         "Series:FrequencyMismatch"
-        "All time series must be the same date frequency when they are being combined."
-    ]);
+        "Date frequency mismatch in input time series: %s(%s)"
+    ], context, join(freq0, ", "));
+    %)
 end%
+
+
 
 
 %

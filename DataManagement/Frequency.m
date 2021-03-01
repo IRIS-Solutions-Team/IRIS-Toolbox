@@ -7,8 +7,7 @@ classdef Frequency < double
         MONTHLY           ( 12) 
         WEEKLY            ( 52) 
         DAILY             (365) 
-        NaF               (NaN) 
-
+        NaN               (NaN) 
         MIN_DAILY_SERIAL  (365244)
     end
 
@@ -69,7 +68,7 @@ classdef Frequency < double
 
         function datetimeObj = datetime(this, serial, varargin)
             datetimeObj = dater.matlabFromSerial(double(this), double(serial), varargin{:});
-            if isequaln(this, Frequency.NaF)
+            if isequaln(this, Frequency.NaN)
                 datetimeObj = NaT(size(serial));
                 return
             end
@@ -440,7 +439,7 @@ classdef Frequency < double
 
 
         function x = empty(varargin)
-            x = repmat(Frequency.NaF, varargin{:});
+            x = repmat(Frequency.NaN, varargin{:});
         end%
 
 
@@ -464,7 +463,7 @@ classdef Frequency < double
                 case {'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY', 'Y', 'A'}
                     this = Frequency.YEARLY;
                 case {'NAF', 'NAN', 'N'}
-                    this = Frequency.NaF;
+                    this = Frequency.NaN;
                 otherwise
                     throw( exception.Base('Frequency:InvalidConversionFromString', 'error') );
             end
@@ -478,7 +477,7 @@ classdef Frequency < double
                 return
             end
             if isnumeric(input)
-                this = Frequency.NaF;
+                this = Frequency.NaN;
                 try
                     this = Frequency.fromNumeric(input);
                     flag = true;
@@ -488,7 +487,7 @@ classdef Frequency < double
                     return
                 end
             elseif ischar(input) || (isa(input, 'string') && isscalar(input))
-                this = Frequency.NaF;
+                this = Frequency.NaN;
                 try
                     this = Frequency.fromString(input);
                     flag = true;
