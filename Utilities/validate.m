@@ -281,10 +281,11 @@ classdef validate
 
 
         function mustBeA(x, class)
-            if isa(x, char(class))
+            class = string(class);
+            if any(arrayfun(@(c) isa(x, c), class))
                 return
             end
-            error("Input value must be of the " + string(class) + " class.");
+            error("Input value must be the " + join(class, " or ") + " class.");
         end%
 
 
