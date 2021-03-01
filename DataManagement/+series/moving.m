@@ -13,7 +13,7 @@ function data = moving(data, window, func)
 arguments
     data {mustBeNumeric}
     window (1, :) {mustBeInteger}
-    func {mustBeA(func, "function_handle")} = @mean
+    func {validate.mustBeA(func, "function_handle")} = @mean
 end
 %)
 % >=R2019b
