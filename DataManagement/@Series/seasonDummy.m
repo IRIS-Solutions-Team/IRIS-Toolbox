@@ -1,10 +1,12 @@
-function this = seasonDummy(dates, dummyPeriods, varargin);
+function this = seasonDummy(range, dummyPeriods, varargin);
 
-[~, periods] = dat2ypf(dates);
+range = double(range);
+range = dater.colon(range(1), range(end));
+[~, periods] = dater.getYearPeriodFrequency(range);
 periods = reshape(periods, [ ], 1);
 dummyPeriods = reshape(dummyPeriods, [ ], 1);
 values = double(ismember(periods, dummyPeriods));
-this = Series(dates, values , varargin{:}, "--skip");
+this = Series(range, values, varargin{:}, "--skip");
 
 if all(values(:)==0)
     exception.warning([
