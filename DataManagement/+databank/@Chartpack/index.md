@@ -2,10 +2,15 @@
 
 ## Categorical List of Functions
 
-### Constructor
+### Creating New Chartpacks
 
-| Function      | Description       |
-|---            |---                |
-| [`databank.Chartpack`](Chartpack.md)              | {{ chartpack._Chartpack }} |
+| Function | Description |
+|---|---|
+| [`databank.Chartpack`](Chartpack.md) | {{ chartpack._Chartpack }} |
 
+
+### Modifiable Properties of Chartpacks
+
+| Property | Description |
+|---|---|
 
