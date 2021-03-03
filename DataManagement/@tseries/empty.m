@@ -36,9 +36,11 @@ function this = empty(varargin)
 if nargin==1 && isa(varargin{1}, 'TimeSubscriptable')
     this = varargin{1};
     this.Start = TimeSubscriptable.StartDateWhenEmpty;
-    newSize = size(this.Data);
-    newSize(1) = 0;
-    this.Data = repmat(this.MissingValue, newSize);
+    data = this.Data;
+    ndimsData = ndims(data);
+    ref = repmat({':'}, 1, ndimsData);
+    ref(1) = {[]};
+    this.Data = data(ref{:});
 else
     this = tseries( );
     if isempty(varargin)

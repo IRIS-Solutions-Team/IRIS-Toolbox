@@ -1,4 +1,4 @@
-# linearTrend  
+# Series.linearTrend  
 
 {== Create time series with linear trend ==}
 
