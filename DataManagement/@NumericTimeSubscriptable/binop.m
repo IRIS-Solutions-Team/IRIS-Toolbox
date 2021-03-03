@@ -64,6 +64,9 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     % Create output series
     outputSeries = a;
     outputSeries.Data = outputData;
+    if isempty(dates)
+        dates = NaN;
+    end
     outputSeries.Start = dates(1);
     outputSeries = resetComment(outputSeries);
     outputSeries = trim(outputSeries);
