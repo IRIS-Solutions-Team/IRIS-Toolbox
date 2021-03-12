@@ -1,8 +1,8 @@
-# Time Series
+# Time series
 
-## Categorical List of Functions
+## Categorical list of functions
 
-### Creating New Time Series
+### Creating new time series
 
 | Function | Description |
 |---|---|
@@ -12,4 +12,10 @@
 | [`Series.seasonDummy`](seasonDummy.md) | {{ series._seasonDummy }} |
 | [`Series.randomlyGrowing`](randomlyGrowing.md) | {{ series._randomlyGrowing }} |
 
+
+#### Filtering time series
+
+| Function | Description |
+|---|---|
+| [`moving`](moving.md) | {{ series._moving }} |
 

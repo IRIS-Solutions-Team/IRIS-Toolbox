@@ -1,4 +1,4 @@
-# `mm`, `Dater.mm`, `dater.mm`
+# `mm  |  Dater.mm  |  dater.mm`
 
 {== Create monthly dates ==}
 

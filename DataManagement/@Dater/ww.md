@@ -1,4 +1,4 @@
-# `ww`, `Dater.ww`, `dater.ww`
+# `ww  |  Dater.ww  |  dater.ww`
 
 {== Create weekly dates ==}
 

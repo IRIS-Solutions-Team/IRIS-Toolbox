@@ -1,4 +1,4 @@
-# `qq`, `Dater.qq`, `dater.qq`
+# `qq  |  Dater.qq  |  dater.qq`
 
 {== Create quarterly dates ==}
 

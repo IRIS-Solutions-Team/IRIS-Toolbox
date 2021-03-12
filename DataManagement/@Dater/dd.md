@@ -1,9 +1,9 @@
-# `dd`, `Dater.dd`, `dater.dd`
+# `dd  |  Dater.dd  |  dater.dd`
 
 {== Create daily dates ==}
 
 
-## Shortcut Syntax for Dater Objects
+## Shortcut syntax for Dater objects
 
     date = dd(year, month, day)
     date = dd(year, month, "end")
@@ -11,17 +11,17 @@
     date = dd(year)
 
 
-## Syntax for Dater Objects
+## Syntax for Dater objects
 
     date = Dater.dd(...)
 
 
-## Syntax for Numeric Date Codes
+## Syntax for numeric date codes
 
     date = dater.dd(...)
 
 
-## Input Arguments
+## Input arguments
 
 `year` [ numeric ] 
 
@@ -39,7 +39,7 @@
 > (considering leap years for February).
 
 
-## Output Arguments
+## Output arguments
 
 `date` [ Dater ]
 

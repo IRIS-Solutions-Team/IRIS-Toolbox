@@ -6,7 +6,7 @@
 ## Syntax
 
     outputSeries = Series.randomlyGrowing(range)
-    outputSeries = Series.randomlyGrowing(range, [mean, stddev], ...)
+    outputSeries = Series.randomlyGrowing(range, [mean, stdev], ...)
 
 
 ## Input Arguments
@@ -16,7 +16,7 @@ __`range`__ [ Dater ]
 > Date range on which the randomly growing time series will be created.
 >
 
-__`[mean=0, stddev=1]`__ [ numeric ]
+__`[mean=0, stdev=1]`__ [ numeric ]
 >
 > The mean and std deviation of the Normal distribution from which the
 > log-growth rate or the difference will be drawn; see Description.
@@ -58,14 +58,15 @@ __`Initial=0`__ [ numeric ]
 
 The output series is created as follows:
 
-1. Generate a series of a total N random numbers from $N(\mu, \sigma)$, where the
-mean $\mu$ and the std deviation $\sigma$ are determined by the input
-arguments `mean` and `stddev`, where N is the length of the `range`.
+1. Generate a series of a total of N random numbers from $N(\mu, \sigma)$,
+   where the mean $\mu$ and the std deviation $\sigma$ are determined by
+   the input arguments `mean` and `stdev`, respectively, and N is the
+   number of periods in the `range`.
 
-2. Replace the first random number in the series with `Initial`, and
-calculate the cumulative sum of these random numbers.
+1. Replace the first random number in the series with `Initial`, and
+   calculate the cumulative sum of these random numbers.
 
-3. When `Exponentiate=true`, exponentiate the cumulated series.
+1. When `Exponentiate=true`, exponentiate the cumulated series.
 
 
 ## Example

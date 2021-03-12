@@ -1,26 +1,26 @@
-# `hh`, `Dater.hh`, `dater.hh`
+# `hh  |  Dater.hh  |  dater.hh`
 
 {== Create half-yearly dates ==}
 
 
-## Shortcut Syntax to Create Dater Objects
+## Shortcut syntax to create Dater objects
 
     date = hh(year, half)
     date = hh(year, "end")
     date = hh(year)
 
 
-## Syntax to Create Dater Objects
+## Syntax to create Dater objects
 
     date = hh(...)
 
 
-## Syntax to Create Numeric Date Codes
+## Syntax to create numeric date codes
 
     dateCode = dater.hh(...)
 
 
-## Input Arguments
+## Input arguments
 
 `year` [ numeric ] 
 
@@ -32,7 +32,7 @@
 > Halfyear of the year; "end" means `half=2`.
 
 
-## Output Arguments
+## Output arguments
 
 `date` [ Dater ]
 
@@ -51,7 +51,9 @@
 
 Calculate the number of halfyears between two halfyearly dates
 
-    t1 = hh(2020,1);
-    t2 = hh(2024,2);
-    n = t2 - t1
+```matlab
+t1 = hh(2020,1);
+t2 = hh(2024,2);
+n = t2 - t1
+```
 

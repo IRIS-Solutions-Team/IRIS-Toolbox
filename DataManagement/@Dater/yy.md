@@ -1,4 +1,4 @@
-# `yy`, `Dater.yy`, `dater.yy`
+# `yy  |  Dater.yy  |  dater.yy`
 
 {== Create yearly dates ==}
 

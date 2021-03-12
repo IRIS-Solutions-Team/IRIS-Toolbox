@@ -1,4 +1,4 @@
-# `ii`, `Dater.ii`, `dater.ii`
+# `ii  |  Dater.ii  |  dater.ii`
 
 {== Create integer dates (numbered observations) ==}
 
