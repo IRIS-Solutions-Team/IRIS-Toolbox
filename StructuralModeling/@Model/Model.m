@@ -364,6 +364,7 @@ classdef Model ...
         varargout = simulate(varargin)
         varargout = table(varargin)
         varargout = setBounds(varargin)
+        varargout = printWithValues(varargin)
         varargout = resetBounds(varargin)
         varargout = getBounds(varargin)
         %)
@@ -440,12 +441,9 @@ classdef Model ...
     end % methods
 
 
-
-
     methods (Access=protected, Hidden)
         varargout = varyParams(varargin)
     end % methods
-
 
 
     methods (Static, Hidden) % Simulation methods
