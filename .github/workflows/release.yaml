@@ -22,22 +22,25 @@ jobs:
         with:
           fetch-depth: 0
           ref: master
+          path: iris-toolbox
 
       - name: Gather release notes from commit messages
         run: |
+          cd $GITHUB_WORKSPACE/iris-toolbox
           latest_release=$(git log | grep -oP "Release-[^ ]+" -m 1)
           log=$(git log "$latest_release"..HEAD)
-          echo "" > .release-notes
-          echo "### Bug fixes:" >> .release-notes
-          echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" >> .release-notes
-          echo ""  >> .release-notes
-          echo "### New features:" >> .release-notes
-          echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> .release-notes
+          echo "" > $GITHUB_WORKSPACE/.release-notes
+          echo "### Bug fixes:" >> $GITHUB_WORKSPACE/.release-notes
+          echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" >> $GITHUB_WORKSPACE/.release-notes
+          echo ""  >> $GITHUB_WORKSPACE/.release-notes
+          echo "### New features:" >> $GITHUB_WORKSPACE/.release-notes
+          echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> $GITHUB_WORKSPACE/.release-notes
           
           
       - name: Name the release
         id: name
         run: |
+          cd $GITHUB_WORKSPACE/iris-toolbox
           release="${{ github.ref }}" # ref that triggered the action: either tag Release-XXX or refs/heads/master
           if [[ "_$release" == "_refs/heads/"* ]]; then
             release_number="11111111"
@@ -55,6 +58,8 @@ jobs:
           
       - name: Remove old IrisT id files & create new id file & update Contents.m
         run: |
+          cd $GITHUB_WORKSPACE/iris-toolbox
+          
           # Remove all existing id files iristbx*
           find . -name iristbx* -type f -maxdepth 1 -exec git rm {} +
           
@@ -71,17 +76,20 @@ jobs:
           
       - name: Commit and tag new release
         run: |
+          cd $GITHUB_WORKSPACE/iris-toolbox
+          
           git config --global user.email "jaromir.benes@gmail.com"
-          git config --global user.name "Jaromir Benes"            
+          git config --global user.name "Jaromir Benes"
+          git branch master
           git add .
           git commit -m "${{ steps.name.outputs.release_name }}"
           git tag "${{ steps.name.outputs.release_name }}"
-          git push --tags
+          git push origin master --tags
           
           
       - name: Publish release
-        if: ${{ success() }}
-        # if: ${{ false }}
+        # if: ${{ success() }}
+        if: ${{ false }}
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
