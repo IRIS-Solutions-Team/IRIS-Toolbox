@@ -3,7 +3,7 @@ name: Package IrisT Release
 on:
   push:
     tags:
-      - 'Release-*'
+      - 'Ready-*'
   
   workflow_dispatch:
   
@@ -29,6 +29,17 @@ jobs:
           echo ""  >> .release-notes
           echo "### New features:" >> .release-notes
           echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> .release-notes
+          
+      - name: Name the release
+        id: name
+        run: |
+          release_name="${{ git.ref }}"
+          release_name="Release-${release_name#'Ready-'}"
+          echo "::set-output name=release::$release_name"
+          
+      - name: Echo release name
+        run: |
+          echo "${{steps.name.release}}"
           
       - name: Publish release
         if: ${{ success() }}
