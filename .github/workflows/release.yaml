@@ -34,7 +34,7 @@ jobs:
           echo "### New features:" >> .release-notes
           echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> .release-notes
           
-          echo "${{ github.event.base_ref }}"
+          echo "$GITHUB_BASE_REF"
           
           
       - name: Name the release
