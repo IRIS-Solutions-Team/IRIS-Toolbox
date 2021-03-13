@@ -4,8 +4,6 @@ name: Package IrisT release
 
 on:
   push:
-    branches:
-      - master
     tags:
       - 'Ready-*'
   
@@ -15,6 +13,7 @@ on:
 jobs:
   build:
     name: Package IrisT Release
+    if: github.event.base_ref == 'refs/heads/master'    
     runs-on: ubuntu-latest
     steps:
     
@@ -71,7 +70,7 @@ jobs:
           
           
       - name: Commit and tag new release
-      - run: |
+        run: |
           git config --global user.email "jaromir.benes@gmail.com"
           git config --global user.name "Jaromir Benes"            
           git add .
