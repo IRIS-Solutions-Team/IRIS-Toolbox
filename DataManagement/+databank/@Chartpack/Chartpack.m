@@ -8,6 +8,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         Highlight {locallyValidateHighlight} = double.empty(1, 0)
         Transform = []
         NewLine = "//"
+        CaptionFromComment (1, 1) logical = false
         ShowFormulas = false
         ShowTransform = false
         
@@ -35,9 +36,17 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
 
     methods
         varargout = add(varargin)
+        varargout = clear(varargin)
         varargout = draw(varargin)
 
+
         function this = lt(this, varargin)
+            this = add(this, varargin{:});
+        end%
+
+
+        function this = le(this, varargin);
+            this = clear(this);
             this = add(this, varargin{:});
         end%
     end
