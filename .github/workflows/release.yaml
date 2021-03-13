@@ -17,14 +17,14 @@ jobs:
 
       - name: Gather release notes
         run: |
-          latest_release=$(git log | ggrep -oP "Release-[^ ]+" -m 1)
+          latest_release=$(git log | grep -oP "Release-[^ ]+" -m 1)
 
           log=$(git log "$latest_release"..HEAD)
 
           echo "### Bug fixes:" 
-          echo "$log" | ggrep "##" | gsed "s/^ *#\{2,5\} \?//" 
+          echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" 
 
           echo "" 
 
           echo "### New features:" 
-          echo "$log"| ggrep ">>" | gsed "s/^ *>\{2,5\} \?//" 
+          echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" 
