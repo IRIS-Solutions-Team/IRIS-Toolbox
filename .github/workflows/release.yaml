@@ -34,7 +34,11 @@ jobs:
         id: name
         run: |
           release="${{ github.ref }}"
-          release="Release-${release#'Ready-'}"
+          if test "_$release" == "_refs/heads/master"; then
+            release="Release-Unknown"
+          else
+            release="Release-${release#'Ready-'}"
+          fi
           echo "::set-output name=release::$release"
           
       - name: Echo release name
