@@ -26,7 +26,15 @@ jobs:
           echo "### New features:" >> .release-notes
           echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> .release-notes
           
-      - name: Echo release notes
-        run: |
-          cat .release-notes
+      - name: Publish release
+        if: ${{ success() }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body_path: .release-notes
+          draft: true
+          prerelease: true
           
