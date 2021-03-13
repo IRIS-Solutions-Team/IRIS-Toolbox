@@ -33,13 +33,13 @@ jobs:
       - name: Name the release
         id: name
         run: |
-          release_name="${{ github.ref }}"
-          release_name="Release-${release_name#'Ready-'}"
+          release="${{ github.ref }}"
+          release="Release-${release#'Ready-'}"
           echo "::set-output name=release::$release_name"
           
       - name: Echo release name
         run: |
-          echo "${{steps.name.release}}"
+          echo "${{steps.name.outputs.release}}"
           
       - name: Publish release
         if: ${{ success() }}
