@@ -93,11 +93,13 @@ jobs:
           # Delete the Ready-XXXXXXXX tag
           if [[ -e ".git/refs/tags/Ready-${{ steps.name.outputs.release_number }}" ]]; then
             git tag -d "Ready-${{ steps.name.outputs.release_number }}"
+            git push origin --delete "Ready-${{ steps.name.outputs.release_number }}"
           fi
           
           # First, make sure the new Release-XXXXXXXX tag does not exist (delete when exists)
           if [[ -e ".git/refs/tags/Release-${{ steps.name.outputs.release_number }}" ]]; then
             git tag -d "${{ steps.name.outputs.release_name }}"
+            git push origin --delete "${{ steps.name.outputs.release_name }}"
           fi          
           
           # Then, create the new tag
