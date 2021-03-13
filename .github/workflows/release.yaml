@@ -50,6 +50,7 @@ jobs:
           if [[ "_$release" == "_refs/heads/"* ]]; then
             release_number="11111111"
           else
+            release_number="${release#'refs/tags/'}"
             release_number="${release#'Ready-'}"
           fi
           echo "::set-output name=release_number::$release_number"
