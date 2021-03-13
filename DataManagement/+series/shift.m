@@ -1,11 +1,7 @@
-function y = shift(x, shifts)
-% shift  Implement time shift on numeric data
-%
-% Backend IRIS function.
-% No help provided.
-
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 % -IRIS Macroeconomic Modeling Toolbox
+
+function y = shift(x, shifts)
 
 if nargin<2
    shifts = -1;
@@ -15,8 +11,6 @@ if isempty(shifts)
     y = numeric.empty(x, 2);
     return
 end
-
-%--------------------------------------------------------------------------
 
 sizeX = size(x);
 ndimsX = ndims(x);
