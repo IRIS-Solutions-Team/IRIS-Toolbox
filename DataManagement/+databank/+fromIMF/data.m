@@ -1,49 +1,7 @@
-% databank.fromIMF.data  Download time series from IMF Data Portal
-%{
-% Syntax
-%--------------------------------------------------------------------------
-%
-%     output = databank.fromIMF.data(input, ...)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-% __``__ [ ]
-%
-%>    Description
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __``__ [ ]
-%
-%>    Description
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-%
-% __`=`__ [ | ]
-%
-%>    Description
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-function [outputDb, info] = data(dataset, freq, areas, items, options, nameOptions)
+function [outputDb, info] = data(dataset, freq, areas, items, counters, options, nameOptions)
 
 % >=R2019b
 %(
@@ -52,16 +10,18 @@ arguments
     freq (1, 1) Frequency {locallyValidateFrequency}
     areas (1, :) string
     items (1, :) string
+    counters (1, :) string = string.empty(1, 0)
 
-    options.AddToDatabank (1, 1) {validate.databank} = struct( )
+    options.AddToDatabank (1, 1) {validate.mustBeDatabank} = struct( )
     options.StartDate (1, 1) double {locallyValidateDate(options.StartDate, freq)} = -Inf
     options.EndDate (1, 1) double {locallyValidateDate(options.EndDate, freq)} = Inf
     options.URL (1, 1) string {locallyValidateURL} = "http://dataservices.imf.org/REST/SDMX_JSON.svc/CompactData/"
-    options.WebReadOptions = weboptions("TimeOut", 9999)
+    options.WebOptions = weboptions("TimeOut", 9999)
     options.ApplyMultiplier (1, 1) logical = true
 
     nameOptions.IncludeArea (1, 1) logical = true
-    nameOptions.AreaSeparator (1, 1) string = "_"
+    nameOptions.IncludeCounter (1, 1) logical = true
+    nameOptions.Separator (1, 1) string = "_"
     nameOptions.NameFunc = [ ]
 end
 %)
@@ -69,15 +29,16 @@ end
 
 [areas, areaMap, areasString] = locallyCreateNameMap(areas);
 [items, itemMap, itemsString] = locallyCreateNameMap(items);
+if isempty(counters) || counters==""
+    counters = [];
+    counterMap = [];
+    countersString = [];
+else
+    [counters, counterMap, countersString] = locallyCreateNameMap(counters);
+end
 
-
-request = sprintf( ...
-    "%s/%s.%s.%s?" ...
-    , dataset ...
-    , Frequency.toIMFLetter(freq) ...
-    , areasString ...
-    , itemsString ...
-);
+dimensions = join([Frequency.toIMFLetter(freq), areasString, itemsString, countersString], ".");
+request = dataset + "/" + dimensions + "?";
 
 if ~isinf(options.StartDate) 
     request = request + "&startPeriod=" + DateWrapper.toIMFString(options.StartDate);
@@ -90,9 +51,11 @@ end
 outputDb = options.AddToDatabank;
 
 request = options.URL + request;
-response = webread(request, options.WebReadOptions);
+response = webread(request, options.WebOptions);
 
-outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, options, nameOptions);
+outputDb = locallyCreateSeriesFromResponse( ...
+    outputDb, freq, response, request, areaMap, itemMap, counterMap, options, nameOptions ...
+);
 
 info = struct( );
 info.Request = request;
@@ -104,7 +67,7 @@ end%
 % Local Functions
 %
 
-function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, options, nameOptions)
+function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, counterMap, options, nameOptions)
     try
         allResponseData = response.CompactData.DataSet.Series;
     catch
@@ -127,6 +90,9 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
         if isDictionary
             store(outputDb, name, series);
         else
+            if ~isvarname(name)
+                name = genvarname(name);
+            end
             outputDb.(name) = series;
         end
     end
@@ -143,18 +109,31 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
 
 
         function name = hereCreateName( )
-            area = string(responseData.x_REF_AREA);
-            try
-                area = areaMap.(area);
+            area = string.empty(1, 0);
+            if nameOptions.IncludeArea  
+                area = string(responseData.x_REF_AREA);
+                try
+                    area = areaMap.(area);
+                end
             end
+
             item = string(responseData.x_INDICATOR);
             try
                 item = itemMap.(item);
             end
-            name = item;
-            if nameOptions.IncludeArea
-                name = area + nameOptions.AreaSeparator + name;
+
+            counter = string.empty(1, 0);
+            if nameOptions.IncludeCounter
+                try
+                    counter = string(responseData.x_COUNTERPART_AREA);
+                    try
+                        counter = counterMap.(counter);
+                    end
+                end
             end
+
+            name = join([area, item, counter], nameOptions.Separator); 
+
             if isa(nameOptions.NameFunc, "function_handle")
                 name = nameOptions.NameFunc(name);
             end
