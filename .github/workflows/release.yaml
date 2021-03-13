@@ -33,8 +33,8 @@ jobs:
       - name: Name the release
         id: name
         run: |
-          release="${{ github.ref }}"
-          if test "_$release" == "_refs/heads/master"; then
+          release="${{ github.ref }}" # ref that triggered the action: either tag Release-XXX or refs/heads/master
+          if [[ "_$release" == "_refs/heads/"* ]]; then
             release="Release-Unknown"
           else
             release="Release-${release#'Ready-'}"
@@ -43,7 +43,7 @@ jobs:
           
       - name: Echo release name
         run: |
-          echo "${{steps.name.outputs.release}}"
+          echo "${{ steps.name.outputs.release }}"
           
       - name: Publish release
         if: ${{ success() }}
