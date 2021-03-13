@@ -88,6 +88,7 @@ jobs:
           git add .
           git commit -m "${{ steps.name.outputs.release_name }}"
           git tag "${{ steps.name.outputs.release_name }}"
+          git tag -d "Ready-${{ steps.name.outputs.release_number }}"
           git push origin master --tags
           
           
