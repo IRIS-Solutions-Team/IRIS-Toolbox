@@ -80,7 +80,7 @@ jobs:
           
           git config --global user.email "jaromir.benes@gmail.com"
           git config --global user.name "Jaromir Benes"
-          git branch master
+          git switch master
           git add .
           git commit -m "${{ steps.name.outputs.release_name }}"
           git tag "${{ steps.name.outputs.release_name }}"
