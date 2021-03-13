@@ -18,13 +18,15 @@ jobs:
       - name: Gather release notes
         run: |
           latest_release=$(git log | grep -oP "Release-[^ ]+" -m 1)
-
           log=$(git log "$latest_release"..HEAD)
-
-          echo "### Bug fixes:" 
-          echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" 
-
-          echo "" 
-
-          echo "### New features:" 
-          echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" 
+          echo "" > .release-notes
+          echo "### Bug fixes:" > .release-notes
+          echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" > .release-notes
+          echo ""  > .release-notes
+          echo "### New features:" > .release-notes
+          echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" > .release-notes
+          
+      - name: Echo release notes
+        run: |
+          cat .release-notes
+          
