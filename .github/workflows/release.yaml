@@ -27,7 +27,10 @@ jobs:
       - name: Gather release notes from commit messages
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
-          latest_release=$(git log | grep -oP "Release-[^ ]+" -m 1)
+          
+          # Make sure the latest release is not Release-11111111
+          latest_release=$(git log | grep -oP "Release-20[^ ]+" -m 1)
+          
           log=$(git log "$latest_release"..HEAD)
           echo "" > $GITHUB_WORKSPACE/release-notes
           echo "### Bug fixes:" >> $GITHUB_WORKSPACE/release-notes
