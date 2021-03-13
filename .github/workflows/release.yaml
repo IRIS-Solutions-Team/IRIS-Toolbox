@@ -2,7 +2,8 @@ name: Package IrisT Release
 
 on:
   push:
-    tags: 'Release-*'
+    tags:
+      - 'Release-*'
   
   workflow_dispatch:
   
