@@ -105,7 +105,7 @@ jobs:
         with:
           tag_name: ${{ steps.name.outputs.release_name }}
           release_name: ${{ steps.name.outputs.release_name }}
-          body_path: $GITHUB_WORKSPACE/release-notes
+          body_path: release-notes
           draft: true
           prerelease: false
           
