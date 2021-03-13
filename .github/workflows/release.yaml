@@ -35,7 +35,7 @@ jobs:
         run: |
           release="${{ github.ref }}"
           release="Release-${release#'Ready-'}"
-          echo "::set-output name=release::$release_name"
+          echo "::set-output name=release::$release"
           
       - name: Echo release name
         run: |
