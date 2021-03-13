@@ -67,6 +67,11 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                 if parent.ShowFormulas
                     caption = [caption; hereCreateFormula()];
                 end
+            elseif parent.CaptionFromComment && isa(this.Data, "Series") && strlength(this.Data.Comment(1))>0
+                caption = string(this.Data.Comment(1));
+                if parent.ShowFormulas
+                    caption = [caption; hereCreateFormula()];
+                end
             elseif ~ismissing(this.Expression) && strlength(this.Expression)>0
                 caption = hereCreateFormula();
             else
