@@ -336,7 +336,7 @@ classdef validate
             if isequal(validate.properRange(x), true)
                 return
             end
-            error("Input value must be a proper range.");
+            error("Input value must be a proper date range.");
         end%
 
 
