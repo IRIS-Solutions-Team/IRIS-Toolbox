@@ -67,11 +67,11 @@ jobs:
           # Update Contents.m, include date/time stamp to force 
           find . -name Contents.m -type f -maxdepth 1 -exec rm {} +
           echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
-          echo "% Version ${{ steps.name.outputs.release_number }}" >> Contents.m
+          echo "% Version ${{ steps.name.outputs.release_name }}" >> Contents.m
           
-          ls
-          find . -name iristbx* -type f -maxdepth 1 -exec echo {} + -exec cat {} +
-          cat Contents.m
+          git add .
+          git commit -m "$release_name"
+          git tag "$release_name"
           
           
       - name: Publish release
