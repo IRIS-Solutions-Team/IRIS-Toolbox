@@ -29,15 +29,17 @@ jobs:
           cd $GITHUB_WORKSPACE/iris-toolbox
           latest_release=$(git log | grep -oP "Release-[^ ]+" -m 1)
           log=$(git log "$latest_release"..HEAD)
-          echo "" > $GITHUB_WORKSPACE/.release-notes
-          echo "### Bug fixes:" >> $GITHUB_WORKSPACE/.release-notes
-          echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" >> $GITHUB_WORKSPACE/.release-notes
-          echo ""  >> $GITHUB_WORKSPACE/.release-notes
-          echo "### New features:" >> $GITHUB_WORKSPACE/.release-notes
-          echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> $GITHUB_WORKSPACE/.release-notes
+          echo "" > $GITHUB_WORKSPACE/release-notes
+          echo "### Bug fixes:" >> $GITHUB_WORKSPACE/release-notes
+          echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" >> $GITHUB_WORKSPACE/release-notes
+          echo ""  >> $GITHUB_WORKSPACE/release-notes
+          echo "### New features:" >> $GITHUB_WORKSPACE/release-notes
+          echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> $GITHUB_WORKSPACE/release-notes
+          cat $GITHUB_WORKSPACE/release-notes
           
           
       - name: Name the release
+        if: ${{ success() }}
         id: name
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
@@ -51,12 +53,8 @@ jobs:
           echo "::set-output name=release_name::Release-$release_number"
           
           
-      - name: Echo release name
-        run: |
-          echo "${{ steps.name.outputs.release_name }}"
-          
-          
       - name: Remove old IrisT id files & create new id file & update Contents.m
+        if: ${{ success() }}
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
           
@@ -67,14 +65,17 @@ jobs:
           id_file_name="iristbx${{ steps.name.outputs.release_number }}"
           date_time_stamp=$(date "+%Y%m%d %H:%M:%S")
           echo $date_time_stamp > $id_file_name
+          cat $id_file_name
           
           # Update Contents.m, include date/time stamp to force 
           find . -name Contents.m -type f -maxdepth 1 -exec rm {} +
           echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
           echo "% Version ${{ steps.name.outputs.release_name }}" >> Contents.m
+          cat Contents.m
           
           
       - name: Commit and tag new release
+        if: ${{ success() }}
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
           
@@ -88,15 +89,15 @@ jobs:
           
           
       - name: Publish release
-        # if: ${{ success() }}
-        if: ${{ false }}
+        if: ${{ success() }}
+        # if: ${{ false }}
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.name.outputs.release_name }}
           release_name: ${{ steps.name.outputs.release_name }}
-          body_path: .release-notes
+          body_path: $GITHUB_WORKSPACE/release-notes
           draft: true
           prerelease: false
           
