@@ -1,7 +1,11 @@
-name: Package IrisT Release
+# Run for each push to master tagged Ready-XXX
+
+name: Package IrisT release
 
 on:
   push:
+    branches:
+      - master
     tags:
       - 'Ready-*'
   
@@ -13,13 +17,14 @@ jobs:
     name: Package IrisT Release
     runs-on: ubuntu-latest
     steps:
+    
       - name: Checkout master
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
         with:
           fetch-depth: 0
           ref: master
 
-      - name: Gather release notes
+      - name: Gather release notes from commit messages
         run: |
           latest_release=$(git log | grep -oP "Release-[^ ]+" -m 1)
           log=$(git log "$latest_release"..HEAD)
@@ -30,23 +35,48 @@ jobs:
           echo "### New features:" >> .release-notes
           echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> .release-notes
           
+          
       - name: Name the release
         id: name
         run: |
           release="${{ github.ref }}" # ref that triggered the action: either tag Release-XXX or refs/heads/master
           if [[ "_$release" == "_refs/heads/"* ]]; then
-            release="Release-Unknown"
+            release_number="11111111"
           else
-            release="Release-${release#'Ready-'}"
+            release_number="${release#'Ready-'}"
           fi
-          echo "::set-output name=release::$release"
+          echo "::set-output name=release_number::$release_number"
+          echo "::set-output name=release_name::Release-$release_number"
+          
           
       - name: Echo release name
         run: |
-          echo "${{ steps.name.outputs.release }}"
+          echo "${{ steps.name.outputs.release_name }}"
+          
+          
+      - name: Remove old IrisT id files & create new id file & update Contents.m
+        run: |
+          # Remove all existing id files iristbx*
+          find . -name iristbx* -type f -maxdepth 1 -exec git rm {} +
+          
+          # Create new id file iristbxXXXXXXXX, date-time stamped to force nonempty commit no matter what
+          id_file_name="iristbx${{ steps.name.outputs.release_number }}"
+          date_time_stamp=$(date "+%Y%m%d %H:%M:%S")
+          echo $date_time_stamp > $id_file_name
+          
+          # Update Contents.m, include date/time stamp to force 
+          find . -name Contents.m -type f -maxdepth 1 -exec rm {} +
+          echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
+          echo "% Version $release_number" >> Contents.m
+          
+          ls
+          find . -name iristbx* -type f -maxdepth 1 -exec echo {} + -exec cat {} +
+          cat Contents.m
+          
           
       - name: Publish release
-        if: ${{ success() }}
+        #if: ${{ success() }}
+        if: ${{ false }}
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
