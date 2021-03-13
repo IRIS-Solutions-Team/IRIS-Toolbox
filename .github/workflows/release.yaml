@@ -89,10 +89,15 @@ jobs:
           git switch master
           git add .
           git commit -m "${{ steps.name.outputs.release_name }}"
-          git tag "${{ steps.name.outputs.release_name }}"
+          
+          # First, make sure the new tag does not exist (delete when exists)
           if [[ -e ".git/refs/tags/Ready-${{ steps.name.outputs.release_number }}" ]]; then
             git tag -d "Ready-${{ steps.name.outputs.release_number }}"
           fi
+          
+          # Then, create the new tag
+          git tag "${{ steps.name.outputs.release_name }}"
+          
           git push origin master --tags
           
           
