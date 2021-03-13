@@ -53,6 +53,7 @@ jobs:
             release_number="${release#'refs/tags/'}"
             release_number="${release#'Ready-'}"
           fi
+          echo "$release_number"
           echo "::set-output name=release_number::$release_number"
           echo "::set-output name=release_name::Release-$release_number"
           
