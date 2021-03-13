@@ -1,6 +1,9 @@
 name: Package IrisT Release
 
 on:
+  push:
+    tags: 'Release-*'
+  
   workflow_dispatch:
   
   
@@ -36,5 +39,5 @@ jobs:
           release_name: ${{ github.ref }}
           body_path: .release-notes
           draft: true
-          prerelease: true
+          prerelease: false
           
