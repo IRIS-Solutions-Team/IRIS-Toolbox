@@ -69,6 +69,11 @@ jobs:
           echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
           echo "% Version ${{ steps.name.outputs.release_name }}" >> Contents.m
           
+          
+      - name: Commit and tag new release
+      - run: |
+          git config --global user.email "jaromir.benes@gmail.com"
+          git config --global user.name "Jaromir Benes"            
           git add .
           git commit -m "$release_name"
           git tag "$release_name"
