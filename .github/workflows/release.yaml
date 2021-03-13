@@ -34,8 +34,6 @@ jobs:
           echo "### New features:" >> .release-notes
           echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> .release-notes
           
-          echo "$GITHUB_BASE_REF"
-          
           
       - name: Name the release
         id: name
@@ -76,8 +74,8 @@ jobs:
           git config --global user.email "jaromir.benes@gmail.com"
           git config --global user.name "Jaromir Benes"            
           git add .
-          git commit -m "$release_name"
-          git tag "$release_name"
+          git commit -m "${{ steps.name.outputs.release_name }}"
+          git tag "${{ steps.name.outputs.release_name }}"
           
           
       - name: Publish release
