@@ -1,44 +1,3 @@
-% moving  Apply function to moving window of time series observations
-%{
-% __Syntax__
-%
-% Input arguments marked with a `~` sign may be omitted.
-%
-%     X = moving(X, ~Range, ...)
-%
-%
-% __Input Arguments__
-%
-% * `X` [ tseries ] - Input times series.
-%
-% * `~Range` [ numeric | char | *`@all`* ] - Date range from which input
-% time series date will be used; `@all` means the entire range on which the
-% input time series `X` is defined.
-%
-%
-% __Output Arguments__
-%
-% * `X` [ tseries ] - Output time series.
-%
-%
-% __Options__
-%
-% * `Function=@mean` [ function_handle ] - Function to be applied to
-% moving window of observations.
-%
-% * `Window=@auto` [ numeric | `@auto` ] - The window of observations where
-% 0 means the current date, -1 means one period lag, etc.; `@auto` means
-% that the last N observations (including the current one) are used, where
-% N is the frequency of the input data.
-%
-%
-% __Description__
-%
-%
-% __Example__
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
@@ -48,10 +7,12 @@ function this = moving(this, range, opt)
 
 arguments
     this NumericTimeSubscriptable
-    range {validate.rangeInput(range)} = Inf
+    range {validate.mustBeRange(range)} = Inf
 
     opt.Window {locallyValidateWindow(opt.Window)} = @auto
     opt.Function {validate.mustBeA(opt.Function, "function_handle")} = @mean
+    opt.Period (1, 1) logical = false
+    opt.Range (1, :) {validate.mustBeRange} = Inf
 end
 %)
 % >=R2019b
@@ -67,6 +28,8 @@ if isempty(pp)
     pp.addOptional('range', Inf, @Dater.validateRangeInput);
     pp.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
     pp.addParameter('Window', @auto, @(x) isequal(x, @auto) || isnumeric(x));
+    pp.addParameter('Period', false, @validate.logicalScalar);
+    pp.addParameter('Range', Inf, @validate.range);
 end
 opt = pp.parse(this, varargin{:});
 range = pp.Results.range;
@@ -75,47 +38,121 @@ range = pp.Results.range;
 
 opt.Window = locallyResolveWindow(opt.Window, this);
 
-%--------------------------------------------------------------------------
-
-if ~isequal(range, @all) && ~isequal(range, Inf)
-    range = double(range);
-    this = clip(this, range(1), range(end));
+% Legacy input argument
+if ~isequal(range, Inf)
+    opt.Range = range;
+    exception.warning([
+        "Legacy"
+        "Date range as a second input argument is obsolete, and will be"
+        "disabled in a future version. Use the option Range= instead."
+    ]);
 end
 
-this = unop(@series.moving, this, 0, opt.Window, opt.Function);
+if ~isequal(opt.Range, @all) && ~isequal(opt.Range, Inf)
+    this = clip(this, opt.Range);
+end
+
+if ~isempty(opt.Window)
+    this.Data = locallyMoving(this.Data, opt.Window, opt.Function, this.MissingValue, this.MissingTest, opt.Period);
+    this = trim(this);
+else
+    this = emptyData(this);
+end
 
 end%
 
+%
+% Local functions
+%
+
+function inputData = locallyMoving(inputData, window, func, missingValue, missingTest, period)
+    %(
+    sizeData = size(inputData);
+    numRows = sizeData(1);
+    numColumns = prod(sizeData(2:end));
+
+    for column = 1 : numColumns
+        if ~isreal(window)
+            inxMissing = missingTest(inputData(:, column));
+            windowLength = imag(window);
+            windowOffset = real(window);
+            if windowLength~=0 || ~all(inxMissing)
+                outputData = inputData;
+                for row = 1 : numRows
+                    selectData = locallySelectNonmissingData(inputData(:, column), inxMissing, row, windowLength, windowOffset);
+                    if ~isempty(selectData)
+                        outputData(row, column) = feval(func, selectData);
+                    else
+                        outputData(row, column) = missingValue;
+                    end
+                end
+            else
+                outputData = repmat(missingValue, size(inputData));
+            end
+        else
+            shiftedData = series.shift(inputData(:, column), window);
+            if ~period
+                outputData(:, column) = transpose(feval(func, transpose(shiftedData), 1));
+            else
+                % Use a for loop to make sure only the respective moving window of
+                % observations shaped as a column vector enters the function
+                for row = 1 : numRows
+                    outputData(row, column) = feval(func, reshape(shiftedData(row, :), [], 1));
+                end
+            end
+        end
+    end
+    inputData = outputData;
+    %)
+end%
+
+
+function selectData = locallySelectNonmissingData(data, inxMissing, row, windowLength, windowOffset)
+    %(
+    direction = sign(windowLength);
+    windowLength = abs(windowLength);
+    if direction>0
+        selectData = data(row+windowOffset:end);
+        inxMissing = inxMissing(row+windowOffset:end);
+    else
+        selectData = data(1:row+windowOffset);
+        inxMissing = inxMissing(1:row+windowOffset);
+    end
+
+    selectData(inxMissing) = [];
+    if numel(selectData)<windowLength
+        selectData = [];
+        return
+    end
+
+    if direction>0
+        selectData = selectData(1:windowLength);
+    else
+        selectData = selectData(end-windowLength+1:end);
+    end
+    %)
+end%
 
 %
 % Local Validators
 %
 
-
 function window = locallyResolveWindow(window, inputSeries)
     %(
+    AUTO_WINDOW_FREQUENCIES = Frequency([1, 2, 4, 12]);
     if isnumeric(window) 
-        if ~all(window==round(window))
-            thisError = [
-                "Series:InvalidMovingWindow"
-                "Option Window= in @Series/moving must be "
-                "a vector of integer values specifying lags and leads. "
-            ];
-            throw(exception.Base(thisError, 'error'));
-        end
-        window = reshape(window, 1, [ ]);
+        window = reshape(window, 1, []);
         return
     end
     freq = dater.getFrequency(inputSeries.Start);
-    if freq==0
-        thisError = [
-            "Series:InvalidMovingWindow"
-            "Options Window= in @Series/moving cannot be set to @auto "
-            "for time series of INTEGER frequency. "
-        ];
-        throw(exception.Base(thisError, 'error'));
+    if ismember(freq, AUTO_WINDOW_FREQUENCIES)
+        window = (-freq+1) : 0;
+        return
     end
-    window = (-freq+1):0;
+    exception.error([
+        "Series:InvalidMovingWindow"
+        "Option Window=@auto is not allowed for time series of %s frequency. "
+    ], string(Frequency(freq)));
     %)
 end%
 
@@ -125,10 +162,14 @@ function locallyValidateWindow(input)
     if isa(input, "function_handle")
         return
     end
-    if isnumeric(input) && all(input==round(input))
+    isInteger = isnumeric(input) && all(input==round(input));
+    if isInteger && isreal(input)
         return
     end
-    error("Validation:Failed", "Input value must be an array of integers");
+    if isInteger && ~isreal(input) && isscalar(input)
+        return
+    end
+    error("Validation:Failed", "Input value must be an array of integers or a complex integer scalar");
     %)
 end%
 
