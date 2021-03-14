@@ -92,19 +92,21 @@ jobs:
           git add .
           git commit -m "${{ steps.name.outputs.release_name }}"
           
-          # Delete the Ready-XXXXXXXX tag
-          if [[ -e ".git/refs/tags/Ready-${{ steps.name.outputs.release_number }}" ]]; then
+          # Delete the Ready-XXXXXXXX tag if it exists
+          # if [[ -e ".git/refs/tags/Ready-${{ steps.name.outputs.release_number }}" ]]; then
+          if [[ git tag --list "Ready-${{ steps.name.outputs.release_number }}" ]]; then
             git tag -d "Ready-${{ steps.name.outputs.release_number }}"
             git push origin --delete "Ready-${{ steps.name.outputs.release_number }}"
           fi
           
-          # First, make sure the new Release-XXXXXXXX tag does not exist (delete when exists)
-          if [[ -e ".git/refs/tags/Release-${{ steps.name.outputs.release_number }}" ]]; then
+          # First, delete the new Release-XXXXXXXX tag if it already exists
+          # if [[ -e ".git/refs/tags/Release-${{ steps.name.outputs.release_number }}" ]]; then
+          if [[ git tag --list "Release-${{ steps.name.outputs.release_number }}" ]]; then
             git tag -d "${{ steps.name.outputs.release_name }}"
             git push origin --delete "${{ steps.name.outputs.release_name }}"
           fi          
           
-          # Then, create the new tag
+          # Then, create the new Release-XXXXXXXX tag on the latest commit
           git tag "${{ steps.name.outputs.release_name }}"
           
           git push origin master --tags
