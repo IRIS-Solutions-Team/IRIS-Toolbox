@@ -91,7 +91,7 @@ jobs:
           cat Contents.m
           
           
-      - name: Commit & tag the new release
+      - name: Commit & clean up & tag the new release
         if: ${{ success() }}
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
@@ -107,6 +107,12 @@ jobs:
             git tag -d "Ready-${{ steps.name.outputs.release_number }}"
             git push origin --delete "Ready-${{ steps.name.outputs.release_number }}"
           fi
+          
+          # Delete a possibly existing Release-11111111 as a cleanup
+          if [[ $(git tag --list "Release-11111111") ]]; then
+            git tag -d "Release-11111111"
+            git push origin --delete "Release-11111111"
+          fi            
           
           # First, make sure to delete the Release-XXXXXXXX tag if it already exists
           if [[ $(git tag --list "Release-${{ steps.name.outputs.release_number }}") ]]; then
