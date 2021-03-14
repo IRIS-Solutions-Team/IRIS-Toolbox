@@ -93,6 +93,9 @@ jobs:
           git commit -m "${{ steps.name.outputs.release_name }}"
           
           # Delete the Ready-XXXXXXXX tag if it exists
+          echo -------------------
+          git tag --list "Ready-${{ steps.name.outputs.release_number }}" 
+          echo -------------------
           # if [[ -e ".git/refs/tags/Ready-${{ steps.name.outputs.release_number }}" ]]; then
           if [[ git tag --list "Ready-${{ steps.name.outputs.release_number }}" ]]; then
             git tag -d "Ready-${{ steps.name.outputs.release_number }}"
