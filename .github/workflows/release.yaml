@@ -28,8 +28,8 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
           
-          # Make sure the latest release is not Release-11111111
-          latest_release=$(git log | grep -oP "Release-20[^ ]+" -m 1)
+          # Match only those release numbers that start with "20" to make sure we do not capture Release-11111111
+          latest_release=$(git log --tags --no-walk --pretty="%d" | grep -oP "Release-20\w+" -m 1)
           
           log=$(git log "$latest_release"..HEAD)
           echo "" > $GITHUB_WORKSPACE/release-notes
