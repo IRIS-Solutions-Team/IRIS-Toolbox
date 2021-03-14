@@ -23,8 +23,9 @@ jobs:
           fetch-depth: 0
           ref: master
           path: iris-toolbox
+          
 
-      - name: Gather release notes from commit messages
+      - name: Collect release notes from commit messages and create ./release-notes
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
           
@@ -43,19 +44,28 @@ jobs:
           cat $GITHUB_WORKSPACE/release-notes
           
           
-      - name: Name the release
+      - name: Name the release after the Ready-XXXXXXXX tag that triggered the action
         if: ${{ success() }}
         id: name
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
-          release_number="${{ github.ref }}" # ref that triggered the action: either tag Release-XXX or refs/heads/master
+          
+          # ref that triggered the action: either tag "Release-XXXXXXXX" or "refs/heads/branch_name"
+          trigger_ref="${{ github.ref }}" 
+          echo "Triggering ref: $trigger_ref"
+          
+          # If github.ref == "refs/heads/branch_name" (instead of the tag), this means the action was triggered manually
+          # Assign the release number "11111111" 
           if [[ "_$release_number" == "_refs/heads/"* ]]; then
             release_number="11111111"
           else
+            release_number=trigger_ref
             release_number="${release_number#'refs/tags/'}"
             release_number="${release_number#'Ready-'}"
           fi
-          echo "$release_number"
+          echo "Release number: $release_number"
+          
+          # Save the release number and release name to outputs of this step
           echo "::set-output name=release_number::$release_number"
           echo "::set-output name=release_name::Release-$release_number"
           
@@ -81,7 +91,7 @@ jobs:
           cat Contents.m
           
           
-      - name: Commit and tag new release
+      - name: Commit & tag the new release
         if: ${{ success() }}
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
@@ -93,26 +103,24 @@ jobs:
           git commit -m "${{ steps.name.outputs.release_name }}"
           
           # Delete the Ready-XXXXXXXX tag if it exists
-          # if [[ -e ".git/refs/tags/Ready-${{ steps.name.outputs.release_number }}" ]]; then
           if [[ $(git tag --list "Ready-${{ steps.name.outputs.release_number }}") ]]; then
             git tag -d "Ready-${{ steps.name.outputs.release_number }}"
             git push origin --delete "Ready-${{ steps.name.outputs.release_number }}"
           fi
           
-          # First, delete the new Release-XXXXXXXX tag if it already exists
-          # if [[ -e ".git/refs/tags/Release-${{ steps.name.outputs.release_number }}" ]]; then
+          # First, make sure to delete the Release-XXXXXXXX tag if it already exists
           if [[ $(git tag --list "Release-${{ steps.name.outputs.release_number }}") ]]; then
             git tag -d "${{ steps.name.outputs.release_name }}"
             git push origin --delete "${{ steps.name.outputs.release_name }}"
           fi          
           
-          # Then, create the new Release-XXXXXXXX tag on the latest commit
+          # Only then, create the Release-XXXXXXXX tag on the latest commit
           git tag "${{ steps.name.outputs.release_name }}"
           
           git push origin master --tags
           
           
-      - name: Publish release
+      - name: Draft a new release; needs to be manually published
         if: ${{ success() }}
         # if: ${{ false }}
         uses: actions/create-release@v1
