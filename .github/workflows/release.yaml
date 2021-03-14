@@ -59,7 +59,7 @@ jobs:
           if [[ "_$release_number" == "_refs/heads/"* ]]; then
             release_number="11111111"
           else
-            release_number=trigger_ref
+            release_number="$trigger_ref"
             release_number="${release_number#'refs/tags/'}"
             release_number="${release_number#'Ready-'}"
           fi
