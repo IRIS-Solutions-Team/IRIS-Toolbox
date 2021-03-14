@@ -35,11 +35,11 @@ jobs:
           log=$(git log "$latest_release"..HEAD)
           echo "" > $GITHUB_WORKSPACE/release-notes
           echo "### Bug fixes:" >> $GITHUB_WORKSPACE/release-notes
-          echo "" > $GITHUB_WORKSPACE/release-notes
+          echo "" >> $GITHUB_WORKSPACE/release-notes
           echo "$log" | grep "##" | sed "s/^ *#\{2,5\} \?//" >> $GITHUB_WORKSPACE/release-notes
           echo ""  >> $GITHUB_WORKSPACE/release-notes
           echo "### New features:" >> $GITHUB_WORKSPACE/release-notes
-          echo "" > $GITHUB_WORKSPACE/release-notes
+          echo "" >> $GITHUB_WORKSPACE/release-notes
           echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> $GITHUB_WORKSPACE/release-notes
           cat $GITHUB_WORKSPACE/release-notes
           
