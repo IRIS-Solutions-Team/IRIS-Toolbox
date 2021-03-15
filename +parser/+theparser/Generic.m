@@ -20,23 +20,33 @@ classdef Generic < handle
     
     
     methods (Static)
-        function [label, alias] = splitLabelAlias(label)
-            if isempty(label)
-                alias = label;
-                return
+        function [label, alias] = splitLabelAlias(inputLabel)
+            arguments
+                inputLabel (1, :) string
             end
-            alias = cell(size(label));
-            alias(:) = {''};
-            for i = 1 : length(label)
-                pos = strfind(label{i},'!!');
-                if isempty(pos)
-                    continue
+
+            SEPARATORS = ["||", "!!"];
+
+            label = string.empty(1, 0);
+            alias = string.empty(1, 0);
+            for n = reshape(string(inputLabel), 1, [])
+                [tokens, separators] = split(n, SEPARATORS);
+                if numel(tokens)==1
+                    label(end+1) = tokens;
+                    alias(end+1) = "";
+                elseif numel(tokens)==2
+                    label(end+1) = tokens(1);
+                    alias(end+1) = tokens(2);
+                else
+                    label(end+1) = tokens(1);
+                    alias(end+1) = join(tokens(2:end), separators(2:end));
                 end
-                alias{i} = label{i}(pos+2:end);
-                label{i} = label{i}(1:pos-1);
             end
-            alias = strtrim(alias);
-            label = strtrim(label);
+            label = strip(label);
+            alias = strip(alias);
+            label = cellstr(label);
+            alias = cellstr(alias);
         end%      
     end
 end
+

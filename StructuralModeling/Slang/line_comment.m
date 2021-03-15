@@ -1,15 +1,12 @@
-% %  Line comments.
-%
-% Syntax
-% =======
-%
-%     % Anything from the percent sign until the end of line is discarded.
-%
-% Description
-% ============
-%
-% Example
-% ========
+%  Line comments.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+## Syntax
+
+    % Anything from the percent sign until the end of line is discarded.
+
+## Description
+
+## Example
+
+
+

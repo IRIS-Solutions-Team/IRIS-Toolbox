@@ -103,11 +103,11 @@ jobs:
           git commit -m "${{ steps.name.outputs.release_name }}"
           
           # Delete the Ready-XXXXXXXX tag if it exists
-          if [[ $(git tag --list "Ready-${{ steps.name.outputs.release_number }}") ]]; then
-            git tag -d "Ready-${{ steps.name.outputs.release_number }}"
-            git push origin --delete "Ready-${{ steps.name.outputs.release_number }}"
-          fi
-          
+          # if [[ $(git tag --list "Ready-${{ steps.name.outputs.release_number }}") ]]; then
+          #   git tag -d "Ready-${{ steps.name.outputs.release_number }}"
+          #   git push origin --delete "Ready-${{ steps.name.outputs.release_number }}"
+          # fi
+
           # Delete a possibly existing Release-11111111 as a cleanup
           if [[ $(git tag --list "Release-11111111") ]]; then
             git tag -d "Release-11111111"
@@ -115,12 +115,11 @@ jobs:
           fi            
           
           # First, make sure to delete the Release-XXXXXXXX tag if it already exists
-          if [[ $(git tag --list "Release-${{ steps.name.outputs.release_number }}") ]]; then
-            git tag -d "${{ steps.name.outputs.release_name }}"
-            git push origin --delete "${{ steps.name.outputs.release_name }}"
-          fi          
+          # if [[ $(git tag --list "Release-${{ steps.name.outputs.release_number }}") ]]; then
+          #   git tag -d "${{ steps.name.outputs.release_name }}"
+          #   git push origin --delete "${{ steps.name.outputs.release_name }}"
+          # fi          
           
-          # Only then, create the Release-XXXXXXXX tag on the latest commit
           git tag "${{ steps.name.outputs.release_name }}"
           
           git push origin master --tags

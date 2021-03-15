@@ -3,24 +3,24 @@
 {== Create quarterly dates ==}
 
 
-## Shortcut Syntax to Create Dater Objects
+## Syntax shortcuts to create dater objects
 
     date = qq(year, quarter)
     date = qq(year, "end")
     date = qq(year)
 
 
-## Syntax to Create Dater Objects
+## Syntax to create dater objects
 
     date = Dater.qq(...)
 
 
-## Syntax to Create Numeric Date Codes
+## Syntax to create numeric date codes
 
     dateCode = dater.qq(...)
 
 
-## Input Arguments
+## Input arguments
 
 __`year`__ [ numeric ] 
 
@@ -32,7 +32,7 @@ __`quarter=1`__ [ numeric | `"end"` ]
 > Quarter of the year; `"end"` means `quarter=4`.
 
 
-## Output Arguments
+## Output arguments
 
 __`date`__ [ Dater ]
 
@@ -47,7 +47,7 @@ __`dateCode`__ [ numeric ]
 ## Description
 
 
-## Example
+## Examples
 
 Calculate the number of quarters between two quarterly dates
 
