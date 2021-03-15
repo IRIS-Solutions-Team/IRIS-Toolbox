@@ -12,7 +12,7 @@ classdef json
             end
             writematrix(jsonencode(input), fileName, "fileType", "text", "quoteString", false);
             if options.Beautify
-                json.beautify(fileName);
+                iris.utils.json.beautify(fileName);
             end
         end%
 
