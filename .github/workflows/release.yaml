@@ -80,14 +80,14 @@ jobs:
           
           # Create new id file iristbxXXXXXXXX, date-time stamped to force nonempty commit no matter what
           id_file_name="iristbx${{ steps.name.outputs.release_number }}"
-          date_time_stamp=$(date "+%Y%m%d %H:%M:%S")
+          date_time_stamp=$(date "+%Y-%m-%dT%H:%M:%S")
           echo $date_time_stamp > $id_file_name
           cat $id_file_name
           
           # Update Contents.m, include date/time stamp to force 
           find . -name Contents.m -type f -maxdepth 1 -exec rm {} +
           echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
-          echo "% Version ${{ steps.name.outputs.release_name }}" >> Contents.m
+          echo "% Version ${{ steps.name.outputs.release_name }} $date_time_stamp" >> Contents.m
           cat Contents.m
           
           
