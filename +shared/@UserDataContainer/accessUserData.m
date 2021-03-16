@@ -44,11 +44,11 @@ function value = accessUserData(this, field)
 
 %--------------------------------------------------------------------------
 
-if ~isempty(this.UserData) && ~isstruct(this.UserData)
-    throw(exception.Base([
+if ~isscalar(this.UserData) && ~isstruct(this.UserData)
+   exception.error([
         "UserDataContainer:UserDataNotStruct"
-        "Cannot access user data fields because the existing user data are not a struct"
-    ], 'error'));
+        "Cannot access user data fields because the existing user data are not a scalar struct"
+    ]);
 end
 
 if nargin<2

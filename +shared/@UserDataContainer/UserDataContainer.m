@@ -1,8 +1,5 @@
 % UserDataContainer  Helper class to implement user data and comments
 %
-% Backend IRIS class
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
@@ -36,7 +33,7 @@ classdef UserDataContainer
     methods
         varargout = accessUserData(varargin)
         varargout = assignUserData(varargin)
-        varargout = existsUserData(varargin)
+        varargout = hasUserData(varargin)
         varargout = caption(varargin)
         varargout = userdata(varargin)
         varargout = userdatafield(varargin)
