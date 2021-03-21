@@ -1,49 +1,48 @@
-function this = createD2S(this, opt)
-% createD2S  Create derivative-to-system convertor.
+% createD2S  Create derivatives-to-system convertor
 %
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox.
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
+
+function this = createD2S(this, opt)
 
 TYPE = @int8;
 
-%--------------------------------------------------------------------------
+numQuantities = numel(this.Quantity);
+inxY = this.Quantity.Type==TYPE(1);
+inxX = this.Quantity.Type==TYPE(2);
+inxP = this.Quantity.Type==TYPE(4);
+inxG = this.Quantity.Type==TYPE(5);
+inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 
-numOfQuantities = length(this.Quantity);
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixp = this.Quantity.Type==TYPE(4);
-ixg = this.Quantity.Type==TYPE(5);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixm = this.Equation.Type==TYPE(1);
-ixt = this.Equation.Type==TYPE(2);
+inxM = this.Equation.Type==TYPE(1);
+inxT = this.Equation.Type==TYPE(2);
 
-posy = find(ixy);
-posx = find(ixx);
-pose = find(ixe);
-posp = find(ixp);
-posg = find(ixg);
+posY = find(inxY);
+posX = find(inxX);
+posE = find(inxE);
+posP = find(inxP);
+posG = find(inxG);
 
-ny = sum(ixy);
-nx = sum(ixx);
-ne = sum(ixe);
-n = ny + nx + ne;
+numY = sum(inxY);
+numX = sum(inxX);
+numE = sum(inxE);
+numYXE = numY + numX + numE;
 sh0 = this.Incidence.Dynamic.PosOfZeroShift;
 
+[modelMinSh, modelMaxSh] = getActualMinMaxShifts(this)
+
 % Find max lag `minSh`, and max lead, `maxSh`, for each transition
-% variable.
+% variable
 [minSh, maxSh] = findMinMaxShift( );
 maxMaxSh = max(maxSh(~isnan(maxSh)));
 minMinSh = min(minSh(~isnan(minSh)));
 
 % System IDs. These will be used to construct solution IDs.
-this.Vector.System{1} = posy;
+this.Vector.System{1} = posY;
 this.Vector.System{2} = zeros(1, 0);
-this.Vector.System{3} = pose;
-this.Vector.System{4} = posp;
-this.Vector.System{5} = posg;
+this.Vector.System{3} = posE;
+this.Vector.System{4} = posP;
+this.Vector.System{5} = posG;
 for k = maxMaxSh : -1 : minMinSh
     % Add all transition variables with shift k.
     this.Vector.System{2} = [ ...
@@ -52,9 +51,9 @@ for k = maxMaxSh : -1 : minMinSh
     ];
 end
 
-nx = length(this.Vector.System{2});
+numX = length(this.Vector.System{2});
 nu = sum(imag(this.Vector.System{2})>=0);
-np = nx - nu;
+np = numX - nu;
 
 this.D2S = model.component.D2S( );
 
@@ -75,8 +74,8 @@ this.D2S.SystemXb = zeros(1, 0);
 this.D2S.SystemE = zeros(1, 0);
 
 % __Measurement Variables__
-this.D2S.DerivY = (sh0-1)*n + posy;
-this.D2S.SystemY = 1 : ny;
+this.D2S.DerivY = (sh0-1)*numYXE + posY;
+this.D2S.SystemY = 1 : numY;
 
 % __Transition Variables__
 % Delete double occurences. These emerge whenever a variable has maxshift >
@@ -92,10 +91,10 @@ end
 for i = 1 : nu
     id = this.Vector.System{2}(i);
     if imag(id)==minSh(real(id))
-        this.D2S.DerivXf(end+1) = (imag(id)+sh0-1)*n + real(id);
+        this.D2S.DerivXf(end+1) = (imag(id)+sh0-1)*numYXE + real(id);
         this.D2S.SystemXf(end+1) = i;
     end
-    this.D2S.DerivXfMinus(end+1) = (imag(id)+sh0+1-1)*n + real(id);
+    this.D2S.DerivXfMinus(end+1) = (imag(id)+sh0+1-1)*numYXE + real(id);
     this.D2S.SystemXfMinus(end+1) = i;
 end
 
@@ -103,27 +102,27 @@ end
 for i = 1 : np
     id = this.Vector.System{2}(nu+i);
     if imag(id)==minSh(real(id))
-        this.D2S.DerivXb(end+1) = (imag(id)+sh0-1)*n + real(id);
+        this.D2S.DerivXb(end+1) = (imag(id)+sh0-1)*numYXE + real(id);
         this.D2S.SystemXb(end+1) = nu + i;
     end
-    this.D2S.DerivXbMinus(end+1) = (imag(id)+sh0+1-1)*n + real(id);
+    this.D2S.DerivXbMinus(end+1) = (imag(id)+sh0+1-1)*numYXE + real(id);
     this.D2S.SystemXbMinus(end+1) = nu + i;
 end
 
 % __Shocks__
-this.D2S.DerivE = (sh0-1)*n + pose;
-this.D2S.SystemE = 1 : ne;
+this.D2S.DerivE = (sh0-1)*numYXE + posE;
+this.D2S.SystemE = 1 : numE;
 
 % __Dynamic Identity Matrices__
-this.D2S.IdentityA = zeros(0, nx);
-this.D2S.IdentityB = zeros(0, nx);
-for i = 1 : nx
+this.D2S.IdentityA = zeros(0, numX);
+this.D2S.IdentityB = zeros(0, numX);
+for i = 1 : numX
     id = this.Vector.System{2}(i);
     if imag(id) ~= minSh(real(id))
-        aux = zeros(1, nx);
+        aux = zeros(1, numX);
         aux(this.Vector.System{2}==id-1i) = 1;
         this.D2S.IdentityA(end+1, 1:end) = aux;
-        aux = zeros(1, nx);
+        aux = zeros(1, numX);
         aux(i) = -1;
         this.D2S.IdentityB(end+1, 1:end) = aux;
     end
@@ -141,34 +140,38 @@ return
 
 
     function [minSh, maxSh] = findMinMaxShift( )
-        minSh = nan(1, numOfQuantities);
-        maxSh = nan(1, numOfQuantities);
-        % List of variables requested by user to be in backward-looking vector.
+        minSh = nan(1, numQuantities);
+        maxSh = nan(1, numQuantities);
+
+        % List of variables requested by user to be in backward-looking vector
         if isequal(opt.makebkw, @auto)
-            ixMakeBkw = false(1, numOfQuantities);
-        elseif isequal(opt.makebkw, @all)
-            ixMakeBkw = false(1, numOfQuantities);
-            ixMakeBkw(ixx) = true;
-        else
-            lsMakeBkw = opt.makebkw;
-            if ischar(lsMakeBkw)
-                lsMakeBkw = regexp(lsMakeBkw, '\w+', 'match');
+            inxMakeBkw = false(1, numQuantities);
+            if modelMaxSh<=0
+                inxMakeBkw(inxX) = true;
             end
-            [~, ixMakeBkw] = userSelection2Index(this.Quantity, lsMakeBkw);
+        elseif isequal(opt.makebkw, @all)
+            inxMakeBkw = false(1, numQuantities);
+            inxMakeBkw(inxX) = true;
+        else
+            listToMakeBkw = opt.makebkw;
+            if ischar(listToMakeBkw)
+                listToMakeBkw = regexp(listToMakeBkw, '\w+', 'match');
+            end
+            [~, inxMakeBkw] = userSelection2Index(this.Quantity, listToMakeBkw);
         end
 
         % Add transition variables earmarked for measurement to the list of
         % variables forced into the backward lookig vector.
-        ixMakeBkw = ixMakeBkw | this.Quantity.IxObserved;
+        inxMakeBkw = inxMakeBkw | this.Quantity.InxObserved;
         
         % Reshape incidence matrix to nEqn-nxx-nsh.
         inc = this.Incidence.Dynamic.Matrix;
-        nsh = size(inc, 2) / numOfQuantities;
-        inc = reshape(full(inc), [size(inc, 1), numOfQuantities, nsh]);
+        nsh = size(inc, 2) / numQuantities;
+        inc = reshape(full(inc), [size(inc, 1), numQuantities, nsh]);
         
-        isAnyNonlin = any(this.Equation.IxHash);
-        for ii = posx
-            posInc = find( any(inc(ixt, ii, :), 1) ) - sh0;
+        isAnyNonlin = any(this.Equation.InxHashEquations);
+        for ii = posX
+            posInc = find( any(inc(inxT, ii, :), 1) ) - sh0;
             posInc = posInc(:).';
 
             % __Minimum and Maximum Shifts__
@@ -185,7 +188,7 @@ return
             % Add one lead to fwl variables in hash signed equations if the max lead of
             % that variable occurs in one of those equations.
             if isAnyNonlin && maxSh(ii)>0
-                ixh = ixt & this.Equation.IxHash;
+                ixh = inxT & this.Equation.InxHashEquations;
                 % Maximum shift referred to in hash signed equations.
                 maxOccur = max(find(any(inc(ixh, ii, :), 1)) - sh0);
                 if maxOccur==maxSh(ii)
@@ -195,7 +198,7 @@ return
             
             % __Lags in Measurement Variables__
             % If `x(t-k)` occurs in measurement equations then add k-1 lag.
-            posInc = find(any(inc(ixm, ii, :), 1)) - sh0;
+            posInc = find(any(inc(inxM, ii, :), 1)) - sh0;
             posInc = posInc(:).';
             if ~isempty(posInc)
                 minSh(ii) = min( minSh(ii), min(posInc)-1 );
@@ -204,7 +207,7 @@ return
             % __Request for Backward-Looking Variable__
             % If user requested this variable to be in the backward-looking vector, 
             % make sure `minSh(i)` is at least -1.
-            if ixMakeBkw(ii) && minSh(ii)==0
+            if inxMakeBkw(ii) && minSh(ii)==0
                 minSh(ii) = -1;
             end
             
