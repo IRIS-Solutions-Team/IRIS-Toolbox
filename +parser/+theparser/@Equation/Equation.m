@@ -24,7 +24,7 @@ classdef Equation < parser.theparser.Generic
                         % Replace mulitple labels with the last one.
             MULTIPLE_LABEL_PATTERN = '(("[^"]*"|''[^'']*'')\s*)+("[^"]*"|''[^'']*'')';
             % Split the entire block into individual equations.
-            whBlk = parser.White.whiteOutLabel(code);
+            whBlk = parser.White.whiteOutLabels(code);
             [from, to] = regexp(whBlk, EQUATION_PATTERN, 'start', 'end');
             numEquations = length(from);
             eqtn = cell(1, numEquations);

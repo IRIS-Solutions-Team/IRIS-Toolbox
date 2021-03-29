@@ -3,31 +3,26 @@ classdef For < parser.control.Control
         ForBody
         DoBody
         ControlName
-        Token
+        Tokens (1, :) string
     end
-    
-    
-    
-    
+
+
     properties (Constant)
         CONTROL_NAME_PATTERN = '\?[^\s=!\.:;]*'
-        
+
         FOR_PATTERN = [ '^(', parser.control.For.CONTROL_NAME_PATTERN, ')', ...
                         '\s*=(.*)' ]
     end
-    
-    
-    
-    
+
+
     methods
         function this = For(c, sh)
-            import parser.control.*
             if nargin==0
                 return
             end
-            keyFor = Keyword.FOR;
-            keyDo = Keyword.DO;
-            keyReturn = Keyword.RETURN;
+            keyFor = parser.control.Keyword.FOR;
+            keyDo = parser.control.Keyword.DO;
+            keyReturn = parser.control.Keyword.RETURN;
             lenKeyFor = len(keyFor);
             lenKeyDo = len(keyDo);
             lenKeyReturn = len(keyReturn);
@@ -49,95 +44,85 @@ classdef For < parser.control.Control
             end
             c1 = c(lenKeyFor+1:posDo-1);
             sh1 = sh(lenKeyFor+1:posDo-1);
-            this.ForBody = CodeSegments(c1, [ ], sh1);
+            this.ForBody = parser.control.CodeSegments(c1, [ ], sh1);
             c2 = c(posDo+lenKeyDo:end);
             sh2 = sh(posDo+lenKeyDo:end);
-            this.DoBody = CodeSegments(c2, [ ], sh2);
+            this.DoBody = parser.control.CodeSegments(c2, [ ], sh2);
         end%
-        
-        
-        
-        
+
+
         function c = writeFinal(this, preparserObj, varargin)
-            import parser.Preparser;
             c = '';
             if isempty(this.ForBody) || isempty(this.DoBody)
                 return
             end
-%             forCode = writeFinal(this.ForBody, preparserObj,, varargin{:});
-%             doCode = writeFinal(this.DoBody, preparserObj, varargin{:});
-%             readForCode(this, forCode, preparserObj);
-%             c = replaceDoCode(this, doCode);
-            
+
             forCode = writeFinal(this.ForBody, preparserObj, varargin{:});
             readForCode(this, forCode, preparserObj);
             c = expandDoCode(this, preparserObj, varargin{:});
         end%
-        
-        
-        
-        
-        function readForCode(this, forCode, preparserObj)
-            import parser.control.For
 
+
+        function readForCode(this, forCode, preparserObj)
             forCode = strip(forCode);
-            tkn = regexp(forCode, For.FOR_PATTERN, 'tokens', 'once');
+            tkn = regexp(forCode, parser.control.For.FOR_PATTERN, 'tokens', 'once');
             if ~isempty(tkn)
                 controlName = tkn{1};
-                listTokens = tkn{2};
+                forTokensCode = tkn{2};
             else
                 controlName = '?';
-                listTokens = forCode;
+                forTokensCode = forCode;
             end
+            forTokensCode = string(forTokensCode);
             this.ControlName = controlName;
-            [listTokens, listValues] = parser.Interp.parse(preparserObj, listTokens, true);
-            this.Token = [listValues, regexp(listTokens, '[^\s,;]+', 'match')];
-        end%
-        
-        
-        
-        
-        function c = expandDoCode(this, p, varargin)
-            import parser.control.For
 
+            % Matlab expressions may results in empty tokens
+            [~, clearCode, tokens] = parser.Interp.parse(preparserObj, forTokensCode);
+
+            % Hard typed for tokens that are empty are removed
+            addTokens = regexp(string(clearCode), "[\s,;]+", "split");
+            addTokens(addTokens=="") = [];
+
+            tokens = [tokens, addTokens];
+            this.Tokens = tokens;
+        end%
+
+
+        function c = expandDoCode(this, p, varargin)
             c = '';
             controlName = this.ControlName;
-            
-            for i = 1 : numel(this.Token)
-                p.StoreForCtrl(end+1, :) = { controlName, this.Token{i} };
+
+            for n = reshape(string(this.Tokens), 1, [])
+                p.StoreForCtrl(end+1, :) = [string(controlName), n];
                 c1 = writeFinal(this.DoBody, p, varargin{:});
                 c = [c, c1]; %#ok<AGROW>
                 p.StoreForCtrl(end, :) = [ ];
             end
         end%
     end
-    
-    
-    
-    
+
+
     methods (Static)
         function c = substitute(c, p)
             % Substitute for control variable in a code segment (called from within
             % other classes).
-            import parser.control.For
-
             if ~contains(c, "?")
                 return
             end
             for i = 1 : size(p.StoreForCtrl, 1)
-                ctrlName = p.StoreForCtrl{i, 1};
-                tkn = p.StoreForCtrl{i, 2};
-                if length(ctrlName)>1
-                    upperCtrlName = ['?:', ctrlName(2:end)];
+                ctrlName = p.StoreForCtrl(i, 1);
+                tkn = p.StoreForCtrl(i, 2);
+                if strlength(ctrlName)>1
+                    % Substitute for ?:name
+                    upperCtrlName = "?:" + extractAfter(ctrlName, 1);
                     upperToken = upper(tkn);
-                    lowerCtrlName = ['?.', ctrlName(2:end)];
-                    lowerToken = lower(tkn);
-                    % Substitute lower case for for ?.name
-                    c = replace(c, lowerCtrlName, lowerToken);
-                    % Substitute upper case for for ?:name
                     c = replace(c, upperCtrlName, upperToken);
+                    % Substitute for ?.name
+                    lowerCtrlName = "?." + extractAfter(ctrlName, 1);
+                    lowerToken = lower(tkn);
+                    c = replace(c, lowerCtrlName, lowerToken);
                 end
-                % Substitute for ?name.
+                % Substitute for ?name
                 c = replace(c, ctrlName, tkn);
             end
         end%

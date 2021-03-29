@@ -59,10 +59,8 @@ classdef Pseudofunc
         
         
         function c = parseKeyword(this, c)
-            import parser.Pseudofunc
-            import parser.White
             ptnKey = getPattern(this);
-            wh = White.whiteOutLabel(c);
+            wh = parser.White.whiteOutLabels(c);
             % Track down opening and closing brackets.
             sh = this.createShadowCode(wh);
             while true
@@ -151,7 +149,6 @@ classdef Pseudofunc
         
         
         function [list, beta] = createAllTerms(this, body, shift, varargin)
-            import parser.Pseudofunc
             beta = '';
             body(isstrprop(body, 'wspace')) = '';
             switch this.Type
@@ -186,7 +183,6 @@ classdef Pseudofunc
         
         
         function c = concatenateTerms(this, list, beta, transform, enclose)
-            import parser.Pseudofunc
             list = strcat('(', list, ')');
             if transform
                 list = strcat(this.Transform, list);
@@ -252,16 +248,15 @@ classdef Pseudofunc
         
         
         function c = shiftTimeSubs(c, k)
-            import parser.Pseudofunc
             if isstring(k) || ischar(k)
                 s = char(k);
             else
-                s = sprintf(Pseudofunc.TIME_SUBS_FORMAT_STRING, k);
+                s = sprintf(parser.Pseudofunc.TIME_SUBS_FORMAT_STRING, k);
             end
             % Shift existing time subs, name{-1} -> name{-1+4}
-            c = regexprep(c, Pseudofunc.NAME_WITH_SHIFT_PATTERN, ['$1' , s, '}'] );
+            c = regexprep(c, parser.Pseudofunc.NAME_WITH_SHIFT_PATTERN, ['$1' , s, '}'] );
             % Add time subs to names with no time subs, name -> name{+4}
-            c = regexprep(c, Pseudofunc.NAME_WITH_NO_SHIFT_PATTERN, ['$1{', s, '}']);
+            c = regexprep(c, parser.Pseudofunc.NAME_WITH_NO_SHIFT_PATTERN, ['$1{', s, '}']);
         end%
 
 

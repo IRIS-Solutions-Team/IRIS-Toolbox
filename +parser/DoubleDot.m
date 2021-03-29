@@ -34,10 +34,8 @@ classdef DoubleDot
         
         function c = parseKeyword(this, c)
             c = char(c);
-            import parser.DoubleDot
-            import parser.White
             [ptnKey1, ptnKey2] = getPatterns(this);
-            wh = White.whiteOutLabel(c);
+            wh = White.whiteOutLabels(c);
             while true
                 [start, finish, match, tkn] = ...
                     regexp(wh, ptnKey2, 'start', 'end', 'match', 'tokens', 'once');

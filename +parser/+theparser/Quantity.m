@@ -9,7 +9,6 @@ classdef Quantity < parser.theparser.Generic
     
     methods
         function [qty, eqn] = parse(this, the, code, qty, eqn, ~, ~, opt)
-            import parser.White
             BR = sprintf('\n');
             TYPE = @int8;
             
@@ -34,12 +33,12 @@ classdef Quantity < parser.theparser.Generic
             
             % White out the inside of labels (single or double qouted text), keeping
             % the quotation marks.
-            whiteCode = White.whiteOutLabel(whiteCode);
+            whiteCode = parser.White.whiteOutLabels(whiteCode);
             
             % White out first-level round and square brackets. This is to handle
             % assignments containing function calls with multiple arguments separated
             % with commas (commas are valid separator of parameters).
-            whiteCode = White.whiteOutParenth(whiteCode, 1);
+            whiteCode = parser.White.whiteOutParenth(whiteCode, 1);
             
             tokenExtents = regexp(whiteCode, NAME_PATTERN, 'tokenExtents');
             for i = 1 : length(tokenExtents) %#ok<UNRCH>

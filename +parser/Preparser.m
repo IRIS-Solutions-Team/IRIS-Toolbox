@@ -1,4 +1,3 @@
- 
 classdef Preparser ...
     < model.File
 
@@ -17,7 +16,7 @@ classdef Preparser ...
         CtrlParameters (1, :) string = string.empty(1, 0) % List of parameter names occuring in control expressions and interpolations
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors
 
-        StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements
+        StoreForCtrl = string.empty(0, 2) % Store !for control variable replacements
         StoreSubstitutions = struct( ) % Store substitution names and bodies
     end
 
@@ -28,9 +27,11 @@ classdef Preparser ...
         EVAL_DBASE_PREFIX = 'varargin{2}.'
         EVAL_TEMP_PREFIX = '?.'
 
-        EVAL_WARNING = struct( 'If',{{ }}, ...
-                               'Switch',{{ }}, ...
-                               'Case',{{ }} )
+        EVAL_WARNING = struct( ...
+            'If',{{}}, ...
+            'Switch',{{}}, ...
+            'Case',{{}} ...
+        )
 
         CODE_SEPARATOR = sprintf('\n\n');
         FILE_NAME_SEPARATOR = ' & ';
@@ -151,7 +152,7 @@ classdef Preparser ...
                 % previous step.
 
                 if ~any(skip=="Interp")
-                    parser.Interp.parse(this__);
+                    this__.Code = char(parser.Interp.parse(this__));
                 end
 
                 if ~any(skip=="Substitution")
@@ -355,13 +356,13 @@ classdef Preparser ...
         end%
 
 
-        function evalPopulateWorkspace(expn, assigned, p)
-            import parser.White
-            shadowExpn = White.whiteOutLabel(expn);
-            shadowExpn = replace(shadowExpn, "!", "");
+        function evalPopulateWorkspace(expression, assigned, p)
+            expression = char(expression);
+            shadowExpression = parser.White.whiteOutLabels(expression);
+            shadowExpression = replace(shadowExpression, "!", "");
             namesAssigned = reshape(string(fieldnames(assigned)), 1, [ ]);
             namesWithinExpression = regexp( ...
-                string(shadowExpn) ...
+                string(shadowExpression) ...
                 , "(?<!\.)\<[a-zA-Z]\w*\>(?![\.])" ...
                 , "match" ...
             );
