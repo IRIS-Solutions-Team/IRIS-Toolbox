@@ -7,5 +7,7 @@
 
 Function | Description 
 ---|---
-[`Model`](Model.md) | {{ model._Model }}
+[`Model.fromFile`](fromFile.md) | {{ model._fromFile }}
+[`Model.fromSnippet`](fromSnippet.md) | {{ model._fromSnippet }}
+
 

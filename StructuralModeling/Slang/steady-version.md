@@ -1,38 +1,36 @@
 # `!!`
 
-{== Steady-state version of an equation ==}
+{== Steady-state versions of equations ==}
+
 
 ## Syntax
 
-    FullEquation !! SteadyStateEquation;
+    dynamicEquation !! steadyEquation;
+
 
 ## Description
 
 For each transition or measurement equation, you can provide a separate
 steady-state version of it. The steady-state version is used when you run
-the functions [`sstate`](model/sstate) and
-[`chksstate`](model/chksstate), the latter unless you change the option
-`'eqtn='`. This is useful when you can substantially simplify some parts
-of the full dynamic equations, and help therefore the numerical solver to
-achieve faster and possibly laso more accurate results.
-
-Why is a double exclamation point, `!!`, used to start the steady-state
-versions of equations? Because if you associate your model file
-extension(s) (such as `'mod'` or `'model'`) with the Matlab editor,
-anything after an exclamation point is displayed red making it easier to
-spot the steady-state equations.
-
-## Example
-
-The following steady state version will be, of course, valid only in
-stationary models where we can safely remove lags and leads.
-
-    Lambda = Lambda{1}*(1+r)*beta !! r = 1/beta - 1;
-
-## Example
-
-    log(A) = log(A{-1}) + epsilon_a !! A = 1;
+the functions [`steady`](../model/steady.md) and
+[`checkSteady`](../model/checkSteady.md), the latter unless you change the
+option `EquationSwitch=`. This is useful when you can substantially
+simplify some parts of the full dynamic equations, split the model into
+sequential blocks, and help therefore the numerical solver to achieve
+faster and possibly laso more accurate results.
 
 
+## Examples
+
+```iris
+log(a) = 0.8*log(a{-1}) + (1-0.8)*2 + epsilon_a !! log(a) = 2;
+```
+
+The following steady state version of an Euler equation will be  valid only in stationary models
+where we can safely remove lags and leads.
+
+```
+lambda = lambda{1}*(1+r)*beta !! r = 1/beta - 1;
+```
 
 

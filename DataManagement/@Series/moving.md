@@ -1,21 +1,21 @@
-# `moving`
+# `moving`  
 
 {== Apply function to moving window of time series observations ==}
 
 
-## Syntax
+## Syntax  
 
     outputSeries = moving(inputSeries, ...)
 
 
-## Input arguments
+## Input arguments  
 
 __`inputSeries`__ [ Series ]
 >
 > Input times series.
 >
 
-## Output arguments
+## Output arguments  
 
 __`outputSeries`__ [ Series ]
 >
@@ -24,7 +24,7 @@ __`outputSeries`__ [ Series ]
 > from the `inputSeries`.
 >
 
-## Options
+## Options   
 
 __`Function=@mean`__ [ function_handle ]
 >

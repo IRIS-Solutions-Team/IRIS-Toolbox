@@ -1,36 +1,43 @@
+# `pct`
+
+{== Percent change ==}
+
 
 ## Syntax
 
-    dot(Expr)
-    dot(Expr,K)
+    pct(expression)
+    pct(expression, k)
+
 
 ## Description
 
 If the input argument `k` is not specified, this pseudofunction expands
 to
 
-    ((Expr)/(Expr{-1}))
+    (100*((expression)/(expression{-1})-1))
 
 If the input argument `k` is specified, it expands to
 
-    ((Expr)/(Expr{k}))
+    (100*((expression)/(expression{k})-1))
 
-The two derived expressions, `Expr{-1}` and `Expr{k}`, are based on
-`Expr`, and have all its time subscripts shifted by --1 or by `k`
-periods, respectively.
+The time-shifted expressions, `expression{-1}` and `expression{k}`, are
+based on `expression`, and have all its time subscripts shifted by –1 or by
+`k` periods, respectively.
 
-## Example
+
+## Examples
 
 The following two lines
 
-    dot(Z)
-    dot(X+Y,-2)
+```iris
+pct(z)
+pct(x+y, -2)
+```
 
 will expand to
 
-    ((Z)/(Z{-1}))
-    ((X+Y)/(X{-2}+Y{-2}))
-
-
-
+```iris
+(100*((z)/(z{-1})-1))
+(100*((x+y)/(x{-2}+y{-2})-1))
+```
 

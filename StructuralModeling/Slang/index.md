@@ -6,9 +6,13 @@ under any file name with any extension) that describe the model: its
 equations, variables, parameters, etc. The model files do not describe what
 tasks to do with the model. To run the tasks you want to perform with the
 model, you need first to load the model file into Matlab using the
-[`Model`](../Model/Model.md) function. This function creates a model
+[`Model`](../model/Model.md) function. This function creates a model
 object. Then you write your own m-files using Matlab and IrisT
 functions to perform the desired tasks with the model object.
+
+When writing model files, you can also use the IrisT preparsing commands
+that introduce tools for writing reusable and well-structured model code
+base and minimize repetitive model code writing tasks.
 
 You can get the model source files syntax highlighted in the Matlab editor
 to improve the readability of the files, and helps navigate the model more
@@ -19,55 +23,55 @@ quickly. See [the setup instructions](../../install.md) for details.
 
 ### Declaring model names: Variables, parameters and shocks
 
-Function | Description 
+Keyword | Description 
 ---|---
-[`!transition-variables`](transition-variables.md) | 
-[`!transition-shocks`](transition-shocks.md) | 
-[`!measurement-variables`](measurement-variables.md) | 
-[`!measurement-shocks`](measurement-shocks.md) | 
-[`!exogenous-variables`](exogenous-variables.md) | 
-[`!parameters`](parameters.md) | 
-[`!autoswaps-simulate`](autoswaps-simulate.md) | 
-[`!autoswaps-steady`](autoswaps-steady.md) | 
+[`!transition-variables`](!transition-variables.md) | 
+[`!transition-shocks`](!transition-shocks.md) | 
+[`!measurement-variables`](!measurement-variables.md) | 
+[`!measurement-shocks`](!measurement-shocks.md) | 
+[`!exogenous-variables`](!exogenous-variables.md) | 
+[`!parameters`](!parameters.md) | 
+[`!autoswaps-simulate`](!autoswaps-simulate.md) | 
+[`!autoswaps-steady`](!autoswaps-steady.md) | 
 
 
 ### Defining model equations
 
-Function | Description 
+Keyword | Description 
 ---|---
-[`!transition-equations`](transition-equations.md) | 
-[`!measurement-equations`](measurement-equations.md) | 
-[`!dtrends`](dtrends.md) | 
-[`!links`](links.md) | 
-[`!preprocessor`](preprocessor.md) | 
-[`!postprocessor`](postprocessor.md) | 
+[`!transition-equations`](!transition-equations.md) | 
+[`!measurement-equations`](!measurement-equations.md) | 
+[`!dtrends`](!dtrends.md) | 
+[`!links`](!links.md) | 
+[`!preprocessor`](!preprocessor.md) | 
+[`!postprocessor`](!postprocessor.md) | 
 
 
 ### Controling log status of variables
 
-Function | Description 
+Keyword | Description 
 ---|---
-[`!log-variables`](log-variables.md) | 
-[`!all-but`](all-but.md) | 
+[`!log-variables`](!log-variables.md) | 
+[`!all-but`](!all-but.md) | 
 
 
 ### Other keywords
 
-Function | Description 
+Keyword | Description 
 ---|---
 [`min`](min.md) | 
 [`!!`](steady-version.md) | 
 [`||`](alias.md) | 
-[`{...}}`](shift) | 
+[`{...}`](shift) | 
 [`&`](steady-ref) | 
-[`!ttrend`](ttrend.md) | 
+[`!ttrend`](!ttrend.md) | 
 
 
 ### Pseudofunctions
 
 Pseudofunctions do not start with an exclamation point
 
-Function | Description 
+Keyword | Description 
 ---|---
 [`diff`](diff.md) | 
 [`roc`](roc.md) | 
@@ -80,18 +84,18 @@ Function | Description
 
 ### Preparsing keywords
 
-Function | Description 
+Keyword | Description 
 ---|---
 [`%`](line-comment.md)
 [`%{...%}`](block-comment.md)
 [`<...>`](interp.md)
-[`!export`](export.md)
-[`!for`](for.md)
-[`!function`](function.md)
-[`!if`](if.md)
-[`!import`](import.md)
-[`!substitutions`](substitutions.md) | 
-[`!switch`](switch.md)
+[`!export`](!export.md)
+[`!for`](!for.md)
+[`!function`](!function.md)
+[`!if`](!if.md)
+[`!import`](!import.md)
+[`!substitutions`](!substitutions.md) | 
+[`!switch`](!switch.md)
 
 
 
@@ -110,24 +114,24 @@ derivatives that will be used when the function occurs in a loss function.
 
 When asked for the derivatives, the function is called with two extra
 input arguments on top of that function's regular input arguments. The
-first extra input argument is a text string `'diff'` (indicating the call
+first extra input argument is a text string `"diff"` (indicating the call
 to the function is supposed to return a derivative). The second extra
 input argument is a number or a vector of two numbers; it determines with
 respect to which input argument or arguments the first derivative or the
 second derivative is requested.
 
-For instance, your function takes three input arguments, `myfunc(x,y,z)`.
+For instance, your function takes three input arguments, `myfunc(x, y, z)`.
 To be able to supply derivates avoiding thus numerical differentiation,
 the function must be written so that the following three calls
 
-    myfunc(x,y,z,'diff',1)
-    myfunc(x,y,z,'diff',2)
-    myfunc(x,y,z,'diff',3)
+    myfunc(x, y, z, "diff", 1)
+    myfunc(x, y, z, "diff", 2)
+    myfunc(x, y, z, "diff", 3)
 
 return the first derivative wrt to the first, second, and third input
 argument, respectively, while
 
-    myfunc(x,y,z,'diff',[1,2])
+    myfunc(x, y, z, "diff", [1, 2])
 
 returns the second derivative wrt to the first and second input
 arguments. Note that second derivatives are only needed for functions
