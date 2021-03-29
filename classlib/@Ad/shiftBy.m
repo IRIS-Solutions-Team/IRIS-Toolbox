@@ -14,16 +14,10 @@ if by==0
 end
 
 ptn = '\<x(\d+)(([pm]\d+)?)\>(?!\()';
-if true % ##### MOSW
-    FN_REPLACE = @replace; %#ok<NASGU>
-    expn = regexprep(expn, ptn, '${ FN_REPLACE($0, $1, $2) }');
-else
-    eqtn = mosw.dregexprep(eqtn, ptn, @replace, [0, 1, 2]); %#ok<UNRCH>
-end
+replaceFunc = @replace; %#ok<NASGU>
+expn = regexprep(expn, ptn, '${ replaceFunc($0, $1, $2) }');
 
 return
-
-
 
 
     function c = replace(c0, c1, c2)

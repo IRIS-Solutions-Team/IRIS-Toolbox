@@ -34,11 +34,7 @@ C = zeros(nString, 1);
 ixValid = true(1, nString);
 for i = 1 : nString
     try
-        if true % ##### MOSW
-            f = str2func( ['@(x)', strLinComb{i}] );
-        else
-            f = mosw.str2func( ['@(x)', S{i}] ); %#ok<UNRCH>
-        end
+        f = str2func( ['@(x)', strLinComb{i}] );
         x = zeros(1,nName);
         try
             C(i) = f(x);

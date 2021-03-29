@@ -42,11 +42,7 @@ for iAx = Ax
         '-and','-not','tag','vline', ...
         '-and','-not','tag','hline', ...
         '-and','-not','tag','zeroline');
-    if true % ##### MOSW
-        lim = objbounds(ch);
-    else
-        lim = mosw.objbounds(ch);
-    end
+    lim = objbounds(ch);
     if isempty(lim)
         xLim = get(iAx,'xLim');
     else

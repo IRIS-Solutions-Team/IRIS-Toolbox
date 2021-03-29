@@ -10,7 +10,7 @@ function warning(id,body,varargin)
 %--------------------------------------------------------------------------
 
 try %#ok<TRYNC>
-    q = warning('query',['IRIS:',id]);
+    q = warning('query',['IrisToolbox:',id]);
     if strcmp(q.state, 'off')
         return
     end
@@ -20,22 +20,18 @@ if ~isempty(body) && body(1)=='#'
     body = utils.hashmessage(body);
 end
 
-if true % ##### MOSW
-    body = strrep(body,'Uncle','Matlab');
-else
-    Body = strrep(Body,'Uncle','Octave'); %#ok<UNRCH>
-end
-
+body = replace(body, "Uncle", "Matlab");
 stack = exception.Base.reduceStack(-1);
 
-msg = mosw.sprintf('<a href="">IRIS Toolbox Warning</a> @ %s.',id);
-msg = [msg,mosw.sprintf(['\n*** ',body],varargin{:})];
-% Replace multiple periods with a single period.
+msg = sprintf('<a href="">IrisToolbox Warning</a> @ %s.',id);
+msg = [msg, sprintf(['\n*** ',body],varargin{:})];
+
+% Replace multiple periods with a single period
 msg = regexprep(msg,'(?<!\.)\.\.(?!\.)','.'); 
 
 msg = [msg, utils.displaystack(stack)];
 state = warning('off', 'backtrace');
-warning(['IRIS:',id], '%s', msg);
+warning(['IrisToolbox:',id], '%s', msg);
 warning(state);
 
 textual.looseLine( );

@@ -67,7 +67,7 @@ function varargout = dbsearchuserdata(d,varargin)
 func = @(x) all(x);
 if ~isempty(varargin)
     if (isequal(varargin{1},'-all') || isequal(varargin{1},'-any'))
-        func = mosw.str2func(['@',varargin{1}(2:end)]);
+        func = str2func(['@',varargin{1}(2:end)]);
         varargin(1) = [ ];
     end
 end

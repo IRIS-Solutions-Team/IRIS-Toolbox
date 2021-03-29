@@ -18,12 +18,8 @@ if isempty(C) || isempty(This)
 end
 
 ptn = regexppattern(This);
-if true % ##### MOSW
-    rplFunc = @doReplace; %#ok<NASGU>
-    C = regexprep(C,ptn,'${rplFunc($0)}');
-else
-    C = mosw.dregexprep(C,ptn,@doReplace,0); %#ok<UNRCH>
-end
+rplFunc = @doReplace; %#ok<NASGU>
+C = regexprep(C,ptn,'${rplFunc($0)}');
 
 
     function C = doReplace(C0)

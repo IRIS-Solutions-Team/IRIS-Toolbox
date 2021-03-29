@@ -68,11 +68,7 @@ end%
 
 function eqtn = convert(eqtn, header, ifEmpty)
     REMOVE_HEADER = @(x) regexprep(x, '^@\(.*?\)\s*', '', 'once');
-    if true % ##### MOSW
-        FN_STR2FUNC = @str2func;
-    else
-        FN_STR2FUNC = @mosw.str2func; %#ok<UNRCH>
-    end
+    FN_STR2FUNC = @str2func;
 
     for i = 1 : numel(eqtn)
         if isnumeric(eqtn{i})

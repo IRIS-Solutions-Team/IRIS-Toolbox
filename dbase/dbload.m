@@ -367,7 +367,6 @@ return
             % Read individual comma-separated cells on the current line. Capture the
             % entire match (including separating commas and double quotes), not only
             % tokens -- this is a workaround for a bug in Octave.
-            % @@@@@ MOSW
             tkn = regexp(line, ...
                 '[^",]*,|[^",]*$|"[^"]*",|"[^"]*"$', 'match');
             % Remove separating commas from the end of cells.
@@ -679,11 +678,7 @@ return
                 iMiss = reshape(ixMissing(1:tmpSize(1), count+(1:numColumns)), tmpSize);
                 iData(iMiss) = NaN;
                 % Convert to the right numeric class.
-                if true % ##### MOSW
-                    fnClass = str2func(cls);
-                else
-                    fnClass = mosw.str2func(cls); %#ok<UNRCH>
-                end
+                fnClass = str2func(cls);
                 d.(name) = fnClass(iData);
             end
             count = count + numColumns;

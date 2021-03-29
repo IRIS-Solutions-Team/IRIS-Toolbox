@@ -23,11 +23,7 @@ for i = 1 : n
     elseif isfunc(s{i})
         c = func2str(s{i});
         c = feval(FN_REPLACE, c);
-        if true % ##### MOSW
-            s{i} = str2func(c);
-        else
-            s{i} = mosw.str2func(c); %#ok<UNRCH>
-        end
+        s{i} = str2func(c);
     end
 end
 

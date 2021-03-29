@@ -11,12 +11,8 @@ function [C,This] = protectquotes(C,This)
 %--------------------------------------------------------------------------
 
 ptn = '([''"])([^\n]*?)\1';
-if true % ##### MOSW
-    replaceFunc = @doReplace; %#ok<NASGU>
-    C = regexprep(C,ptn,'${replaceFunc($1,$2)}');
-else
-    C = mosw.dregexprep(C,ptn,@doReplace,[1,2]); %#ok<UNRCH>
-end
+replaceFunc = @doReplace; %#ok<NASGU>
+C = regexprep(C,ptn,'${replaceFunc($1,$2)}');
 
 return
 

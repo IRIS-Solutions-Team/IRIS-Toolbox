@@ -13,11 +13,7 @@ if ~isempty(body) && body(1)=='#'
     body = utils.hashmessage(body);
 end
 
-if true % ##### MOSW
-    body = strrep(body, 'Uncle', 'Matlab');
-else
-    Body = strrep(Body, 'Uncle', 'Octave'); %#ok<UNRCH>
-end
+body = replace(body, "Uncle", "Matlab");
 
 % Throw an error with stack of non-IRIS function calls.
 stack = exception.Base.reduceStack(0);
@@ -29,15 +25,15 @@ if isempty(stack)
         );
 end
 
-msg = sprintf('IRIS Toolbox Error @ %s.', id);
-msg = [msg, mosw.sprintf(['\n*** ',body], varargin{:})];
+msg = sprintf('IrisToolbox Error @ %s.', id);
+msg = [msg, sprintf(['\n*** ',body], varargin{:})];
 msg = regexprep(msg, '(?<!\.)\.\.(?!\.)','.');
 
 if nargout == 0
     tmp = struct( );
     tmp.message = msg;
-    if ~strncmp(id, 'IRIS:', 5)
-        id = ['IRIS:', id];
+    if ~strncmp(id, 'IrisToolbox:', 5)
+        id = ['IrisToolbox:', id];
     end
     tmp.identifier = id;
     tmp.stack = stack;

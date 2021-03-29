@@ -36,11 +36,7 @@ end
 % Dynamic equations
 try
     fn = [ '@(x,t,L) [', eqn.Dynamic{~ixl}, ']' ];
-    if true % ##### MOSW
-        fn = str2func(fn);
-    else
-        fn = mosw.str2func(fn); %#ok<UNRCH>
-    end
+    fn = str2func(fn);
     feval(fn, x, sh0, L);
 catch
     lookup(eqn.Dynamic, ~ixl);
@@ -49,11 +45,7 @@ end
 % Steady equations.
 fn = [ '@(x,t,L) [', eqn.Steady{~ixl}, ']' ];
 try
-    if true % ##### MOSW
-        fn = str2func(fn);
-    else
-        fn = mosw.str2func(fn); %#ok<UNRCH>
-    end
+    fn = str2func(fn);
     feval(fn, x, sh0, L);
 catch
     lookup(eqn.Steady, ~ixl);
@@ -63,11 +55,7 @@ end
 if any(ixl)
   try
         fn = [ '@(x,t,L) [', eqn.Dynamic{ixl}, ']' ];
-        if true % ##### MOSW
-            fn = str2func(fn);
-        else
-            fn = mosw.str2func(fn); %#ok<UNRCH>
-        end
+        fn = str2func(fn);
         feval(fn, xLink, 1, [ ]);
   catch
        lookup(eqn.Dynamic, ixl);

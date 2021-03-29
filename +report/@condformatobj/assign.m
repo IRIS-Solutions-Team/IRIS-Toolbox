@@ -16,9 +16,9 @@ if ~isempty(Opt)
     temp(end) = '';
     for i = 1 : length(This.test)
         try
-            This.test{i} = mosw.str2func(['@(',temp,')',This.test{i}]);
+            This.test{i} = str2func(['@(',temp,')',This.test{i}]);
         catch %#ok<CTCH>
-            This.test{i} = mosw.str2func('@(varargin) false');
+            This.test{i} = str2func('@(varargin) false');
         end
     end
 end
