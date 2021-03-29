@@ -10,7 +10,7 @@ classdef Base
     
     
     properties (Constant)
-        IRIS_IDENTIFIER = 'IRIS:';
+        IRIS_IDENTIFIER = "IrisToolbox";
         HIGHLIGHT = '*** '
         BASE_ERROR_HEADER_FORMAT = '[IrisToolbox] Error'
         BASE_WARNING_HEADER_FORMAT = '[IrisToolbox] Warning'
@@ -53,7 +53,7 @@ classdef Base
                 [this.Identifier, this.Message] = exception.Base.lookupException(specs);
                 this.NeedsHighlight = true;
             end
-            this.Identifier = [this.IRIS_IDENTIFIER, this.Identifier];
+            this.Identifier = join([this.IRIS_IDENTIFIER, string(this.Identifier)], ":");
         end%
         
         
@@ -146,7 +146,7 @@ classdef Base
     methods (Static)
         function stack = getStack( )
             try
-                error('IRIS:Exception', 'Stack Reduction');
+                error("IrisToolbox:Exception", "Stack Reduction");
             catch exc
                 stack = exc.stack;
             end
