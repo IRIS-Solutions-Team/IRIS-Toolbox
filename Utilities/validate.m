@@ -346,6 +346,25 @@ classdef validate
             end
             error("Input value must be a function handle.");
         end%
+
+
+        function mustBeSolveModel(x)
+            if isa(x, "Model") && all(beenSolved(x))
+                return
+            end
+            error("Input value must be a solved Model object.")
+        end%
+
+
+        function mustBeOutputType(x)
+            if isequal(x, @auto)
+                return
+            end
+            if validate.databankType(x)
+                return
+            end
+            error("Input value must be one of {@auto, ""struct"", ""Dictionary""}");
+        end%
     end
 end
 
