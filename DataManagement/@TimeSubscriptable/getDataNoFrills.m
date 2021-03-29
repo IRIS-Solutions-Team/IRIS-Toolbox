@@ -1,14 +1,11 @@
 % getDataNoFrills  Get time series data for specified dates with no checks
 %
-% Backend [IrisToolbox] methods
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 function [data, inxWithinRange, posTimes, this] = getDataNoFrills(this, timeRef, varargin)
 
-timeRef = double(timeRef);
+timeRef = reshape(double(timeRef), 1, []);
 
 % Apply references in 2nd and higher dimensions
 if ~isempty(varargin)
@@ -22,7 +19,50 @@ ndimsData = numel(sizeData);
 numPeriods = sizeData(1);
 missingValue = this.MissingValue;
 
-posTimes = getPosTimes( );
+
+%( return postTime
+    serialTimes = floor(timeRef);
+    freqTimes = round(100*(timeRef - serialTimes));
+
+    thisStart = double(this.Start);
+    serialStart = floor(thisStart);
+    freqStart = round(100*(thisStart - serialStart));
+
+    numTimes = numel(serialTimes);
+    if numTimes==1 && isequal(serialTimes, Inf)
+        % Inf
+        posTimes = 1 : numPeriods;
+    elseif numTimes==2 && isequal(serialTimes, [-Inf, Inf])
+        % [-Inf, Inf]
+        posTimes = 1 : numPeriods;
+    elseif numTimes==2 && isequal(serialTimes(1), -Inf)
+        % [-Inf, Date]
+        if freqTimes(2)==freqStart
+            % [-Inf, Date of valid frequency]
+            posLast = round(serialTimes(2) - serialStart + 1);
+            posTimes = 1 : posLast;
+        else
+            % [-Inf, Date of invalid frequency]
+            posTimes = double.empty(1, 0);
+        end
+    elseif numTimes==2 && isequal(serialTimes(2), Inf)
+        % [Date, Inf]
+        if freqTimes(1)==freqStart
+            % [Date of valid frequency, Inf]
+            posFirst = round(serialTimes(1) - serialStart + 1);
+            posTimes = posFirst : numPeriods;
+        else
+            % [Date of invalid frequency, Inf]
+            posTimes = double.empty(1, 0);
+        end
+    else
+        posTimes = round(serialTimes - serialStart + 1);
+        inxValidFreq = freqTimes==freqStart;
+        posTimes(~inxValidFreq) = NaN;
+    end
+%)
+
+
 numTimes = numel(posTimes);
 inxWithinRange = posTimes>=1 & posTimes<=numPeriods;
 
@@ -61,7 +101,7 @@ end
 
 return
 
-    function posTimes = getPosTimes( )
+    function posTimes = hereGetPosTimes( )
         %(
         serialTimes = dater.getSerial(timeRef);
         serialTimes = transpose(serialTimes(:));
@@ -74,42 +114,34 @@ return
         if numTimes==1 && isequal(serialTimes, Inf)
             % Inf
             posTimes = 1 : numPeriods;
-            return
-        end
-        if numTimes==2 && isequal(serialTimes, [-Inf, Inf])
+        elseif numTimes==2 && isequal(serialTimes, [-Inf, Inf])
             % [-Inf, Inf]
             posTimes = 1 : numPeriods;
-            return
-        end
-        if numTimes==2 && isequal(serialTimes(1), -Inf)
+        elseif numTimes==2 && isequal(serialTimes(1), -Inf)
             % [-Inf, Date]
             if freqTimes(2)==freqStart
                 % [-Inf, Date of valid frequency]
                 posLast = round(serialTimes(2) - serialStart + 1);
                 posTimes = 1 : posLast;
-                return
             else
                 % [-Inf, Date of invalid frequency]
                 posTimes = double.empty(1, 0);
-                return
             end
-        end
-        if numTimes==2 && isequal(serialTimes(2), Inf)
+        elseif numTimes==2 && isequal(serialTimes(2), Inf)
             % [Date, Inf]
             if freqTimes(1)==freqStart
                 % [Date of valid frequency, Inf]
                 posFirst = round(serialTimes(1) - serialStart + 1);
                 posTimes = posFirst : numPeriods;
-                return
             else
                 % [Date of invalid frequency, Inf]
                 posTimes = double.empty(1, 0);
-                return
             end
+        else
+            posTimes = round(serialTimes - serialStart + 1);
+            inxValidFreq = freqTimes==freqStart;
+            posTimes(~inxValidFreq) = NaN;
         end
-        posTimes = round(serialTimes - serialStart + 1);
-        inxValidFreq = freqTimes==freqStart;
-        posTimes(~inxValidFreq) = NaN;
         %)
     end%
 

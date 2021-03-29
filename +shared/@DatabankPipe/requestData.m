@@ -22,15 +22,15 @@ numPages = dbInfo.NumPages;
 X = nan(numNames, numPeriods, numPages);
 
 for name = dbInfo.NamesAvailable
-    if isa(inputDb, 'Dictionary')
-        field = retrieve(inputDb, name);
-    else
+    if isstruct(inputDb)
         field = inputDb.(name);
+    else
+        field = retrieve(inputDb, name);
     end
     if isempty(field)
         continue
     end
-    if isa(field, 'NumericTimeSubscriptable') 
+    if isa(field, "NumericTimeSubscriptable") 
         %
         % Databank field is a time series
         %

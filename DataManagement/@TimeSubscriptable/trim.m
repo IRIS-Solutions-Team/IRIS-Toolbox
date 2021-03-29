@@ -3,17 +3,19 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function this = trim(this)
+function this = trim(this, inxAllMissing)
 
 newData = this.Data;
 if isempty(newData)
     return
 end
 
-if isequaln(this.MissingValue, NaN)
-    inxAllMissing = all(isnan(newData(:, :)), 2);
-else
-    inxAllMissing = all(this.MissingTest(newData(:, :)), 2);
+if nargin<2
+    if isequaln(this.MissingTest, @isnan)
+        inxAllMissing = all(isnan(newData(:, :)), 2);
+    else
+        inxAllMissing = all(this.MissingTest(newData(:, :)), 2);
+    end
 end
 
 if ~inxAllMissing(1) && ~inxAllMissing(end)
@@ -23,16 +25,20 @@ end
 oldStart = double(this.Start);
 newStart = oldStart;
 sizeData = size(newData);
+x = newData;
 if all(inxAllMissing)
     missingValue = this.MissingValue;
     newData = repmat(missingValue, [0, sizeData(2:end)]);
     newStart = NaN;
 else
-    first = find(~inxAllMissing, 1);
-    last = find(~inxAllMissing, 1, 'last');
-    n = last - first + 1;
-    newData = reshape(newData(first:last, :), [n, sizeData(2:end)]);
-    newStart = dater.plus(newStart, first - 1);
+    pos = find(~inxAllMissing);
+    first = pos(1);
+    last = pos(end);
+    newData = newData(first:last, :);
+    if numel(sizeData)>2
+        newData = reshape(newData, [last-first+1, sizeData(2:end)]);
+    end
+    newStart = (100*newStart + 100*(first - 1)) / 100;
 end
 
 this.Data = newData;

@@ -192,7 +192,7 @@ function [this, s, dates, freqTest] = locallyExpand(this, s)
             if i>1
                 % Add an appropriate empty cellstr to comments if time
                 % series data are expanded in 2nd or higher dimensions
-                addComment = repmat({TimeSubscriptable.EMPTY_COMMENT}, [1, addSize(2:end)]);
+                addComment = repmat("", [1, addSize(2:end)]);
                 this.Comment = cat(i, this.Comment, addComment);
             end
         end

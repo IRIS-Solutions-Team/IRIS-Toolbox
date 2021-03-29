@@ -6,7 +6,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         Start (1, 1) = NaN
 
         % Comment  User comments attached to individual columns of time series
-        Comment = { TimeSubscriptable.EMPTY_COMMENT }
+        Comment string = "" 
     end
 
 
@@ -70,7 +70,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
     properties (Constant)
         StartDateWhenEmpty = NaN 
-        EMPTY_COMMENT = char.empty(1, 0)
     end
 
 
@@ -271,7 +270,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
 
 
-        function this = set.Comment(this, newValue)
+        function this = setComment(this, newValue)
             thisValue = this.Comment;
             newValue = strrep(newValue, '"', '');
             if isa(newValue, 'string')
@@ -284,13 +283,13 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             if ischar(newValue)
                 thisValue(:) = {newValue};
             else
-                sizeOfData = size(this.Data);
-                sizeOfNewComment = size(newValue);
-                expectedSizeOfComment = [1, sizeOfData(2:end)];
-                if isequal(sizeOfNewComment, expectedSizeOfComment)
+                sizeData = size(this.Data);
+                sizeNewComment = size(newValue);
+                expectedSizeComment = [1, sizeData(2:end)];
+                if isequal(sizeNewComment, expectedSizeComment)
                     thisValue = newValue;
-                elseif isequal(sizeOfNewComment, [1, 1])
-                    thisValue = repmat(newValue, expectedSizeOfComment);
+                elseif isequal(sizeNewComment, [1, 1])
+                    thisValue = repmat(newValue, expectedSizeComment);
                 else
                     throw( exception.Base('Series:InvalidSizeColumnNames', 'error') );
                 end
@@ -317,10 +316,10 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             if isnan(this.Start) || size(this.Data, 1)==0
                 return
             end
-            sizeOfData = size(this.Data);
-            newSizeOfData = [0, sizeOfData(2:end)];
+            sizeData = size(this.Data);
+            newSizeData = [0, sizeData(2:end)];
             this.Start = TimeSubscriptable.StartDateWhenEmpty;
-            this.Data = repmat(this.MissingValue, newSizeOfData);
+            this.Data = repmat(this.MissingValue, newSizeData);
         end%
 
 

@@ -1,17 +1,12 @@
-function this = resetComment(this)
 % resetComment  Reset time series comments to empty 
 %
-% Backend IRIS function
-% No help provided
-
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function this = resetComment(this)
 
-sizeOfData = size(this.Data);
-this.Comment = repmat( {this.EMPTY_COMMENT}, ...
-                       [1, sizeOfData(2:end)] );
+sizeData = size(this.Data);
+this.Comment = strings([1, sizeData(2:end)]);
 
 end%
 

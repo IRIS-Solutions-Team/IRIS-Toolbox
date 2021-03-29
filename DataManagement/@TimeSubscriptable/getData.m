@@ -71,7 +71,14 @@ switch locallyDetermineCase(thisStart, timeRef)
         return
 
     case 'Date_Date'
-        checkFrequency(this, timeRef, 'warning');
+        freqTimeRef = dater.getFrequency(timeRef);
+        freqSeries = getFrequencyAsNumeric(this);
+        if ~isnan(freqSeries) && ~all(freqTimeRef==freqSeries)
+            exception.warning([
+                "Series:FrequencyMismatch"
+                "Date frequency mismatch between the time series and the requested dates."
+            ]);
+        end
         if nargout>=3
             [data, ~, pos, this] = getDataNoFrills(this, timeRef);
         else
@@ -97,16 +104,14 @@ end%
 
 function output = locallyDetermineCase(start, timeRef)
     %(
-    testColon = @(x) (ischar(x) || isstring(x)) && isequal(x, ':');
-
     if isequaln(timeRef, NaN)
         ref = 'NaN';
     elseif isempty(timeRef)
         ref = '[]';
-    elseif testColon(timeRef) || isequal(timeRef, Inf)
-        ref = ':';
     elseif isnumeric(timeRef)
         ref = 'Date';
+    elseif isequal(timeRef, Inf) || (ischar(x) && isequal(x, ':'))
+        ref = ':';
     else
         exception.error([
             "Series:InvalidSubscript"
@@ -115,7 +120,7 @@ function output = locallyDetermineCase(start, timeRef)
     end
 
     freq = dater.getFrequency(start);
-    if isnan(freq) || isempty(start)
+    if isnan(freq)
         start = 'NaN';
     else
         start = 'Date';

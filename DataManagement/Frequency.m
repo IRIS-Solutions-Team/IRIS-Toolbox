@@ -8,7 +8,6 @@ classdef Frequency < double
         WEEKLY            ( 52) 
         DAILY             (365) 
         NaN               (NaN) 
-        MIN_DAILY_SERIAL  (365244)
     end
 
 

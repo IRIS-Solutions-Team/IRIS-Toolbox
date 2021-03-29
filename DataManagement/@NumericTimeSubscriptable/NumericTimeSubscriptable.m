@@ -25,8 +25,12 @@ NumericTimeSubscriptable ...
     methods 
         function missingTest = get.MissingTest(this)
             missingValue = this.MissingValue;
-            if isequaln(missingValue, NaN)
-                missingTest = @isnan;
+            if isequaln(missingValue, NaN) 
+                if isreal(this.Data)
+                    missingTest = @isnan;
+                else
+                    missingTest = @(x) isnan(real(x)) & isnan(imag(x));
+                end
             elseif isequaln(missingValue, missing)
                 missingTest = @ismissing;
             else
@@ -99,6 +103,12 @@ NumericTimeSubscriptable ...
             this.Data = round(this.Data, varargin{:});
         end%
 
+        varargout = size(varargin)
+        
+        function s = sizeData(this)
+            s = size(this.Data);
+        end%
+
         varargout = stdize(varargin)
         function varargout = stdise(varargin)
             [varargout{1:nargout}] = stdize(varargin{:});
@@ -149,7 +159,7 @@ NumericTimeSubscriptable ...
 
 
         function this = resetMissingValue(this, values)
-            if isa(values, 'single')
+            if isa(values, "single")
                 this.MissingValue = single(NaN);
             elseif islogical(values)
                 this.MissingValue = false;
@@ -570,7 +580,7 @@ NumericTimeSubscriptable ...
             varargin(1:2) = [ ];
 
             skipInputParserArgument = cell.empty(1, 0);
-            if nargin>=3 && (ischar(varargin{end}) || isstring(varargin{end})) ...
+            if nargin>=3 && (ischar(varargin{end}) || (isstring(varargin{end}) && isscalar(varargin{end}))) ...
                 && startsWith(varargin{end}, "--skip", "ignoreCase", true)
                 skipInputParserArgument = varargin(end);
                 varargin(end) = [ ];

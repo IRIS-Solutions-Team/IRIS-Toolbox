@@ -1,8 +1,5 @@
 % checkInputDatabank  Check input databank for missing or non-compliant variables
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
@@ -32,6 +29,7 @@ try
     if ~isequal(allowedNumeric, @all)
         allowedNumeric = reshape(string(allowedNumeric), 1, [ ]);
     end
+
 catch
     allowedNumeric = string.empty(1, 0);
 end
@@ -70,39 +68,50 @@ checkType = true(size(allNames)); % ^[3]
 % [3]: Check that there is no invalid type of input data
 
 numAllNames = numel(allNames);
-namesAvailable = string.empty(1, 0);
-namesInputDb = keys(inputDb);
+
+if isequal(allowedNumeric, @all)
+    inxAllowedNumeric = true(1, numAllNames);
+elseif isempty(allowedNumeric)
+    inxAllowedNumeric = false(1, numAllNames);
+else
+    inxAllowedNumeric = ismember(allNames, allowedNumeric);
+end
+
+if isstruct(inputDb)
+    allDbNames = fieldnames(inputDb);
+else
+    allDbNames = keys(inputDb);
+end
+inxFound = ismember(allNames, allDbNames);
+checkIncluded(~inxFound) = ~inxRequiredNames(~inxFound);
+inxNamesAvailable = false(1, numAllNames);
 numPages = nan(1, numAllNames);
-for i = 1 : numAllNames
+
+for i = find(inxFound)
     name__ = allNames(i);
-    allowedNumeric__ = isequal(allowedNumeric, @all) || any(name__==allowedNumeric);
-    if ~any(name__==namesInputDb)
-        checkIncluded(i) = ~inxRequiredNames(i);
-        continue
-    end
-    if isa(inputDb, 'Dictionary')
-        field__ = retrieve(inputDb, name__);
-    else
+    if isstruct(inputDb)
         field__ = inputDb.(name__);
+    else
+        field__ = retrieve(inputDb, name__);
     end
-    if isa(field__, 'NumericTimeSubscriptable')
-        if ~isempty(field__)
-            freq__ = getFrequencyAsNumeric(field__);
-            checkFrequency(i) = isnan(freq__) || freq__==requiredFreq;
-        end
-        namesAvailable(end+1) = string(name__);
-        sizeField__ = size(field__.Data);
+    if isa(field__, "NumericTimeSubscriptable")
+        freq__ = getFrequencyAsNumeric(field__);
+        checkFrequency(i) = isnan(freq__) || freq__==requiredFreq;
+        inxNamesAvailable(i) = true;
+        sizeField__ = sizeData(field__);
         numPages(i) = prod(sizeField__(2:end));
         continue
     end
-    if (isnumeric(field__) || islogical(field__)) && allowedNumeric__ && isrow(field__)
-        namesAvailable(end+1) = string(name__);
+    if (isnumeric(field__) || islogical(field__)) && inxAllowedNumeric(i) && isrow(field__)
+        inxNamesAvailable(i) = true;
         sizeField__ = size(field__);
         numPages(i) = prod(sizeField__(2:end));
         continue
     end
     checkType(i) = false;
 end
+
+namesAvailable = allNames(inxNamesAvailable);
 
 if ~all(checkIncluded)
     hereReportMissing( );
@@ -135,39 +144,35 @@ dbInfo.NamesAvailable = namesAvailable;
 return
 
     function hereReportMissing( )
-        thisError = [
+        exception.error([ 
             "DatabankPipe:MissingSeries"
             "This variable is required " + context + " "
             "but missing from the input databank: %s "
-        ];
-        throw(exception.Base(thisError, 'error'), allNames(~checkIncluded));
+        ], allNamess(~checkIncluded));
     end%
 
 
     function hereReportInvalidFrequency( )
-        thisError = [ 
+        exception.error([ 
             "DatabankPipe:CheckInputDatabank"
             "This time series has the wrong date frequency in the input databank: %s "
-        ];
-        throw(exception.Base(thisError, 'error'), allNames(~checkFrequency));
+        ], allNames(~checkFrequency));
     end%
 
 
     function hereReportInvalidType( )
-        thisError = [ 
+        exception.error([ 
             "DatabankPipe:CheckInputDatabank"
             "This name is included in the input databank but is the wrong type: %s"
-        ];
-        throw(exception.Base(thisError, 'error'), allNames(~checkType));
+        ], allNames(~checkType));
     end%
 
 
     function hereReportColumns( )
-        thisError = [
+        exception.error([ 
             "DatabankPipe:CheckInputDatabank"
             "This time series or plain numeric input has an inconsistent number of columns: %s " 
-        ];
-        throw(exception.Base(thisError, 'error'), allNames(~checkNumPagesAndVariants));
+        ], allNames(~checkNumPagesAndVariants));
     end%
 end%
 

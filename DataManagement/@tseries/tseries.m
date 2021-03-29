@@ -237,7 +237,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         varargout = single(varargin)
         varargout = singledata(varargin)
-        varargout = size(varargin)
         varargout = sort(varargin)
         varargout = spy(varargin)
         varargout = stem(varargin)

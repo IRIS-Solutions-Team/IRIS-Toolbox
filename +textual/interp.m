@@ -107,7 +107,7 @@ function c = interp(c, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-if ~ischar(c) && ~iscell(c) && ~isa(c, 'string')
+if ~ischar(c) && ~iscell(c) && ~isstring(c)
     return
 end
 

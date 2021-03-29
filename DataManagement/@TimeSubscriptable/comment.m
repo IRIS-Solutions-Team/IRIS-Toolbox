@@ -1,4 +1,4 @@
-function varargout = comment(this, varargin)
+function varargout = comment(this, newComment)
 % comment  Get or set user comments in time series
 %
 %
@@ -17,7 +17,7 @@ function varargout = comment(this, varargin)
 %
 % * `x` [ TimeSubscriptable ] - Time series
 %
-% * `newComment` [ char | cellstr ] - Comment(s) that will be assigned
+% * `newComment` [ string ] - Comment(s) that will be assigned
 % to each column of the input time series, `x`.
 %
 % * `y` [ TimeSubscriptable ] - Another time series whose column comment(s) will be
@@ -49,65 +49,76 @@ function varargout = comment(this, varargin)
 % __Example__
 %
 %     x = Series(1:2, rand(2, 2));
-%     x = comment(x, 'Comment')
+%     x = comment(x, "Comment")
 %
 %     x =
 % 
 %         Series object: 2-by-2
+%         Class of Data: double
 % 
 %         1: 0.28521     0.67068
 %         2: 0.91586     0.78549
-%         'Comment'    'Comment'
+
+%         "Dates"    "Comment"    "Comment"
 % 
-%         user data: empty
+%         User data: empty
 % 
-%     x = comment(x, {'Comment 1', 'Comment 2'})
+%     x = comment(x, ["Comment 1", "Comment 2"])
 % 
 %     x =
 % 
 %         Series object: 2-by-2
+%         Class of Data: double
 % 
 %         1: 0.28521     0.67068
 %         2: 0.91586     0.78549
-%         'Comment 1'    'Comment 2'
+%
+%         "Dates"    "Comment 1"    "Comment 2"
 % 
-%         user data: empty
+%         User Data: empty
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('TimeSubscriptable.comment');
-    parser.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addOptional('NewComment', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isa(x, 'TimeSubscriptable'));
-end
-parser.parse(this, varargin{:});
-
-if ismember('NewComment', parser.UsingDefaults)
-    action = 'get';
-else
-    action = 'set';
-    newComment = parser.Results.NewComment;
+arguments
+    this TimeSubscriptable
+    newComment {locallyValidateNewComment} = @get
 end
 
-%--------------------------------------------------------------------------
 
-varargout = cell(1, 1);
-
-% __Get Comments__
-if isequal(action, 'get')
+if isequal(newComment, @get)
+    
+    % __Get comments__
+    
     varargout{1} = this.Comment;
-    return
+    
+else
+    
+    % __Set comments__
+    
+    if isa(newComment, 'TimeSubscriptable')
+        newComment = newComment.Comment;
+    end
+    sizeData = size(this.Data);
+    this.Comment = strings([1, sizeData(2:end)]);
+    this.Comment(:) = string(newComment);
+    varargout{1} = this;
+    
 end
 
-% __Set Comments__
-if isa(newComment, 'TimeSubscriptable')
-    newComment = newComment.Comment;
-end
-this.Comment = newComment;
-varargout{1} = this;
+end%
 
+%
+% Local validators
+%
+
+function locallyValidateNewComment(value)
+    %(
+    if isequal(value, @get) || validate.text(value) || isa(value, "TimeSubscriptable")
+        return
+    end
+    error("Input argument must be a string, another time series, or @get.");
+    %)
 end%
 

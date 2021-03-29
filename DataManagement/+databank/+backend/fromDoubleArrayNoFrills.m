@@ -21,10 +21,7 @@ if nargin<8
     addToDatabank = false;
 end
 
-if isequal(timeSeriesConstructor, @default)
-    timeSeriesConstructor = iris.get('DefaultTimeSeriesConstructor');
-end
-TIME_SERIES_TEMPLATE = timeSeriesConstructor( );
+TIME_SERIES_TEMPLATE = Series( );
 
 %--------------------------------------------------------------------------
 
@@ -33,15 +30,13 @@ names = reshape(string(names), 1, [ ]);
 
 if isempty(comments)
     comments = repmat({''}, 1, numRows);
-elseif isa(comments, 'string')
-    comments = reshape(cellstr(comments), 1, [ ]);
+elseif isstring(comments)
+    comments = cellstr(comments);
 end
 
 hereCheckDimensions( );
 
-if ~isa(startDate, 'DateWrapper')
-    startDate = DateWrapper(startDate);
-end
+startDate = double(startDate);
 
 outputDb = databank.backend.ensureTypeConsistency(addToDatabank, outputType);
 
