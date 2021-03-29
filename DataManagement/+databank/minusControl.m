@@ -1,65 +1,5 @@
-% minusControl  Create simulation-minus-control database
-%{
-% ## Syntax ##
+% Type `web +databank/minusControl.md` for help on this function
 %
-%    [inputDb, controlDb] = databank.minusControl(model, inputDb)
-%    [inputDb, controlDb] = databank.minusControl(model, inputDb, controlDb)
-%
-%
-% ## Input Arguments ##
-%
-% * `model` [ model ] - Model object on which the databases `inputDb` and `controlDb` are
-% based.
-%
-% * `inputDb` [ struct ] - Simulation database.
-%
-% * `controlDb` [ struct ] - Control database; if the input argument `controlDb` is
-% omitted the steady-state database of the model `M` is used for the
-% control database.
-%
-%
-% ## Output Arguments ##
-%
-% * `outputData` [ struct ] - Simulation-minus-control database, in which all
-% log variables are `d.x/c.x`, and all other variables are `d.x-c.x`.
-%
-% * `controlDb` [ struct ] - Control database that has been
-% subtracted from the `inputDb` database to create
-% `outputData`.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-% Run a shock simulation in full levels using a steady-state (or
-% balanced-growth-path) database as input, and then compute the deviations
-% from the steady state:
-%
-%```
-%     d = steadydb(m, 1:40);
-%     % Set up a shock or shocks here
-%     s = simulate(m, d, 1:40, "prependInput", true);
-%     s = databank.minusControl(m, s, d);
-%```
-%
-% or simply
-%
-%```
-%     s = databank.minusControl(m, s);
-%```
-%
-% The above block of code is equivalent to this one:
-%
-%```
-%     d = zerodb(m, 1:40);
-%     % Set up a shock or shocks here
-%     s = simulate(m, d, 1:40, 'deviation', true, "prependInput", true);
-%```
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
@@ -73,23 +13,38 @@ arguments
     inputDb {validate.databank}
     controlDb {validate.databank} = struct([])
 
-    opt.Range {validate.range} = Inf
+    opt.Range {validate.mustBeRange} = Inf
+    opt.AddToDatabank (1, 1) {locallyValidateDatabank} = @auto
 end
 
+opt.Range = double(opt.Range);
+
 if isempty(controlDb) || isempty(fieldnames(controlDb))
-    dbRange = databank.range(inputDb, "sourceNames", string(fieldnames(inputDb)));
-    if iscell(dbRange)
-        exception.error([
-            "Databank:MixedFrequency"
-            "Input time series must be all of the same date frequency."
-        ]);
+    if any(isinf(opt.Range))
+        dbRange = databank.range(inputDb, "sourceNames", string(fieldnames(inputDb)));
+        if iscell(dbRange)
+            exception.error([
+                "Databank:MixedFrequency"
+                "Input time series must be all of the same date frequency."
+            ]);
+        end
+    else
+        dbRange = opt.Range;
     end
     controlDb = steadydb(model, dbRange);
 end
 
 quantity = getp(model, "Quantity");
 inx = getIndexByType(quantity, 1, 2, 31, 32);
-outputDb = struct();
+
+if isequal(opt.AddToDatabank, @auto)
+    outputDb = inputDb;
+else
+    outputDb = opt.AddToDatabank;
+end
+
+needsClip = isinf(opt.Range(1)) && isinf(opt.Range(end));
+
 for pos = reshape(find(inx), 1, [])
     n = quantity.Name{pos};
     if isfield(inputDb, n) && isfield(controlDb, n)
@@ -105,10 +60,95 @@ for pos = reshape(find(inx), 1, [])
                 real(controlDb.(n)) ...
             );
             outputSeries = comment(outputSeries, inputDb.(n));
-            outputDb.(n) = outputSeries;
+            if needsClip
+                outputSeries = clip(outputSeries, opt.Range);
+            end
+            if isstruct(outputDb)
+                outputDb.(n) = outputSeries;
+            else
+                store(outputDb, n, outputSeries);
+            end
         end
     end
 end
 
 end%
+
+%
+% Local validators
+%
+
+function locallyValidateDatabank(x)
+    %(
+    if validate.databank(x) || isequal(x, @auto)
+        return
+    end
+    error("Input value must be a databank (struct or Dictionary) or @auto.");
+    %)
+end%
+
+
+
+
+%
+% Unit tests
+%
+%{
+##### SOURCE BEGIN #####
+
+% saveAs=databank/minusControlUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+m = Model.fromSnippet("test", linear=true);
+m = solve(m);
+m = steady(m);
+
+% test>>>
+% !variables x, y
+% !log-variables y
+% !equations x = 0; y = 1;
+% <<<test
+
+d.x = Series(1:10, @randn);
+d.y = exp(Series(1:10, @randn));
+
+
+%% Test control databank 
+
+c = steadydb(m, 1:10);
+smc1 = databank.minusControl(m, d, c);
+smc2 = databank.minusControl(m, d);
+
+for n = access(m, "transition-variables")
+        assertEqual(testCase, smc1.(n).Data, smc2.(n).Data);
+end
+
+
+%% Test Range option
+
+range = 3:8;
+c = steadydb(m, range);
+smc1 = databank.minusControl(m, d, c);
+smc2 = databank.minusControl(m, d, range=range);
+
+for n = access(m, "transition-variables")
+        assertEqual(testCase, smc1.(n).Data, smc2.(n).Data);
+end
+
+
+%% Test AddToDatabank option
+
+outputDb = Dictionary();
+smc1 = databank.minusControl(m, d);
+smc2 = databank.minusControl(m, d, addToDatabank=outputDb);
+
+assertClass(testCase, smc2, "Dictionary");
+
+for n = access(m, "transition-variables")
+        assertEqual(testCase, smc1.(n).Data, smc2.(n).Data);
+end
+
+##### SOURCE END #####
+%}
 
