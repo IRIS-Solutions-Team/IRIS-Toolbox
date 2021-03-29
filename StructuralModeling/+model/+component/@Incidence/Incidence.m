@@ -85,6 +85,16 @@ classdef Incidence
         end%
 
 
+        function [minSh, maxSh] = getMinMaxShifts(this)
+            sh0 = this.PosOfZeroShift;
+            inc = across(this, 'Eqtn');
+            inc = any(inc, 1);
+            pos = find(inc);
+            minSh = pos(1) - sh0;
+            maxSh = pos(end) - sh0;
+        end%
+
+
         function minShift = get.MinShift(this)
             sh0 = this.PosOfZeroShift;
             inc = across(this, 'Eqtn');
@@ -97,7 +107,7 @@ classdef Incidence
             sh0 = this.PosOfZeroShift;
             inc = across(this, 'Eqtn');
             inc = any(inc, 1);
-            maxShift = find(inc, 1, 'Last') - sh0;
+            maxShift = find(inc, 1, "last") - sh0;
         end%
 
 
