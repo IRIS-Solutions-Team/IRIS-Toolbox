@@ -1,14 +1,9 @@
 % changeLogStatus  Change log status of quantities
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 function this = changeLogStatus(this, newStatus, namesToChange, varargin)
-
-TYPE = @int8;
 
 if isequal(namesToChange, @all)
     inxToChange = getIndexByType(this, varargin{:});
