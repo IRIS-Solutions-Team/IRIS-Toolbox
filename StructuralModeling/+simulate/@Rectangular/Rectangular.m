@@ -69,7 +69,7 @@ classdef Rectangular < handle
 
     properties (Dependent)
         CurrentForward
-        NumOfHashEquations
+        NumHashEquations
     end
 
 
@@ -89,8 +89,7 @@ classdef Rectangular < handle
             keepExpansion = true;
             triangular = false;
 
-            [this.FirstOrderSolution{1:6}, ~, ~, ~, this.FirstOrderSolution{7}] ...
-                = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
+            [this.FirstOrderSolution{1:7}] = getIthRectangularSolution(model, variantRequested);
 
             [this.FirstOrderExpansion{:}] ...
                 = expansionMatrices(model, variantRequested, triangular);
@@ -147,7 +146,7 @@ classdef Rectangular < handle
         end%
 
 
-        function value = get.NumOfHashEquations(this)
+        function value = get.NumHashEquations(this)
             value = numel(this.HashEquationsIndividually);
         end%
 

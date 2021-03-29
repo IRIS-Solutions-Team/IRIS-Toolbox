@@ -8,7 +8,7 @@
 
 function calculateHashMultipliers(this, data)
 
-nh = this.NumOfHashEquations;
+nh = this.NumHashEquations;
 window = data.Window;
 
 % Simulation columns

@@ -13,7 +13,7 @@ TYPE = @int8;
 %--------------------------------------------------------------------------
 
 [ny, nxi, nb, nf, ne, ng] = sizeSolution(this);
-nh = this.NumOfHashEquations;
+nh = this.NumHashEquations;
 YXEPG = data.YXEPG;
 
 inxY = getIndexByType(this.Quantity, TYPE(1));
