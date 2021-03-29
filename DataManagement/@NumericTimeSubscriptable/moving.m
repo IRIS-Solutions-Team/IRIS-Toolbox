@@ -36,8 +36,6 @@ range = pp.Results.range;
 %}
 % <=R2019a
 
-opt.Window = locallyResolveWindow(opt.Window, this);
-
 % Legacy input argument
 if ~isequal(range, Inf)
     opt.Range = range;
@@ -53,7 +51,8 @@ if ~isequal(opt.Range, @all) && ~isequal(opt.Range, Inf)
 end
 
 if ~isempty(opt.Window)
-    this.Data = locallyMoving(this.Data, opt.Window, opt.Function, this.MissingValue, this.MissingTest, opt.Period);
+    freq = dater.getFrequency(this.Start);
+    this.Data = series.moving(this.Data, freq, opt.Window, opt.Function, this.MissingValue, this.MissingTest, opt.Period);
     this = trim(this);
 else
     this = emptyData(this);
@@ -62,100 +61,8 @@ end
 end%
 
 %
-% Local functions
+% Local validators
 %
-
-function inputData = locallyMoving(inputData, window, func, missingValue, missingTest, period)
-    %(
-    sizeData = size(inputData);
-    numRows = sizeData(1);
-    numColumns = prod(sizeData(2:end));
-
-    for column = 1 : numColumns
-        if ~isreal(window)
-            inxMissing = missingTest(inputData(:, column));
-            windowLength = imag(window);
-            windowOffset = real(window);
-            if windowLength~=0 || ~all(inxMissing)
-                outputData = inputData;
-                for row = 1 : numRows
-                    selectData = locallySelectNonmissingData(inputData(:, column), inxMissing, row, windowLength, windowOffset);
-                    if ~isempty(selectData)
-                        outputData(row, column) = feval(func, selectData);
-                    else
-                        outputData(row, column) = missingValue;
-                    end
-                end
-            else
-                outputData = repmat(missingValue, size(inputData));
-            end
-        else
-            shiftedData = series.shift(inputData(:, column), window);
-            if ~period
-                outputData(:, column) = transpose(feval(func, transpose(shiftedData), 1));
-            else
-                % Use a for loop to make sure only the respective moving window of
-                % observations shaped as a column vector enters the function
-                for row = 1 : numRows
-                    outputData(row, column) = feval(func, reshape(shiftedData(row, :), [], 1));
-                end
-            end
-        end
-    end
-    inputData = outputData;
-    %)
-end%
-
-
-function selectData = locallySelectNonmissingData(data, inxMissing, row, windowLength, windowOffset)
-    %(
-    direction = sign(windowLength);
-    windowLength = abs(windowLength);
-    if direction>0
-        selectData = data(row+windowOffset:end);
-        inxMissing = inxMissing(row+windowOffset:end);
-    else
-        selectData = data(1:row+windowOffset);
-        inxMissing = inxMissing(1:row+windowOffset);
-    end
-
-    selectData(inxMissing) = [];
-    if numel(selectData)<windowLength
-        selectData = [];
-        return
-    end
-
-    if direction>0
-        selectData = selectData(1:windowLength);
-    else
-        selectData = selectData(end-windowLength+1:end);
-    end
-    %)
-end%
-
-%
-% Local Validators
-%
-
-function window = locallyResolveWindow(window, inputSeries)
-    %(
-    AUTO_WINDOW_FREQUENCIES = Frequency([1, 2, 4, 12]);
-    if isnumeric(window) 
-        window = reshape(window, 1, []);
-        return
-    end
-    freq = dater.getFrequency(inputSeries.Start);
-    if ismember(freq, AUTO_WINDOW_FREQUENCIES)
-        window = (-freq+1) : 0;
-        return
-    end
-    exception.error([
-        "Series:InvalidMovingWindow"
-        "Option Window=@auto is not allowed for time series of %s frequency. "
-    ], string(Frequency(freq)));
-    %)
-end%
-
 
 function locallyValidateWindow(input)
     %(
