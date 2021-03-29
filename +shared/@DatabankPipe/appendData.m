@@ -13,12 +13,20 @@ if numel(varargin)==2
     postsample = varargin{2};
 elseif numel(varargin)==1 && validate.databank(varargin{1})
     opt = varargin{1};
-    if isfield(opt, 'DbOverlay') && ~isequal(opt.DbOverlay, false)
+    if isfield(opt, "DbOverlay") && ~isequal(opt.DbOverlay, false)
         presample = opt.DbOverlay;
         postsample = opt.DbOverlay;
     else
-        presample = opt.AppendPresample;
-        postsample = opt.AppendPostsample;
+        try
+            presample = opt.PrependInput;
+        catch
+            presample = opt.AppendPresample;
+        end
+        try
+            postsample = opt.AppendInput;
+        catch
+            postsample = opt.AppendPostsample;
+        end
     end
 end
 
