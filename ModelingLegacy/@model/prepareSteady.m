@@ -76,8 +76,8 @@ if isempty(parserLinear) || isempty(parserNonlinear)
     parserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter("SuccessOnly", false, @validate.logicalScalar);
     parserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
-    parserNonlinear.addParameter('Log', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
-    parserNonlinear.addParameter('Unlog', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    parserNonlinear.addParameter('Log', string.empty(1, 0), @(x) isequal(x, @all) || validate.list(x));
+    parserNonlinear.addParameter('Unlog', string.empty(1, 0), @(x) isequal(x, @all) || validate.list(x));
     parserNonlinear.addParameter('SaveAs', [ ], @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
     parserNonlinear.addSwapFixOptions( );
 end
