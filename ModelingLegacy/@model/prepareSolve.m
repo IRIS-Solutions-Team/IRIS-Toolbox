@@ -13,6 +13,7 @@ arguments
     options.Run (1, 1) logical = true
     options.Equations = ""
     options.Normalize (1, 1) logical = true
+    options.PreferredSchur (1, 1) string {mustBeMember(options.PreferredSchur, ["schur", "qz"])} = "schur"
     options.Select (1, 1) logical = true
     options.Symbolic (1, 1) logical = true
     options.Error (1, 1) logical = false

@@ -94,7 +94,7 @@ for v = variantsRequested
         info.ExitFlag(v) = -3;
         continue
     end
-    
+
     % Check system matrices for complex numbers.
     if ~isreal(system.K{1}) ...
             || ~isreal(system.K{2}) ...
@@ -119,18 +119,18 @@ for v = variantsRequested
         info.ExitFlag(v) = NaN;
         continue;
     end
-    
-    
+
+
     % __Schur decomposition & saddle-path check__
-    
-    
+
+
     if doTransition
         restoreWarnings = warning("query");
         if ~opt.Warning 
             warning("off", join([exception.Base.IRIS_IDENTIFIER, "Model", "QZWarning"], ":"));
         end
 
-        if numXifWithinSystem>0
+        if opt.PreferredSchur=="qz" || numXifWithinSystem>0
             % Generalized Schur for models with fwl variables
             [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedSchur(system, EIGEN_TOLERANCE, SEVN2_TOLERANCE);
             info.SchurDecomposition(v) = "qz";
@@ -139,7 +139,7 @@ for v = variantsRequested
             [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputePlainSchur(system, EIGEN_TOLERANCE);
             info.SchurDecomposition(v) = "schur";
         end
-        
+
         this.Variant.EigenValues(1, :, v) = eigen;
         info.EigenValues{v} = eigen;
 
@@ -149,7 +149,7 @@ for v = variantsRequested
         warning(restoreWarnings);
     end
 
-    
+
     if info.ExitFlag(v)==1
         if ~this.IsLinear
             % Steady-state levels needed in hereTransitionEquations() and
@@ -198,7 +198,7 @@ for v = variantsRequested
             this.Variant.FirstOrderSolution{8}(:, :, v) = vthY;
         end
     end
-    
+
     if ~isempty(progress)
         update(progress, v/length(variantsRequested));
     end
@@ -490,7 +490,7 @@ return
         this.Variant.FirstOrderSolution{9}(:, :, v) = Zb;
     end%
 
-    
+
     function transformMeasurement( )
         % Transform the Zb matrix to Za:
         %     y = Zb*xib -> y = Za*alpha
@@ -513,7 +513,7 @@ function [eigenStability, bk, exitFlag] = locallyVerifyStability(eigenValues, nu
     inxUnitRoots = abs(absEigen-1)<tolerance;
     numUnitRoots = nnz(inxUnitRoots);
     numStableRoots = nnz(inxStableRoots);
-    
+
 
     % Check BK saddle-path condition
 
@@ -601,7 +601,7 @@ function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedS
             "before finding a stable decomposition."
         ], equationOrder(1)-1);
     end
-    
+
 
     % Reorder inverse eigenvalues
 
@@ -623,9 +623,9 @@ function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedS
     ixInfEigVal = invEigen==0;
     eigen(~ixInfEigVal) = 1./invEigen(~ixInfEigVal);
     eigen(ixInfEigVal) = Inf;
-    
+
     return
-    
+
         function flag = hereApplySevn2Patch( )
             % Sum of two eigvals near to 2 may indicate inaccuracy
             % Largest eigval less than 1
@@ -666,7 +666,7 @@ function [SS, TT, QQ, ZZ, T0, eqOrder, eigen] = locallyComputePlainSchur(system,
     eqOrder = 1 : size(system.A{2}, 1);
 
     T0 = system.A{2} \ system.B{2};
-    [ZZ, TT] = schur(-full(T0), "real");
+    [ZZ, TT] = schur(full(T0), "real");
     T0 = -T0;
 
     eigen = -ordeig(TT);
