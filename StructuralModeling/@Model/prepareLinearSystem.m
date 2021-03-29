@@ -137,7 +137,7 @@ return
                 update.StdCorr = this.Variant.StdCorr(1, :, input.Variant);
                 update.Steady = false;
                 update.CheckSteady = false;
-                update.Solve = prepareSolve(this, 'silent', true);
+                update.Solve = prepareSolve(this, "silent", true);
             end%
     end%
 

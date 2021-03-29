@@ -50,7 +50,7 @@ if data.NumExogenizedYX==0
     columnRangeOfHashedYX = firstColumnFrame : lastHashedYX;
     inxHashedYX = data.InxHashedYX(:, columnRangeOfHashedYX);
     density = nnz(inxHashedYX) / numel(inxHashedYX);
-    numElements = nnz(inxHashedYX) * rect.NumOfHashEquations * data.Window;
+    numElements = nnz(inxHashedYX) * rect.NumHashEquations * data.Window;
     if  density<MAX_DENSITY || numElements<MAX_NUM_OF_ELEMENTS
         %
         % Run the nonlinear simulations by precalculating the hash multipliers

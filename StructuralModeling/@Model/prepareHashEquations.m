@@ -17,7 +17,7 @@ function [ ...
 %
 % Select dynamic hash equations
 %
-inxHash = this.Equation.InxOfHashEquations;
+inxHash = this.Equation.InxHashEquations;
 eqtn = this.Equation.Dynamic(inxHash);
 eqtn = cellfun(@vectorize, eqtn, 'UniformOutput', false);
 preamble = this.PREAMBLE_DYNAMIC;
