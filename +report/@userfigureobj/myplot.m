@@ -28,24 +28,6 @@ if ~isempty(This.savefig)
     set(h,'visible',visibleFlag);
     delete(figFile);
     This.handle = h;
-    if true % ##### MOSW
-        % Matlab only
-        %-------------
-        % Do nothing.
-    else
-        % Octave only
-        %-------------
-        a = findobj(h, 'type', 'axes'); %#ok<UNRCH>
-        if ~isempty(a)
-            xLimMode = getappdata(h, 'IRIS_XLIM_MODE');
-            yLimMode = getappdata(h, 'IRIS_YLIM_MODE');
-            zLimMode = getappdata(h, 'IRIS_ZLIM_MODE');
-            set(a, ...
-                'xLimMode', xLimMode, ...
-                'yLimMode', yLimMode, ...
-                'zLimMode', zLimMode);
-        end
-    end
 end
 
 end

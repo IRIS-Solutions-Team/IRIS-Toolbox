@@ -156,16 +156,12 @@ if isSelect
 end
 lsName = {rowNames, colNames};
 
-if true % ##### MOSW
-    % Convert output matrices to namedmat objects if requested.
-    if isNamedMat
-        X = namedmat(X, rowNames, colNames);
-        if nargout > 1
-            Y = namedmat(Y, rowNames, colNames);
-        end
+% Convert output matrices to namedmat objects if requested.
+if isNamedMat
+    X = namedmat(X, rowNames, colNames);
+    if nargout > 1
+        Y = namedmat(Y, rowNames, colNames);
     end
-else
-    % Do nothing.
 end
 
 end

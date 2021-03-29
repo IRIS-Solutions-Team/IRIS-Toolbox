@@ -246,7 +246,6 @@ return
             % Read individual comma-separated cells on the current line. Capture the
             % entire match (including separating commas and double quotes), not only
             % tokens -- this is a workaround for a bug in Octave.
-            % @@@@@ MOSW
             tkn = regexp(line, '[^",]*,|[^",]*$|"[^"]*",|"[^"]*"$', 'match');
             % Remove separating commas from the end of cells.
             tkn = regexprep(tkn, ',$', '', 'once');
@@ -409,11 +408,11 @@ return
             % repeated patterns and because `strrep` is not able to detect word
             % boundaries. Handle quoted NaNs first.
             file = replace(file, """" + opt.NaN + """", "NaN");
-			if strcmp(opt.NaN, ".")
-				file = regexprep(file, "(?<=,)(\.)(?=(,|\n|\r))", "NaN");
-			else
-				file = replace(file, opt.NaN, "NaN");
-			end
+            if strcmp(opt.NaN, ".")
+                file = regexprep(file, "(?<=,)(\.)(?=(,|\n|\r))", "NaN");
+            else
+                file = replace(file, opt.NaN, "NaN");
+            end
         end
         
         % Replace empty character cells with numeric NaNs
@@ -437,27 +436,31 @@ return
         % Read numeric data; empty cells will be treated either as `NaN` or
         % `NaN+NaNi` depending on the presence or absence of complex
         % numbers in the rest of that particular row.
-        data = textscan( file, '', -1, ...
-                         'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
-                         'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', -Inf, ...
-                         'CommentStyle', 'Matlab', 'CollectOutput', true );
+        data = textscan( ...
+            file, '', -1 ...
+            , 'Delimiter', ',', 'WhiteSpace', whiteSpace ...
+            , 'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', -Inf ...
+            , 'CommentStyle', 'Matlab', 'CollectOutput', true ...
+        );
         if isempty(data)
-            throw( exception.Base('Dbase:InvalidLoadFormat', 'error'), fileName ); %#ok<GTARG>
+            throw(exception.Base('Dbase:InvalidLoadFormat', 'error'), fileName); %#ok<GTARG>
         end
         data = data{1};
         inxMissing = false(size(data));
         % The value `-Inf` indicates a possible missing value (but may be a
         % genuine `-Inf`, too). Re-read the table again, with missing
         % values represented by `NaN` this time to pin down missing values.
-        isMaybeMissing = real(data)==-Inf;
-        if any(isMaybeMissing(:))
-            data1 = textscan( file, '', -1, ...
-                              'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
-                              'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', NaN, ...
-                              'CommentStyle', 'Matlab', 'CollectOutput', true );
+        inxMaybeMissing = real(data)==-Inf;
+        if nnz(inxMaybeMissing)>0
+            data1 = textscan( ...
+                file, '', -1 ...
+                , 'Delimiter', ',', 'WhiteSpace', whiteSpace ...
+                , 'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', NaN ...
+                , 'CommentStyle', 'Matlab', 'CollectOutput', true ...
+            );
             data1 = data1{1};
-            isMaybeMissing1 = isnan(real(data1));
-            inxMissing(isMaybeMissing & isMaybeMissing1) = true;
+            inxMaybeMissing1 = isnan(real(data1));
+            inxMissing(inxMaybeMissing & inxMaybeMissing1) = true;
         end
         if strcmpi(opt.Continuous, 'Descending')
             data = flipud(data);
@@ -583,7 +586,7 @@ return
                     newEntry = userdata(newEntry, thisUserData);
                 end
             elseif ~isempty(tmpSize)
-                % Numeric data.
+                % Numeric data
                 numColumns = prod(tmpSize(2:end));
                 data__ = reshape(data(1:tmpSize(1), count+(1:numColumns)), tmpSize);
                 inxMissing__ = reshape(inxMissing(1:tmpSize(1), count+(1:numColumns)), tmpSize);

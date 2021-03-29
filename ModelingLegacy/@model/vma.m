@@ -92,13 +92,9 @@ if isSelect
 end
 list = {rowNames,colNames};
 
-if true % ##### MOSW
-    % Convert output matrix to namedmat object if requested.
-    if isNamedMat
-        phi = namedmat(phi,rowNames,colNames);
-    end
-else
-    % Do nothing.
+% Convert output matrix to namedmat object if requested.
+if isNamedMat
+    phi = namedmat(phi,rowNames,colNames);
 end
 
 end

@@ -11,7 +11,6 @@ mlock( );
 persistent X;
 
 if isempty(X)
-    % @@@@ MOSW
     X = struct( );
     X.name = cell(1,0);
     X.data = cell(1,0);
@@ -69,7 +68,6 @@ switch action
         varargout{1} = X.name(~X.lock);
         
     case 'clear'
-        % @@@@@ MOSW
         X = struct( );
         X.name = cell(1,0);
         X.data = cell(1,0);

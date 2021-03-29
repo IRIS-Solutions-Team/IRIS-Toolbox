@@ -100,7 +100,6 @@ e = zeros(numOfPeriods, numOfRuns, nv);
 for i = find(ixe)
     name = this.Quantity.Name{i};
     c = utils.concomment(name, namesOfResponses, false);
-    % @@@@@ MOSW.
     c = repmat(c, [1, 1, nv]);
     s.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), c);
 end

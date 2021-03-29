@@ -106,13 +106,7 @@ if isequal(this.options.legend, true) ...
         if strcmp(this.options.legendlocation, 'bottom')
             lg = grfun.bottomlegend(ax(1), legEntLhs{:});
         else
-            if true % ##### MOSW
-                lg = legend(ax(1), legEntLhs{:}, ...
-                    'location', this.options.legendlocation);
-            else
-                lg = grfun.xlegend(Ax(1), legEntLhs{:}, ...
-                    'location', This.options.legendlocation); %#ok<UNRCH>
-            end
+            lg = legend(ax(1), legEntLhs{:}, 'location', this.options.legendlocation);
             if ~isempty(this.options.legendoptions)
                 set(lg, this.options.legendoptions{:});
             end
@@ -178,51 +172,26 @@ return
         ax(1).XRuler.Visible = 'on';
         ax(2).XRuler.Visible = 'on';
         set(ax(2), 'ColorOrder', get(ax(1), 'ColorOrder'));
-        if true % ##### MOSW
-            try
-                % HG2.
-                set(ax, 'ColorOrderIndex', 1);
-            catch
-                % HG1.
-                setappdata(ax(1), 'PlotColorIndex', 1);
-                setappdata(ax(2), 'PlotColorIndex', 1);
-            end
-        else
-            % Do nothing.
-        end
+        set(ax, 'ColorOrderIndex', 1);
     end
 
 
     function doPlot( )
         for ii = 1 : nChild
             if lhsInx(ii)
-                % Plot on the LHS.
+                % Plot on the LHS
                 legEnt{ii} = plot(this.children{ii}, ax(1));
             elseif rhsInx(ii)
-                % Plot on the RHS.
+                % Plot on the RHS
                 legEnt{ii} = plot(this.children{ii}, ax(2));
                 ixLegLhs(ii) = false;
             end
             if isRhs
                 % In graphs with LHS and RHS axes, keep the color order index the same in
                 % Ax(1) and Ax(2) at all times.
-                if true % ##### MOSW
-                    try
-                        % HG2.
-                        cix = get(ax, 'ColorOrderIndex');
-                        cix = max([cix{:}]);
-                        set(ax, 'ColorOrderIndex', cix);
-                    catch
-                        % HG1.
-                        cix1 = getappdata(ax(1), 'PlotColorIndex');
-                        cix2 = getappdata(ax(2), 'PlotColorIndex');
-                        cix = max([cix1, cix2]);
-                        setappdata(ax(1), 'PlotColorIndex', cix);
-                        setappdata(ax(2), 'PlotColorIndex', cix);
-                    end
-                else
-                    % Do nothing.
-                end
+                cix = get(ax, 'ColorOrderIndex');
+                cix = max([cix{:}]);
+                set(ax, 'ColorOrderIndex', cix);
             end
         end
     end

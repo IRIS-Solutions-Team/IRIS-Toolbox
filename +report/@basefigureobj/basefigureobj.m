@@ -8,11 +8,7 @@ classdef basefigureobj < report.tabularobj
     
     methods
         function This = basefigureobj(varargin)
-            if true % ##### MOSW
-                IsVisibleDefault = false;
-            else
-                IsVisibleDefault = true; %#ok<UNRCH>
-            end
+            IsVisibleDefault = false;
             validFn = iris.options.validfn;
             This = This@report.tabularobj(varargin{:});
             This.childof = {'report','align'};
@@ -48,12 +44,6 @@ classdef basefigureobj < report.tabularobj
         function This = setoptions(This,varargin)
             This = setoptions@report.tabularobj(This,varargin{:});
             This.options.long = false;
-            if true % ##### MOSW
-                % Do nothing.
-            else
-                % Figure windows must be visible for printing in Octave.
-                This.options.visible = true; %#ok<UNRCH>
-            end
         end
     end
 

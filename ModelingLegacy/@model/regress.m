@@ -122,13 +122,9 @@ for ialt = 1 : nAlt
     R2(:,ialt) = 1 - diag(CovRes(:,:,ialt))./diag(YY);
 end
 
-if true % ##### MOSW
-    if isNamedMat
-        B = namedmat(B,Lhs,Rhs);
-        CovRes = namedmat(CovRes,Lhs,Lhs);
-    end
-else
-    % Do nothing.
+if isNamedMat
+    B = namedmat(B,Lhs,Rhs);
+    CovRes = namedmat(CovRes,Lhs,Lhs);
 end
 
 end

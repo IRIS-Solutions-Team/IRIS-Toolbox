@@ -217,10 +217,8 @@ return
 
     function doRptFailure( )
         if s.IsError
-            % @@@@@ MOSW
             msgFunc = @(varargin) utils.error(varargin{:});
         else
-            % @@@@@ MOSW
             msgFunc = @(varargin) utils.warning(varargin{:});
         end
         switch exit

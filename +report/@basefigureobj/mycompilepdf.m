@@ -83,17 +83,9 @@ return
         
         % Print the figure window to PDF.
         try
-            if true % ##### MOSW
-                % Matlab only
-                %-------------
-                p = get(h, 'PaperSize');
-                set(h, 'PaperPosition', [0, 0, p]);
-                print(h, '-dpdf', '-painters', pdfName);
-            else
-                % Octave only
-                %-------------
-                print(h, '-dpdf', pdfName); %#ok<UNRCH>
-            end
+            p = get(h, 'PaperSize');
+            set(h, 'PaperPosition', [0, 0, p]);
+            print(h, '-dpdf', '-painters', pdfName);
             addtempfile(this, [pdfName, '.pdf']);
         catch Err
             utils.error('report:mycompilepdf', ...

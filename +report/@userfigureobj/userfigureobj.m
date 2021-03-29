@@ -25,27 +25,6 @@ classdef userfigureobj < report.basefigureobj
                         'a valid handle to a figure window.']);
                 end
                 figFile = [tempname(pwd( )),'.fig'];
-                if true % ##### MOSW
-                    % Matlab only
-                    %-------------
-                    % Do nothing.
-                else
-                    % Octave only
-                    %-------------
-                    a = findobj(h,'type','axes'); %#ok<UNRCH>
-                    if ~isempty(a)
-                        xLimMode = get(a,'xLimMode');
-                        yLimMode = get(a,'yLimMode');
-                        zLimMode = get(a,'zLimMode');
-                        setappdata(h,'xLimMode',xLimMode);
-                        setappdata(h,'yLimMode',yLimMode);
-                        setappdata(h,'zLimMode',zLimMode);
-                        set(a, ...
-                            'xLimMode','manual', ...
-                            'yLimMode','manual', ...
-                            'zLimMode','manual');
-                    end
-                end
                 hgsave(h,figFile);
                 fid = fopen(figFile);
                 This.savefig = fread(fid);
