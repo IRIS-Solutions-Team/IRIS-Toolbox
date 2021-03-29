@@ -100,24 +100,9 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [this, numPaths, eigenValues] = solve(this, varargin)
+function [this, exitFlag, info] = solve(this, varargin)
 
-TYPE = @int8;
-
-%( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@Model/solve');
-    addRequired(pp, 'Model', @(x) isa(x, 'model'));
-end
-%)
-parse(pp, this);
-
-% Do not unfold varargin to varargin{:} here because prepareSolve expectes
-% the options to be folded
-opt = prepareSolve(this, 'verbose', varargin);
-
-%--------------------------------------------------------------------------
+opt = prepareSolve(this, varargin{:});
 
 % Refresh dynamic links
 if any(this.Link)
@@ -136,24 +121,25 @@ end
 
 % Calculate solutions for all parameterisations, and store expansion
 % matrices.
-[this, numPaths, nanDeriv, sing2, bk] = solveFirstOrder(this, Inf, opt);
+[this, info] = solveFirstOrder(this, Inf, opt);
+exitFlag = info.ExitFlag;
 
-if (opt.Warning || opt.Error) && any(numPaths~=1)
+if (opt.Warning || opt.Error) && any(info.ExitFlag~=1)
     hereReportFailure( );
 end
 
-eigenValues = this.Variant.EigenValues;
-
 return
 
-
     function hereReportFailure( )
+        %(
         if opt.Error
             msgFunc = @(varargin) utils.error(varargin{:});
         else
             msgFunc = @(varargin) utils.warning(varargin{:});
         end
-        [body, args] = solveFail(this, numPaths, nanDeriv, sing2, bk);
+        [body, args] = solveFail(this, info);
         msgFunc('model:solve', body, args{:});
+        %)
     end%
 end%
+

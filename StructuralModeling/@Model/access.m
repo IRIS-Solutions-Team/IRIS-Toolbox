@@ -82,16 +82,16 @@ what = erase(what, ["_", "-", ":", "."]);
 % Model components
 %
 
-[output, handled] = access(this.Quantity, what);
-if handled, return, end
+[output, beenHandled] = access(this.Quantity, what);
+if beenHandled, return, end
 
-[output, handled] = access(this.Equation, what);
-if handled, return, end
+[output, beenHandled] = access(this.Equation, what);
+if beenHandled, return, end
 
 
 stringify = @(x) reshape(string(x), 1, [ ]);
 output = [ ];
-handled = true;
+beenHandled = true;
 
 
 %==========================================================================
@@ -125,13 +125,13 @@ elseif matches(what, "steadyLevel")
     );
      
 else
-    handled = false;
+    beenHandled = false;
 
 end
 %==========================================================================
 
 
-if ~handled
+if ~beenHandled
     exception.error([
         "Model:InvalidAccessQuery"
         "This is not a valid query into Model objects: %s "

@@ -1,4 +1,3 @@
-function [this, ok] = update(this, p, variantRequested)
 % update  Update parameters, sstate, solve, and refresh
 %
 % Backend [IrisToolbox] function
@@ -7,11 +6,11 @@ function [this, ok] = update(this, p, variantRequested)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function [this, success] = update(this, p, variantRequested)
+
 if nargin<3
     variantRequested = 1;
 end
-
-%--------------------------------------------------------------------------
 
 update = this.Update;
 posValues = update.PosOfValues;
@@ -27,7 +26,6 @@ this.Variant.Values(:, :, variantRequested) = update.Values;
 this.Variant.StdCorr(:, :, variantRequested) = update.StdCorr;
 
 runSteady = ~isequal(update.Steady, false);
-runSolve = ~isequal(update.Solve, false);
 runCheckSteady = ~isequal(update.CheckSteady, false);
 
 % Update regular parameters and run refresh if needed
@@ -53,7 +51,7 @@ end
 % refreshed, and no user preprocessor is called, return immediately as
 % there is no need to re-solve or re-sstate the model.
 if ~any(inxValues) && ~isa(update.Steady, 'function_handle') && ~beenRefreshed
-    ok = true;
+    success = true;
     return
 end
 
@@ -61,11 +59,11 @@ if this.IsLinear
     %
     % Linear Models
     %
-    if runSolve
-        [this, numStablePaths, nanDerv, sing2, bk] = ...
-            solveFirstOrder(this, variantRequested, update.Solve);
+    if update.Solve.Run
+        [this, solveInfo] = solveFirstOrder(this, variantRequested, update.Solve);
     else
-        numStablePaths = 1;
+        solveInfo = struct();
+        solveInfo.ExitFlag = 1;
     end
     if runSteady
         this = steadyLinear(this, update.Steady, variantRequested);
@@ -75,18 +73,16 @@ if this.IsLinear
     end
     okSteady = true;
     okCheckSteady = true;
-	sstateErrList = { };
+    listSteadyErrors = { };
 
 else
     %
     % Nonlinear Models
     %
     okSteady = true;
-    sstateErrList = { };
+    listSteadyErrors = { };
     okCheckSteady = true;
-    nanDerv = [ ];
-    sing2 = false;
-    bk = nan(3, 1);
+    solveInfo = struct();
     if runSteady
         if isa(update.Steady, 'function_handle')
             % Call to a user-supplied sstate solver
@@ -100,8 +96,7 @@ else
             this(variantRequested) = m;
         else
              % Call to the [IrisToolbox] sstate solver
-            [this, okSteady] = ...
-                steadyNonlinear(this, update.Steady, variantRequested);
+            [this, okSteady] = steadyNonlinear(this, update.Steady, variantRequested);
         end
         if needsRefresh
             m = refresh(m, variantRequested);
@@ -109,31 +104,27 @@ else
     end
     % Run chksstate only if steady state recomputed
     if runSteady && runCheckSteady
-        [~, ~, ~, sstateErrList] = ...
-            implementCheckSteady(this, variantRequested, update.CheckSteady);
-        sstateErrList = sstateErrList{1};
-        okCheckSteady = isempty(sstateErrList);
+        [~, ~, ~, listSteadyErrors] = implementCheckSteady(this, variantRequested, update.CheckSteady);
+        listSteadyErrors = listSteadyErrors{1};
+        okCheckSteady = isempty(listSteadyErrors);
     end
-    if okSteady && okCheckSteady && runSolve
-        [this, numStablePaths, nanDerv, sing2, bk] = ...
-            solveFirstOrder(this, variantRequested, update.Solve);
+    if okSteady && okCheckSteady && update.Solve.Run
+        [this, solveInfo] = solveFirstOrder(this, variantRequested, update.Solve);
     else
-        numStablePaths = 1;
+        solveInfo = struct();
+        solveInfo.ExitFlag = 1;
     end
 end
 
-ok = numStablePaths==1 && okSteady && okCheckSteady;
-if ok
+success = solveInfo.ExitFlag==1 && okSteady && okCheckSteady;
+if success
     return
 end
 
-if strcmpi(update.NoSolution, 'Error')
+if startsWith(update.NoSolution, "error", "ignoreCase", true)
     % Throw error, give access to the failed model object and terminate
     m = this(variantRequested);
-    model.failed( ...
-        m, okSteady, okCheckSteady, sstateErrList, ...
-        numStablePaths, nanDerv, sing2, bk ...
-    );
+    model.failed(m, okSteady, okCheckSteady, listSteadyErrors, solveInfo);
 end
 
 end%

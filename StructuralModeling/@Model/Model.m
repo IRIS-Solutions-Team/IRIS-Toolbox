@@ -15,7 +15,8 @@
 %
 % ### Constructor ###
 % ------------------------------------------------------------------------------------------------------------
-%   Model                     - Create Model object from source model files
+%   Model.fromFile            - 
+%   Model.fromSnippet         - 
 %
 %
 % ### Getting Information about Model Objects ###
@@ -365,6 +366,7 @@ classdef Model ...
         varargout = table(varargin)
         varargout = setBounds(varargin)
         varargout = printWithValues(varargin)
+        varargout = replaceNames(varargin)
         varargout = resetBounds(varargin)
         varargout = getBounds(varargin)
         %)
@@ -433,6 +435,7 @@ classdef Model ...
 
         varargout = getIdInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
+        varargout = getIthRectangularSolution(varargin)
         varargout = implementGet(varargin)
         varargout = prepareHashEquations(varargin)
         varargout = prepareLinearSystem(varargin)
@@ -455,6 +458,12 @@ classdef Model ...
         varargout = simulateNone(varargin)
         varargout = splitIntoFrames(varargin)
         %)
+    end
+
+
+    methods (Static) % Static constructors
+        varargout = fromFile(varargin)
+        varargout = fromSnippet(varargin)
     end
 
 

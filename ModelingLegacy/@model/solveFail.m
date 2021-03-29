@@ -1,11 +1,9 @@
-function [body, args] = solveFail(this, numOfPaths, ixNanDeriv, sing2, bk)
 % solveFail  Create error/warning message when function solve fails
 %
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function [body, args] = solveFail(this, solveInfo)
 
 %#ok<*AGROW>
 
@@ -15,70 +13,70 @@ BRX = sprintf('\n    ');
 
 body = 'Solution not available for some parameter variant(s)';
 args = { };
-ixReportBK = numOfPaths==0 | isinf(numOfPaths);
+inxReportSaddlePath = solveInfo.ExitFlag==0 | isinf(solveInfo.ExitFlag);
 
 while true
-    ix = numOfPaths==-4;
+    ix = solveInfo.ExitFlag==-4;
     if any(ix)
         body = [body, BRX, ...
             'Model declared nonlinear, fails to solve ', ...
             'because of problems with steady state %s.'];
         args{end+1} = exception.Base.alt2str(ix);
-        markAsProcessed( );
+        hereMarkAsProcessed( );
         continue
     end
     
-    ix = numOfPaths==-2;
+    ix = solveInfo.ExitFlag==-2;
     if any(ix)
         body = [body, BRX, ...
             'Singularity or linear dependency in some equations %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        markAsProcessed( );
+        hereMarkAsProcessed( );
         continue
     end
     
-    ix = numOfPaths==0;
+    ix = solveInfo.ExitFlag==0;
     if any(ix)
         body = [body, BRX, 'No stable solution %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        markAsProcessed( );
+        hereMarkAsProcessed( );
         continue
     end
     
-    ix = isinf(numOfPaths);
+    ix = isinf(solveInfo.ExitFlag);
     if any(ix)
         body = [body, BRX, 'Multiple stable solutions %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        markAsProcessed( );
+        hereMarkAsProcessed( );
         continue
     end
     
-    ix = imag(numOfPaths)~=0;
+    ix = imag(solveInfo.ExitFlag)~=0;
     if any(ix)
         body = [body, BRX, 'Complex derivatives %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        markAsProcessed( );
+        hereMarkAsProcessed( );
         continue
     end
     
-    ix = isnan(numOfPaths);
+    ix = isnan(solveInfo.ExitFlag);
     if any(ix)
         body = [body, BRX, 'NaNs in system matrices %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        markAsProcessed( );
+        hereMarkAsProcessed( );
         continue
     end
     
     % Singularity in state space or steady state problem
-    ix = numOfPaths==-1;
+    ix = solveInfo.ExitFlag==-1;
     if any(ix)
-        if any(sing2(:))
-            pos = find(any(sing2, 2));
+        if any(solveInfo.Singularity(:))
+            pos = find(any(solveInfo.Singularity, 2));
             pos = pos(:).';
             for ieq = pos
                 body = [body, BRX, ...
                     'Singularity or NaN in this measurement equation %s: %s'];
-                args{end+1} = exception.Base.alt2str(sing2(ieq, :));
+                args{end+1} = exception.Base.alt2str(solveInfo.Singularity(ieq, :));
                 args{end+1} = this.Equation.Input{ieq};
             end
         elseif ~this.IsLinear && isnan(this, 'sstate')
@@ -91,41 +89,40 @@ while true
                 'Singularity in state-space matrices %s'];
             args{end+1} = exception.Base.alt2str(ix);
         end
-        markAsProcessed( );        
+        hereMarkAsProcessed( );        
         continue
     end
     
-    ix = numOfPaths==-3;
+    ix = solveInfo.ExitFlag==-3;
     if any(ix)
         args = { };
         for ii = find(ix)
-            for jj = find(ixNanDeriv{ii})
+            for jj = find(solveInfo.InxNanDeriv{ii})
                 body = [body, BRX, ...
                     'NaN in derivatives of this equation %s: %s'];
                 args{end+1} = exception.Base.alt2str(ii);
                 args{end+1} = this.Equation.Input{jj};
             end
         end
-        markAsProcessed( );
+        hereMarkAsProcessed( );
         continue
     end
     
     break
 end
 
-if any(ixReportBK)
+if any(inxReportSaddlePath)
     body = [body, BRX, ...
         '[Bkw variables, Unit roots, Stable roots]: ', ...
         sprintf( ...
         [ exception.Base.ALT2STR_DEFAULT_LABEL, '#%g[%g %g %g] ' ], ...
-        [ find(ixReportBK);bk(:, ixReportBK) ] ...
+        [ find(inxReportSaddlePath); solveInfo.SaddlePath(:, inxReportSaddlePath) ] ...
         ) ];
 end
 
 return
 
-
-    function markAsProcessed( )
-        numOfPaths(ix) = 1;
+    function hereMarkAsProcessed( )
+        solveInfo.ExitFlag(ix) = 1;
     end%
 end%

@@ -1,4 +1,4 @@
-function [s, this] = diffsrf(this, time, listOfParams, varargin)
+function [s, this] = diffsrf(this, time, listParams, varargin)
 % diffsrf  Differentiate shock response functions w.r.t. specified parameters
 %
 % ## Syntax ##
@@ -44,8 +44,8 @@ function [s, this] = diffsrf(this, time, listOfParams, varargin)
 TYPE = @int8;
 
 % Convert char list to cellstr.
-if ischar(listOfParams)
-    listOfParams = regexp(listOfParams, '\w+', 'match');
+if ischar(listParams)
+    listParams = regexp(listParams, '\w+', 'match');
 end
 
 %--------------------------------------------------------------------------
@@ -54,7 +54,6 @@ nv = length(this);
 ixy = this.Quantity.Type==TYPE(1);
 ixx = this.Quantity.Type==TYPE(2);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixp = this.Quantity.Type==TYPE(4);
 ixg = this.Quantity.Type==TYPE(5);
 
 if nv>1
@@ -63,29 +62,29 @@ if nv>1
     throw( exception.Base(THIS_ERROR, 'error') );
 end
 
-ell = lookup(this.Quantity, listOfParams, TYPE(4));
-posOfParams = ell.PosName;
-indexOfValidNames = ~isnan(posOfParams);
+ell = lookup(this.Quantity, listParams, TYPE(4));
+posParams = ell.PosName;
+indexOfValidNames = ~isnan(posParams);
 if any(~indexOfValidNames)
     throw( exception.Base('Model:INVALID_NAME', 'error'), ...
-           'parameter ', listOfParams{indexOfValidNames} ); %#ok<GTARG>
+           'parameter ', listParams{indexOfValidNames} ); %#ok<GTARG>
 end
 
 % Find optimal step for two-sided derivatives
-p = this.Variant.Values(1, posOfParams);
-numOfParams = numel(posOfParams);
+p = this.Variant.Values(1, posParams);
+numParams = numel(posParams);
 h = eps^(1/3) * max([p; ones(size(p))], [ ], 1);
 
 % Assign alternative parameterisations p(i)+h(i) and p(i)-h(i)
-thisWithSteps = alter(this, 2*numOfParams);
+thisWithSteps = alter(this, 2*numParams);
 P = struct( );
-twoSteps = nan(1, numOfParams);
-for i = 1 : numOfParams
-    pp = p(i)*ones(1, numOfParams);
+twoSteps = nan(1, numParams);
+for i = 1 : numParams
+    pp = repmat(p(i), 1, numParams);
     pp(i) = p(i) + h(i);
-    pm = p(i)*ones(1, numOfParams);
+    pm = repmat(p(i), 1, numParams);
     pm(i) = p(i) - h(i);
-    P.(listOfParams{i}) = [pp, pm];
+    P.(listParams{i}) = [pp, pm];
     twoSteps(i) = pp(i) - pm(i);
 end
 thisWithSteps = assign(thisWithSteps, P);
@@ -101,22 +100,22 @@ for i = find(ixy | ixx | ixe | ixg)
     name = this.Quantity.Name{i};
     x = s.(name).Data;  
     c = s.(name).Comment;
-    numOfShocks = size(x, 2);
-    dx = nan(size(x, 1), numOfShocks, numOfParams);
-    dc = cell(1, numOfShocks, numOfParams);
-    for j = 1 : numOfParams
-        dx(:, :, j) = (x(:, :, j) - x(:, :, numOfParams+j)) / twoSteps(j);
-        dc(1, :, j) = strcat(c(1, 1:numOfShocks, j), '/', listOfParams{j});
+    numShocks = size(x, 2);
+    newData = nan(size(x, 1), numShocks, numParams);
+    newComment = strings(1, numShocks, numParams);
+    for j = 1 : numParams
+        newData(:, :, j) = (x(:, :, j) - x(:, :, numParams+j)) / twoSteps(j);
+        newComment(1, :, j) = c(1, 1:numShocks, j) + "/" + string(listParams{j});
     end
     if opt.Delog && this.Quantity.IxLog(i)
-        dx = real(exp(dx));
+        newData = real(exp(newData));
     end
-    s.(name).Data = dx;
-    s.(name).Comment = dc;
+    s.(name).Data = newData;
+    s.(name).Comment = newComment;
     s.(name) = trim(s.(name));
 end
 
-s = addToDatabank('Default', this, s);
+s = addToDatabank("Default", this, s);
 
 end%
 

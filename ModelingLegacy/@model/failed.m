@@ -1,6 +1,3 @@
-function varargout = failed( this, ...
-                             okSteady, okCheckSteady, steadyErrors, ...
-                             numOfPaths, nanDerv, sing2, bk )
 % failed  Give access to the last failed model object.
 %
 % Syntax
@@ -26,13 +23,12 @@ function varargout = failed( this, ...
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function varargout = failed(this, okSteady, okCheckSteady, steadyErrors, solveInfo)
 
 persistent store
-
 if nargin==0
     varargout{1} = store;
     return
@@ -48,7 +44,7 @@ elseif ~okCheckSteady
         'Steady-state error in this equation: ''%s''.', ...
         steadyErrors{:});
 else
-    [body, args] = solveFail(this, numOfPaths, nanDerv, sing2, bk);
+    [body, args] = solveFail(this, solveInfo);
     c = utils.error('Model:Failed', body, args{:});
 end
 

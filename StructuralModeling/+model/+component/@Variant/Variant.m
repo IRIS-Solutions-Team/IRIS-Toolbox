@@ -2,8 +2,10 @@ classdef Variant
     properties
         Values = double.empty(1, 0, 0)
         StdCorr = double.empty(1, 0, 0)
-        FirstOrderSolution = repmat({double.empty(0, 0, 0)}, 1, 9)
+
+        FirstOrderSolution = repmat({double.empty(0, 0, 0)}, 1, 10)
         FirstOrderExpansion = repmat({double.empty(0, 0, 0)}, 1, 5)
+
         IxInit = logical.empty(1, 0, 0)
         EigenValues = double.empty(1, 0, 0)
         EigenStability = int8.empty(1, 0, 0)
@@ -16,7 +18,7 @@ classdef Variant
     
     
     properties (Constant)
-        SOLUTION_TRANSITION = [1, 2, 3, 4, 7, 8]
+        SOLUTION_TRANSITION = [1, 2, 3, 4, 7, 8, 10]
         SOLUTION_MEASUREMENT = [4, 5, 6, 9] 
         LIST_OF_ARRAY_PROPERTIES = {'Values', 'StdCorr', 'IxInit', 'EigenValues', 'EigenStability'}
         LIST_OF_CELL_PROPERTIES = {'FirstOrderSolution', 'FirstOrderExpansion'}
@@ -117,6 +119,7 @@ classdef Variant
             this.FirstOrderSolution{7} = nan(nb, nb, nv);              % U
             this.FirstOrderSolution{8} = nan(nxi, nh*(1+ahead), nv);   % Y - add-factors in hashed equations
             this.FirstOrderSolution{9} = nan(max(ny, nz), nb, nv);     % Zb - non-transformed measurement.
+            this.FirstOrderSolution{10} = nan(nxi, nb, nv);            % T0 - non-transformed (rectangular) transition matrix
             
             this.FirstOrderExpansion{1} = nan(nb, kf, nv); % Xa
             this.FirstOrderExpansion{2} = nan(nf, kf, nv); % Xf
@@ -140,26 +143,6 @@ classdef Variant
             if isempty(this.FirstOrderSolution{1})
                 this = preallocateSolution(this, vector, 0, numHashed, numObserved);
             end
-
-            % Solution matrix R depends on the length of expansion, and
-            % needs to be updated.
-            %nnActual = size(this.FirstOrderSolution{2}, 2);
-            %nnRequired = ne*(1 + ahead);
-            %if nnActual<nnRequired
-            %    this.FirstOrderSolution{2} = [this.FirstOrderSolution{2}, nan(nxi, nnRequired-nnActual, nv)];
-            %elseif nnActual>nnRequired
-            %    this.FirstOrderSolution{2} = this.FirstOrderSolution{2}(:, :, 1:nnRequired);
-            %end
-
-            % Solution matrix Y depends on the length of expansion, and
-            % needs to be updated.
-            %nnActual = size(this.FirstOrderSolution{8}, 2);
-            %nnRequired = numHashed*(1 + ahead);
-            %if nnActual<nnRequired
-            %    this.FirstOrderSolution{8} = [this.FirstOrderSolution{8}, nan(nxi, nnRequired-nnActual, nv)];
-            %elseif nnActual>nnRequired
-            %    this.FirstOrderSolution{8} = this.FirstOrderSolution{8}(:, :, 1:nnRequired);
-            %end
 
             for i = this.SOLUTION_TRANSITION
                 % If FirstOrderSolution{i} is empty, then FirstOrderSolution{i}(:, :, 1) = NaN
@@ -294,6 +277,11 @@ classdef Variant
             else
                 numOutput = nargout;
             end
+
+            if nargin<3
+                pos = 1 : numOutput;
+            end
+
             x = cell(1, numOutput);
             if size(this.Values, 3)==1 && (isequal(variantsRequested, 1) || strcmp(variantsRequested, ':'))
                 x(1:numOutput) = this.FirstOrderSolution(1:numOutput);
@@ -302,6 +290,7 @@ classdef Variant
                     x{i} = this.FirstOrderSolution{i}(:, :, variantsRequested);
                 end
             end
+
             varargout = cell(1, nargout);
             if nargout==1
                 varargout{1} = x;
@@ -346,6 +335,9 @@ classdef Variant
     end
 
 
+    methods
+        varargout = getIthRectangularSolution(varargin)
+    end
 
 
     properties (Dependent)

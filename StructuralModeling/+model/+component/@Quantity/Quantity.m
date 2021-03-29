@@ -55,9 +55,8 @@ classdef (CaseInsensitiveProperties=true) ...
 
     properties (Dependent)
         InxLog
+        InxObserved
         NumQuantities
-        LabelOrName
-        Label4ShockContributions
     end
     
     
@@ -106,6 +105,11 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
+        function value = get.InxObserved(this)
+            value = this.IxObserved;
+        end%
+
+
         function this = set.InxLog(this, value)
             this.IxLog = value;
         end%
@@ -121,31 +125,41 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
-        function value = get.LabelOrName(this)
-            value = this.Label;
-            ixEmpty = cellfun('isempty', value);
-            value(ixEmpty) = this.Name(ixEmpty);
+        function labels = getLabelsOrNames(this, inx)
+            labels = string(this.Label);
+            names = string(this.Name);
+            if nargin>=2
+                labels = labels(inx);
+                names = names(inx);
+            end
+            inxEmpty = labels=="";
+            labels(inxEmpty) = names(inxEmpty);
         end%
 
 
-        function value = get.Label4ShockContributions(this)
+        function value = getLabelsForShockContributions(this)
             TYPE = @int8;
-            value = this.LabelOrName;
-            inxOfYX = getIndexByType(this, TYPE(1), TYPE(2));
-            inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
-            numE = nnz(inxOfE);
-            contributions = [ this.Name(inxOfE), ...
-                              {'Init+Const+Trends', 'Nonlinear'} ];
-            posOfYX = find(inxOfYX);
-            inxOfLog = this.InxLog;
-            for pos = posOfYX
-                name = this.Name(pos);
-                if inxOfLog(pos)
-                    sign = '<-(*)';
+            labels = getLabelsOrNames(this);
+            names = this.Name;
+
+            inxE = getIndexByType(this, TYPE(31), TYPE(32));
+            contributions = [string(this.Name(inxE)), "Init+Const+Trends", "Nonlinear"];
+
+            inxYX = getIndexByType(this, TYPE(1), TYPE(2));
+            inxLog = this.InxLog;
+            value = cell(size(labels));
+            for pos = 1 : numel(labels)
+                if inxYX(pos)
+                    name = string(names(pos));
+                    if inxLog(pos)
+                        sign = "<-(*)";
+                    else
+                        sign = "<-(+)";
+                    end
+                    value{pos} = name + sign + contributions;
                 else
-                    sign = '<-(+)';
+                    value{pos} = labels(pos);
                 end
-                value{pos} = strcat(name, sign, contributions);
             end
         end%
     end

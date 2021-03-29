@@ -1,11 +1,9 @@
-function  [this, success, outputInfo] = steadyLinear(this, steady, variantsRequested)
 % steadyLinear  Calculate steady state in linear models
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function  [this, success, outputInfo] = steadyLinear(this, options, variantsRequested)
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 STEADY_TOLERANCE = this.Tolerance.Steady;
@@ -13,7 +11,7 @@ TYPE = @int8;
 PTR = @int16;
 
 try
-    throwWarning = isequal(steady.Warning, true);
+    throwWarning = isequal(options.Warning, true);
 catch %#ok<CTCH>
     throwWarning = true;
 end
@@ -31,7 +29,7 @@ outputInfo = struct( );
 outputInfo.NumOfPaths = [ ];
 outputInfo.EigenValues = [ ];
 
-if ~isequal(steady.Solve, false)
+if options.Solve.Run
     hereSolveModel( );
 end
 
@@ -96,11 +94,7 @@ return
 
 
     function hereSolveModel( )
-        solveOptions = steady.Solve;
-        if isequal(solveOptions, true)
-            solveOptions = cell.empty(1, 0);
-        end
-        [this, numOfPaths, eigenValues] = solve(this, solveOptions{:});
+        [this, numOfPaths, eigenValues] = solve(this, options.Solve{:});
         outputInfo.NumOfPaths = numOfPaths;
         outputInfo.EigenValues = eigenValues;
     end%

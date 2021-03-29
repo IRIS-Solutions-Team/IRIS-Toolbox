@@ -1,46 +1,30 @@
-function opt = prepareSolve(this, mode, inputSolveOptions)
 % prepareSolve  Prepare model solution
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-if nargin<3
-    inputSolveOptions = cell.empty(1, 0);
-else
-    if isequal(inputSolveOptions, false)
-        opt = false;
-        return
-    elseif isequal(inputSolveOptions, true)
-        inputSolveOptions = cell.empty(1, 0);
-    end
-end
+function options = prepareSolve(this, options)
 
-%( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('model.prepareSolve');
-    addRequired(pp, 'Model', @(x) isa(x, 'model'));
-    addRequired(pp, 'Mode', @ischar);
-    addParameter(pp, {'Eqtn', 'Equations'}, @all, @(x) isequal(x, @all) || ischar(x));
-    addParameter(pp, {'Normalize', 'Normalise'}, true, @(x) isequal(x, true) || isequal(x ,false));
-    addParameter(pp, 'Select', true, @validate.logicalScalar);
-    addParameter(pp, 'Symbolic', true, @validate.logicalScalar);
-    addParameter(pp, 'Error', false, @validate.logicalScalar);
-    addParameter(pp, 'Fast', false, @validate.logicalScalar);
-    addParameter(pp, 'Progress', false, @validate.logicalScalar);
-    addParameter(pp, 'Warning', true, @validate.logicalScalar);
+% >=R2019b
+%(
+arguments
+    this %#ok<INUSA>
+    options.Silent (1, 1) logical = false
+    options.Run (1, 1) logical = true
+    options.Equations = ""
+    options.Normalize (1, 1) logical = true
+    options.Select (1, 1) logical = true
+    options.Symbolic (1, 1) logical = true
+    options.Error (1, 1) logical = false
+    options.Progress (1, 1) logical = false
+    options.Warning (1, 1) logical = true
 end
 %)
-opt = parse(pp, this, mode, inputSolveOptions{:});
+% >=R2019b
 
-%--------------------------------------------------------------------------
-
-if contains(mode, 'silent', 'IgnoreCase', true)
-    opt.Progress = false;
-    opt.Warning = false;
+if options.Silent
+    options.Progress = false;
+    options.Warning = false;
 end
 
 end%

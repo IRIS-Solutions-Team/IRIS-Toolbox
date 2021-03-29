@@ -1,12 +1,11 @@
-function this = rename(this, varargin)
+function this = rename(this, method, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.component.Quantity.rename');
-    inputParser.addRequired('Quantity', @(x) isa(x, 'model.component.Quantity'));
-    inputParser.addRequired('RenamePairs', @iscellstr);
+% >=R2019b
+arguments
+    this model.component.Quantity
+    method (1, 1) string {mustBeMember(method, ["pair", "list"])}
 end
-inputParser.parse(this, varargin);
+% >=R2019b
 
 if isempty(this.OriginalNames)
     this.OriginalNames = this.Name;

@@ -8,7 +8,6 @@
 
 function prepared = simulateFrames(this, systemProperty, run, prepareOnly)
 
-TYPE = @int8;
 if nargin<4
     prepareOnly = false;
 end
@@ -18,7 +17,6 @@ end
 runningData = systemProperty.CallerData;
 method = runningData.Method(min(run, end));
 deviation = runningData.Deviation(min(run, end));
-needsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
 
 %
 % True if this is a regular call from @Model.simulate; false if this is a
@@ -158,7 +156,7 @@ for frame = 1 : numFrames
     if ~isempty(dcy) && runningData.PrepareOutputInfo
         dcyTable = locallyCompileDiscrepancyTable( ...
             this, dcy, ...
-            this.Equation.Input(this.Equation.InxOfHashEquations) ...
+            this.Equation.Input(this.Equation.InxHashEquations) ...
         );
         discrepancyTables{frame} = dcyTable;
     end
@@ -228,10 +226,10 @@ end
 end%
 
 %
-% Local Functions
+% Local functions
 %
 
-function dcyTable = locallyCompileDiscrepancyTable(this, discrepancy, equations)
+function dcyTable = locallyCompileDiscrepancyTable(~, discrepancy, equations)
     %(
     MAX_STRLENGTH = 50;
     maxInRow = max(abs(discrepancy), [ ], 2);
@@ -241,16 +239,20 @@ function dcyTable = locallyCompileDiscrepancyTable(this, discrepancy, equations)
     equations = equations(:);
     inxTooLong = cellfun(@(x) length(x)>MAX_STRLENGTH, equations);
     ellipsis = iris.get('Ellipsis');
-    equations(inxTooLong) = cellfun( @(x) [x(1:MAX_STRLENGTH-1), ellipsis], ...
-                                     equations(inxTooLong), ...
-                                     'UniformOutput', false );
-    dcyTable = table( equations, maxInRow, discrepancy, ...
-                              'VariableNames', {'Equation', 'MaxDiscrepancy', 'Discrepancies'} );
+    equations(inxTooLong) = cellfun( ...
+        @(x) [x(1:MAX_STRLENGTH-1), ellipsis] ...
+        , equations(inxTooLong) ...
+        , 'UniformOutput', false ...
+    );
+    dcyTable = table( ...
+        equations, maxInRow, discrepancy ...
+        , 'VariableNames', {'Equation', 'MaxDiscrepancy', 'Discrepancies'} ...
+    );
     %)
 end%
 
 
-function blazer = locallyPrepareBlazer(this, runningData, frameFromTo, data)
+function blazer = locallyPrepareBlazer(~, runningData, frameFromTo, data)
     %(
     if isa(runningData.DefaultBlazer, "solver.blazer.FirstOrder")
         blazer = [ ];
@@ -267,12 +269,12 @@ function blazer = locallyPrepareBlazer(this, runningData, frameFromTo, data)
         setFrame(blazer, frameFromTo);
         prepareForSolver(blazer, runningData.SolverOptions, data);
     end
-
     %)
 end%
 
 
 function YXEPG = locallyResetOutsideBaseRange(YXEPG, columnsToRun, inxInitInPresample)
+    %(
     numQuantities = size(YXEPG, 1);
     numColumnsPresample = size(inxInitInPresample, 2);
     numColumnsBeforePresample = columnsToRun(1) - numColumnsPresample - 1;
@@ -285,5 +287,6 @@ function YXEPG = locallyResetOutsideBaseRange(YXEPG, columnsToRun, inxInitInPres
     end
     YXEPG(:, 1:columnsToRun(1)-1) = [beforePresample, presample];
     YXEPG(:, columnsToRun(end)+1:end) = NaN;
+    %)
 end%
 

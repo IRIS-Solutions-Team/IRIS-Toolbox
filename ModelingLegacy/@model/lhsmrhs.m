@@ -127,7 +127,7 @@ parse(pp, varargin{:});
 opt = pp.Options;
 
 if opt.HashEquationsOnly
-    inxEquations = inxEquations & this.Equation.InxOfHashEquations;
+    inxEquations = inxEquations & this.Equation.InxHashEquations;
 end
 
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)

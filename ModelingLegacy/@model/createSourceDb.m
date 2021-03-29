@@ -72,7 +72,7 @@ end
 extdRange = dater.colon(extdStart, extdEnd);
 numExtdPeriods = numel(extdRange);
 
-label = this.Quantity.LabelOrName;
+labelsOrNames = getLabelsOrNames(this.Quantity);
 
 inxY = this.Quantity.Type==TYPE(1);
 inxX = this.Quantity.Type==TYPE(2);
@@ -118,7 +118,7 @@ for i = find(inxX)
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE ...
         , permute(X(i, :, :), [2, 3, 1]) ...
-        , extdStart, label{i} ...
+        , extdStart, labelsOrNames(i) ...
     );
 end
 
@@ -133,7 +133,7 @@ for i = find(inxY | inxE)
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE ...
         , permute(x, [2, 3, 1]) ...
-        , start, label{i} ...
+        , start, labelsOrNames(i) ...
     );
 end
 
@@ -157,7 +157,7 @@ for i = find(inxG)
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE ...
         , permute(X(i, :, :), [2, 3, 1]) ...
-        , extdStart, label{i} ...
+        , extdStart, labelsOrNames(i) ...
     );
 end
 
@@ -171,10 +171,11 @@ outputDb = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outputDb);
 %
 % Add LHS names from reporting equations
 %
-nameLhs = this.Reporting.NamesOfLhs;
-for i = 1 : length(nameLhs)
-    % TODO: use label or name
-    outputDb.(nameLhs{i}) = comment(TIME_SERIES_TEMPLATE, nameLhs{i});
+nameLhs = string(this.Reporting.NamesOfLhs);
+for i = 1 : numel(nameLhs)
+    temp = TIME_SERIES_TEMPLATE;
+    temp.Comment(:) = nameLhs(i);
+    outputDb.(nameLhs{i}) = temp;
 end
 
 end%

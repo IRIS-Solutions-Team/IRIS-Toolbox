@@ -153,7 +153,10 @@ this.Update.PosOfValues = posValues;
 this.Update.PosOfStdCorr = posStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
 this.Update.CheckSteady = prepareCheckSteady(this, 'silent', opt.CheckSteady);
-this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
+if islogical(opt.Solve)
+    opt.Solve = {"run", opt.Solve};
+end
+this.Update.Solve = prepareSolve(this, opt.Solve{:}, "silent", true);
 this.Update.NoSolution = 'Error';
 
 %

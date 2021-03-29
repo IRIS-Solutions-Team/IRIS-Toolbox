@@ -136,7 +136,10 @@ this.Update.PosOfValues = posOfValues;
 this.Update.PosOfStdCorr = posOfStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
 this.Update.CheckSstate = prepareCheckSteady(this, 'silent', opt.ChkSstate);
-this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
+if islogical(opt.Solve)
+    opt.Solve = {"run", opt.Solve};
+end
+this.Update.Solve = prepareSolve(this, opt.Solve{:}, "silent", true);
 this.Update.NoSolution = 'Error';
 
 numOfParameters = length(lsPar);

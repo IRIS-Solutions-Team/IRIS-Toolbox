@@ -91,9 +91,8 @@ opt = parser.Options;
 %--------------------------------------------------------------------------
 
 keepExpansion = true;
-[T, R, K, Z, H, D, U, Omg, Zb] = sspaceMatrices(this, ':', keepExpansion, opt.Triangular);
-[~, nxi, ~, nf, ne] = sizeSolution(this.Vector);
-nv = length(this);
+[T, R, K, Z, H, D, U, Omg, ~] = sspaceMatrices(this, ':', keepExpansion, opt.Triangular);
+[~, nxi, ~, ~, ne] = sizeSolution(this.Vector);
 
 inxShocksToKeep = true(1, ne);
 if opt.RemoveInactive

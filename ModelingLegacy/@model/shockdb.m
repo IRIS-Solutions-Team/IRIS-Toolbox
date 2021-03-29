@@ -100,8 +100,7 @@ ne = sum(inxE);
 nv = length(this);
 numPeriods = numel(range);
 namesShocks = this.Quantity.Name(inxE);
-labelOrName = this.Quantity.LabelOrName;
-labelOrName = labelOrName(inxE);
+labelsOrNames = getLabelsOrNames(this.Quantity, inxE);
 
 if isempty(runningData) || isequal(runningData, struct( ))
     E = zeros(ne, numPeriods);
@@ -141,7 +140,7 @@ if nargout==1
     for i = 1 : ne
         name = namesShocks{i};
         e = permute(E(i, :, :), [2, 3, 1]);
-        runningData.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), labelOrName{i});
+        runningData.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), labelsOrNames(i));
     end
 elseif nargout==2
     [minShift, maxShift] = getActualMinMaxShifts(this);

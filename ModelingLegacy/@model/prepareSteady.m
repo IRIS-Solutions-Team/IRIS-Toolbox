@@ -51,7 +51,7 @@ if isempty(parserLinear) || isempty(parserNonlinear)
     parserLinear = extend.InputParser('Model/prepareSteady');
     parserLinear.addRequired('model', @(x) isa(x, 'model'));
     parserLinear.addParameter('Growth', true, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    parserLinear.addParameter('Solve', false, @model.validateSolve);
+    parserLinear.addParameter('Solve', {"run", false});
     parserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
 
     %
@@ -86,19 +86,24 @@ end
 %--------------------------------------------------------------------------
 
 if this.IsLinear
-    %
-    % Linear Steady State Solver
-    %
+
+    % __Linear steady state solver__
+
     parse(parserLinear, this, varargin{:});
     varargout{1} = parserLinear.Options;
+    if islogical(varargout{1}.Solve)
+        varargout{1}.Solve = {"run", varargout{1}.Solve};
+    end
+    varargout{1}.Solve = prepareSolve(this, varargout{1}.Solve{:});
+
 else
-    %
-    % Nonlinear Steady State Solver
-    %
+
+    % __Nonlinear steady state solver__
+
     % Capture obsolete syntax with solver options directly passed among other
     % sstate options and not as suboptions through SolverOptions=; these are only used
     % if SolverOptions= is a string
-    %
+
     parse(parserNonlinear, this, varargin{:});
     opt = parserNonlinear.Options;
     unmatchedSolverOptions = parserNonlinear.UnmatchedInCell;

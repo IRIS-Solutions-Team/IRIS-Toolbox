@@ -29,7 +29,12 @@ numE = sum(inxE);
 numYXE = numY + numX + numE;
 sh0 = this.Incidence.Dynamic.PosOfZeroShift;
 
-[modelMinSh, modelMaxSh] = getActualMinMaxShifts(this)
+
+% Look up the actual maximum lead. The maximum lead determines
+% whether this is a fwl or bwl model, and how to treat static variables.
+
+[~, modelMaxSh] = getActualMinMaxShifts(this);
+
 
 % Find max lag `minSh`, and max lead, `maxSh`, for each transition
 % variable
@@ -51,7 +56,7 @@ for k = maxMaxSh : -1 : minMinSh
     ];
 end
 
-numX = length(this.Vector.System{2});
+numX = numel(this.Vector.System{2});
 nu = sum(imag(this.Vector.System{2})>=0);
 np = numX - nu;
 
@@ -128,8 +133,13 @@ for i = 1 : numX
     end
 end
 
+
 % __Solution IDs__
-kf = sum( imag(this.Vector.System{2})>=0 ); % Fwl in system.
+
+% Number of fwl variables in the unsolved system; may differ from the
+% number of fwl variables in the solved system
+kf = sum( imag(this.Vector.System{2})>=0 ); 
+
 this.Vector.Solution = this.Vector.System;
 this.Vector.Solution{2} = [ ...
     this.Vector.System{2}(~this.D2S.IndexOfXfToRemove), ...
@@ -145,11 +155,11 @@ return
 
         % List of variables requested by user to be in backward-looking vector
         if isequal(opt.makebkw, @auto)
+            % Static variables are made forward looking
             inxMakeBkw = false(1, numQuantities);
-            if modelMaxSh<=0
-                inxMakeBkw(inxX) = true;
-            end
         elseif isequal(opt.makebkw, @all)
+            % Static variables are made backward looking; if all variables
+            % are backward looking, the Schur decompositions
             inxMakeBkw = false(1, numQuantities);
             inxMakeBkw(inxX) = true;
         else
@@ -163,12 +173,12 @@ return
         % Add transition variables earmarked for measurement to the list of
         % variables forced into the backward lookig vector.
         inxMakeBkw = inxMakeBkw | this.Quantity.InxObserved;
-        
+
         % Reshape incidence matrix to nEqn-nxx-nsh.
         inc = this.Incidence.Dynamic.Matrix;
         nsh = size(inc, 2) / numQuantities;
         inc = reshape(full(inc), [size(inc, 1), numQuantities, nsh]);
-        
+
         isAnyNonlin = any(this.Equation.InxHashEquations);
         for ii = posX
             posInc = find( any(inc(inxT, ii, :), 1) ) - sh0;

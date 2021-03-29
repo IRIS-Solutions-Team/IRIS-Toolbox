@@ -55,32 +55,20 @@ function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
     , extdTimeTrend, dbInfo ...
-] = data4lhsmrhs(this, inputDb, baseRange, varargin)
+] = data4lhsmrhs(this, inputDb, baseRange, opt)
 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+arguments
+    this
+    inputDb {locallyValidateInputDbOption} 
+    baseRange (1, :) double {validate.mustBeProperRange}
+
+    opt.DbInfo struct {mustBeScalarOrEmpty} = struct([])
+    opt.IgnoreShocks (1, 1) logical = false
+    opt.ResetShocks (1, 1) logical = false
+    opt.NumDummyPeriods (1, 1) double {mustBeInteger, mustBeNonnegative} = 0
+end
 
 TYPE = @int8;
-
-%( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@Model/data4lhsmrhs.m');
-
-    addRequired(pp, 'model', @(x) isa(x, 'model'));
-    addRequired(pp, 'inputDb', @(x) validate.databank(x) || isequal(x, "asynchronous"));
-    addRequired(pp, 'baseRange', @DateWrapper.validateProperRangeInput);
-
-    addParameter(pp, 'IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'ResetShocks', false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'NumDummyPeriods', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-end
-%)
-opt = parse(pp, this, inputDb, baseRange, varargin{:});
-
-if ischar(baseRange) || isa(baseRange, 'string')
-    baseRange = textinp2dat(baseRange);
-end
 
 baseRange = double(baseRange);
 baseStart = baseRange(1);
@@ -98,7 +86,12 @@ rowNamesExceptParameters = rowNames(~inxP);
 lenExtdRange = round(extdEnd - extdStart + 1);
 extdRange = extdStart:extdEnd;
 
-dbInfo = checkInputDatabank(this, inputDb, extdRange, [ ], rowNamesExceptParameters);
+if isempty(opt.DbInfo)
+    dbInfo = checkInputDatabank(this, inputDb, extdRange, [ ], rowNamesExceptParameters);
+else
+    dbInfo = opt.DbInfo;
+end
+
 YXEG = requestData(this, dbInfo, inputDb, extdRange, rowNamesExceptParameters);
 
 extdTimeTrend = dat2ttrend(extdRange, this);
@@ -153,5 +146,15 @@ return
         end
         YXEPG(inxToReset) = 0;
     end%
+end%
+
+
+function locallyValidateInputDbOption(x)
+    %(
+    if validate.databank(x) || validate.anyString(x, "asynchronous")
+        return
+    end
+    error("Input argument must be a struct or Dictionary.");
+    %)
 end%
 

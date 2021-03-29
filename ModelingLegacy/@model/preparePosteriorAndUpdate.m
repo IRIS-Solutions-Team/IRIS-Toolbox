@@ -1,13 +1,9 @@
-function [this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt)
 % preparePosteriorAndUpdate  Parse estimation specs, prepare Posterior object and transient model.Update
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt)
 
 % Remove empty entries from estimation specs
 fields = fieldnames(estimationSpecs).';
@@ -44,7 +40,10 @@ this.Update.PosOfValues = posValues;
 this.Update.PosOfStdCorr = posStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
 this.Update.CheckSteady = prepareCheckSteady(this, 'silent', opt.ChkSstate);
-this.Update.Solve = prepareSolve(this, 'silent', opt.Solve);
+if islogical(opt.Solve)
+    opt.Solve = {"run", opt.Solve};
+end
+this.Update.Solve = prepareSolve(this, opt.Solve{:}, "silent", true);
 this.Update.NoSolution = opt.NoSolution;
 
 % __Starting Values__

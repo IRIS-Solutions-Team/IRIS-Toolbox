@@ -1,8 +1,5 @@
 % systemFirstOrder  Calculate first-order system matrices
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
