@@ -51,7 +51,7 @@ def.fisher = {
     'percent', false, @(x) isequal(x, true) || isequal(x, false)
     'progress', false, @(x) isequal(x, true) || isequal(x, false)
     'Solve', true, @model.validateSolve
-    'Steady, sstate, sstateopt', false, @model.validateSstate
+    'Steady, sstate, sstateopt', false, @model.validateSteady
     'tolerance', eps( )^(2/3), @isnumericscalar
     };
 

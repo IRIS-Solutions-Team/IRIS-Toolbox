@@ -148,7 +148,7 @@ return
             "DatabankPipe:MissingSeries"
             "This variable is required " + context + " "
             "but missing from the input databank: %s "
-        ], allNamess(~checkIncluded));
+        ], allNames(~checkIncluded));
     end%
 
 

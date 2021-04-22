@@ -3,21 +3,19 @@ classdef Equation < parser.theparser.Generic
         Type
         ApplyEquationSwitch = true
     end
-    
-    
+
+
     properties (Constant)
         SEPARATE = '!!'
         READ_STEADY_ONLY = '!!:'
         READ_DYNAMIC_ONLY = ':!!'
     end
-    
-    
+
+
     methods
     end
-    
-    
-    
-    
+
+
     methods (Static)
         function eqtn = splitCodeIntoEquations(code)
             EQUATION_PATTERN = '[^;]+;';
@@ -40,10 +38,10 @@ classdef Equation < parser.theparser.Generic
             % matched.
             eqtn = strtrim(eqtn);
         end%
-        
-        
-        
-        
+
+
+
+
         function [lhs, sign, rhs, ixMissing] = splitLhsSignRhs(eqn)
             numEquations = length(eqn);
             lhs = cell(1, numEquations);
@@ -64,26 +62,26 @@ classdef Equation < parser.theparser.Generic
             end
             ixMissing = ixSign & (cellfun(@isempty, lhs) | cellfun(@isempty, rhs));
         end%
-        
-        
-        
-        
+
+
+
+
         function [eqtn, maxSh, minSh] = evalTimeSubs(eqtn)
             maxSh = 0;
             minSh = 0;
             lsInvalid = cell(1, 0);
-            
+
             eqtn = strrep(eqtn, '{t+', '{+');
             eqtn = strrep(eqtn, '{t-', '{-');
             eqtn = strrep(eqtn, '{0}', '');
             eqtn = strrep(eqtn, '{-0}', '');
             eqtn = strrep(eqtn, '{+0}', '');
-            
+
             % Replace standard time subscripts {k} with {@+k}.
             eqtn = regexprep(eqtn, '\{(\d+)\}', '{@+$1}');
             % Replace standard time subscripts {+k} or {-k} with {@+k} or {@-k}.
             eqtn = regexprep(eqtn, '\{([\+\-]\d+)\}', '{@$1}');
-            
+
             % Find nonstandard time subscripts, try to evaluate them and replace with
             % a standard string.
             ptn = '\{[^@].*?\}';
@@ -99,12 +97,12 @@ classdef Equation < parser.theparser.Generic
                         ];
                 end
             end
-            
+
             if ~isempty(lsInvalid)
                 throw( exception.ParseTime('TheParser:INVALID_TIME_SUBSCRIPT', 'error'), ...
                     lsInvalid{:} );
             end
-            
+
             % Find max and min time shifts.
             c = regexp(eqtn, '\{@[+\-]\d+\}', 'match');
             c = [ c{:} ]; % Expand individual equations.
@@ -115,12 +113,12 @@ classdef Equation < parser.theparser.Generic
                 maxSh = max(x);
                 minSh = min(x);
             end
-            
+
             return
-            
-            
-            
-            
+
+
+
+
             function evalNonstandardTimeSubs( )
                 try
                     % Use protected eval to avoid conflict with workspace.
@@ -142,10 +140,10 @@ classdef Equation < parser.theparser.Generic
                 end
             end%
         end%
-        
-        
-        
-        
+
+
+
+
         function varargout = protectedEval(varargin)
             varargout{1} = eval(varargin{1});
         end%
@@ -166,7 +164,7 @@ classdef Equation < parser.theparser.Generic
 
             dynamic(inxEmpty) = input(inxEmpty);
             steady(inxEmpty) = {''};
-            
+
             dynamic(~inxEmpty) = cellfun( @(eqn, pos) eqn(1:pos-1), ...
                                             input(~inxEmpty), ...
                                             posSeparate(~inxEmpty), ...

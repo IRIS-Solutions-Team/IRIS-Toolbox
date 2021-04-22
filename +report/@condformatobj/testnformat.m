@@ -22,6 +22,7 @@ args = { };
 doInputArgs( );
 nTest = length(This.format);
 passed = false(1,nTest);
+
 for i = 1 : nTest
     try %#ok<TRYNC>
         passed(i) = This.test{i}(args{:});

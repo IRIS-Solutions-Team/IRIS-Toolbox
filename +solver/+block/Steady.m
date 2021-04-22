@@ -210,7 +210,7 @@ classdef Steady < solver.block.Block
                         gx(inxLogWithinModel & gx==0) = 1;
                     end
                     
-                    XX = hereCreateTimeArray(0); 
+                    XX = hereCreateTimeArray(0);
                     y = [ ];
                     if isFunctionRequested
                         if isempty(jacobColumn)
@@ -219,7 +219,7 @@ classdef Steady < solver.block.Block
                             y = this.NumericalJacobFunc{jacobColumn}(XX, t0);
                         end
                     end
-
+                    
                     if isJacobRequested
                         XX(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
                         j = cellfun( ...
