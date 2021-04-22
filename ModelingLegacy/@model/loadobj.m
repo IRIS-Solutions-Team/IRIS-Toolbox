@@ -1,13 +1,9 @@
-function this = loadobj(this, varargin)
-% loadobj  Prepare model object for loading and handle bkw compatibility.
+% loadobj  Prepare model object for loading and handle bkw compatibility
 %
-% Backend IRIS function.
-% No help provided.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
+function this = loadobj(this, varargin)
 
 build = [ ];
 try
@@ -30,4 +26,5 @@ end
 
 this = populateTransient(this);
 
-end
+end%
+

@@ -1,4 +1,3 @@
-function dcy = lhsmrhs(this, inputData, varargin)
 % lhsmrhs  Discrepancy between the LHS and RHS of each model equation for given data
 %{
 % Syntax for Casual Evaluation
@@ -81,20 +80,18 @@ function dcy = lhsmrhs(this, inputData, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+function dcy = lhsmrhs(this, inputData, varargin)
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.lhsmrhs');
     addParameter(pp, 'HashEquationsOnly', false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, {'EquationSwitch', 'Kind'}, 'Dynamic', @(x) any(strcmpi(x, {'Dynamic', 'Steady'})));
+    addParameter(pp, "EquationSwitch", "dynamic", @(x) any(lower(string(x))==["dynamic", "steady"]));
 end
 
-%--------------------------------------------------------------------------
-
 nv = countVariants(this);
-inxM = this.Equation.Type==TYPE(1);
-inxT = this.Equation.Type==TYPE(2);
+inxM = this.Equation.Type==1;
+inxT = this.Equation.Type==2;
 inxEquations = inxM | inxT;
 
 variantsRequested = Inf;
@@ -140,7 +137,7 @@ numVariantsRequested = numel(variantsRequested);
 [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL);
 
 numExtendedPeriods = size(YXEPG, 2);
-if strcmpi(opt.EquationSwitch, 'Dynamic')
+if lower(opt.EquationSwitch)==lower("dynamic")
     eqtn = this.Equation.Dynamic;
 else
     eqtn = this.Equation.Steady;
@@ -152,7 +149,7 @@ end
 
 temp = [ eqtn{inxEquations} ];
 temp = vectorize(temp);
-fn = str2func([this.PREAMBLE_DYNAMIC, '[', temp, ']']);
+fn = str2func([this.Equation.PREAMBLE, '[', temp, ']']);
 t = 1-minSh : numExtendedPeriods-maxSh;
 dcy = [ ];
 for v = 1 : numVariantsRequested
