@@ -16,26 +16,30 @@ base and minimize repetitive model code writing tasks.
 
 You can get the model source files syntax highlighted in the Matlab editor
 to improve the readability of the files, and helps navigate the model more
-quickly. See [the setup instructions](../../install.md) for details.
+quickly; see the [setup instructions](../../install.md).
 
 
 ## Categorical list of keywords
 
 ### Declaring model names: Variables, parameters and shocks
 
+See [{{ slang._names }}](`names.md`) for details on declaring model names.
+See [{{ slang._guidelines }}](`guidelines.md`).
+
 Keyword | Description 
 ---|---
-[`!transition-variables`](!transition-variables.md) | 
-[`!transition-shocks`](!transition-shocks.md) | 
-[`!measurement-variables`](!measurement-variables.md) | 
-[`!measurement-shocks`](!measurement-shocks.md) | 
-[`!exogenous-variables`](!exogenous-variables.md) | 
-[`!parameters`](!parameters.md) | 
-[`!autoswaps-simulate`](!autoswaps-simulate.md) | 
-[`!autoswaps-steady`](!autoswaps-steady.md) | 
+[`!transition-variables`](!transition-variables.md) | {{ slang._transition_variables }}
+[`!transition-shocks`](!transition-shocks) | {{ slang._transition_shocks }}
+[`!measurement-variables`](!measurement-variables.md) | {{ slang._measurement_variables }}
+[`!measurement-shocks`](!measurement-shocks.md) | {{ slang._measurement_shocks }}
+[`!parameters`](!parameters.md) | {{ slang._parameters }}
+[`!exogenous-variables`](!exogenous-variables.md) | {{ slang._exogenous_variables }}
 
 
-### Defining model equations
+### Writing model equations
+
+See [{{ slang._equations }}](`equations.md`) for details on declaring model equations.
+See [{{ slang._guidelines }}](`guidelines.md`) for writing model source files.
 
 Keyword | Description 
 ---|---
@@ -47,7 +51,7 @@ Keyword | Description
 [`!postprocessor`](!postprocessor.md) | 
 
 
-### Controling log status of variables
+### Controlling log status of variables
 
 Keyword | Description 
 ---|---
@@ -55,15 +59,21 @@ Keyword | Description
 [`!all-but`](!all-but.md) | 
 
 
-### Other keywords
+### Defining autoswap pairs
+
+[`!autoswaps-simulate`](!autoswaps-simulate.md) | 
+[`!autoswaps-steady`](!autoswaps-steady.md) | 
+
+
+### Other keywords and syntax
 
 Keyword | Description 
 ---|---
 [`min`](min.md) | 
 [`!!`](steady-version.md) | 
 [`||`](alias.md) | 
-[`{...}`](shift) | 
-[`&`](steady-ref) | 
+[`{...}`](shift.md) | 
+[`&`](steady-ref.md) | 
 [`!ttrend`](!ttrend.md) | 
 
 
@@ -86,16 +96,16 @@ Keyword | Description
 
 Keyword | Description 
 ---|---
-[`%`](line-comment.md)
-[`%{...%}`](block-comment.md)
-[`<...>`](interp.md)
-[`!export`](!export.md)
-[`!for`](!for.md)
-[`!function`](!function.md)
-[`!if`](!if.md)
-[`!import`](!import.md)
+[`%`](line-comment.md) | 
+[`%{...%}`](block-comment.md) | 
+[`<...>`](interp.md) | 
+[`!export`](!export.md) | 
+[`!for`](!for.md) | 
+[`!function`](!function.md) | 
+[`!if`](!if.md) | 
+[`!import`](!import.md) | 
 [`!substitutions`](!substitutions.md) | 
-[`!switch`](!switch.md)
+[`!switch`](!switch.md) | 
 
 
 
