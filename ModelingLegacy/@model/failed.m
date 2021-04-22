@@ -26,7 +26,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-function varargout = failed(this, okSteady, okCheckSteady, steadyErrors, solveInfo)
+function varargout = failed(this, steadySuccess, checkSteadySuccess, steadyErrors, solveInfo)
 
 persistent store
 if nargin==0
@@ -36,10 +36,10 @@ end
 
 store = this;
 
-if ~okSteady
+if ~steadySuccess
     c = utils.error('Model:Failed', ...
         'Steady state failed to converge on current parameters.');
-elseif ~okCheckSteady
+elseif ~checkSteadySuccess
     c = utils.error('Model:Failed', ...
         'Steady-state error in this equation: ''%s''.', ...
         steadyErrors{:});

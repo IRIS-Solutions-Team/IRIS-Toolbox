@@ -1,14 +1,9 @@
 % steadyNonlinear  Solve steady equations in nonlinear models
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 function  [this, success, outputInfo] = steadyNonlinear(this, blazer, variantsRequested)
-
-TYPE = @int8;
 
 nv = countVariants(this);
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
@@ -33,7 +28,7 @@ inxZero = blazer.InxZero;
 numQuantities = numel(this.Quantity);
 numBlocks = numel(blazer.Blocks);
 needsRefresh = any(this.Link);
-inxP = getIndexByType(this.Quantity, TYPE(4));
+inxP = getIndexByType(this.Quantity, 4);
 inxLogInBlazer = blazer.Model.Quantity.InxLog;
 
 % Index of endogenous level and change quantities
@@ -74,7 +69,6 @@ outputInfo.ExitFlags = cell(1, nv);
 for v = variantsRequested
     [levelX, changeX] = hereInitialize( );
 
-    
     %
     % Add a minimum necessary subvector of StdCorr
     %
@@ -149,8 +143,8 @@ success = success(variantsRequested);
 
 return
 
-
     function [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( )
+        %(
         inxEndgLevel = false(1, numQuantities);
         inxEndgChange = false(1, numQuantities);
         for ii = 1 : numBlocks
@@ -158,12 +152,12 @@ return
             inxEndgLevel(ptrLevel) = true;
             inxEndgChange(ptrChange) = true;
         end
+        %)
     end%
 
 
-
-
     function [levelX, changeX] = hereInitialize( )
+        %(
         % __Initialize levels of endogenous quantities__
         levelX = real(this.Variant.Values(:, :, v));
         % Level variables that are set to zero (all shocks)
@@ -175,11 +169,16 @@ return
             levelX(inx) = levelX0(inx);
             inx = isnan(levelX) & inxEndgLevel;
         end
-        % Use option NanInit= to assign NaNs.
+
+        % Use option NanInit= to assign NaN initial conditions 
         levelX(inx) = real(blazer.NanInit);
+
+        % Reset zero levels to 1 for *all* log quantities (not only endogenous)
+        levelX(inxLogInBlazer & levelX==0) = 1;
+
         % levelX(inx & inxLogInBlazer) = real(blazer.NanInit);
         % levelX(inx & ~inxLogInBlazer) = log(real(blazer.NanInit));
-        
+
         % __Initialize growth rates of endogenous quantities__
         changeX = imag(this.Variant.Values(:, :, v));
         % Variables with zero growth (all variables if 'growth=' false).
@@ -192,17 +191,17 @@ return
                 changeX(inx) = changeX0(inx);
                 inx = isnan(changeX) & inxEndgChange;
             end
-            % Use option NanInit= to assign NaNs.
+            % Use option NanInit= to assign NaN.
             changeX(inx) = imag(blazer.NanInit);
         end
         % Reset zero growth to 1 for *all* log quantities (not only endogenous).
         changeX(inxLogInBlazer & changeX==0) = 1;
+        %)
     end%
 
 
-
-
     function hereCheckFixedToNaN( )
+        %(
         [levelsToFix, changesToFix] = iris.utils.splitRealImag(blazer.QuantitiesToFix);
 
         % Check for levels fixed to NaN
@@ -226,12 +225,12 @@ return
                 "The steady change of this variable is fixed but its value is NaN: %s"
             ], this.Quantity.Name{inxNaN});
         end
+        %)
     end%
 
 
-
-
     function hereCheckExogenizedToNaN( )
+        %(
         inxNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
         inxNeeded = full(inxNeeded);
         inxLevelNeeded = inxNeeded & ~inxEndgLevel & ~inxZero.Level;
@@ -253,12 +252,12 @@ return
                 this.Quantity.Name{inxChangeToReport} ...
             );
         end
+        %)
     end%
 
 
-
-
     function hereInvalidSteady( )
+        %(
         realValues__ = real(this.Variant.Values(:, :, v));
         imagValues__ = imag(this.Variant.Values(:, :, v));
         realValues__(inxInvalidLevel) = NaN;
@@ -268,10 +267,12 @@ return
         else
             this.Variant.Values(:, :, v) = realValues__ + 1i*imagValues__;
         end
+        %)
     end%
 
 
     function hereHandleErrors()
+        %(
         if ~isempty(error.EvaluatesToNan)
             throw( ...
                 exception.Base('Steady:EvaluatesToNan', 'error'), ...
@@ -286,6 +287,7 @@ return
                 "but has been assigned a zero or negative steady value: %s "
             ], name);
         end
+        %)
     end%
 end%
 
