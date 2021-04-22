@@ -6,6 +6,7 @@ arguments
     options.SaveAs (1, 1) string = ""
     options.Parameters (1, 1) logical = true
     options.Steady (1, 1) logical = true
+    options.MarkdownCode (1, 1) = false
 end
 
 modelFile = reshape(string(modelFile), 1, []);
@@ -45,6 +46,14 @@ for i = find(inxSelect)
     value = reshape(values(1, i, :), 1, []);
     valueString = "<" + join(replace(string(value), " ", ""), ", ") + ">";
     code = regexprep(code, "\<" + name + "\>(\{[^\}]*\})?", name + "$1" + valueString);
+end
+
+if ~isequal(options.MarkdownCode, false)
+    type = "";
+    if ischar(options.MarkdownCode) || isstring(options.MarkdownCode)
+        type = string(options.MarkdownCode);
+    end
+    code = "```" + type + newline + code + newline + "```" + newline;
 end
 
 if ~isempty(options.SaveAs) && strlength(options.SaveAs)>0
