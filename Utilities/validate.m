@@ -298,7 +298,7 @@ classdef validate
             
 
         function mustBeTextScalar(x)
-            try
+            try %#ok<TRYNC>
                 validate.mustBeText(x);
                 if isscalar(string(x))
                     return
@@ -363,7 +363,17 @@ classdef validate
             if validate.databankType(x)
                 return
             end
-            error("Input value must be one of {@auto, ""struct"", ""Dictionary""}");
+            error("Input value must be @auto, a struct, or a Dictionary object.");
+        end%
+        
+        function mustBeLogicalOrSuboptions(x)
+            if islogical(x) && isscalar(x)
+                return
+            end
+            if iscell(x) && isrow(x) && all(cellfun(@(n) ischar(n) || isstring(n), x(1:2:end)))
+                return
+            end
+            error("Input value must be true, false, or a cell array of suboptions.");
         end%
     end
 end
