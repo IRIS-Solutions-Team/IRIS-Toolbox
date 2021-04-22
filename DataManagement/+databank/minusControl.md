@@ -1,7 +1,6 @@
-
 # `minusControl` 
 
-{= Create simulation-minus-control database ==}
+{== Create simulation-minus-control database ==}
 
 
 ## Syntax 
