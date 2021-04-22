@@ -1,16 +1,24 @@
 # Databank Chartpacks
 
-## Categorical List of Functions
+## Categorical list of functions
 
-### Creating New Chartpacks
+### Creating new chartpacks
 
 | Function | Description |
 |---|---|
 | [`databank.Chartpack`](Chartpack.md) | {{ chartpack._Chartpack }} |
 
 
-### Modifiable Properties of Chartpacks
+### Defining the content
 
-| Property | Description |
+| Function | Description |
 |---|---|
+| [`add`](add.md) | {{ chartpack._add }} |
+| [`clear`](clear.md) | {{ chartpack._clear }} |
+
+### Drawing the charts
+
+| Function | Description |
+|---|---|
+| [`draw`](draw.md) | {{ chartpack._draw }} |
 

@@ -5,10 +5,10 @@
 
 ### Constructing model objects 
 
-Function | Description 
+Function || Description 
 ---|---
-[`Model.fromFile`](fromFile.md) | {{ model._fromFile }}
-[`Model.fromSnippet`](fromSnippet.md) | {{ model._fromSnippet }}
+[`Model.fromFile`](fromFile.md) || {{ model._fromFile }}
+[`Model.fromSnippet`](fromSnippet.md) || {{ model._fromSnippet }}
 
 
 ### Solving models 

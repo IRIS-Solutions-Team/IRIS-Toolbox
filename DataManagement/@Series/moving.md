@@ -198,8 +198,9 @@ y0 = moving(x, "window", -5i)
 ```
 
 Create a time series by calculating the average of the five most recent
-observations available, however now not including the current observation
-(i.e. select the last five observations from $x_{t-1}, x_{t-2}, \dots$
+observations available as before, but now starting from the previous month
+(not including the current observation); in other words, select the latest
+available five observations among $x_{t-1}, x_{t-2}, \dots$
 
 ```matlab
 y1 = moving(x, "window", -1-5i)
