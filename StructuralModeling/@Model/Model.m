@@ -350,8 +350,6 @@ classdef Model ...
 % expressions.
 %}
 
-%--------------------------------------------------------------------------
-
             this = this@model(varargin{:});
         end%
     end % methods
@@ -469,14 +467,12 @@ classdef Model ...
 
     methods
         function value = countMeasurementEquations(this)
-            TYPE = @int8;
-            value = nnz(this.Equation.Type==TYPE(1));
+            value = nnz(this.Equation.Type==1);
         end%
 
 
         function value = countTransitionEquations(this)
-            TYPE = @int8;
-            value = nnz(this.Equation.Type==TYPE(2));
+            value = nnz(this.Equation.Type==2);
         end%
 
 
@@ -497,28 +493,25 @@ classdef Model ...
     methods (Access=protected) % mixin.Plan interface
     %(
         function names = getEndogenousForPlan(this)
-            TYPE = @int8;
-            names = getNamesByType(this.Quantity, TYPE(1), TYPE(2));
+            names = getNamesByType(this.Quantity, 1, 2);
         end%
 
 
         function names = getExogenousForPlan(this)
-            TYPE = @int8;
-            names = getNamesByType(this.Quantity, TYPE(31), TYPE(32));
+            names = getNamesByType(this.Quantity, 31, 32);
         end%
 
 
         function value = getAutoswapsForPlan(this)
-            pairingVector = this.Pairing.Autoswap.Simulate;
-            [namesOfExogenized, namesOfEndogenized] = ...
-                model.component.Pairing.getAutoswap(pairingVector, this.Quantity);
-            value = [ namesOfExogenized(:), namesOfEndogenized(:) ];
+            pairingVector = this.Pairing.Autoswaps.Simulate;
+            [namesExogenized, namesEndogenized] = ...
+                model.component.Pairing.getAutoswaps(pairingVector, this.Quantity);
+            value = [ namesExogenized(:), namesEndogenized(:) ];
         end%
 
 
         function sigmas = getSigmasForPlan(this)
-            TYPE = @int8;
-            ne = nnz(getIndexByType(this.Quantity, TYPE(31), TYPE(32)));
+            ne = nnz(getIndexByType(this.Quantity, 31, 32));
             sigmas = this.Variant.StdCorr(:, 1:ne, :);
             sigmas = reshape(sigmas, ne, 1, [ ]);
         end%
