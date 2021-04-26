@@ -1,9 +1,8 @@
 classdef Pairing
     properties
-        Autoswap
-        Dtrend
-        Revision
-        Assignment
+        Autoswaps
+        Dtrends
+        Assignments
     end
 
 
@@ -13,9 +12,9 @@ classdef Pairing
                 numQuantities = 0;
                 numEquations = 0;
             end
-            this.Autoswap = model.component.Pairing.initAutoswap(numQuantities);
-            this.Dtrend = model.component.Pairing.initDtrend(numEquations);
-            this.Assignment = model.component.Pairing.initAssignment(numEquations);
+            this.Autoswaps = model.component.Pairing.initAutoswaps(numQuantities);
+            this.Dtrends = model.component.Pairing.initDtrends(numEquations);
+            this.Assignments = model.component.Pairing.initAssignments(numEquations);
         end%%
     end
 
@@ -28,46 +27,46 @@ classdef Pairing
 
     methods
         function this = set.Autoexog(this, value)
-            auto = model.component.AutoswapStruct( );
-            auto.Simulate = value.Dynamic;
-            auto.Steady = value.Steady;
-            this.Autoswap = auto;
+            autoswaps = model.component.AutoswapStruct( );
+            autoswaps.Simulate = value.Dynamic;
+            autoswaps.Steady = value.Steady;
+            this.Autoswaps = autoswaps;
         end%
     end
-    
-    
+
+
     methods (Static)
-        varargout = getAutoswap(varargin)
+        varargout = getAutoswaps(varargin)
         varargout = checkConsistency(varargin)
         varargout = readAssignments(varargin)
-        varargout = readAutoswap(varargin)
-        varargout = setAutoswap(varargin)
+        varargout = readAutoswaps(varargin)
+        varargout = setAutoswaps(varargin)
         varargout = implementGet(varargin)
     end
-    
-    
+
+
     methods (Static)
-        function auto = initAutoswap(numQuantities)
+        function autoswaps = initAutoswaps(numQuantities)
             PTR = @int16;
-            auto = model.component.AutoswapStruct( );
-            auto.Simulate = repmat(PTR(0), 1, numQuantities);
-            auto.Steady = repmat(PTR(0), 1, numQuantities);
+            autoswaps = model.component.AutoswapStruct( );
+            autoswaps.Simulate = repmat(PTR(0), 1, numQuantities);
+            autoswaps.Steady = repmat(PTR(0), 1, numQuantities);
         end%
-        
-        
-        function dtrend = initDtrend(numEquations)
+
+
+        function dtrends = initDtrends(numEquations)
             PTR = @int16;
-            dtrend = repmat(PTR(0), 1, numEquations);
+            dtrends = repmat(PTR(0), 1, numEquations);
         end%
-        
-        
-        function asgn = initAssignment(numEquations)
+
+
+        function assignments = initAssignments(numEquations)
             PTR = @int16;
-            asgn = struct( );
-            asgn.Dynamic.Lhs = repmat(PTR(0), 1, numEquations);
-            asgn.Dynamic.Type = repmat(solver.block.Type.UNKNOWN, 1, numEquations);
-            asgn.Steady.Lhs = repmat(PTR(0), 1, numEquations);
-            asgn.Steady.Type = repmat(solver.block.Type.UNKNOWN, 1, numEquations);
+            assignments = struct( );
+            assignments.Dynamic.Lhs = repmat(PTR(0), 1, numEquations);
+            assignments.Dynamic.Type = repmat(solver.block.Type.UNKNOWN, 1, numEquations);
+            assignments.Steady.Lhs = repmat(PTR(0), 1, numEquations);
+            assignments.Steady.Type = repmat(solver.block.Type.UNKNOWN, 1, numEquations);
         end%
     end
 end

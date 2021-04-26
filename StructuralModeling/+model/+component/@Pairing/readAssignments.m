@@ -1,16 +1,13 @@
 function asgn = readAssignments(equation, euc, quantity)
 
-TYPE = @int8;
 PTR = @int16;
-
-%--------------------------------------------------------------------------
 
 numEquations = numel(equation.Input);
 numQuantities = numel(quantity.Name);
-asgn = model.component.Pairing.initAssignment(numEquations); % Initialize assignement struct.
-ixm = equation.Type==TYPE(1);
-ixt = equation.Type==TYPE(2);
-inxMT = ixm | ixt;
+asgn = model.component.Pairing.initAssignments(numEquations); % Initialize assignement struct.
+inxM = equation.Type==1;
+inxT = equation.Type==2;
+inxMT = inxM | inxT;
 if ~any(inxMT)
     return
 end
@@ -20,7 +17,7 @@ end
 % Equations written as assingments with a variable or a parameter (or its
 % log, exp, uminus transformation) on the LHS
 %
-inxYXP = getIndexByType(quantity, TYPE(1), TYPE(2), TYPE(4));
+inxYXP = getIndexByType(quantity, 1, 2, 4);
 listNames = repmat({''}, 1, numQuantities);
 listNames(inxYXP) = quantity.Name(inxYXP);
 allBlazerTypes = enumeration('solver.block.Type');
