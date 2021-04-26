@@ -6,17 +6,17 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         Range {validate.mustBeRange} = Inf
         PlotFunc {validate.mustBeFunc} = @plot
         Highlight {locallyValidateHighlight} = double.empty(1, 0)
-        Transform = []
-        NewLine = "//"
+        Transform {mustBeScalarOrEmpty} = []
+        NewLine (1, 1) string = "//"
         CaptionFromComment (1, 1) logical = false
-        ShowFormulas = false
-        ShowTransform = false
-        
-        Round = Inf
-        Expand (1, :) cell = cell.empty(1, 0)
+        ShowFormulas (1, 1) logical = false
+        ShowTransform (1, 1) logical = false
+
+        Round (1, 1) double = Inf
+        Expansion (1, :) cell = cell.empty(1, 0)
 
         Tiles = @auto
-        MaxTilesPerWindow = 40
+        MaxTilesPerWindow (1, 1) double {mustBeInteger, mustBePositive} = 40
 
         FigureSettings (1, :) cell = cell.empty(1, 0)
         AxesSettings (1, :) cell = cell.empty(1, 0)
