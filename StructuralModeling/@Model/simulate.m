@@ -1,122 +1,10 @@
-% simulate  Simulate model
-%{
-% ## Syntax ##
+% Type `web Model/simulate.md` for help on this function
 %
-%
-%     [outputDb, outputInfo, frameDb] = simulate(model, inputDb, range, ...)
-%
-%
-% ## Input Arguments ##
-%
-%
-%
-% __`model`__ [ Model ]
-% > 
-% Model object with a valid solution avalaible for each of its parameter variants.
-%
-%
-% __`inputDb`__ [ struct | Dictionary ]
-% >
-% Databank (struct or Dictionary) with initial conditions, shocks, and
-% exogenized data points for the simulation.
-%
-%
-% __`range`__ [ DateWrapper | numeric ]
-% >
-% Simulation range; only the start date (the first element in `range`) and
-% the end date (the last element in `range`) are considered.
-%
-%
-% ## Output Arguments ##
-%
-%
-% __`outputDb`__ [ struct | Dictionary ]
-%>
-%>    Databank (struct or Dictionary) with the simulation results; if options
-%>    `PrependInput=` or `AppendInput=` are not used, the time series in
-%>    `outputDb` span the simulation `range` plus all necessary initial
-%>    conditions for those variables that have lags in the model.
-%
-%
-% __`outputInfo`__ [ struct ]
-%>
-%>    Info struct with details on the simulation; the `outputInfo` struct
-%>    contains the following fields:
-%>
-%>    * `.FrameColumns`
-%>
-%>    * `.FrameDates` 
-%>
-%>    * `.BaseRange` 
-%>
-%>    * `.ExtendedRange` 
-%>
-%>    * `.Success` 
-%>
-%>    * `.ExitFlags` 
-%>
-%>    * `.DiscrepancyTables` 
-%>
-%>    * `.ProgressBar` 
-%
-%
-% __`frameDb`__ [ cell ]
-%>
-%>    Only for `Method="stacked"`: Nested cell arrays with databanks
-%>    containing the simulation results of each individual frame; the
-%>    `frameDb{i}{j}` element is the output databank from simulating the
-%>    j-th frame in the i-th variant or data page.
-%
-%
-% ## Options ##
-%
-%
-% __`Method="firstOrder"`__ [ "firstOrder" | "stacked" ]
-%>
-%>    Simulation method: "firstOrder" means using a first-order approximate
-%>    solution, "stacked" means a stacked-time system solved by a
-%>    quasi-Newton method.
-%
-%
-% __`Deviation=false`__ [ `true` | `false` ]
-%>
-%>   If true, both the input data and the output data are (and are expected
-%>   to be) in the form of deviations from steady state:
-%>   
-%>   * for variables not declared as `log-variables`, the deviations from
-%>   steady state are calculated as a plain difference: $x_t - \bar x_t$
-%>
-%>   * for variables declared as `log-variables`, the deviations from
-%>   steady state are calculated as a ratio: $x_t / \bar x_t$.
-%
-%
-% __`PrependInput=false`__ [ `true` | `false` ]
-%>
-%>    If `true`, the data from `inputDb` preceding the simulation range
-%>    will be included in the output time series returned in `outputDb`.
-%
-%
-% __`AppendInput=false`__ [ `true` | `false` ]
-%>
-%>    If `true`, the data from `inputDb` succeeding the simulation range
-%>    will be included in the output time series returned in `outputDb`.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, options)
 
-% >=R2019b
-%(
 arguments
     this Model {mustBeA(this, "Model")}
     inputDb (1, 1) {validate.mustBeDatabank}
@@ -133,7 +21,7 @@ arguments
     options.Plan {locallyValidatePlanOption} = []
     options.Progress (1, 1) logical = false
     options.Solver {locallyValidateSolverOption} = @auto
-    options.SparseShocks (1, 1) logical = false;
+    options.SparseShocks (1, 1) logical = false
     options.SystemProperty {locallyValidateSystemPropertyOption} = false
 
     options.SuccessOnly (1, 1) logical = false
@@ -155,47 +43,6 @@ end
 if isequal(options.EvalTrends, @auto)
     options.EvalTrends = ~options.Deviation;
 end
-
-%)
-% >=R2019b
-
-%( Input parser
-% persistent pp
-% if isempty(pp)
-    % pp = extend.InputParser('@Model/simulate');
-% 
-    % addRequired(pp, 'solvedModel', @(x) isa(x, 'Model'));
-    % addRequired(pp, 'inputDb', @(x) validate.databank(x) || isa(x, 'simulate.Data') || isequal(x, "asynchronous"));
-    % addRequired(pp, 'simulationRange', @(x) DateWrapper.validateProperRangeInput(x) || isequal(x, @auto));
-% 
-    % addDeviationOptions(pp, false);
-    % addParameter(pp, 'Anticipate', true, @validate.logicalScalar);
-    % addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
-    % addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
-    % addParameter(pp, 'Contributions', false, @validate.logicalScalar);
-    % addParameter(pp, 'IgnoreShocks', false, @validate.logicalScalar);
-    % addParameter(pp, "MaxFrames", Inf, @(x) validate.roundScalar(x, 1, Inf));
-    % addParameter(pp, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
-    % addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
-    % addParameter(pp, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
-    % addParameter(pp, 'Progress', false, @validate.logicalScalar);
-    % addParameter(pp, 'Solver', @auto, @locallyValidateSolverOption);
-    % addParameter(pp, 'SparseShocks', false, @validate.logicalScalar)
-    % addParameter(pp, 'SystemProperty', false, @(x) isequal(x, false) || validate.list(x));
-% 
-    % addParameter(pp, 'SuccessOnly', false, @validate.logicalScalar);
-    % addParameter(pp, "Blocks", true, @validate.logicalScalar);
-    % addParameter(pp, "Log", [ ], @(x) isempty(x) || isequal(x, @all) || validate.list(x));
-    % addParameter(pp, "Unlog", [ ], @(x) isempty(x) || isequal(x, @all) || validate.list(x));
-% 
-    % addParameter(pp, 'Method', solver.Method.FIRSTORDER, @(x) isa(solver.Method(string(x)), "solver.Method"));
-    % addParameter(pp, 'Window', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
-    % addParameter(pp, "Terminal", "firstOrder", @(x) startsWith(x, ["data", "firstOrder"], "ignoreCase", true));
-    % addParameter(pp, ["StartIterationsFrom", "Initial"], "firstOrder", @(x) startsWith(x, ["data", "firstOrder"], "ignoreCase", true));
-    % addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
-% end
-% options = parse(pp, this, inputDb, baseRange, varargin{:});
-%)
 
 TYPE = @int8;
 
@@ -241,7 +88,6 @@ runningData.PrepareFrameData = nargout>=3;
 
 % Retrieve data from intput databank, set up ranges
 hereExtractInputData();
-
 
 % Check Contributions= only after preparing data and resolving the number
 % of runs (variants, pages)
@@ -653,12 +499,12 @@ function solverOption = locallyParseSolverOption(solverOption, methodOption)
             solverOption = [ ];
         case solver.Method.SELECTIVE
             defaultSolver = 'Iris-QaD';
-            displayMode = 'verbose';
-            solverOption = solver.Options.parseOptions(solverOption, defaultSolver, displayMode);
+            silent = false;
+            solverOption = solver.Options.parseOptions(solverOption, defaultSolver, silent);
         case {solver.Method.STACKED, solver.Method.PERIOD}
             defaultSolver = 'Iris-Newton';
-            displayMode = 'verbose';
-            solverOption = solver.Options.parseOptions(solverOption, defaultSolver, displayMode);
+            silent = false;
+            solverOption = solver.Options.parseOptions(solverOption, defaultSolver, silent);
     end
     %)
 end%
