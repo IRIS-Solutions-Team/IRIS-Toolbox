@@ -8,6 +8,11 @@ classdef Steady ...
 
 
     properties (Constant)
+        
+        % Run  Mimick steady options; this is because solver.blazer.Steady is used instead of steady
+        % options in Model.Update when running estimate()
+        Run = true
+        
         BLOCK_CONSTRUCTOR = @solver.block.Steady
         LHS_QUANTITY_FORMAT = 'x(%g,t'
         TYPES_ALLOWED_CHANGE_LOG_STATUS = { 1, 2, 4, 5 }
