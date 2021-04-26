@@ -1,17 +1,11 @@
-function [deriv, ixNanDeriv] = diffFirstOrder(this, eqSelect, variantRequested, opt)
 % diffFirstOrder  Calculate first-order derivatives of equations
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function [deriv, inxNaDeriv] = diffFirstOrder(this, eqSelect, variantRequested, opt)
 
-TYPE = @int8;
-
-isNanDeriv = nargout > 2;
-
-%--------------------------------------------------------------------------
+isNanDeriv = nargout>2;
 
 % Copy last computed derivatives.
 deriv = this.LastSystem.Deriv;
@@ -19,24 +13,24 @@ deriv = this.LastSystem.Deriv;
 asgn = this.Variant.Values(:, :, variantRequested);
 nName = numel(this.Quantity);
 nEqtn = numel(this.Equation);
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixyxe = ixy | ixx | ixe;
-ixp = this.Quantity.Type==TYPE(4);
-ixm = this.Equation.Type==TYPE(1);
-ixt = this.Equation.Type==TYPE(2);
-inxOfLog = this.Quantity.InxLog;
-eqSelect(~ixm & ~ixt) = false;
+inxY = this.Quantity.Type==1;
+inxX = this.Quantity.Type==2;
+inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
+inxYXE = inxY | inxX | inxE;
+inxP = this.Quantity.Type==4;
+inxM = this.Equation.Type==1;
+inxT = this.Equation.Type==2;
+inxLog = this.Quantity.InxLog;
+eqSelect(~inxM & ~inxT) = false;
 
-ixNanDeriv = false(1, nEqtn);
+inxNaDeriv = false(1, nEqtn);
 
 % Prepare 3D occur array limited to occurences of variables and shocks in
 % measurement and transition equations.
 nsh = this.Incidence.Dynamic.NumOfShifts;
 
 if any(eqSelect)    
-    nyxe = sum(ixyxe);
+    numYXE = sum(inxYXE);
     sh0 = this.Incidence.Dynamic.PosOfZeroShift;
     if opt.Symbolic
         ixSymb = ~cellfun(@isempty, this.Gradient.Dynamic(1, :));
@@ -45,20 +39,20 @@ if any(eqSelect)
     end
     ixSymb = ixSymb & eqSelect;
     ixNum = ~ixSymb & eqSelect;
-    
+
     if any(ixSymb)
         % Symbolic derivatives.
-        symbDeriv( );
+        hereDifferentiateSymbolically( );
     end
     if any(ixNum)
         % Numerical derivatives.
-        numDeriv( );
+        hereDifferentiateNumerically( );
     end
-    
+
     % Reset the add-factors in nonlinear equations to 1.
     tempEye = -eye(sum(this.Equation.Type<=2));
     deriv.n(eqSelect, :) = tempEye(eqSelect, this.Equation.IxHash);
-    
+
     % Normalize derivatives by largest number in nonlinear models.
     if ~this.IsLinear && opt.Normalize
         for iEq = find(eqSelect)
@@ -75,14 +69,14 @@ end
 return
 
 
-    function numDeriv( )
+    function hereDifferentiateNumerically( )
         minT = 1 - sh0;
         maxT = nsh - sh0;
         tVec = minT : maxT;
-        
+
         if this.IsLinear
             init = zeros(nName, 1);
-            init(ixp) = real(asgn(ixp));
+            init(inxP) = real(asgn(inxP));
             init = repmat(init, 1, nsh);
             h = ones(size(init));
         else
@@ -93,36 +87,35 @@ return
             maxInitOr1(init<1) = 1;
             h = diffStep*maxInitOr1;
         end
-        
+
         xPlus = init + h;
         xMinus = init - h;
         % Any imag parts in `xPlus` and `xMinus` should cancel; `real( )` does no
         % harm here therefore.
         step = real(xPlus - xMinus);
-        
+
         % Delog log-plus variables.
-        if any(inxOfLog)
-            init(inxOfLog, :) = real(exp( init(inxOfLog,:) ));
-            xPlus(inxOfLog, :) = real(exp( xPlus(inxOfLog,:) ));
-            xMinus(inxOfLog, :) = real(exp( xMinus(inxOfLog,:) ));
+        if any(inxLog)
+            init(inxLog, :) = real(exp( init(inxLog,:) ));
+            xPlus(inxLog, :) = real(exp( xPlus(inxLog,:) ));
+            xMinus(inxLog, :) = real(exp( xMinus(inxLog,:) ));
         end
-        
+
         % References to steady levels; can be used only in nonlinear setup.
         if this.IsLinear
             L = [ ];
         else
             L = init;
         end
-        
+
         for iiEq = find(ixNum)
-            eqtn = vectorize( this.Equation.Dynamic{iiEq} );
-            fn = str2func([this.PREAMBLE_DYNAMIC, '[', eqtn, ']']);
-            
-            % Get incidence of variables in this equation.
+            % Get incidence of variables in this equation
             nm = reshape(real(this.Gradient.Dynamic{2, iiEq}), 1, [ ]);
             sh = sh0 + reshape(imag(this.Gradient.Dynamic{2, iiEq}), 1, [ ]);
 
-            % Total number of derivatives to be computed in this equation.
+            fn = this.Equation.DynamicFunc{iiEq};
+
+            % Total number of derivatives to be computed in this equation
             n = numel(nm);
             value = zeros(1, n);
             for ii = 1 : n
@@ -136,29 +129,29 @@ return
                 fPlus =  fn(gridPlus, sh0, L);
                 value(ii) = (fPlus-fMinus) / step(nm(ii), sh(ii));
             end
-            
+
             % Constant in linear models.
             if this.IsLinear
                 deriv.c(iiEq) = fn(init, sh0, L);
             end
-            
+
             % Assign values to the array of derivatives.
-            ix = (sh-1)*nyxe + nm;
+            ix = (sh-1)*numYXE + nm;
             deriv.f(iiEq, ix) = value;
-            
+
             % Check for NaN derivatives.
             if isNanDeriv && any( ~isfinite(value) )
-                ixNanDeriv(iiEq) = true;
+                inxNaDeriv(iiEq) = true;
             end
         end
     end
 
-    
-    function symbDeriv( )
+
+    function hereDifferentiateSymbolically( )
         if this.IsLinear
             x = zeros(nName, 1);
-            x(inxOfLog) = 1;
-            x(ixp) = real(asgn(ixp));
+            x(inxLog) = 1;
+            x(inxP) = real(asgn(inxP));
             x = repmat(x, 1, nsh);
             % References to steady-state levels.
             L = [ ];
@@ -168,7 +161,7 @@ return
             % References to steady-state levels
             L = x;
         end
-   
+
         for iiEq = find(ixSymb)
             % Get incidence of variables in this equation
             nm = reshape(real(this.Gradient.Dynamic{2, iiEq}), 1, [ ]);
@@ -183,36 +176,37 @@ return
             %                = df(x)/d(x) * (-1) * xm = df(x)/d(x) * (-1) * (-1)*x
             %                = df(x)/d(x) * x
             logMult = [ ];
-            if any(inxOfLog(nm))
+            if any(inxLog(nm))
                 logMult = ones(size(nm));
-                for ii = find( inxOfLog(nm) )
+                for ii = find( inxLog(nm) )
                     logMult(ii) = x(nm(ii), sh(ii));
                 end
             end
-            
+
             % Evaluate all derivatives at once.
             value = this.Gradient.Dynamic{1, iiEq}(x, sh0, L);
             value = reshape(value, 1, [ ]);
-            
+
             % Multiply derivatives wrt to log variables by x.
             if ~isempty(logMult)
                 value = value .* logMult;
             end
 
             % Assign values to the array of derivatives.
-            ix = (sh-1)*nyxe + nm;
+            ix = (sh-1)*numYXE + nm;
             deriv.f(iiEq, ix) = value;
-            
+
             % Check for NaN derivatives.
             if isNanDeriv && any( ~isfinite(value) )
-                ixNanDeriv(iiEq) = true;
+                inxNaDeriv(iiEq) = true;
             end
         end
-        
+
         % Evaluate all equations at x=0, log(x)=0 to get constant terms.
         if this.IsLinear
-            fn = str2func([this.PREAMBLE_DYNAMIC, '[', this.Equation.Dynamic{ixSymb}, ']', ]);
+            fn = str2func([this.Equation.PREAMBLE, '[', this.Equation.Dynamic{ixSymb}, ']', ]);
             deriv.c(ixSymb) = fn(x, sh0, L);
         end
-    end
-end
+    end%
+end%
+
