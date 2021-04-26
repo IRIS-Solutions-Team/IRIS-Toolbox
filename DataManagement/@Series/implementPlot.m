@@ -1,13 +1,13 @@
-function [ plotHandle, dates, yData, ...
-           axesHandle, xData, ...
-           unmatchedOptions ] = implementPlot(plotFunc, varargin)
 % implementPlot  Plot functions for Series objects
 %
-% Backend function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function [ ...
+    plotHandle, dates, yData, ...
+    axesHandle, xData, ...
+    unmatchedOptions ...
+] = implementPlot(plotFunc, varargin)
 
 [axesHandle, dates, this, plotSpec, varargin] = ...
     NumericTimeSubscriptable.preparePlot(varargin{:});
@@ -28,15 +28,15 @@ opt = pp.parse(varargin{:});
 %)
 unmatchedOptions = pp.UnmatchedInCell;
 
-dates = double(dates);
+dates = reshape(double(dates), [], 1);
 enforceXLimHere = true;
 if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
-    dates = this.RangeAsNumeric;
+    dates = reshape(this.RangeAsNumeric, [], 1);
     enforceXLimHere = false;
 elseif isempty(dates) || all(isnan(dates))
     dates = double.empty(0, 1);
 else
-    dates = dates(:);
+    dates = reshape(dates, [], 1);
     checkUserFrequency(this, dates);
 end
 
@@ -50,7 +50,7 @@ else
     timeFrequency = NaN;
 end
 
-if ndims(yData)>2
+if ndims(yData)>2 %#ok<ISMAT>
     yData = yData(:, :);
 end
 
@@ -71,11 +71,11 @@ set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
     plotFunc, axesHandle, xData, yData, plotSpec, opt.Smooth, unmatchedOptions{:} ...
 );
 
-try
+try %#ok<TRYNC>
     axesHandle.XAxis.TickLabelFormat = char(dateFormat);
 end
 
-if isTimeAxis
+if isTimeAxis && ~isempty(xData)
     addXLimMargins( );
     setXLim( );
     setXTick( );
