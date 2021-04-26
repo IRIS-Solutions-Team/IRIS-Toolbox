@@ -1,24 +1,21 @@
-function [eqn, pairing] = readDtrends(eqn, euc, qty)
 % readDtrends  Read deterministic trends
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+function [eqn, pairing] = readDtrends(eqn, euc, qty)
+
 PTR = @int16;
 
 %--------------------------------------------------------------------------
 
 numEquations = numel(eqn.Input);
-pairing = model.component.Pairing.initDtrend(numEquations);
-inxD = eqn.Type==TYPE(3);
+pairing = model.component.Pairing.initDtrends(numEquations);
+inxD = eqn.Type==3;
 if ~any(inxD)
     return
 end
-inxY = qty.Type==TYPE(1);
+inxY = qty.Type==1;
 
 % Create list of measurement variable names against which the LHS of
 % dtrends equations will be matched. Add log(...) for log-variables.

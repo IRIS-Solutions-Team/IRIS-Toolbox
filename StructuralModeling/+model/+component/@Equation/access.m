@@ -1,4 +1,4 @@
-function [output, handled] = access(this, what)
+function [output, beenHandled] = access(this, what)
 
 % >=R2019b
 %(
@@ -9,35 +9,35 @@ end
 %)
 % >=R2019b
 
-handled = true;
+beenHandled = true;
 output = [ ];
 stringify = @(x) reshape(string(x), 1, [ ]);
 
-if matches(what, "equations", "ignoreCase", true)
+if lower(what)==lower("equations")
     output = stringify(this.Input);
 
-elseif matches(what, "equationsDynamic", "ignoreCase", true)
+elseif lower(what)==lower("equationsDynamic")
     output = stringify(this.Input);
     output = model.component.Equation.extractInput(output, "dynamic");
 
-elseif matches(what, "equationsSteady", "ignoreCase", true)
+elseif lower(what)==lower("equationsSteady")
     output = stringify(this.Input);
     output = model.component.Equation.extractInput(output, "steady");
 
-elseif matches(what, "measurementEquations", "ignoreCase", true)
+elseif lower(what)==lower("measurementEquations")
     output = stringify(this.Input(this.Type==1));
 
-elseif matches(what, "transitionEquations", "ignoreCase", true)
+elseif lower(what)==lower("transitionEquations")
     output = stringify(this.Input(this.Type==2));
 
-elseif matches(what, "dtrends", "ignoreCase", true)
+elseif lower(what)==lower("dtrends")
     output = stringify(this.Input(this.Type==3));
 
-elseif matches(what, "links", "ignoreCase", true)
+elseif lower(what)==lower("links")
     output = stringify(this.Input(this.Type==4));
 
 else
-    handled = false;
+    beenHandled = false;
 
 end
 

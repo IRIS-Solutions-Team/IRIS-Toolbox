@@ -1,4 +1,3 @@
-function checkNames(this)
 % checkNames  Check all names in Explanatory array for multiple occurrencies
 %{
 % Backend [IrisToolbox] method
@@ -8,7 +7,7 @@ function checkNames(this)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function checkNames(this)
 
 for this__ = reshape(this, 1, [ ])
     checkList = [this__.VariableNames, this__.ControlNames];
@@ -20,16 +19,13 @@ for this__ = reshape(this, 1, [ ])
     % Find multiple occurrences of the same name including ResidualName,
     % FittedName and ControlName
     %
-    nameConflicts = parser.getMultiple(checkList);
-    if ~isempty(nameConflicts)
-        nameConflicts = cellstr(nameConflicts);
-        this__Error = [ 
+    [flag, nameConflicts] = textual.nonunique(checkList);
+    if flag
+        exception.error([
             "Explanatory:MultipleNames"
             "This name is declared more than once in an Explanatory object "
             "(including ResidualName, FittedName and ControlNames): %s "
-        ];
-        throw( exception.Base(this__Error, 'error'), ...
-               nameConflicts{:} );
+        ], string(nameConflicts));
     end
 
     %
