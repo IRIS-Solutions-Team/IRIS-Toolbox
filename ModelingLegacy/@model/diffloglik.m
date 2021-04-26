@@ -74,7 +74,7 @@ if isempty(pp)
     addParameter(pp, {'CheckSteady', 'ChkSstate'}, true, @model.validateChksstate);
     addParameter(pp, 'Progress', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Solve', true, @model.validateSolve);
-    addParameter(pp, {'Steady', 'sstate', 'sstateopt'}, false, @model.validateSstate);
+    addParameter(pp, {'Steady', 'sstate', 'sstateopt'}, false, @model.validateSteady);
 end
 %)
 opt = parse(pp, data, range, parameterNames, varargin{:});
@@ -151,12 +151,22 @@ this.Update.Values = this.Variant.Values;
 this.Update.StdCorr = this.Variant.StdCorr;
 this.Update.PosOfValues = posValues;
 this.Update.PosOfStdCorr = posStdCorr;
-this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
-this.Update.CheckSteady = prepareCheckSteady(this, 'silent', opt.CheckSteady);
+
+if islogical(opt.Steady)
+    opt.Steady ={"run", opt.Steady};
+end
+this.Update.Steady = prepareSteady(this, "silent", true, opt.Steady{:});
+
+if islogical(opt.CheckSteady)
+    opt.CheckSteady = {"run", opt.CheckSteady};
+end
+this.Update.CheckSteady = prepareCheckSteady(this, "silent", true, opt.CheckSteady{:});
+
 if islogical(opt.Solve)
     opt.Solve = {"run", opt.Solve};
 end
-this.Update.Solve = prepareSolve(this, opt.Solve{:}, "silent", true);
+this.Update.Solve = prepareSolve(this, "silent", true, opt.Solve{:});
+
 this.Update.NoSolution = 'Error';
 
 %
