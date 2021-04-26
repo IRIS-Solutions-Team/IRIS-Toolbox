@@ -5,49 +5,49 @@ classdef Quantity < parser.theparser.Generic
         IsLagrange = false
         IsReservedPrefix = true
     end
-    
-    
+
+
     methods
         function [qty, eqn] = parse(this, the, code, qty, eqn, ~, ~, opt)
-            BR = sprintf('\n');
-            TYPE = @int8;
+            %#ok<*SPRINTFN>
             
-            % Parse names with labels and assignments
-            NAME_PATTERN = [ '("[ ]*"|''[ ]*'')?\s*', ...  % "Label" or 'Label'
-                             '([a-zA-Z]\w*)', ...          % Name
-                             '(@?)', ...                   % @ Observed transition variable
-                             '\s*(=[^;,\n]+[;,\n])?'   ];  % =Value
-            
-            %--------------------------------------------------------------------------
-            
+            SEPARATORS = [",", ";", sprintf("\n")]; 
+
+            NAME_PATTERN = ...
+                "(""[ ]*""|'[ ]*')?\s*" ...    % "Label" or 'Label'
+                + "([a-zA-Z]\w*)" ...          % Name
+                + "(@?)" ...                   % @ Observed transition variable
+                + "\s*(=[^;,\n]+[;,\n])?" ...  % =Value
+            ;
+
             if isempty(code)
                 return
             end
 
-            if this.Type==TYPE(4) && opt.AutodeclareParameters
+            if this.Type==4 && opt.AutodeclareParameters
                 return
             end
-            
+
             code = [code, sprintf('\n')];
             whiteCode = code;
-            
+
             % White out the inside of labels (single or double qouted text), keeping
             % the quotation marks.
             whiteCode = parser.White.whiteOutLabels(whiteCode);
-            
+
             % White out first-level round and square brackets. This is to handle
             % assignments containing function calls with multiple arguments separated
             % with commas (commas are valid separator of parameters).
             whiteCode = parser.White.whiteOutParenth(whiteCode, 1);
-            
+
             tokenExtents = regexp(whiteCode, NAME_PATTERN, 'tokenExtents');
-            for i = 1 : length(tokenExtents) %#ok<UNRCH>
+            for i = 1 : numel(tokenExtents)
                 if size(tokenExtents{i}, 1)==2
                     tokenExtents{i} = [ {[1, 0]}; tokenExtents{i} ];
                 end
             end
-            
-            numQuantities = length(tokenExtents);
+
+            numQuantities = numel(tokenExtents);
             label = cell(1, numQuantities);
             name = cell(1, numQuantities);
             inxObserved = false(1, numQuantities);
@@ -58,67 +58,57 @@ classdef Quantity < parser.theparser.Generic
                 inxObserved(i) = tokenExtents{i}(3, 1)<=tokenExtents{i}(3, 2);
                 assignedString{i} = code( tokenExtents{i}(4, 1)+1 : tokenExtents{i}(4, 2) );
             end
-            name = strtrim(name);
-            label = strtrim(label);
-            assignedString = strtrim(assignedString);
+
+            name = strip(name);
+            label = strip(label);
+            assignedString = strip(assignedString);
             for i = 1 : numQuantities
-                if ~isempty(assignedString{i}) && any(assignedString{i}(end)==[',;', BR])
+                if endsWith(assignedString{i}, SEPARATORS)
                     assignedString{i}(end) = '';
                 end
             end
-            
-            [~, posUnique] = unique(name, 'last');
-            if length(posUnique)<length(name)
+
+
+            % Handle nonunique names: either shrink to the list of uniques
+            % names and throw a warning if AllowMultiple=true, or throw and error
+
+            [flag, nonuniqueNames, posUniques] = textual.nonunique(string(name));
+            if flag
                 if opt.AllowMultiple
                     % If multiple declaration of the same name is allowed, remove redundant
-                    % declarations, and use the last one found.
-                    posUnique = sort(posUnique);
-                    posUnique = posUnique(:).';
-                    name = name(posUnique);
-                    inxObserved = inxObserved(posUnique);
-                    label = label(posUnique);
-                    assignedString = assignedString(posUnique);
+                    % declarations, and use the last one found
+                    posUniques = sort(posUniques);
+                    posUniques = reshape(posUniques, 1, []);
+                    name = name(posUniques);
+                    inxObserved = inxObserved(posUniques);
+                    label = label(posUniques);
+                    assignedString = assignedString(posUniques);
+                    action = @exception.warning;
                 else
-                    % Otherwise, throw an error.
-                    listDuplicate = parser.getMultiple(name);
-                    throw( ...
-                        exception.ParseTime('TheParser:MUTLIPLE_NAMES', 'error'), ...
-                        listDuplicate{:} ...
-                    );
+                    % Otherwise, throw an error
+                    [~, nonuniqueNames] = textual.nonunique(reshape(string(name), 1, []));
+                    action = @exception.error;
                 end
+                action([
+                    "Parser:NonuniqueNames"
+                    "This name is declared more than once: %s "
+                ], nonuniqueNames);
             end
-            
-            if this.IsReservedPrefix
-                % Report all names starting with STD_PREFIX, CORR_PREFIX, 
-                % LOG_PREFIX.
-                reservedPrefixes = [ 
-                    string(model.component.Quantity.STD_PREFIX)
-                    string(model.component.Quantity.CORR_PREFIX) 
-                    string(model.component.Quantity.LOG_PREFIX)
-                    string(model.component.Quantity.FLOOR_PREFIX)
-                ];
-                inxReservedPrefix = startsWith(name, reservedPrefixes);
-                if any(inxReservedPrefix)
-                    throw( ...
-                        exception.ParseTime('TheParser:ReservedPrefixDeclared', 'error'), ...
-                        name{inxReservedPrefix} ...
-                    );
-                end
-            end
-            
-            numQuantities = numel(name);
+
             [label, alias] = this.splitLabelAlias(label);
-            
+
+            numQuantities = numel(name);
             qty.Name(end+(1:numQuantities)) = name;
+
             qty.IxObserved(end+(1:numQuantities)) = inxObserved;
             qty.Type(end+(1:numQuantities)) = repmat(this.Type, 1, numQuantities);
             qty.Label(end+(1:numQuantities)) = label;
             qty.Alias(end+(1:numQuantities)) = alias;
             qty.Bounds(:, end+(1:numQuantities)) = repmat(model.component.Quantity.DEFAULT_BOUNDS, 1, numQuantities);
-            
+
             qty.IxLog(end+(1:numQuantities)) = repmat(this.IsLog, 1, numQuantities);
             qty.IxLagrange(end+(1:numQuantities)) = repmat(this.IsLagrange, 1, numQuantities);
-            
+
             the.AssignedString = [the.AssignedString, assignedString];
         end%
     end
