@@ -1,53 +1,19 @@
-function opt = prepareCheckSteady(this, mode, varargin) %#ok<INUSL>
-% prepareCheckSteady  Prepare steady-state check
+% prepareCheckSteady  Prepare stead state check
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+function options = prepareCheckSteady(this, options)
 
-if numel(varargin)==1 && isequal(varargin{1}, false)
-    opt = false;
-    return
+arguments
+    this %#ok<INUSA>
+
+    options.Run (1, 1) logical = true
+    options.Silent (1, 1) logical = false
+    options.EquationSwitch (1, 1) string {mustBeMember(options.EquationSwitch, ["dynamic", "steady"])} = "dynamic"
+    options.Error (1, 1) logical = true
+    options.Warning (1, 1) logical = true
 end
 
-if numel(varargin)==1 && isequal(varargin{1}, true)
-    varargin(1) = [ ];
-end
-
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.prepareCheckSteady');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Mode', @validateMode);
-    parser.addParameter({'EquationSwitch', 'Kind', 'Type', 'Eqtn', 'Equation', 'Equations'}, 'Dynamic', @validateEquationSwitch);
-end
-parser.parse(this, mode, varargin{:});
-opt = parser.Options;
-
-%--------------------------------------------------------------------------
-
-end%
-
-%
-% Validators
-%
-
-function flag = validateMode(value)
-    if ~ischar(value) && ~(isa(value, 'string') && isscalar(value))
-        flag = false;
-        return
-    end
-    flag = any(strcmpi(value, {'Verbose', 'Silent'}));
-end%
-
-
-function flag = validateEquationSwitch(value)
-    if ~ischar(value) && ~(isa(value, 'string') && isscalar(value))
-        flag = false;
-        return
-    end
-    flag = any(strcmpi(value, {'Dynamic', 'Full', 'Steady', 'SState'}));
 end%
 

@@ -605,7 +605,7 @@ function [Dl, Dg] = getSteadyDtrends(this)
     Dg = zeros(ny, 1, nv);
     for iEqn = find(ixd)
         % This equation gives dtrend for measurement variable ptr.
-        ptr = this.Pairing.Dtrend(iEqn);
+        ptr = this.Pairing.Dtrends(iEqn);
         gr = this.Gradient.Dynamic{1, iEqn};
         wrt = this.Gradient.Dynamic{2, iEqn};
         % Add up gradientw wrt individual exogenous variables.

@@ -1,23 +1,16 @@
 % prepareBlazer  Create Blazer object from dynamic or steady equations
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 function prepareBlazer(this, blz)
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
-inxY = this.Quantity.Type==TYPE(1);
-inxX = this.Quantity.Type==TYPE(2);
-inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-inxP = this.Quantity.Type==TYPE(4);
-inxM = this.Equation.Type==TYPE(1);
-inxT = this.Equation.Type==TYPE(2);
+inxY = this.Quantity.Type==1;
+inxX = this.Quantity.Type==2;
+inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
+inxP = this.Quantity.Type==4;
+inxM = this.Equation.Type==1;
+inxT = this.Equation.Type==2;
 inxYX = inxY | inxX;
 inxMT = inxM | inxT;
 
@@ -46,8 +39,7 @@ if isequal(classBlazer, "solver.blazer.Steady")
     blz.Gradients(:, inxMT) = this.Gradient.Steady(:, inxMT);
     blz.Gradients(:, inxCopy) = this.Gradient.Dynamic(:, inxCopy);
     blz.Incidence = this.Incidence.Steady;
-    incid = across(blz.Incidence, 'Shift');
-    blz.Assignments = this.Pairing.Assignment.Steady;
+    blz.Assignments = this.Pairing.Assignments.Steady;
 
     blz.EquationsToExclude = find(inxLwP);
     blz.QuantitiesToExclude = find(inxPwL);
@@ -65,7 +57,7 @@ elseif isequal(classBlazer, "solver.blazer.Period")
     blz.Equations(blz.InxEquations) = this.Equation.Dynamic(blz.InxEquations);
     blz.Gradients(:, :) = this.Gradient.Dynamic;
     blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
-    blz.Assignments = this.Pairing.Assignment.Dynamic;
+    blz.Assignments = this.Pairing.Assignments.Dynamic;
 
 
 elseif isequal(classBlazer, "solver.blazer.Stacked")
@@ -80,7 +72,7 @@ elseif isequal(classBlazer, "solver.blazer.Stacked")
     blz.Equations(blz.InxEquations) = this.Equation.Dynamic(blz.InxEquations);
     blz.Gradients(:, :) = this.Gradient.Dynamic;
     blz.Incidence = this.Incidence.Dynamic;
-    blz.Assignments = this.Pairing.Assignment.Dynamic;
+    blz.Assignments = this.Pairing.Assignments.Dynamic;
 
 elseif isequal(classBlazer, "solver.blazer.Selective")
     %
@@ -104,7 +96,7 @@ return
     function [inxPwL, inxLwP] = hereGetParameterLinks( )
         numEquations = countEquations(this);
         numQuantities = countQuantities(this);
-        inxL = this.Equation.Type==TYPE(4);
+        inxL = this.Equation.Type==4;
         numL = nnz(inxL);
         inxPwL = false(1, numQuantities); % [^1]
         inxLwP = false(1, numEquations); % [^2]

@@ -1,8 +1,5 @@
 % update  Update parameters, sstate, solve, and refresh
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
@@ -25,9 +22,6 @@ posStdCorr = posStdCorr(inxStdCorr);
 this.Variant.Values(:, :, variantRequested) = update.Values;
 this.Variant.StdCorr(:, :, variantRequested) = update.StdCorr;
 
-runSteady = ~isequal(update.Steady, false);
-runCheckSteady = ~isequal(update.CheckSteady, false);
-
 % Update regular parameters and run refresh if needed
 needsRefresh = any(this.Link);
 beenRefreshed = false;
@@ -35,10 +29,12 @@ if any(inxValues)
     this.Variant.Values(:, posValues, variantRequested) = p(inxValues);
 end
 
+
 % Update stdCorr
 if any(inxStdCorr)
     this.Variant.StdCorr(:, posStdCorr, variantRequested) = p(inxStdCorr);
 end
+
 
 % Refresh dynamic links; the links can refer/define std devs and
 % cross-corrs
@@ -47,13 +43,15 @@ if needsRefresh
     beenRefreshed = true;
 end
 
-% If only stds or corrs have been changed, no values have been
-% refreshed, and no user preprocessor is called, return immediately as
-% there is no need to re-solve or re-sstate the model.
-if ~any(inxValues) && ~isa(update.Steady, 'function_handle') && ~beenRefreshed
+
+% If only stds or corrs have been changed, no values have been refreshed,
+% return immediately since there is no need to recalculate steady state or
+% solution
+if ~any(inxValues) && ~beenRefreshed
     success = true;
     return
 end
+
 
 if this.IsLinear
     %
@@ -65,50 +63,36 @@ if this.IsLinear
         solveInfo = struct();
         solveInfo.ExitFlag = 1;
     end
-    if runSteady
+    if update.Steady.Run
         this = steadyLinear(this, update.Steady, variantRequested);
         if needsRefresh
             this = refresh(this, variantRequested);
         end
     end
-    okSteady = true;
-    okCheckSteady = true;
+    steadySuccess = true;
+    checkSteadySuccess = true;
     listSteadyErrors = { };
 
 else
     %
     % Nonlinear Models
     %
-    okSteady = true;
+    steadySuccess = true;
     listSteadyErrors = { };
-    okCheckSteady = true;
-    solveInfo = struct();
-    if runSteady
-        if isa(update.Steady, 'function_handle')
-            % Call to a user-supplied sstate solver
-            m = this(variantRequested);
-            [m, okSteady] = feval(update.Steady, m);
-            this(variantRequested) = m;
-        elseif iscell(update.Steady) && isa(update.Steady{1}, 'function_handle')
-            %  Call to a user-supplied sstate solver with extra arguments
-            m = this(variantRequested);
-            [m, okSteady] = feval(update.Steady{1}, m, update.Steady{2:end});
-            this(variantRequested) = m;
-        else
-             % Call to the [IrisToolbox] sstate solver
-            [this, okSteady] = steadyNonlinear(this, update.Steady, variantRequested);
-        end
+    checkSteadySuccess = true;
+    if update.Steady.Run
+        [this, steadySuccess] = steadyNonlinear(this, update.Steady, variantRequested);
         if needsRefresh
-            m = refresh(m, variantRequested);
+            this = refresh(this, variantRequested);
         end
     end
-    % Run chksstate only if steady state recomputed
-    if runSteady && runCheckSteady
+    % Run checkSteady only if running steady()
+    if update.Steady.Run && update.CheckSteady.Run
         [~, ~, ~, listSteadyErrors] = implementCheckSteady(this, variantRequested, update.CheckSteady);
         listSteadyErrors = listSteadyErrors{1};
-        okCheckSteady = isempty(listSteadyErrors);
+        checkSteadySuccess = isempty(listSteadyErrors);
     end
-    if okSteady && okCheckSteady && update.Solve.Run
+    if steadySuccess && checkSteadySuccess && update.Solve.Run
         [this, solveInfo] = solveFirstOrder(this, variantRequested, update.Solve);
     else
         solveInfo = struct();
@@ -116,7 +100,7 @@ else
     end
 end
 
-success = solveInfo.ExitFlag==1 && okSteady && okCheckSteady;
+success = solveInfo.ExitFlag==1 && steadySuccess && checkSteadySuccess;
 if success
     return
 end
@@ -124,7 +108,7 @@ end
 if startsWith(update.NoSolution, "error", "ignoreCase", true)
     % Throw error, give access to the failed model object and terminate
     m = this(variantRequested);
-    model.failed(m, okSteady, okCheckSteady, listSteadyErrors, solveInfo);
+    model.failed(m, steadySuccess, checkSteadySuccess, listSteadyErrors, solveInfo);
 end
 
 end%

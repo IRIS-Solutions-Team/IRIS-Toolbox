@@ -63,7 +63,7 @@ for r = 1 : numVariantsRequested
     
     for iEqn = posOfTrendEquations
         % This equation gives dtrend for measurement variable ptrToVariable
-        ptrToVariable = this.Pairing.Dtrend(iEqn);
+        ptrToVariable = this.Pairing.Dtrends(iEqn);
         % Evaluate deterministic trend with out-of-lik parameters set zero
         xa(ixg, :) = exogenousData(:, :, min(v, end));
         W(posy==ptrToVariable, :, r) = eqtn{iEqn}(xa, ':');

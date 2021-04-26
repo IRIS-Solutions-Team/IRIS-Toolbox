@@ -1,116 +1,29 @@
-function [flag, dcy, list, sortedList] = checkSteady(this, varargin)
-% checkSteady  Check if equations hold for currently assigned steady-state values
-%{
-% Syntax
-%--------------------------------------------------------------------------
+% Type `web Model/checkSteady.md` for help on this function
 %
-%
-%     [flag, discrepancy, list, sortedList] = checkSteady(model, ...)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-%
-% __`model`__ [ Model ]
-% > Model object with steady-state values assigned.
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-%
-% __`flag`__ [ `true` | `false` ] 
-% > True if discrepancy between LHS and RHS is smaller than tolerance level
-% in each equation.
-%
-%
-% __`discrepancy`__ [ numeric ] 
-% > Discrepancies between LHS and RHS evaluated for each equation at two
-% consecutive times, and returned as two column vectors.
-%
-%
-% __`list`__ [ cellstr ]
-% > List of equations in which the discrepancy between LHS and RHS is
-% greater than predefined tolerance, in the order of appearance in the
-% `model`.
-%
-%
-% __`sortedList`__ [ cellstr ]
-% > List of equations in which the discrepancy between LHS and RHS is
-% greater than predefined tolerance, sorted by the absolute discrepancy.
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-%
-% __`Error=true`__ [ `true` | `false` ]
-% > Throw an error if one or more equations fail to hold up to tolerance
-% level.
-%
-%
-% __`EquationSwitch='Dynamic'`__ [ `'Both'` | `'Dynamic'` | `'Steady'` ]
-% > Check either dynamic equations or steady equations or both.
-%
-%
-% __`Warning=true`__ [ `true` | `false` ]  
-% > Display warnings produced by this function.
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-TYPE = @int8;
+function [flag, dcy, list, sortedList] = checkSteady(this, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('Model/checkSteady');
-    pp.KeepUnmatched = true;
-    addRequired(pp, 'model', @(x) isa(x, 'model'));
-
-    addParameter(pp, 'Error', true, @validate.logicalScalar);
-    addParameter(pp, 'Warning', true, @validate.logicalScalar);
-end
-parse(pp, this, varargin{:});
-opt = pp.Options;
 needsSort = nargout>3;
-
-% Pre-process options passed to implementCheckSteady(~)
-checkSteadyOpt = prepareCheckSteady(this, 'verbose', pp.UnmatchedInCell{:});
-
-%--------------------------------------------------------------------------
-
-% Refresh dynamic links
+checkSteadyOptions = prepareCheckSteady(this, varargin{:});
+nv = countVariants(this);
 this = refresh(this);
 
-if opt.Warning
-    if any(strcmpi(checkSteadyOpt.EquationSwitch, {'Dynamic', 'Full'}))
-        checkSteadyOpt.EquationSwitch = 'Dynamic';
+if checkSteadyOptions.Warning
+    if lower(checkSteadyOptions.EquationSwitch)==lower("dynamic")
         chkQty(this, Inf, 'parameters:dynamic', 'sstate', 'log');
     else
-        checkSteadyOpt.EquationSwitch = 'Steady';
         chkQty(this, Inf, 'parameters:steady', 'sstate', 'log');
     end
 end
 
-nv = countVariants(this);
-
 % `dcy` is a matrix of discrepancies; it has two columns when dynamic
 % equations are evaluated, or one column when steady equations are
 % evaluated.
-[flag, dcy, maxAbsDiscr, list] = implementCheckSteady(this, Inf, checkSteadyOpt);
+[flag, dcy, maxAbsDiscr, list] = implementCheckSteady(this, Inf, checkSteadyOptions);
 
-if any(~flag) && opt.Error
+if any(~flag) && checkSteadyOptions.Error
     tmp = { };
     for i = find(~flag)
         for j = 1 : length(list{i})
@@ -118,7 +31,7 @@ if any(~flag) && opt.Error
             tmp{end+1} = list{i}{j}; %#ok<AGROW>
         end
     end
-    if strcmpi(checkSteadyOpt.EquationSwitch, 'Dynamic')
+    if strcmpi(checkSteadyOptions.EquationSwitch, 'Dynamic')
         exc = exception.Base('Model:SteadyErrorInDynamic', 'error');
     else
         exc = exception.Base('Model:SteadyErrorInSteady', 'error');

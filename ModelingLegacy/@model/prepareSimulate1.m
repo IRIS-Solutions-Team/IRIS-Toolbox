@@ -45,7 +45,7 @@ if s.IsDeterministicTrends
     s.DeterministicTrend = struct( );
     s.DeterministicTrend.Equations = cell(1, nEqtn);
     s.DeterministicTrend.Equations(ixd) = this.Equation.Dynamic(ixd);
-    s.DeterministicTrend.Pairing = this.Pairing.Dtrend;
+    s.DeterministicTrend.Pairing = this.Pairing.Dtrends;
 end
 
 s.NPerNonlin = 0;
@@ -82,7 +82,8 @@ if strcmpi(s.Method, 'Selective')
     herePrepareHashEquations( );
 
     defaultSolver = 'IRIS-QaD';
-    s.Solver = solver.Options.parseOptions(opt.Solver, defaultSolver, displayMode, varargin{:});
+    silent = lower(string(displayMode))=="silent";
+    s.Solver = solver.Options.parseOptions(opt.Solver, defaultSolver, silent, varargin{:});
 
     % Positions of variables in [y;xx] vector that occur in nonlinear
     % equations. These will be combined with positions of exogenized variables
@@ -102,8 +103,7 @@ if strcmpi(s.Method, 'Selective')
     s.Selective.NShanks = opt.NShanks;
     
     for ii = find(ixh)
-        s.Selective.EqtnNI{ii} = [ model.PREAMBLE_HASH, ...
-                                   s.Selective.EqtnNI{ii} ];
+        s.Selective.EqtnNI{ii} = [ model.PREAMBLE_HASH, s.Selective.EqtnNI{ii} ];
         s.Selective.EqtnNI{ii} = str2func(s.Selective.EqtnNI{ii});
     end
 end
@@ -114,10 +114,7 @@ return
     function herePrepareHashEquations( )
         s.Selective.EqtnNI = cell(1, nEqtn);
         s.Selective.EqtnNI(ixh) = createHashEquations(this, ixh);
-        s.Selective.EqtnN = [ ...
-            model.PREAMBLE_HASH, ...
-            '[', s.Selective.EqtnNI{ixh}, ']' ...
-            ];
+        s.Selective.EqtnN = [ model.PREAMBLE_HASH, '[', s.Selective.EqtnNI{ixh}, ']' ];
         s.Selective.EqtnN = str2func(s.Selective.EqtnN);
     end%
 end%

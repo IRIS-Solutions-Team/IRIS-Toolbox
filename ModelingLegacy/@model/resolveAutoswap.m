@@ -13,11 +13,11 @@ PTR = @int16;
 %--------------------------------------------------------------------------
 
 if startsWith(kind, "simulate", "ignoreCase", true)
-    ptrAutoswap = this.Pairing.Autoswap.Simulate;
+    ptrAutoswaps = this.Pairing.Autoswaps.Simulate;
 elseif startsWith(kind, "steady", "ignoreCase", true)
-    ptrAutoswap = this.Pairing.Autoswap.Steady;
+    ptrAutoswaps = this.Pairing.Autoswaps.Steady;
 else
-    ptrAutoswap = [ ];
+    ptrAutoswaps = [ ];
 end
 
 isAutoExogenize = isequal(namesToExogenize, @auto);
@@ -61,13 +61,13 @@ end
 
 if isAutoExogenize && isAutoEndogenize
     % Use all exogenized-endogenized names
-    ix = ptrAutoswap>PTR(0);
-    ptr = ptrAutoswap(ix);
+    ix = ptrAutoswaps>PTR(0);
+    ptr = ptrAutoswaps(ix);
     namesToExogenize = this.Quantity.Name(ix);
     namesToEndogenize = this.Quantity.Name(ptr);
 elseif isAutoEndogenize
     % List of exogenized names, look up the corresponding endogenized names
-    ptr = ptrAutoswap( ellExogenize.PosName );
+    ptr = ptrAutoswaps( ellExogenize.PosName );
     inxValid = ptr>PTR(0);
     if any(~inxValid)
         exception.error([
@@ -82,7 +82,7 @@ elseif isAutoExogenize
     nPtr = numel(ptr);
     pos = nan(1, nPtr);
     for i = 1 : nPtr
-        ix = PTR(ptr(i))==ptrAutoswap;
+        ix = PTR(ptr(i))==ptrAutoswaps;
         inxValid(i) = any(ix);
         if inxValid(i)
             pos(i) = find(ix);

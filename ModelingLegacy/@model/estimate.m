@@ -52,7 +52,7 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 %
 % ## Options ##
 %
-% * `ChkSstate=false` [ `true` | `false` | cell ] - Check steady state in
+% * `CheckSteady=false` [ `true` | `false` | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
 %
 % * `EvalLikelihood=true` [ `true` | `false` ] - In each iteration, evaluate
@@ -249,13 +249,13 @@ if isempty(pp)
     pp.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
     pp.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'SystemPriorWrapper'));
 
-    pp.addParameter('ChkSstate', true, @model.validateChksstate); 
+    pp.addParameter('CheckSteady', true, @model.validateChksstate); 
     pp.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
     pp.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
     pp.addParameter('NoSolution', 'Error', @(x) validate.numericScalar(x, 1e10, Inf) || validate.anyString(x, 'Error', 'Penalty'));
     pp.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
     pp.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
-    pp.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
+    pp.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSteady);
     pp.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
 
     pp.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
@@ -264,9 +264,9 @@ if isempty(pp)
     pp.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
     pp.addParameter('Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
     pp.addParameter('HonorBounds', true, @validate.logicalScalar);
-    pp.addParameter({'EvaluateData', 'EvalLikelihood', 'EvalLik'}, true, @validate.logicalScalar);;
-    pp.addParameter({'EvaluateParamPriors', 'EvalPPrior'}, true, @validate.logicalScalar);;
-    pp.addParameter({'EvaluateSystemPriors', 'EvalSPrior'}, true, @validate.logicalScalar);;
+    pp.addParameter({'EvaluateData', 'EvalLikelihood', 'EvalLik'}, true, @validate.logicalScalar);
+    pp.addParameter({'EvaluateParamPriors', 'EvalPPrior'}, true, @validate.logicalScalar);
+    pp.addParameter({'EvaluateSystemPriors', 'EvalSPrior'}, true, @validate.logicalScalar);
     pp.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
     pp.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
     pp.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
@@ -325,7 +325,6 @@ posterior.EvaluateSystemPriors = opt.EvaluateSystemPriors;
 if isa(posterior.SystemPriors, 'SystemPriorWrapper')
     seal(SystemPriorWrapper);
 end
-
 estimationWrapper = EstimationWrapper( );
 estimationWrapper.IsConstrained = posterior.IsConstrained;
 chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions.Options);

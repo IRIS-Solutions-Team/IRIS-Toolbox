@@ -9,8 +9,9 @@ function options = prepareSolve(this, options)
 %(
 arguments
     this %#ok<INUSA>
-    options.Silent (1, 1) logical = false
+
     options.Run (1, 1) logical = true
+    options.Silent (1, 1) logical = false
     options.Equations = ""
     options.Normalize (1, 1) logical = true
     options.PreferredSchur (1, 1) string {mustBeMember(options.PreferredSchur, ["schur", "qz"])} = "schur"

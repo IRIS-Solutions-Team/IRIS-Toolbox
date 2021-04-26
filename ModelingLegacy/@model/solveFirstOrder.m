@@ -176,7 +176,8 @@ for v = variantsRequested
             flagTransition = hereTransitionEquations();
         end
         if ~flagTransition || ~flagMeasurement
-            if ~this.IsLinear && ~implementCheckSteady(this, v, struct("EquationSwitch", "Dynamic"));
+            checkSteadyOptions = prepareCheckSteady(this, "EquationSwitch", "dynamic");
+            if ~this.IsLinear && ~implementCheckSteady(this, v, checkSteadyOptions);
                 info.ExitFlag(v) = -4;
                 continue;
             else

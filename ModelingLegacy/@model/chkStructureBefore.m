@@ -122,12 +122,13 @@ if any(test)
 end
 
 % Exogenous variables in equations other than dtrends.
-% test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
-% if any(test)
-%     eqtn = equation.Input(~ixd);
-%     exc = exception.ParseTime('Model:Postparser:EXOGENOUS_IN_OTHER_THAN_DTREND', 'error');
-% 	args = eqtn(test);
-%     return
-% end
-
+test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
+if any(test)
+    eqtn = equation.Input(~ixd);
+    exc = exception.ParseTime('Model:Postparser:ExogenousInOtherThanDtrend', 'error');
+    args = eqtn(test);
+    return
 end
+
+end%
+

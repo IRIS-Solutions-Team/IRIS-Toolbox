@@ -1,4 +1,4 @@
-function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, lsPar, varargin)
+function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, listParameters, varargin)
 % fisher  Approximate Fisher information matrix in frequency domain.
 %
 % ## Syntax ##
@@ -77,7 +77,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addRequired('NPer', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
     INPUT_PARSER.addRequired('PList', @(x) iscellstr(x) || ischar(x));
 end
-INPUT_PARSER.parse(this, numOfPeriods, lsPar);
+INPUT_PARSER.parse(this, numOfPeriods, listParameters);
 
 % Read and validate optional input arguments.
 opt = passvalopt('model.fisher', varargin{:});
@@ -100,8 +100,8 @@ if ~isempty(opt.exclude)
 end
 
 % Get parameter cellstr list from a char list.
-if ischar(lsPar)
-    lsPar = regexp(lsPar, '\w+', 'match');
+if ischar(listParameters)
+    listParameters = regexp(listParameters, '\w+', 'match');
 end
 
 EPSILON = eps( )^opt.epspower;
@@ -117,32 +117,42 @@ end
 ixYLog = this.Quantity.IxLog(ixy);
 ixYLog(indexToExclude) = [ ];
 
-ell = lookup(this.Quantity, lsPar, TYPE(4));
-posOfValues = ell.PosName;
-posOfStdCorr = ell.PosStdCorr;
-indexNaNPosValues = isnan(posOfValues);
-indexNaNPosStdCorr = isnan(posOfStdCorr);
-indexValidNames = ~indexNaNPosValues | ~indexNaNPosStdCorr;
-if any(~indexValidNames)
+ell = lookup(this.Quantity, listParameters, TYPE(4));
+posValues = ell.PosName;
+posStdCorr = ell.PosStdCorr;
+inxNaPosValues = isnan(posValues);
+inxNaPosStdCorr = isnan(posStdCorr);
+inxValidNames = ~inxNaPosValues | ~inxNaPosStdCorr;
+if any(~inxValidNames)
     utils.error('model:fisher', ...
         'This is not a valid parameter name: %s ', ...
-        lsPar{~indexValidNames});
+        listParameters{~inxValidNames});
 end
 
 this.Update = this.EMPTY_UPDATE;
 this.Update.Values = this.Variant.Values;
 this.Update.StdCorr = this.Variant.StdCorr;
-this.Update.PosOfValues = posOfValues;
-this.Update.PosOfStdCorr = posOfStdCorr;
-this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
-this.Update.CheckSstate = prepareCheckSteady(this, 'silent', opt.ChkSstate);
+this.Update.PosOfValues = posValues;
+this.Update.PosOfStdCorr = posStdCorr;
+
+if islogical(opt.Steady)
+    opt.Steady = {"run", opt.Steady};
+end
+this.Update.Steady = prepareSteady(this, opt.Steady{:}, "silent", true);
+
+if islogical(opt.CheckSteady)
+    opt.CheckSteady = {"run", opt.CheckSteady};
+end
+this.Update.CheckSteady = prepareCheckSteady(this, opt.CheckSteady{:}, "silent", true);
+
 if islogical(opt.Solve)
     opt.Solve = {"run", opt.Solve};
 end
 this.Update.Solve = prepareSolve(this, opt.Solve{:}, "silent", true);
+
 this.Update.NoSolution = 'Error';
 
-numOfParameters = length(lsPar);
+numOfParameters = length(listParameters);
 numOfFreq = floor(numOfPeriods/2) + 1;
 freq = 2*pi*(0 : numOfFreq-1)/numOfPeriods;
 
@@ -182,8 +192,8 @@ for v = 1 : nv
     end
     % Determine differentiation step.
     p0 = nan(1, numOfParameters);
-    p0(~indexNaNPosValues) = m.Variant.Values(:, posOfValues(~indexNaNPosValues), :);
-    p0(~indexNaNPosStdCorr) = m.Variant.StdCorr(:, posOfStdCorr(~indexNaNPosStdCorr), :);
+    p0(~inxNaPosValues) = m.Variant.Values(:, posValues(~inxNaPosValues), :);
+    p0(~inxNaPosStdCorr) = m.Variant.StdCorr(:, posStdCorr(~inxNaPosStdCorr), :);
     step = max([abs(p0);ones(1, numOfParameters)], [ ], 1)*EPSILON;
     
     for i = 1 : numOfParameters
@@ -193,7 +203,7 @@ for v = 1 : nv
         pm(i) = pm(i) - step(i);
         twoSteps = pp(i) - pm(i);
 
-        isSstate = ~opt.Deviation && ~isnan(posOfValues(i));
+        isSstate = ~opt.Deviation && ~isnan(posValues(i));
         
         % Steady state, state space and SGF at p0(i) + step(i).
         m = update(m, pp, 1);
@@ -218,8 +228,8 @@ for v = 1 : nv
         end
         
         % Reset model parameters to `p0`.
-        m.Variant.Values(:, posOfValues(~indexNaNPosValues), :) = p0(1, ~indexNaNPosValues);
-        m.Variant.StdCorr(:, posOfStdCorr(~indexNaNPosStdCorr), :) = p0(1, ~indexNaNPosStdCorr);
+        m.Variant.Values(:, posValues(~inxNaPosValues), :) = p0(1, ~inxNaPosValues);
+        m.Variant.StdCorr(:, posStdCorr(~inxNaPosStdCorr), :) = p0(1, ~inxNaPosStdCorr);
         
         % Update the progress bar.
         if opt.progress

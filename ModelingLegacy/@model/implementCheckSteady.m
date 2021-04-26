@@ -1,49 +1,29 @@
 % implementCheckSteady  Discrepancy in steady state of model equtions
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Teamk
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [flag, dcy, maxAbsDcy, listEquations] = implementCheckSteady(this, variantsRequested, opt)
+function [flag, dcy, maxAbsDcy, listEquations] = implementCheckSteady(this, variantsRequested, options)
 
-% The input struct Opt is expected to include field .EquationSwitch, a switch between
-% evaluating full dynamic versus steady-state equations
-
-TYPE = @int8;
 STEADY_TOLERANCE = this.Tolerance.Steady;
 
-try
-    opt; %#ok<VUNUS>
-catch
-    opt = prepareCheckSteady(this, variantsRequested);
-end
-
-%--------------------------------------------------------------------------
-
-ixt = this.Equation.Type==TYPE(1);
-ixm = this.Equation.Type==TYPE(2);
-numQuantities = length(this.Quantity);
-ntm = sum(ixt | ixm);
-nv = length(this);
+inxT = this.Equation.Type==1;
+inxM = this.Equation.Type==2;
+numQuantities = numel(this.Quantity);
+numTM = nnz(inxT | inxM);
+numVariants = countVariants(this);
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
-    variantsRequested = 1 : nv;
+    variantsRequested = 1 : numVariants;
 end
 numVariantsRequested = numel(variantsRequested);
 
-if strcmpi(opt.EquationSwitch, 'Dynamic') || strcmpi(opt.EquationSwitch, 'Full')
-    equationSwitch = 'Dynamic';
-else 
-    equationSwitch = 'Steady';
-end
 [minSh, maxSh] = getActualMinMaxShifts(this);
 sh = minSh : maxSh;
-[dcy, dcyWithImag] = evalEquations( );
+[dcy, dcyWithImag] = hereEvalEquations( );
 
 maxAbsDcy = max(abs(dcy), [ ], 2);
 maxAbsDcy = maxAbsDcy(:, :);
-absDcyWithImag = abs(dcyWithImag); % 
+absDcyWithImag = abs(dcyWithImag);
 absDcyWithImag = absDcyWithImag(:, :);
 
 flag = true(1, numVariantsRequested);
@@ -52,7 +32,7 @@ for i = 1 : numVariantsRequested
     inxWithinTol = maxAbsDcy(:, i)<=STEADY_TOLERANCE;
     flag(i) = all(inxWithinTol);
     inxWithinTolInAssignment = false(size(inxWithinTol));
-    if strcmpi(equationSwitch, 'Steady') && ~flag(i)
+    if options.EquationSwitch=="steady" && ~flag(i)
         inxWithinTolWithImag = absDcyWithImag(:, i)<=STEADY_TOLERANCE;
         inxWithinTolInAssignment = ~inxWithinTol & inxWithinTolWithImag;
         maxAbsDcy(inxWithinTolInAssignment, i) = absDcyWithImag(inxWithinTolInAssignment, i);
@@ -66,28 +46,28 @@ for i = 1 : numVariantsRequested
 end
 
 return
-    
-    
-    function [dcy, dcyWithImag] = evalEquations( )
+
+    function [dcy, dcyWithImag] = hereEvalEquations( )
         % Check the full equations in two consecutive periods. This way we
         % can detect errors in both levels and growth rates.
         numShifts = length(sh);
-        dcy = nan(ntm, 2, numVariantsRequested);
+        dcy = nan(numTM, 2, numVariantsRequested);
         isDelog = true;
         for t = 1 : 2
             vecT = t + sh;
             YXEPGT = createTrendArray(this, variantsRequested, isDelog, 1:numQuantities, vecT);
-            dcy(:, t, :) = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', equationSwitch);
+            dcy(:, t, :) = lhsmrhs(this, YXEPGT, Inf, variantsRequested, "equationSwitch", options.EquationSwitch);
         end
-        
+
         % Substitute level+1i*growth for variables in YXE array to check direct
         % assignments in steady equations X=a+1i*b.
-        dcyWithImag = nan(ntm, 1, numVariantsRequested);
-        if strcmpi(equationSwitch, 'Steady')
+        dcyWithImag = nan(numTM, 1, numVariantsRequested);
+        if options.EquationSwitch=="steady"
             temp = this.Variant.Values(:, :, variantsRequested);
             YXEPGT = permute(temp, [2, 1, 3]);
             YXEPGT = repmat(YXEPGT, 1, numShifts);
-            dcyWithImag = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', equationSwitch);
+            dcyWithImag = lhsmrhs(this, YXEPGT, Inf, variantsRequested, "equationSwitch", options.EquationSwitch);
         end
     end
-end
+end%
+
