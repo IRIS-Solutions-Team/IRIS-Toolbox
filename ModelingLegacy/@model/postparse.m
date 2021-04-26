@@ -5,8 +5,6 @@
 
 function this = postparse(this, qty, eqn, log, euc, puc, collector, opt, optimalOpt)
 
-TYPE = @int8;
-
 exception.ParseTime.storeFileName(this.FileName);
 
 %
@@ -14,7 +12,7 @@ exception.ParseTime.storeFileName(this.FileName);
 %
 removeFromLog = string.empty(1, 0);
 for processor = ["Preprocessor", "Postprocessor"]
-    collector.(processor) = regexprep(collector.(processor), '\s+', '');
+    collector.(processor) = regexprep(collector.(processor), "\s+", "");
     if ~isempty(collector.(processor))
         mf = model.File( );
         mf.FileName = this.FileName;
@@ -23,9 +21,10 @@ for processor = ["Preprocessor", "Postprocessor"]
         this.(processor) = Explanatory.fromFile(mf);
         [this.(processor).Context] = deal("Preprocessor");
         this.(processor) = initializeLogStatus(this.(processor), log);
-        removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [])];
+        removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [])]; %#ok<AGROW>
     end
 end
+
 if ~isempty(removeFromLog)
     log = setdiff(log, removeFromLog);
 end
@@ -44,113 +43,121 @@ qty = initializeLogStatus(qty, log);
 
 % Check for name conflicts between LHS names in reporting equations and
 % model names
-if any(eqn.Type==TYPE(6))
+if any(eqn.Type==6)
     this.Reporting = rpteq(eqn, euc, this.FileName);
-    conflictsWithinReporting = parser.getMultiple(this.Reporting.NamesOfLhs);
-    if ~isempty(conflictsWithinReporting)
-        thisError = { 'Model:Postparse:NameConflictsWithinReporting'
-                      'This LHS reporting variable name is used more than once: %s' };
-        throw( exception.ParseTime(thisError, 'error'), ...
-               conflictsWithinReporting{:} );
+    [flag, conflictsWithinReporting] = textual.nonunique(this.Reporting.NamesOfLhs);
+    if flag
+        exception.error([
+            "Model:Postparse:NameConflictsReportingEquations"
+            "This LHS reporting variable name is used more than once: %s"
+        ], string(conflictsWithinReporting));
     end
     checkList = [qty.Name, this.Reporting.NamesOfLhs];
-    conflictsBetweenReportingAndModel = parser.getMultiple(checkList);
-    if ~isempty(conflictsBetweenReportingAndModel)
-        throw( exception.ParseTime('Model:Postparser:REPORTING_NAME_CONFLICT', 'error'), ...
-               conflictsBetweenReportingAndModel{:} );
+    [flag, conflictsBetweenReportingAndModel] = textual.nonunique(checkList);
+    if flag
+        exception.error([
+            "Model:Postparse:NameConflictsReportingEquations"
+            "This LHS reporting variable name already exists in the model: %s"
+        ], string(conflictsBetweenReportingAndModel));
     end
 end
 
-%
-% Presence of Loss Function
-%
 
+% __Presence of loss function__
 % Search transition equations for loss function; if found move it down to
 % last position among transition equations
+
 try
     [eqn, euc, isOptimal] = findLossFunc(eqn, euc);
 catch exc
     throw( exception.Rethrow(exc) );
 end
 
-%
 % Max lag and lead in measurement and transition equations
-%
-inxMT = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
+inxMT = eqn.Type==1 | eqn.Type==2;
 maxSh = max([ euc.MaxShDynamic(inxMT), euc.MaxShSteady(inxMT) ]);
 minSh = min([ euc.MinShDynamic(inxMT), euc.MinShSteady(inxMT) ]);
 if isOptimal
     % Anticipate that multipliers will have leads as far as the greatest
     % lag, and lags as far as the greatest lead.
     maxSh = maxSh - minSh;
-    minSh = minSh - maxSh;    
+    minSh = minSh - maxSh;
 end
 
-%
-% Read Measurement and Transition Equations
-%
+
+% __Read measurement and transition equations__
 try
     eqn = readEquations(eqn, euc);
 catch exc
     throw( exception.Rethrow(exc) );
 end
 
+
 % Check for empty dynamic parts in measurement and transition equations.
 % This may occur if the user types a semicolon between the full equations
 % and its steady state version.
 hereCheckEmptyEqtn( );
 
-%
-% Placeholders for Optimal Policy Equations
-%
+
+% __Placeholders for optimal policy equations__
 
 % Position of loss function
 posLossEqtn = NaN;
-% Presence of a floor constraint
-isFloor = false;
+
+% Presence of floor constraints on policy variables
+hasFloors = false;
+
 % Positions of the floor variable, floor multiplier and floor parameter
 posFloorVariable = [];
 posFloorMultiplier = [];
 posFloorParameter = [];
+
 % Name of the multiplier associated with nonegativity constraint.
 floorVariableName = '';
 if  isOptimal
-    % Create placeholders for new transition names (mutlipliers) and new
+    % Create placeholders for new transition names (multipliers) and new
     % transition equations (derivatives of the loss function wrt existing
     % variables).
     prefix = optimalOpt.MultiplierPrefix;
     ixInvalidRef = strncmp(qty.Name, prefix, length(prefix));
     if any(ixInvalidRef)
-        throw( ...
-            exception.ParseTime('Model:Postparser:PREFIX_MULTIPLIER', 'error'), ...
-            qty.Name{ixInvalidRef} ...
-        );
+        exception.error([
+            "Parser:MultiplierPrefix"
+            "This name starts with a prefix reserved for Lagrange multipliers in optimal policy models; "
+            "change the name: %s "
+        ], string(qty.Name{ixInvalidRef})); ...
     end
     hereCreatePlaceholdersForOptimal( );
 end
 
-%
-% Read DTrends and Pairings
-%
 
+% __Seal model quantities__
+% * Validate names
+% * Add special names (exogenous ttrend)
+% * Save original names
+% * Populate transient properties
+qty = seal(qty);
+
+
+% __Read dtrend equations and pairings__
 % Read them after placeholders for optimal policy have been created
 try
-    [eqn, this.Pairing.Dtrend] = readDtrends(eqn, euc, qty);
-    this.Pairing.Autoswap = model.component.Pairing.readAutoswap(qty, puc);
-    this.Pairing.Assignment = model.component.Pairing.readAssignments(eqn, euc, qty);
+    [eqn, this.Pairing.Dtrends] = readDtrends(eqn, euc, qty);
+    this.Pairing.Autoswaps = model.component.Pairing.readAutoswaps(qty, puc);
+    this.Pairing.Assignments = model.component.Pairing.readAssignments(eqn, euc, qty);
 catch exc
     throw(exception.Rethrow(exc));
 end
 
-%
-% Postprocess Equations
-%
+
+% __Postprocess equations__
+
 numQuant = numel(qty.Name);
 numEqtn = numel(eqn.Input);
-inxM = eqn.Type==TYPE(1);
-inxT = eqn.Type==TYPE(2);
-inxD = eqn.Type==TYPE(3);
-inxL = eqn.Type==TYPE(4);
+inxM = eqn.Type==1;
+inxT = eqn.Type==2;
+inxD = eqn.Type==3;
+inxL = eqn.Type==4;
 
 % Remove blank spaces
 eqn.Input = regexprep(eqn.Input, {'\s+', '".*?"'}, {'', ''});
@@ -255,16 +262,14 @@ if ~isempty(exc)
 end
 
 
-% 
 % Create the Link component
-%
 this.Link = model.component.Link(eqn, euc, qty);
 
 
-%
 % Reset parsed file name
-%
 exception.ParseTime.storeFileName( );
+
+
 this.Quantity = qty;
 this.Equation = eqn;
 
@@ -296,7 +301,7 @@ return
         % Check for sstate references in the wrong equations
         inxSteadyRef = contains(eqn.Dynamic, '&') | contains(eqn.Dynamic, '&');
         % Not allowed in deterministic trends
-        inx = inxSteadyRef & eqn.Type==TYPE(3);
+        inx = inxSteadyRef & eqn.Type==3;
         if any(inx)
             throw( ...
                 exception.ParseTime('Model:Postparser:SSTATE_REF_IN_DTREND', 'error'), ...
@@ -304,7 +309,7 @@ return
             );
         end
         % Not allowed in dynamic links
-        inx = inxSteadyRef & eqn.Type==TYPE(4);
+        inx = inxSteadyRef & eqn.Type==4;
         if any(inx)
             throw( ...
                 exception.ParseTime('Model:Postparser:SSTATE_REF_IN_LINK', 'error'), ...
@@ -314,34 +319,29 @@ return
     end%
 
 
-
-
     function hereCreatePlaceholdersForOptimal( )
         % Add new variables, i.e. the Lagrange multipliers associated with all of
         % the existing transition equations except the loss function. These new
         % names will be ordered first -- the final equations will be ordered as
         % derivatives of the lagrangian wrt to the individual variables.
-        numEquationsToAdd = sum(qty.Type==TYPE(2)) - 1;
-        numQuantitiesToAdd = sum(eqn.Type==TYPE(2)) - 1;
+        numEquationsToAdd = sum(qty.Type==2) - 1;
+        numQuantitiesToAdd = sum(eqn.Type==2) - 1;
+
         % The default name is 'Mu_Eq%g' but can be changed through the
         % option MultiplierPrefix=
         newName = cell(1, numQuantitiesToAdd);
         for ii = 1 : numQuantitiesToAdd
-            newName{ii} = [ ...
-                optimalOpt.MultiplierPrefix, ...
-                sprintf('Eq%g', ii) ...
-                ];
+            newName{ii} = [optimalOpt.MultiplierPrefix, sprintf('Eq%g', ii)];
         end
-        isFloor = ~isempty(optimalOpt.Floor);
-        if isFloor
+
+        hasFloors = ~isempty(optimalOpt.Floor);
+        if hasFloors
             numEquationsToAdd = numEquationsToAdd + 1;
             numQuantitiesToAdd = numQuantitiesToAdd + 1;
-            floorVariableName = [ ...
-                optimalOpt.MultiplierPrefix, ...
-                optimalOpt.Floor ...
-            ];
-            newName{end+1} = floorVariableName;
+            floorVariableName = string(optimalOpt.MultiplierPrefix) + string(optimalOpt.Floor);
+            newName{end+1} = char(floorVariableName);
         end
+
         % Insert the new names between at the beginning of the block of existing
         % transition variables.
         add = model.component.Quantity( );
@@ -352,11 +352,13 @@ return
         add.IxLagrange = true(1, numQuantitiesToAdd);
         add.IxObserved = false(1, numQuantitiesToAdd);
         add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, numQuantitiesToAdd);
-        qty = insert(qty, add, TYPE(2), 'first');
-        if isFloor
+        qty = insert(qty, add, 2, 'first');
+
+        if hasFloors
             floorParameterName = string(model.component.Quantity.FLOOR_PREFIX) + string(optimalOpt.Floor);
-            inxFloorParameter = startsWith(qty.Name, model.component.Quantity.FLOOR_PREFIX);
+
             % Floor parameter may be declared by the user
+            inxFloorParameter = startsWith(qty.Name, model.component.Quantity.FLOOR_PREFIX) & qty.Type==4;
             if any(inxFloorParameter)
                 posFloorParameter = find(inxFloorParameter);
             else
@@ -368,14 +370,14 @@ return
                 add.IxLagrange = false(1, 1);
                 add.IxObserved = false(1, 1);
                 add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, 1);
-                [qty, inxPre] = insert(qty, add, TYPE(4), 'last');
+                [qty, inxPre] = insert(qty, add, 4, 'last');
                 posFloorParameter = find(inxPre, 1, 'last') + 1;
             end
         end
 
         % Loss function is always moved to last position among transition equations.
-        posLossEqtn = length(eqn.Input);
-        if isFloor
+        posLossEqtn = numel(eqn.Input);
+        if hasFloors
             % Find the position of floored variables in the list of names AFTER we
             % have inserted placeholders.
             inxFloorVariable = strcmp(optimalOpt.Floor, qty.Name);
@@ -387,7 +389,7 @@ return
                 );
             end
             posFloorVariable = find(inxFloorVariable);
-            posFloorMultiplier = find( strcmp(qty.Name, floorVariableName) );
+            posFloorMultiplier = find(strcmp(qty.Name, floorVariableName));
         end
 
         % Add a total of `numEquationsToAdd` new transition equations, i.e. the
@@ -401,7 +403,7 @@ return
         add.Dynamic = repmat({''}, 1, numEquationsToAdd);
         add.Steady = repmat({''}, 1, numEquationsToAdd);
         add.IxHash = false(1, numEquationsToAdd);
-        [eqn, ixPre, ixPost] = insert(eqn, add, TYPE(2), 'last');
+        [eqn, ixPre, ixPost] = insert(eqn, add, 2, 'last');
 
         add = parser.EquationUnderConstruction( );
         add.LhsDynamic = repmat({''}, 1, numEquationsToAdd);
@@ -421,7 +423,7 @@ return
 
 
     function hereCheckEmptyEqtn( )
-        inxTM = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
+        inxTM = eqn.Type==1 | eqn.Type==2;
         ixEmpty = cellfun('isempty', eqn.Dynamic) & inxTM;
         if any(ixEmpty)
             throw( ...
