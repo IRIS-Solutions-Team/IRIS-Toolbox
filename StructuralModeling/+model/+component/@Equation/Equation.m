@@ -8,9 +8,10 @@ classdef Equation < model.component.Insertable
         Steady = cell.empty(1, 0)    % Parsed steady equations
         IxHash = logical.empty(1, 0) % True for hash-signed equations
     end
-    
-    
+
+
     properties (Constant, Hidden)
+        PREAMBLE = '@(x,t,L)'
         TYPE_ORDER = int8([1, 2, 3, 4, 5, 6]);
     end
 
@@ -18,6 +19,14 @@ classdef Equation < model.component.Insertable
     properties (Dependent)
         InxHashEquations
         NumHashEquations
+    end
+
+
+    properties (Transient)
+        % Transient properties are not insertable
+
+        % DynamicFunc  Anonymous functions for individual M and T dynamic equations
+        DynamicFunc = cell.empty(1, 0)
     end
 
 
@@ -41,6 +50,7 @@ classdef Equation < model.component.Insertable
         end%
 
         varargout = postparse(varargin)
+        varargout = populateTransient(varargin)
         varargout = readEquations(varargin)
         varargout = readDtrends(varargin)
         varargout = readRevisions(varargin)
@@ -60,8 +70,8 @@ classdef Equation < model.component.Insertable
             value = nnz(this.IxHash);
         end%
     end
-    
-    
+
+
     methods (Static)
         varargout = extractInput(varargin)
         varargout = loadObject(varargin)
@@ -79,3 +89,4 @@ classdef Equation < model.component.Insertable
         end%
     end
 end
+

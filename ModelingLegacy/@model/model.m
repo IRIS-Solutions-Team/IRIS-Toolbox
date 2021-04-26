@@ -69,6 +69,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         % TaskSpecific  Not used any more
         TaskSpecific = [ ]
+
+        PreallocateFunc
     end
 
     
@@ -104,11 +106,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         STEADY_TTREND = 0 + 1i
         CONTRIBUTION_INIT_CONST_DTREND = 'Init+Const+DTrend'
         CONTRIBUTION_NONLINEAR = 'Nonlinear'
-        PREAMBLE_DYNAMIC = '@(x,t,L)'
-        PREAMBLE_STEADY = '@(x,t)'
-        PREAMBLE_DTREND = '@(x,t)'
-        PREAMBLE_LINK = '@(x,t)'
-        PREAMBLE_REVISION = '@(x,t)'
         PREAMBLE_HASH = '@(y,xi,e,p,t,L,T)'
         EMPTY_UPDATE = struct( 'Values', [ ], ...
                                'StdCorr', [ ], ...
@@ -153,21 +150,11 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = assigned(varargin)
         varargout = autocaption(varargin)
 
-        varargout = autoswap(varargin)
-        function varargout = autoexog(varargin)
-            thisWarning = { 'Model:LegacyFunctionName' 
-                            'The function name autoexog(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
-            throw(exception.Base(thisWarning, 'warning'));
-            [varargout{1:nargout}] = autoswap(varargin{:});
-        end%
-        function output = autoexogenise(varargin)
-            thisWarning = { 'Model:LegacyFunctionNameForGPMN' 
-                            'The function name autoexogenise(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
-            throw(exception.Base(thisWarning, 'warning'));
-            output = autoswap(varargin{:});
-            output = output.Simulate;
+        function varargout = autoswap(varargin)
+            [varargout{1:nargout}] = autoswaps(varargin{:});
         end%
 
+        varargout = autoswaps(varargin)
         varargout = beenSolved(varargin)
         varargout = blazer(varargin)
         varargout = bn(varargin)
@@ -426,6 +413,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     
     
     methods (Access=protected, Hidden)
+        function value = getPreallocateFunc(this)
+            value = @nan;
+        end%
+
         varargout = assignNameValue(varargin)
         varargout = affected(varargin)
         varargout = build(varargin)
@@ -452,7 +443,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = reportNaNSolutions(varargin)
         varargout = responseFunction(varargin)
         varargout = solveFail(varargin)
-        varargout = solveFirstOrder(varargin)        
+        varargout = solveFirstOrder(varargin)
         varargout = steadyLinear(varargin)
         varargout = steadyNonlinear(varargin)
         varargout = systemFirstOrder(varargin)
@@ -480,7 +471,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         function flag = validateSolvedModel(input, maxNumVariants)
             if nargin<2
-                numOfVariants = Inf;
+                maxNumVariants = Inf;
             end
             flag = isa(input, 'model') && ~isempty(input) && all(beenSolved(input)) ...
                 && length(input)<=maxNumVariants;
@@ -504,15 +495,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
 
-        function flag = validateSstate(input)
-            flag = isequal(input, true) || isequal(input, false) ...
-                || (iscell(input) && iscellstr(input(1:2:end))) ...
-                || isa(input, 'function_handle') ...
-                || (iscell(input) && ~isempty(input) && isa(input{1}, 'function_handle'));
+        function flag = validateSteady(input)
+            flag = isequal(input, true) || isequal(input, false) || iscell(input);
         end%
     end
-    
-    
 
 
     methods % Constructor
@@ -542,7 +528,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 addParameter(pp, {'removeleads', 'removelead'}, false, @validate.logicalScalar);
                 addParameter(pp, 'Linear', false, @(x) isequal(x, true) || isequal(x, false));
                 addParameter(pp, 'makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
-                addParameter(pp, 'Optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                addParameter(pp, 'Optimal', cell.empty(1, 0), @iscell);
                 addParameter(pp, 'OrderLinks', true, @validate.logicalScalar);
                 addParameter(pp, {'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
                 % addParameter(pp, ('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
@@ -567,13 +553,11 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 ppOptimal.KeepUnmatched = true;
                 ppOptimal.PartialMatching = false;
                 addParameter(ppOptimal, 'MultiplierPrefix', 'Mu_', @ischar);
-                addParameter(ppOptimal, {'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
+                addParameter(ppOptimal, {'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || (validate.stringScalar(x) && isvarname(x)));
                 addParameter(ppOptimal, 'Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
             end
             %)
-                
-            %--------------------------------------------------------------------------
-            
+
             if nargin==0
                 % Empty model object
                 return
