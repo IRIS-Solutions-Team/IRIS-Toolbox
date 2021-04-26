@@ -119,19 +119,28 @@ this.D2S.DerivE = (sh0-1)*numYXE + posE;
 this.D2S.SystemE = 1 : numE;
 
 % __Dynamic Identity Matrices__
-this.D2S.IdentityA = zeros(0, numX);
-this.D2S.IdentityB = zeros(0, numX);
+% this.D2S.IdentityA = zeros(0, numX);
+% this.D2S.IdentityB = zeros(0, numX);
+
+id__ = this.Vector.System{2};
+realId__ = real(id__);
+imagId__ = imag(id__);
+inxRows = false(1, numX);
 for i = 1 : numX
-    id = this.Vector.System{2}(i);
-    if imag(id) ~= minSh(real(id))
-        aux = zeros(1, numX);
-        aux(this.Vector.System{2}==id-1i) = 1;
-        this.D2S.IdentityA(end+1, 1:end) = aux;
-        aux = zeros(1, numX);
-        aux(i) = -1;
-        this.D2S.IdentityB(end+1, 1:end) = aux;
-    end
+    inxRows(i) = imagId__(i)~=minSh(realId__(i));
 end
+numRows = nnz(inxRows);
+identityA = sparse(numRows, numX);
+identityB = sparse(numRows, numX);
+
+row = 0;
+for i = find(inxRows)
+    row = row + 1;
+    identityA(row, this.Vector.System{2}==id__(i)-1i) = 1;
+    identityB(row, i) = -1;
+end
+this.D2S.IdentityA = identityA;
+this.D2S.IdentityB = identityB;
 
 
 % __Solution IDs__
@@ -231,3 +240,4 @@ return
         end
     end
 end
+
