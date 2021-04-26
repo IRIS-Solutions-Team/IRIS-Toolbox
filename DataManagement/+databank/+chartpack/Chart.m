@@ -8,9 +8,9 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         Expression (1, 1) string = ""
         Data = []
 
-        Expand (1, :) cell = cell.empty(1, 0)
+        Expansion = @parent
         ApplyTransform = true
-        Transform = []
+        Transform = @parent
 
         PlotSettings = cell.empty(1, 0)
     end
@@ -31,34 +31,54 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         end%
 
 
+        function expansion = getExpansion(this)
+            expansion = this.Expansion;
+            if isequal(expansion, @parent)
+                expansion = this.ParentChartpack.Expansion;
+            end
+        end%
+
+
+        function transform = getTransform(this)
+            transform = this.Transform;
+            if isequal(transform, @parent)
+                transform = this.ParentChartpack.Transform;
+            end
+        end%
+
+
         function evaluate(this, inputDb)
-            parent = this.ParentChartpack;
             expression = this.Expression;
             if isempty(this.Data) && ~ismissing(expression) && strlength(expression)>0
-                if ~isempty(this.Expand)
-                    expression = expand(this, expression);
-                end
+                expression = expand(this, expression);
                 this.Data = databank.eval(inputDb, expression);
-                if this.ApplyTransform && ~isempty(parent.Transform)
-                    this.Data = parent.Transform(this.Data);
-                    this.Transform = parent.Transform;
+                if this.ApplyTransform
+                    transform = getTransform(this);
+                    if ~isempty(transform)
+                        this.Data = transform(this.Data);
+                    end
                 end
             end
         end%
 
-        
+
         function expression = expand(this, expression)
-            for i = 1 : 2 : numel(this.Expand)
-                if contains(expression, this.Expand{i})
+            expansion = getExpansion(this);
+            if isempty(expansion)
+                return
+            end
+            for i = 1 : 2 : numel(expansion)
+                if contains(expression, expansion{i})
                     newExpression = string.empty(1, 0);
-                    for n = reshape(string(this.Expand{i+1}), 1, [])
-                        newExpression(end+1) = replace(expression, this.Expand{i}, n);
+                    for n = reshape(string(expansion{i+1}), 1, [])
+                        newExpression(end+1) = replace(expression, expansion{i}, n);
                     end
                     expression = "[" + join(newExpression, ", ") + "]";
                     break
                 end
             end
         end%
+
 
         function caption = resolveCaption(this)
             parent = this.ParentChartpack;
@@ -83,7 +103,8 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
             function formula = hereCreateFormula()
                 formula = this.Expression;
-                if ~isempty(this.Transform) && parent.ShowTransform
+                transform = getTransform(this);
+                if ~isempty(transform) && parent.ShowTransform
                     formula(1) = formula(1) + "; " + string(func2str(this.Transform));
                 end
             end%
