@@ -6,30 +6,39 @@ classdef (CaseInsensitiveProperties=true) Options
 
         Reset
 
-        % Convergence Options
-        FunctionNorm
-        MaxIterations
-        MaxFunctionEvaluations
-        FunctionTolerance
-        StepTolerance
         
+        % __Convergence options__
+        
+        FunctionNorm
+        MaxIterations (1, 1) double
+        MaxFunctionEvaluations (1, 1)
+        FunctionTolerance (1, 1) 
+        StepTolerance (1, 1) 
+
         % TrimObjectiveFunction  Trim values of objective function smaller than tolerance to zero
         TrimObjectiveFunction
 
-        % Step Improvement Options
-        Lambda
 
-        MinLambda
-        MaxLambda
-        LambdaMultiplier
+        % __Jacobian and step improvement options__
+        
+        MinLambda (1, 1) double
+        MaxLambda (1, 1) double
+        LambdaMultiplier (1, 1) double
+        
+        % IncludeNewton  Include lambda=0 (pure Newton) in QNSD 
+        IncludeNewton (1, 1) logical = true
+        
+        InflateStep (1, 1)
+        DeflateStep (1, 1)
+        
 
-        InflateStep
-        DeflateStep
-
-        % Bounds
+        % __Bounds__
+        
         Bounds double = [ ]
+        
 
-        % Jacobian Options
+        % __Jacobian options__
+        
         JacobPattern (:, :) logical = logical.empty(0)
         JacobCalculation (1, 1) string
         LastJacobUpdate (1, 1) double = Inf
@@ -39,8 +48,10 @@ classdef (CaseInsensitiveProperties=true) Options
         PseudoinverseWhenSingular
         ForceJacobUpdateWhenReversing
         LastBroydenUpdate
+        
 
-        % QaD Options
+        % __Legacy QaD options__
+        
         LastStepSizeOptim 
         InitStepSize
         StepSizeSwitch 
@@ -56,7 +67,7 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_DISPLAY = 'iter*'
         DEFAULT_RESET = true
 
-        % Convergence Options
+        % Convergence options
         DEFAULT_FUNCTION_NORM = 2
         DEFAULT_MAX_ITERATIONS = 5000
         DEFAULT_MAX_FUNCTION_EVALUATIONS = @(inp) 200*inp.NumberOfVariables
@@ -64,17 +75,17 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_STEP_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
         DEFAULT_TRIM_OBJECTIVE_FUNCTION = false
 
-        % Hybrid Step Lambda
-        DEFAULT_LAMBDA = [0.1, 1, 10, 100]
-        DEFAULT_MIN_LAMBDA = 0.1
+        % Hybrid step lambda
+        DEFAULT_MIN_LAMBDA = 1 % 1e-2
         DEFAULT_MAX_LAMBDA = 1e6
-        DEFAULT_LAMBDA_MULTIPLIER = 10
+        DEFAULT_LAMBDA_MULTIPLIER = 100
+        DEFAULT_INCLUDE_NEWTON = true
 
-        % Step Improvement Options
+        % Step improvement options
         DEFAULT_INFLATE_STEP = 1.2
         DEFAULT_DEFLATE_STEP = 0.8
 
-        % Jacobian Options
+        % Jacobian options
         DEFAULT_JACOB_CALCULATION = "Analytical"
         DEFAULT_SPECIFY_OBJECTIVE_GRADIENT = false
         DEFAULT_LAST_JACOB_UPDATE = Inf
@@ -85,7 +96,7 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_LAST_BROYDEN_UPDATE = -1
         DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR = false
 
-        % Step Size Options
+        % Step size options
         DEFAULT_INIT_STEP_SIZE = 1
         DEFAULT_LAST_STEP_SIZE_OPTIM = 0
         DEFAULT_STEP_SIZE_SWITCH = 0
@@ -113,7 +124,7 @@ classdef (CaseInsensitiveProperties=true) Options
             varargin = pp.UnmatchedInCell;
 
             if locallyValidateSolver(solverName, {'IRIS-QaD', 'QaD'})
-                % QaD
+                % Legacy QaD
                 this.Algorithm = 'QaD';
                 this.DEFAULT_DISPLAY = 100;
                 this.DEFAULT_FUNCTION_NORM = Inf;
@@ -121,7 +132,6 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_TRIM_OBJECTIVE_FUNCTION = true;
                 this.DEFAULT_MAX_ITERATIONS = 500;
                 this.DEFAULT_STEP_TOLERANCE = Inf;
-                this.DEFAULT_LAMBDA = double.empty(1, 0);
                 this.DEFAULT_MAX_LAMBDA = 0;
                 this.DEFAULT_LAST_JACOB_UPDATE = -1;
                 this.DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR = true;
@@ -129,11 +139,12 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_STEP_SIZE_SWITCH = 1;
                 this.DEFAULT_INFLATE_STEP = false;
                 this.DEFAULT_DEFLATE_STEP = false;
+            elseif locallyValidateSolver(solverName, {'Iris-Qnsdx', 'Qnsdx'})
+                this.DEFAULT_INCLUDE_NEWTON = false;
             elseif locallyValidateSolver(solverName, {'Iris-QuickNewton', 'QuickNewton'})
                 % Newton (Lambda=0, higher tolerance, Inf norm)
                 this.Algorithm = 'Newton';
                 this.DEFAULT_FUNCTION_NORM = Inf;
-                this.DEFAULT_LAMBDA = double.empty(1, 0);
                 this.DEFAULT_MAX_LAMBDA = 0;
                 this.DEFAULT_FUNCTION_TOLERANCE = 1e-5;
                 this.DEFAULT_STEP_TOLERANCE = Inf;
@@ -167,10 +178,10 @@ classdef (CaseInsensitiveProperties=true) Options
             pp.KeepUnmatched = true;
             addParameter(pp, 'Display', this.DEFAULT_DISPLAY, @validateDisplay);
             addParameter(pp, 'Reset', this.DEFAULT_RESET, @(x) isequal(x, true) || isequal(x, false));
-            addParameter(pp, 'Lambda', this.DEFAULT_LAMBDA, @(x) isequal(x, @default) || (isnumeric(x) && all(x>0) && all(isreal(x))));
             addParameter(pp, 'MinLambda', this.DEFAULT_MIN_LAMBDA);
             addParameter(pp, 'MaxLambda', this.DEFAULT_MAX_LAMBDA);
             addParameter(pp, 'LambdaMultiplier', this.DEFAULT_LAMBDA_MULTIPLIER);
+            addParameter(pp, 'IncludeNewton', this.DEFAULT_INCLUDE_NEWTON);
             addParameter(pp, 'JacobPattern', logical.empty(0), @islogical);
             addParameter(pp, 'JacobCalculation', this.DEFAULT_JACOB_CALCULATION, @(x) startsWith(x, ["Analytical", "ForwardDiff"], "ignoreCase", true));
             addParameter(pp, 'LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE);
@@ -204,11 +215,17 @@ classdef (CaseInsensitiveProperties=true) Options
 
     
     methods (Static)
-        function solverOpt = parseOptions(solverOpt, defaultSolver, displayMode, varargin)
+        function solverOpt = parseOptions(solverOpt, defaultSolver, silent, varargin)
+
+            if silent
+                displayMode = "silent";
+            else
+                displayMode = "verbose";
+            end
 
             % Resolve solverOpt=@auto or solverOpt = { @auto, ... }
             solverOpt = resolveAutoSolverOption(solverOpt, defaultSolver);
-            
+
             if isa(solverOpt, 'optim.options.SolverOptions') || ...
                isa(solverOpt, 'solver.Options')
                 % Options object already prepared
@@ -218,10 +235,10 @@ classdef (CaseInsensitiveProperties=true) Options
 
             elseif locallyValidateSolver(solverOpt, {'lsqnonlin', 'fsolve'})
                 % Optim Tbx
-                solverOpt = parseOptimTbx(solverOpt, displayMode, varargin{:});                
+                solverOpt = parseOptimTbx(solverOpt, displayMode, varargin{:});
 
             elseif locallyValidateIrisSolver(solverOpt)
-                % IRIS Solver
+                % IrisT Solver
                 if iscell(solverOpt)
                     solverName = char(solverOpt{1});
                     userOpt = [varargin, solverOpt(2:end)];
@@ -231,10 +248,10 @@ classdef (CaseInsensitiveProperties=true) Options
                 end
                 solverOpt = solver.Options( ...
                     solverName, ...
-                    'DisplayMode=', displayMode, ...
+                    "displayMode", displayMode, ...
                     userOpt{:} ...
                 );
-                
+
             else
                 % Solver= @userFunction
                 % Do nothing
@@ -345,6 +362,6 @@ end%
 
 
 function flag = locallyValidateIrisSolver(x)
-   flag = locallyValidateSolver(x, {'Iris', 'Iris-Qnsd', 'Iris-Newton', 'Iris-QuickNewton', 'Iris-QaD', 'QaD', 'Newton', 'QuickNewton', 'Qnsd'}); 
+   flag = locallyValidateSolver(x, {'Iris', 'Iris-Qnsd', 'Iris-Qnsdx', 'Iris-Newton', 'Iris-QuickNewton', 'Iris-QaD', 'QaD', 'Newton', 'QuickNewton', 'Qnsd', 'Qnsdx'});
 end%
 

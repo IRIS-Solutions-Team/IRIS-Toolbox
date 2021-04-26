@@ -1,8 +1,5 @@
 % qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
@@ -50,9 +47,6 @@ minLambda = opt.MinLambda;
 maxLambda = opt.MaxLambda;
 lambdaMultiplier = opt.LambdaMultiplier;
 
-vecLambdas = opt.Lambda;
-vecLambdas(vecLambdas==0) = [ ];
-
 if isa(opt.FunctionNorm, 'function_handle')
     fnNorm = opt.FunctionNorm;
 else
@@ -65,6 +59,7 @@ if maxLambda>0
     lastStepSizeOptim = 0;
 end
 
+includeNewton = opt.IncludeNewton;
 deflateStep = opt.DeflateStep;
 inflateStep = opt.InflateStep;
 doTryMakeProgress = ~isequal(deflateStep, false);
@@ -453,39 +448,43 @@ return
         % Get and trim current objective function
         F0 = hereGetCurrentObjectiveFunction( );
 
-        jj = J0.' * J0;
         step = next.Step;
         if issparse(J0)
-            maxSingularValue = svds(J0, 1, 'largest');
-            minSingularValue = svds(J0, 1, 'smallest');
+            maxSingularValue = svds(J0, 1, "largest");
+            minSingularValue = svds(J0, 1, "smallest");
         else
             sj = svd(J0);
             maxSingularValue = max(sj);
             minSingularValue = sj(end);
         end
         tol = numUnknowns * eps(maxSingularValue);
-        scale = tol * eye(numUnknowns);
 
-        if minSingularValue>tol
+        if includeNewton && minSingularValue>tol
             lambda = 0;
         else
             lambda = minLambda;
         end
 
-        J0t_F0 = J0.' * F0;
+        J0t_J0 = transpose(J0) * J0;
+        J0t_F0 = transpose(J0) * F0;
+        % scale = maxSingularValue;
+        scale = tol;
+        scaledEye = scale * speye(numUnknowns);
         while true
             if lambda==0
                 % Lambda=0; pure Newton step
                 D = -J0 \ F0;
             else
                 % Lambda>0; hybrid Newton-Cauchy step
-                D = -( jj + lambda*scale ) \ J0t_F0; % J0.' * F0;
+                D = -( J0t_J0 + lambda*scaledEye ) \ J0t_F0; % J0.' * F0;
             end
+
             [X, boundsReport] = locallyEnforceBounds(X0 + step*D, bounds);
             F = objectiveFuncReshaped(X);
             fnCount = fnCount + 1;
             F = F(:);
             N = fnNorm(F);
+
             if N<current.Norm || lambda>=maxLambda
                 break
             end
