@@ -9,7 +9,7 @@ TYPE = @int8;
 
 output = struct( );
 
-inxE = this.Type==TYPE(31) | this.Type==TYPE(32);
+inxE = this.Type==31 | this.Type==32;
 namesE = this.Name(inxE);
 numE = numel(namesE);
 numStdCorr = numE + numE*(numE-1)/2;
@@ -24,7 +24,7 @@ if ~isempty(varargin)
         inxToKeep = inxToKeep | this.Type==varargin{i};
     end
     names(~inxToKeep) = {''};
-    doStdCorr = any( [varargin{:}]==TYPE(4) );
+    doStdCorr = any([varargin{:}]==4);
 end
 output.IxKeep = inxToKeep;
 
@@ -39,7 +39,6 @@ if iscell(query)
     output.InxName = false(1, numQuantities);
     output.InxStdCorr = false(1, numStdCorr);
     for i = 1 : numQueries
-        inxName = [ ];
         inxStdCorr = [ ];
         inxShk1 = [ ];
         inxShk2 = [ ];
@@ -48,26 +47,32 @@ if iscell(query)
                 [inxStdCorr, inxShk1] = hereGetStd(query{i});
                 output.InxStdCorr = output.InxStdCorr | inxStdCorr;
             end
+            if any(inxStdCorr)
+                output.PosStdCorr(i) = find(inxStdCorr);
+            end
+            if any(inxShk1)
+                output.PosShk1(i) = find(inxShk1);
+            end
         elseif strlength(query{i})>=9 && startsWith(query{i}, "corr_")
             if doStdCorr
                 [inxStdCorr, inxShk1, inxShk2] = hereGetCorr(query{i});
                 output.InxStdCorr = output.InxStdCorr | inxStdCorr;
             end
+            if any(inxStdCorr)
+                output.PosStdCorr(i) = find(inxStdCorr);
+            end
+            if any(inxShk1)
+                output.PosShk1(i) = find(inxShk1);
+            end
+            if any(inxShk2)
+                output.PosShk2(i) = find(inxShk2);
+            end
         else
-            inxName = locallyCallStrcmpOrRegexp(names, query{i});
-            output.InxName = output.InxName | inxName;
-        end
-        if any(inxName)
-            output.PosName(i) = find(inxName);
-        end
-        if any(inxStdCorr)
-            output.PosStdCorr(i) = find(inxStdCorr);
-        end
-        if any(inxShk1)
-            output.PosShk1(i) = find(inxShk1);
-        end
-        if any(inxShk2)
-            output.PosShk2(i) = find(inxShk2);
+            try
+                posName = this.LookupTable.(query{i});
+                output.InxName(posName) = true;
+                output.PosName(i) = posName;
+            end
         end
     end
 elseif ischar(query) || isa(query, "rexp") || isa(query, "string") || isa(query, "Rxp")
@@ -120,7 +125,7 @@ return
         end
         % Find positions of shock names within all names.
         inxShk1InName = locallyCallStrcmpOrRegexp(names, shkName{1});
-        inxShk2InName = locallyCallStrcmpOrRegexp(names, shkName{2});        
+        inxShk2InName = locallyCallStrcmpOrRegexp(names, shkName{2});
         % Find positions of shock names within shocks.
         inxShk1InShk = locallyCallStrcmpOrRegexp(namesE, shkName{1});
         inxShk2InShk = locallyCallStrcmpOrRegexp(namesE, shkName{2});
@@ -143,7 +148,8 @@ function ix = locallyCallStrcmpOrRegexp(list, query)
     if isa(query, "rexp") || ~isvarname(query)
         ix = ~cellfun(@isempty, regexp(list, query, "once"));
     else
-        ix = strcmp(list, query);
+        ix = string(query)==string(list);
+        % ix = strcmp(list, query);
     end
 end%
 
