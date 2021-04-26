@@ -3,6 +3,8 @@ classdef (CaseInsensitiveProperties=true) ...
     < model.component.Insertable
 
     properties
+        % Properties that are not Hidden are Insertable
+
         % Name  Names of quantities
         Name = cell.empty(1, 0)
 
@@ -30,19 +32,29 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
     properties (Hidden)
+        % Hidden properties are not insertable
+
         % OriginalName  Original names from source model file
-        OriginalNames = cell.empty(1, 0)          
+        OriginalNames = string.empty(1, 0)
 
         % GroupNames  Names of quantity groups
-        GroupNames = cell.empty(1, 0)        
+        GroupNames = cell.empty(1, 0)
 
         % GroupMembership  Membership of quantities in groups
         GroupMembership = logical.empty(0, 0)
     end
-    
-    
+
+
+    properties (Transient)
+        % Transient properties are not insertable
+
+        % LookupTable  Lookup table for base names
+        LookupTable = struct()
+    end
+
+
     properties (Constant, Hidden)
-        TYPE_ORDER = int8([1, 2, 31, 32, 4, 5])
+        TYPE_ORDER = [1, 2, 31, 32, 4, 5]
         DEFAULT_BOUNDS = [-Inf; Inf; -Inf; Inf]
         RESERVED_NAME_TTREND = 'ttrend'
         RESERVED_NAME_LINEAR = 'linear'
@@ -66,6 +78,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = resetBounds(varargin)
         varargout = setBounds(varargin)
 
+        varargout = createLookupTable(varargin)
         varargout = changeLogStatus(varargin)
         varargout = checkConsistency(varargin)
         varargout = createTemplateDbase(varargin)
@@ -86,13 +99,18 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
         varargout = lookup(varargin)
+        varargout = lookupNames(varargin)
         varargout = pattern4postparse(varargin)
+
+        varargout = populateTransient(varargin)
         varargout = printVector(varargin)
         varargout = remove(varargin)
         varargout = rename(varargin)
         varargout = saveObject(varargin)
-        varargout = size(varargin);
+        varargout = seal(varargin)
+        varargout = size(varargin)
         varargout = userSelection2Index(varargin)
+        varargout = validateNames(varargin)
 
 
         function this = resetNames(this)
@@ -138,14 +156,13 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
         function value = getLabelsForShockContributions(this)
-            TYPE = @int8;
             labels = getLabelsOrNames(this);
             names = this.Name;
 
-            inxE = getIndexByType(this, TYPE(31), TYPE(32));
+            inxE = getIndexByType(this, 31, 32);
             contributions = [string(this.Name(inxE)), "Init+Const+Trends", "Nonlinear"];
 
-            inxYX = getIndexByType(this, TYPE(1), TYPE(2));
+            inxYX = getIndexByType(this, 1, 2);
             inxLog = this.InxLog;
             value = cell(size(labels));
             for pos = 1 : numel(labels)

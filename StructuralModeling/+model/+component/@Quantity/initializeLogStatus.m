@@ -1,68 +1,60 @@
-function this = initializeLogStatus(this, log)
-% initializeLogStatus  Initialize log status of variables from
-% log-variables section
+% initializeLogStatus  Initialize log status of variables from !log-variables
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+function this = initializeLogStatus(this, logNames)
 
-%--------------------------------------------------------------------------
-
-if isa(log, 'Except')
+if isa(logNames, "Except")
     default = true;
-    log = log.List;
-elseif ischar(log) || iscellstr(log) || isstring(log)
+    logNames = logNames.List;
+elseif ischar(logNames) || iscellstr(logNames) || isstring(logNames)
     default = false;
 else
     return
 end
 
-log = unique(reshape(string(log), 1, [ ]));
+allNames = reshape(string(this.Name), 1, []);
+logNames = unique(reshape(string(logNames), 1, [ ]));
 
-inxCanBeLog = getIndexByType(this, TYPE(1), TYPE(2), TYPE(5));
+% Names that can be on the !log-variables list:
+% measurement, transition, exogenous variable exept ttrend
+inxCanBeLog = getIndexByType(this, 1, 2, 5);
+ttrendName = this.RESERVED_NAME_TTREND;
+inxCanBeLog(allNames==ttrendName) = false;
+namesCanBeLog = allNames(inxCanBeLog);
 
-% Exclude ttrend
-inxTimeTrend = strcmp(this.Name, model.component.Quantity.RESERVED_NAME_TTREND);
-inxCanBeLog(inxTimeTrend) = false;
+inxValidLogNames = ismember(logNames, namesCanBeLog);
+if any(~inxValidLogNames)
+    exception.error([
+        "Model:InvalidLogName"
+        "This is not a valid name to appear in the !log-variables section: %s "
+    ], logNames(inxValidNames));
+end
 
 this.IxLog(inxCanBeLog) = default;
-
-ell = lookup(this, cellstr(log));
-inxSet = ell.InxName & inxCanBeLog;
+inxSet = ismember(allNames, logNames);
 this.IxLog(inxSet) = ~default;
-
-log = setdiff(log, this.Name(inxSet));
-if ~isempty(log)
-    thisError = [
-        "Model:InvalidLogName"
-        "This is an invalid name to appear in the !log-variables section: %s "
-    ];
-    throw(exception.Base(thisError, 'error'), log);
-end
 
 end%
 
 
 
 
+%
 % Unit Tests
+%
 %{
 ##### SOURCE BEGIN #####
 % saveAs=Quantity/initializeLogStatusUnitTest.m
 
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
-TYPE = @int8;
-
 
 %% Test Default False
 
 q = model.component.Quantity;
 q.Name = ["a", "b", "c", "d", "ea", "eb", "g", "ttrend"]
-q.Type = TYPE([1, 2, 2, 2, 3, 3, 5, 5]);
+q.Type = [1, 2, 2, 2, 3, 3, 5, 5];
 q.IxLog = false(size(q.Name));
 log = ["a", "b", "g"];
 q = initializeLogStatus(q, log);
@@ -73,7 +65,7 @@ assertEqual(testCase, q.IxLog, [true, true, false, false, false, false, true, fa
 
 q = model.component.Quantity;
 q.Name = ["a", "b", "c", "d", "ea", "eb", "g", "ttrend"]
-q.Type = TYPE([1, 2, 2, 2, 3, 3, 5, 5]);
+q.Type = [1, 2, 2, 2, 3, 3, 5, 5];
 q.IxLog = false(size(q.Name));
 log = Except(["a", "b", "g"]);
 q = initializeLogStatus(q, log);

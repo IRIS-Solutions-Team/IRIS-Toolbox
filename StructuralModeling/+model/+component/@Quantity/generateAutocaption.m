@@ -1,13 +1,9 @@
-function captions = generateAutocaption(this, inp, template, opt)
 % generateAutocaption  Create captions for reporting model variables or parameters
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
+function captions = generateAutocaption(this, inp, template, opt)
 
 if isa(inp, 'poster')
     inputList = inp.ParamList;
