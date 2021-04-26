@@ -1,19 +1,15 @@
-function blockCode = readBlockCode(this)
 % readBlockCode  Read individual blocks of theparser code
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function blockCode = readBlockCode(this)
 
-numBlocks = length(this.Block);
+numBlocks = numel(this.Block);
 listBlockKeywords = getBlockKeyword(this);
 
 % Check all words starting with an !
-checkKeywords(this, listBlockKeywords);
+locallyCheckKeywords(this, listBlockKeywords);
 
 % Add new line character at the end of the file
 if isempty(this.Code) || this.Code(end)~=char(10)
@@ -60,15 +56,14 @@ end
 
 end%
 
-
 %
 % Local Functions
 %
 
-
-function checkKeywords(this, listBlockKeywords)
+function locallyCheckKeywords(this, listBlockKeywords)
     % Allow for double exclamation marks immediately followed by \w; these can
     % be steady equations.
+    %(
     UNKNOWN_KEY = '(?<!\!)!\w[\w\-]+';
     inx = ~cellfun(@isempty, listBlockKeywords);
     listAllowed = [ listBlockKeywords(inx), this.OtherKeyword ];
@@ -85,5 +80,6 @@ function checkKeywords(this, listBlockKeywords)
             listKeywords{~inxValid} ...
         );
     end
+    %)
 end%
 

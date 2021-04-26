@@ -52,7 +52,7 @@ if sum(ixLoss)==1
             input ...
         ); %#ok<GTARG>
     end
-    % Order the loss function last.
+    % Order the loss function last
     posFrom = find(ixLoss, 1, 'first');
     posTo = find(ixt, 1, 'last');
     equation = move(equation, posFrom, posTo);

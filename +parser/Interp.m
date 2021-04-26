@@ -1,4 +1,4 @@
-% Interp  Interpolate Matlab expressions within model code
+%Interp  Interpolate Matlab expressions within model code
 
 classdef Interp
     properties (Constant)
@@ -12,6 +12,15 @@ classdef Interp
             if nargin<2 || isempty(code)
                 code = prep.Code;
             end
+            
+            % Default output arguments for early return
+            resolvedCode = string(code);
+            clearCode = resolvedCode;
+            tokens = string.empty(1, 0);
+            
+            if strlength(code)==0
+                return
+            end 
 
             whiteCode = parser.White.whiteOutLabels(code);
             [code, whiteCode] = parser.Interp.replaceSquareBrackets(code, whiteCode);
@@ -22,22 +31,23 @@ classdef Interp
             sh = parser.Interp.createShadowCode(code, parser.Interp.OPEN, parser.Interp.CLOSE);
 
 
-            % If not Matlab expression brackets, return immediately
+            % If no Matlab expression brackets, return immediately
             if nnz(sh)==0
-                resolvedCode = string(code);
-                clearCode = resolvedCode;
-                tokens = string.empty(1, 0);
                 return
             end
 
 
-            % Verify that all brackets are matched
+            % Verify that all Matlab expression brackets are matched
             level = cumsum(sh);
-            if any(level>1) || any(level<0)
-                posNested = find(level>1, 1);
+            if any(level>1) || any(level<0) || level(end)~=0
+%                posNested = find(level>1, 1);
+%                 report = eraseAfter(string(code), posNested-1)
+%                 if strlen(report)>30
+%                     report = extractBefore(report, 30) + string(char(8230))
+%                 end
                 exception.error([
                     "Parser:InvalidBackets"
-                    "Invalid or missing brackets in this expression: %s"
+                    "Unmatched, invalid or missing brackets around this place: %s"
                 ], code);
             end
 
