@@ -1,29 +1,24 @@
-function equation = postparse(equation, quantity)
-% postparse  Postparse model equations.
+% postparse  Postparse model equations
 %
-% Backend IRIS function.
-% No help provided.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+function equation = postparse(equation, quantity)
 
-TYPE = @int8;
 NAME_PATTERN = '(?<!\.)\<([A-Za-z]\w*)\>(?![\.\(])';
 NAME_REPLACE = '${FN_GET_RPL($1, $`)}';
 
-%--------------------------------------------------------------------------
-
 numEqtn = length(equation);
-inxm = equation.Type==TYPE(1);
-inxt = equation.Type==TYPE(2);
-inxl = equation.Type==TYPE(4);
+inxm = equation.Type==1;
+inxt = equation.Type==2;
+inxL = equation.Type==4;
 inxmt = inxm | inxt;
 inxNonemptySteady = inxmt & ~cellfun(@isempty, equation.Steady);
 
 % Names of std_ and corr_ can be used only in dynamic links.
 lsStdCorr = cell(1, 0);
-if any(inxl)
-    lsStdCorr = regexp(equation.Dynamic(inxl), '(std_|corr_)\w+', 'match');
+if any(inxL)
+    lsStdCorr = regexp(equation.Dynamic(inxL), '(std_|corr_)\w+', 'match');
     lsStdCorr = [ lsStdCorr{:} ];
     lsStdCorr = unique(lsStdCorr);
 end
@@ -32,7 +27,7 @@ end
 [rpl, rplSx] = pattern4postparse(quantity, lsStdCorr);
 
 d = cell2struct(rpl, quantity.Name, 2);
-FN_GET_RPL = @getRpl; %#ok<NASGU>
+FN_GET_RPL = @hereReplaceName; %#ok<NASGU>
 listUndeclaredName = cell(1, 0);
 listUndeclaredEqtn = cell(1, 0);
 inxUndeclaredStdCorr = false(1, 0);
@@ -44,18 +39,20 @@ equation.Steady = strcat(id, equation.Steady);
 %
 % Dynamic equations except dtrends and links
 %
-isl = false;
-equation.Dynamic(~inxl) = regexprep( ...
-    equation.Dynamic(~inxl), ...
+
+isLinks = false;
+equation.Dynamic(~inxL) = regexprep( ...
+    equation.Dynamic(~inxL), ...
     NAME_PATTERN, ...
     NAME_REPLACE ...
 );
+
 
 %
 % Steady equations
 %
 if any(inxNonemptySteady)
-    isl = false;
+    isLinks = false;
     equation.Steady(inxNonemptySteady) = regexprep( ...
         equation.Steady(inxNonemptySteady), ...
         NAME_PATTERN, ...
@@ -66,11 +63,11 @@ end
 %
 % Dynamic links
 %
-if any(inxl)
+if any(inxL)
     d = cell2struct([rpl, rplSx], [quantity.Name, lsStdCorr], 2);
-    isl = true;
-    equation.Dynamic(inxl) = regexprep( ...
-        equation.Dynamic(inxl), ...
+    isLinks = true;
+    equation.Dynamic(inxL) = regexprep( ...
+        equation.Dynamic(inxL), ...
         NAME_PATTERN, ...
         NAME_REPLACE ...
     );
@@ -110,7 +107,7 @@ return
 
 
 
-    function c = getRpl(name, pre)
+    function c = hereReplaceName(name, pre)
         try
             c = d.(name);
         catch
@@ -118,11 +115,11 @@ return
             iEq = regexp(pre, '^#\d+#', 'match', 'once');
             iEq = str2double(iEq(2:end-1));
             listUndeclaredEqtn{end+1} = equation.Input{iEq};
-            inxUndeclaredStdCorr(end+1) = ~isl && ...
+            inxUndeclaredStdCorr(end+1) = ~isLinks && ...
                 ( strncmp(name, 'std_', 4) || strncmp(name, 'corr_', 5) );
             c = '';
         end
-    end
+    end%
 
 
 
@@ -133,29 +130,29 @@ return
         listUndeclaredName = listUndeclaredName(inxUnique);
         listUndeclaredEqtn = listUndeclaredEqtn(inxUnique);
         inxUndeclaredStdCorr = inxUndeclaredStdCorr(inxUnique);
-        
+
         % Report std or corr names used in equations other than links.
         if any(inxUndeclaredStdCorr)
-            n = sum(inxUndeclaredStdCorr);
-            rpt = cell(1, 2*n);
-            rpt(1:2:end) = listUndeclaredName(inxUndeclaredStdCorr);
-            rpt(2:2:end) = listUndeclaredEqtn(inxUndeclaredStdCorr);
+            n = nnz(inxUndeclaredStdCorr);
+            report = cell(1, 2*n);
+            report(1:2:end) = listUndeclaredName(inxUndeclaredStdCorr);
+            report(2:2:end) = listUndeclaredEqtn(inxUndeclaredStdCorr);
             throw( ...
                 exception.Base('Equation:STD_CORR_IN_OTHER_THAN_LINK', 'error'), ...
-                rpt{:} ...
+                report{:} ...
             );
         end
-        
+
         % Report non-function names that have not been declared.
         if any(~inxUndeclaredStdCorr)
-            n = sum(~inxUndeclaredStdCorr);
-            rpt = cell(1, 2*n);
-            rpt(1:2:end) = listUndeclaredName(~inxUndeclaredStdCorr);
-            rpt(2:2:end) = listUndeclaredEqtn(~inxUndeclaredStdCorr);            
+            n = nnz(~inxUndeclaredStdCorr);
+            report = cell(1, 2*n);
+            report(1:2:end) = listUndeclaredName(~inxUndeclaredStdCorr);
+            report(2:2:end) = listUndeclaredEqtn(~inxUndeclaredStdCorr);
             throw( ...
                 exception.Base('Equation:UNDECLARED_MISTYPED_NAME', 'error'), ...
-                rpt{:} ...
+                report{:} ...
             );
-        end        
+        end
     end
 end
