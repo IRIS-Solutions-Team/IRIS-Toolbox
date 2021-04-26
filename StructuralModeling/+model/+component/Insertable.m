@@ -86,8 +86,8 @@ classdef Insertable
         function listProperties = getInsertableProp(this)
             x = metaclass(this);
             x = x.PropertyList;
-            ix = ~[ x.Dependent ] & ~[ x.Constant ] & ~[ x.Hidden ];
-            listProperties = { x(ix).Name };
+            inx = ~[x.Dependent] & ~[x.Constant] & ~[x.Hidden] & ~[x.Transient];
+            listProperties = {x(inx).Name};
         end%
     end
 end
