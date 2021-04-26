@@ -112,6 +112,7 @@ classdef For < parser.control.Control
             for i = 1 : size(p.StoreForCtrl, 1)
                 ctrlName = p.StoreForCtrl(i, 1);
                 tkn = p.StoreForCtrl(i, 2);
+                %{
                 if strlength(ctrlName)>1
                     % Substitute for ?:name
                     upperCtrlName = "?:" + extractAfter(ctrlName, 1);
@@ -122,6 +123,7 @@ classdef For < parser.control.Control
                     lowerToken = lower(tkn);
                     c = replace(c, lowerCtrlName, lowerToken);
                 end
+                %}
                 % Substitute for ?name
                 c = replace(c, ctrlName, tkn);
             end
