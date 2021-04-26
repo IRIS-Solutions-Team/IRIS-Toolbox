@@ -1,15 +1,11 @@
-function [this, epsCurrent, epsShifted] = fill(this, qty, equationStrings, inxEquations, varargin)
 % fill  Populate incidence matrices
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-PTR = @int32;
+function [this, epsCurrent, epsShifted] = fill(this, qty, equationStrings, inxEquations, varargin)
 
-%--------------------------------------------------------------------------
+PTR = @int32;
 
 t0 = PTR(find(this.Shift==0)); %#ok<FNDSB>
 numShifts = numel(this.Shift);
@@ -17,10 +13,12 @@ numEquations = numel(equationStrings);
 numQuantities = numel(qty.Name);
 
 
+matrix = full(this.Matrix);
+
 %
-% Reset incidence in indexEquations
+% Reset incidence in inxEquations
 %
-this.Matrix(inxEquations, :) = false;
+matrix(inxEquations, :) = false;
 
 
 %
@@ -39,7 +37,7 @@ ind = sub2ind( ...
     [numEquations, numQuantities, numShifts] ...
     , epsCurrent(1, :), epsCurrent(2, :), t0+epsCurrent(3, :) ...
 );
-this.Matrix(ind) = true;
+matrix(ind) = true;
 
 
 %
@@ -50,7 +48,9 @@ ind = sub2ind( ...
     [numEquations, numQuantities, numShifts] ...
     , epsShifted(1, :), epsShifted(2, :), t0+epsShifted(3, :) ...
 );
-this.Matrix(ind) = true;
+matrix(ind) = true;
+
+this.Matrix = sparse(matrix);
 
 end%
 
@@ -66,6 +66,7 @@ function eps = locallyRemovePosBeyondNumQuantities(eps, numQuantities) % [^1]
         eps(:, inxToRemove) = [ ];
     end
 end%
+
 % [^1]: Incidence is sometimes also calculated for !links in which case
 % there might be references to std or corr; these are excluded here.
 
