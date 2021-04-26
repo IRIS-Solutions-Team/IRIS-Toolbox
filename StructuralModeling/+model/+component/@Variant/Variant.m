@@ -9,6 +9,8 @@ classdef Variant
         IxInit = logical.empty(1, 0, 0)
         EigenValues = double.empty(1, 0, 0)
         EigenStability = int8.empty(1, 0, 0)
+
+        PreallocateFunc
     end
 
 
@@ -26,11 +28,16 @@ classdef Variant
 
 
     methods
-        function this = Variant( numVariants, quantity, vector, ahead, ...
-                                 numHashed, numObserved, ...
-                                 defaultStd, defaultFloor )
+        function this = Variant( ...
+                numVariants, quantity, vector, ahead, ...
+                numHashed, numObserved, defaultStd, defaultFloor, preallocateFunc ...
+            )
+
             if nargin==0
                 return
+            end
+            if nargin>=9
+                this.PreallocateFunc = preallocateFunc;
             end
             this = createIndexOfStdCorrAllowed(this, quantity);
             this = preallocateValues(this, numVariants, quantity);
@@ -96,38 +103,37 @@ classdef Variant
         function this = preallocateFloors(this, quantity, defaultFloor)
             TYPE = @int8;
             inxFloors = ...
-                startsWith(quantity.Name, quantity.FLOOR_PREFIX) ...
-                & quantity.Type==TYPE(4);
+                startsWith(quantity.Name, quantity.FLOOR_PREFIX) & quantity.Type==TYPE(4);
             this.Values(1, inxFloors, :) = defaultFloor;
         end%
 
-        
+
         function this = preallocateSolution(this, vector, ahead, numHashed, numObserved)
-            TYPE = @int8;
             nv = size(this.Values, 3);
             [ny, nxi, nb, nf, ne] = sizeSolution(vector);
             [~, kxi, ~, kf] = sizeSystem(vector);
             nh = numHashed;
             nz = numObserved;
+            func = this.PreallocateFunc;
 
-            this.FirstOrderSolution{1} = nan(nxi, nb, nv);             % T
-            this.FirstOrderSolution{2} = nan(nxi, ne*(1+ahead), nv);   % R
-            this.FirstOrderSolution{3} = nan(nxi, 1, nv);              % K
-            this.FirstOrderSolution{4} = nan(ny, nb, nv);              % Z
-            this.FirstOrderSolution{5} = nan(ny, ne, nv);              % H
-            this.FirstOrderSolution{6} = nan(ny, 1, nv);               % D
-            this.FirstOrderSolution{7} = nan(nb, nb, nv);              % U
-            this.FirstOrderSolution{8} = nan(nxi, nh*(1+ahead), nv);   % Y - add-factors in hashed equations
-            this.FirstOrderSolution{9} = nan(max(ny, nz), nb, nv);     % Zb - non-transformed measurement.
-            this.FirstOrderSolution{10} = nan(nxi, nb, nv);            % T0 - non-transformed (rectangular) transition matrix
+            this.FirstOrderSolution{1} = func(nxi, nb, nv);             % T
+            this.FirstOrderSolution{2} = func(nxi, ne*(1+ahead), nv);   % R
+            this.FirstOrderSolution{3} = func(nxi, 1, nv);              % K
+            this.FirstOrderSolution{4} = func(ny, nb, nv);              % Z
+            this.FirstOrderSolution{5} = func(ny, ne, nv);              % H
+            this.FirstOrderSolution{6} = func(ny, 1, nv);               % D
+            this.FirstOrderSolution{7} = func(nb, nb, nv);              % U
+            this.FirstOrderSolution{8} = func(nxi, nh*(1+ahead), nv);   % Y - add-factors in hashed equations
+            this.FirstOrderSolution{9} = func(max(ny, nz), nb, nv);     % Zb - non-transformed measurement.
+            this.FirstOrderSolution{10} = func(nxi, nb, nv);            % T0 - non-transformed (rectangular) transition matrix
             
-            this.FirstOrderExpansion{1} = nan(nb, kf, nv); % Xa
-            this.FirstOrderExpansion{2} = nan(nf, kf, nv); % Xf
-            this.FirstOrderExpansion{3} = nan(kf, ne, nv); % Ru
-            this.FirstOrderExpansion{4} = nan(kf, kf, nv); % J
-            this.FirstOrderExpansion{5} = nan(kf, nh, nv); % Yu -- nonlin addfactors.
+            this.FirstOrderExpansion{1} = func(nb, kf, nv); % Xa
+            this.FirstOrderExpansion{2} = func(nf, kf, nv); % Xf
+            this.FirstOrderExpansion{3} = func(kf, ne, nv); % Ru
+            this.FirstOrderExpansion{4} = func(kf, kf, nv); % J
+            this.FirstOrderExpansion{5} = func(kf, nh, nv); % Yu -- nonlin addfactors.
             
-            this.EigenValues = nan(1, kxi, nv);
+            this.EigenValues = func(1, kxi, nv);
             this.EigenStability = zeros(1, kxi, nv, 'int8');
             this.IxInit = true(1, nb, nv);
         end%
@@ -300,20 +306,14 @@ classdef Variant
         end%
 
 
-
-
         function stdcorr = getIthStdcorr(this, variantsRequested)
             stdcorr = this.StdCorr(1, :, variantsRequested);
         end%
-
-        
 
 
         function inxInit = getIthIndexInitial(this, variantsRequested)
             inxInit = this.IxInit(:, :, variantsRequested);
         end%
-
-
 
 
         function varargout = getIthFirstOrderExpansion(this, variantsRequested)
