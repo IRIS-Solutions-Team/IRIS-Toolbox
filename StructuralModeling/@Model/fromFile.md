@@ -17,17 +17,13 @@ __`fileName`__ [ string ]
 > object.
 > 
 
-__`modelFile`__ [ model.File ]
->
-> A model.File object from which a new Model will be constructed.
-> 
-
 ## Output arguments
 
 
 __`m`__ [ Model ]
 >
-New Model object based on the input model code file or files.
+New Model object based on the input model source file or files listed in
+`fileNames`.
 
 
 ## General options
@@ -88,10 +84,11 @@ Allow each variable, shock, or parameter name to be declared (and
 assigned) more than once in the model file.
 
 
-__`Optimal={ }`__ [ cellstr ]
+__`Optimal={ }`__ [ cell ]
 >
-> Specify optimal policy options, see below; only applies when the keyword
-> [`min`](.../Slang/min.md) is used in the model file.
+> Specify optimal policy options, see Optimal for policy options models
+> below; only applicable when the keyword [`min`](../slang/min.md) is used
+> in the model source file.
 > 
 
 __`OrderLinks=true`__ [ `true` | `false` ]
@@ -152,13 +149,11 @@ __`Type="discretion"`__ [ `"commitment"` | `"discretion"` ]
 
 ### Loading a model file
 
-The `Model.fromFile` constructor can be used to read in a [model
-file](irislang/Contents) named `fileName`, and create a model object `m`
-based on the model file. You can then work with the model object in your
-own m-files, using using the standard Matlab and IrisT functions.
-
-If `fileName` is an array of more than one file names
-then all files are combined together in order of appearance.
+The `Model.fromFile` constructor can be used to read in a
+[model source file](../slang/index.md) named `fileNames`, and create a
+model object `m` based on these. If `fileNames` is an array of more than
+one file names then all these files get combined together in order of
+appearance.
 
 
 ## Examples
@@ -166,33 +161,36 @@ then all files are combined together in order of appearance.
 ### Plain vanilla model constructor
 
 
-Read in a model code file named `my.model`, and declare the model as
+Read in a model source file named `some.model`, and declare the model as
 linear:
 
 ```matlab 
-m = Model.fromFile("my.model", Linear=true);
+m = Model.fromFile("some.model", Linear=true);
 ```
 
 
 ### Construct model object and immedidately assign parameters
 
 
-Read in a model code file named `my.model`, declare the model as linear,
+Read in a model source file named `some.model`, declare the model as linear,
 and assign some of the model parameters:
 
 ```matlab
-m = Model.fromFile("my.model", Linear=true, Assign=P);
+m = Model.fromFile("some.model", linear=true, assign=p);
 ```
 
 Note that this is equivalent to
 
 ```matlab
-m = Model.fromFile("my.model", Linear=true);
-m = assign(m, P);
+m = Model.fromFile("some.model", linear=true);
+m = assign(m, p);
 ```
 
 unless some of the parameters passed in to the `Model.fromFile` constructor
-are needed to evaluate [`!if`](../Slang/if.md) or
-[`!switch`](../Slang/switch.md) expressions.
+are needed to evaluate Matlab expressions inside the model source files,
+such as conditions in the [`!if`](../slang/!if.md) or
+[`!switch`](../slang/!switch.md) expressions, or angle bracket expressions
+[`<...>`](../slang/interp.md).
+
 
 

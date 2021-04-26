@@ -2,30 +2,31 @@ classdef Log ...
     < parser.theparser.Generic
 
     properties (Constant)
-        ALLBUT_KEYWORD = '!all-but'
+        ALLBUT_KEYWORD = "!all-but"
     end
-    
-    
+
+
     methods
-        function  log = parse(this, code)
+        function  logNames = parse(this, code)
             except = false;
-            if contains(code, parser.theparser.Log.ALLBUT_KEYWORD)
+            if contains(code, this.ALLBUT_KEYWORD)
                 except = true;
-                code = erase(code, parser.theparser.Log.ALLBUT_KEYWORD);
+                code = erase(code, this.ALLBUT_KEYWORD);
             end
-            log = regexp(code, '\<[a-zA-Z]\w*\>', 'match');
+            logNames = regexp(code, "\<[a-zA-Z]\w*\>", "match");
             if except
-                log = Except(log);
+                logNames = Except(logNames);
             end
         end%
 
-        
-        function precheck(~, ~, blocks)
-            inxPresent = cellfun( @isempty, regexp(blocks, parser.theparser.Log.ALLBUT_KEYWORD, 'match', 'once') );
+
+        function precheck(this, ~, blocks)
+            inxPresent = contains(string(blocks), this.ALLBUT_KEYWORD);
             if any(inxPresent) && ~all(inxPresent)
-                THIS_ERROR = { 'TheParser:InconsistentAllBut'
-                               'Keyword !all-but must be used consistently in either all or none of the !log-variables declaration blocks '};
-                throw( exception.ParseTime(THIS_ERROR, 'error') );
+                exception.error([
+                    "Parser:InconsistentAllBut"
+                    "Keyword !all-but must be used consistently in either all or none of the !log-variables declaration blocks."
+                ]);
             end
         end%
     end
