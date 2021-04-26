@@ -89,41 +89,41 @@ if beenHandled, return, end
 if beenHandled, return, end
 
 
-stringify = @(x) reshape(string(x), 1, [ ]);
 output = [ ];
 beenHandled = true;
 
 
 %==========================================================================
-if matches(what, "parameterValues", "ignoreCase", true)
+if lower(what)==lower("parameterValues")
     inx = this.Quantity.Type==4;
-    names = permute(stringify(this.Quantity.Name(inx)), [2, 1]);
     values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
-    output = cell2struct( ...
-        mat2cell(values, ones(1, size(values, 1)), size(values, 2)), names, 1 ...
-    );
+    output = locallyCreateStruct(this.Quantity.Name(inx), values);
 
 
 elseif startsWith(what, "steady", "ignoreCase", true)
-    names = permute(stringify(this.Quantity.Name), [2, 1]);
     values = permute(this.Variant.Values, [2, 3, 1]);
     if endsWith(what, "level", "ignoreCase", true)
         values = real(values);
     elseif endsWith(what, ["change", "growth"], "ignoreCase", true)
         values = imag(values);
     end
-    output = cell2struct( ...
-        mat2cell(values, ones(1, size(values, 1)), size(values, 2)), names, 1 ...
-    );
+    output = locallyCreateStruct(this.Quantity.Name, values);
 
 
-elseif matches(what, "steadyLevel")
-    names = permute(stringify(this.Quantity.Name), [2, 1]);
-    values = permute(this.Variant.Values, [2, 3, 1]);
-    output = cell2struct( ...
-        mat2cell(values, ones(1, size(values, 1)), size(values, 2)), names, 1 ...
-    );
-     
+elseif lower(what)==lower("required")
+    logStyle = "none";
+    idInit = getIdInitialConditions(this);
+    output = printSolutionVector(this, idInit, logStyle);
+    output = reshape(string(output), 1, []);
+
+
+elseif any(lower(what)==lower(["initCond", "initials"]))
+    logStyle = "log()";
+    idInit = getIdInitialConditions(this);
+    output = printSolutionVector(this, idInit, logStyle);
+    output = reshape(string(output), 1, []);
+
+
 else
     beenHandled = false;
 
@@ -138,5 +138,19 @@ if ~beenHandled
     ], input);
 end
 
+end%
+
+%
+% Local functions
+%
+
+function output = locallyCreateStruct(names, values)
+    %(
+    names = reshape(string(names), 1, []);
+    output = struct();
+    for i = 1 : numel(names)
+        output.(names(i)) = values(i, :);
+    end
+    %)
 end%
 
