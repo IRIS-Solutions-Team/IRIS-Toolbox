@@ -55,7 +55,7 @@ if isempty(parser)
     parser.addParameter('ChkSstate', true, @model.validateChksstate);
     parser.addParameter('InitEndog', 'Dynamic', @(x) ischar(x) && any(strcmpi(x, {'Dynamic', 'Static'})));
     parser.addParameter('Solve', true, @model.validateSolve);
-    parser.addParameter({'Steady', 'Sstate', 'SstateOpt'}, true, @model.validateSstate);
+    parser.addParameter({'Steady', 'Sstate', 'SstateOpt'}, true, @model.validateSteady);
     parser.addParameter('Unlog', [ ], @(x) isempty(x) || isequal(x, @all) || iscellstr(x) || ischar(x));
 end
 
