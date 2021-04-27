@@ -23,10 +23,10 @@ else
 end
 
 if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
-    dates = varargin{1};
+    dates = double(varargin{1});
     varargin(1) = [ ];
 elseif isnumeric(varargin{1})
-    dates = Dater(varargin{1});
+    dates = double(varargin{1});
     varargin(1) = [ ];
 else
     dates = Inf;
@@ -49,7 +49,7 @@ if ~iscell(plotSpec)
 end
 
 if isa(axesHandle, 'function_handle')
-    axesHandle = axesHandle( );
+    axesHandle = axesHandle();
 end
 
 end%
