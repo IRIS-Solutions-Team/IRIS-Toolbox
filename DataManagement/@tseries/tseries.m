@@ -222,7 +222,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = plotyy(varargin)
         varargout = plotpred(varargin)
         varargout = range(varargin)
-        varargout = regress(varargin)
         varargout = repmat(varargin)
         varargout = reshape(varargin)
         varargout = scatter(varargin)

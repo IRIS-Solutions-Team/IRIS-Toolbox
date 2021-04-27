@@ -19,3 +19,10 @@ Function | Description
 ---|---
 [`moving`](moving.md) | {{ series._moving }} 
 
+
+#### Regression and statistics
+
+Function | Description 
+---|---
+[`regress`](regress.md) | {{ series._regress }} 
+

@@ -196,3 +196,4 @@ function range = locallyMergeRange(range, comprise, datePosition)
     end
     range = dater.colon(first, last);
 end%
+

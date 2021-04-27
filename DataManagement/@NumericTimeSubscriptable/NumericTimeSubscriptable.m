@@ -95,6 +95,7 @@ NumericTimeSubscriptable ...
         varargout = project(varargin)
         varargout = rebase(varargin)
         varargout = recognizeShift(varargin)
+        varargout = regress(varargin)
         varargout = replaceData(varargin)
         varargout = rmse(varargin)
         varargout = roc(varargin)
