@@ -37,7 +37,7 @@ elseif isempty(dates) || all(isnan(dates))
     dates = double.empty(0, 1);
 else
     dates = reshape(dates, [], 1);
-    checkUserFrequency(this, dates);
+    locallyCheckUserFrequency(this, dates);
 end
 
 %--------------------------------------------------------------------------
@@ -63,7 +63,7 @@ if isempty(plotFunc)
 end
 
 if ~ishold(axesHandle)
-    resetAxes( );
+    hereResetAxes( );
 end
 
 set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
@@ -76,10 +76,11 @@ try %#ok<TRYNC>
 end
 
 if isTimeAxis && ~isempty(xData)
-    addXLimMargins( );
-    setXLim( );
-    setXTick( );
-    setXTickLabelFormat( );
+    hereAddXLimMargins( );
+    hereSetXLim( );
+    hereSetXTick( );
+    hereSetXTickLabelFormat( );
+
     set(axesHandle, 'XTickLabelRotation', 0);
     setappdata(axesHandle, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
     setappdata(axesHandle, 'IRIS_TimeSeriesPlot', true);
@@ -87,12 +88,10 @@ end
 
 return
 
-
-
-
-    function addXLimMargins( )
+    function hereAddXLimMargins( )
         % Leave a half period on either side of the horizontal axis around
         % the currently added data
+        %(
         if isequal(opt.XLimMargins, false)
             return
         end
@@ -112,12 +111,12 @@ return
         end
         xLimMarginsNew = sort(unique(xLimMarginsNew));
         setappdata(axesHandle, 'IRIS_XLimMargins', xLimMarginsNew);
+        %)
     end%
 
 
-
-
-    function setXLim( )
+    function hereSetXLim( )
+        %(
         xLimHere = [min(xData), max(xData)];
         xLimOld = getappdata(axesHandle, 'IRIS_XLim');
         enforceXLimOld = getappdata(axesHandle, 'IRIS_EnforceXLim');
@@ -136,7 +135,7 @@ return
         else
             xLimNew = xLimOld;
         end
-        xLimActual = getXLimActual(xLimNew);
+        xLimActual = hereGetXLimActual(xLimNew);
         if enforceXLimHere && ~isempty(xLimActual)
             try
                 set(axesHandle, 'XLim', xLimActual);
@@ -144,12 +143,12 @@ return
         end
         setappdata(axesHandle, 'IRIS_XLim', xLimNew);
         setappdata(axesHandle, 'IRIS_EnforceXLim', enforceXLimNew);
+        %)
     end%
 
 
-
-
-    function setXTick( )
+    function hereSetXTick( )
+        %(
         if isequal(opt.DateTick, @auto) || isempty(opt.DateTick)
             return
         end
@@ -157,24 +156,24 @@ return
             dateTick = dater.toMatlab(opt.DateTick);
             set(axesHandle, 'XTick', dateTick);
         end
+        %)
     end%
 
 
-
-
-    function setXTickLabelFormat( )
+    function hereSetXTickLabelFormat( )
+        %(
         if isempty(dates) || timeFrequency==Frequency.INTEGER
             return
         end
         try
             axesHandle.XAxis.TickLabelFormat = dateFormat;
         end
+        %)
     end%
 
 
-
-
-    function xLim = getXLimActual(xLim)
+    function xLim = hereGetXLimActual(xLim)
+        %(
         xLimMargins = getappdata(axesHandle, 'IRIS_XLimMargins');
         if isempty(xLimMargins)
             return
@@ -187,24 +186,27 @@ return
             pos = find(xLim(2)>xLimMargins, 1, 'last') + 1;
             xLim(2) = xLimMargins(pos);
         end
+        %)
     end%
 
 
-
-
-    function resetAxes( )
-        list = { 'IRIS_PositionWithinPeriod'
-                 'IRIS_TimeSeriesPlot'
-                 'IRIS_XLim'
-                 'IRIS_EnforceXLim'
-                 'IRIS_XLimMargins'
-                 'IRIS_XLim'
-                 'IRIS_XLim' };
-        for i = 1 : numel(list)
-            try
-                rmappdata(axesHandle, list{i});
+    function hereResetAxes( )
+        %(
+        list = [
+            "IRIS_PositionWithinPeriod"
+            "IRIS_TimeSeriesPlot"
+            "IRIS_XLim"
+            "IRIS_EnforceXLim"
+            "IRIS_XLimMargins"
+            "IRIS_XLim"
+            "IRIS_XLim" 
+        ];
+        for n = reshape(list, 1, [])
+            try %#ok<TRYNC>
+                rmappdata(axesHandle, n);
             end
         end
+        %)
     end%
 end%
 
@@ -212,8 +214,8 @@ end%
 % Local Validation Functions
 %
 
-
-function checkUserFrequency(this, dates)
+function locallyCheckUserFrequency(this, dates)
+    %(
     if numel(dates)==1 || numel(dates)==2
         validFrequencies = isnan(this.Start) || all(validateFrequencyOrInf(this, dates));
     else
@@ -225,5 +227,6 @@ function checkUserFrequency(this, dates)
                        'Plot range and input dates series must have the same date frequency' };
         throw( exception.Base(THIS_ERROR, 'error') );
     end
+    %)
 end%
 
