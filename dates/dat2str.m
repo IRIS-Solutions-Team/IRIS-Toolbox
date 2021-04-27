@@ -154,7 +154,7 @@ function [s, field] = dat2str(dat, varargin)
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 persistent parser configStruct
 if isempty(parser)

@@ -60,7 +60,7 @@ function varargout = dbsearchuserdata(d,varargin)
 % `List` and the output database `D`.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

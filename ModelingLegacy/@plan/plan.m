@@ -64,7 +64,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
    
 classdef plan < shared.UserDataContainer ...
               & shared.CommentContainer ...
@@ -141,7 +141,7 @@ classdef plan < shared.UserDataContainer ...
             %
             
             % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2020 IRIS Solutions Team
+            % -Copyright (c) 2007-2021 IRIS Solutions Team
             
             this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );

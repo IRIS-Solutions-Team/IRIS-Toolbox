@@ -2,7 +2,7 @@ function this = postparse(this, equation, euc)
 % myparse  Post-parse rpteq input code
 %
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 TYPE = @int8;
 

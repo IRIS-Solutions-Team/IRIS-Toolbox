@@ -1,7 +1,7 @@
 % readBlockCode  Read individual blocks of theparser code
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function blockCode = readBlockCode(this)
 

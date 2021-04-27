@@ -338,7 +338,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)

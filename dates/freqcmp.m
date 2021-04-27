@@ -38,7 +38,7 @@ function flag = freqcmp(x, y)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 try
     y; %#ok<VUNUS>

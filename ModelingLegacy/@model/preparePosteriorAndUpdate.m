@@ -1,7 +1,7 @@
 % preparePosteriorAndUpdate  Parse estimation specs, prepare Posterior object and transient model.Update
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt)
 

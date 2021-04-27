@@ -41,7 +41,7 @@ function fn = t(mean_, std_, df)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team and Boyan Bejanov.
+% -Copyright (c) 2007-2021 IRIS Solutions Team and Boyan Bejanov.
 
 if nargin<3
     df = Inf;

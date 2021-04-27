@@ -4,7 +4,7 @@ function varargout = zeroline(varargin)
 % See help on visual.zeroline
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 [varargout{1:nargout}] = visual.zeroline(varargin{:});
 

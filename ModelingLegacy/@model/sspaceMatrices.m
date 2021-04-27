@@ -6,7 +6,7 @@ function [T, R, K, Z, H, D, U, Omega, Zb, Y, inxV, inxW, numUnitRoots, inxInit] 
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 

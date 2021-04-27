@@ -34,7 +34,7 @@ function this = interp(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 if isempty(this)
     return

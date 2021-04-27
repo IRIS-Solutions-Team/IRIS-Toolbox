@@ -5,7 +5,7 @@ function hdatainit(this, H)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

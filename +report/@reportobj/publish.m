@@ -2,7 +2,7 @@ function [outputFileName, infoStruct] = publish(this, outputFileName, varargin)
 % publish  Help provided in +report/publish.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 % The following options passed down to latex.compilepdf:
 % * `'cd='` (obsolete)

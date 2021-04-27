@@ -1,7 +1,7 @@
 % preparePlot  Preprocess common input arguments into NumericTimeSubscriptable plot functions
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [axesHandle, dates, inputSeries, plotSpec, unmatched] = preparePlot(varargin)
 

@@ -1,7 +1,7 @@
 % combineStdcorr  Combine baseline stdcorr with user supplied overrides and multipliers
 % 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function sx = combineStdcorr(baselineStdcorr, override, multiply, numPeriods)
 

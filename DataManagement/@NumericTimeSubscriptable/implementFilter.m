@@ -5,7 +5,7 @@ function varargout = implementFilter(order, this, varargin)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % Function `implementFilter` is called from within `hpf`, `llf` and `bwf`.
 

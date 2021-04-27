@@ -52,7 +52,7 @@ function [outputData, draws] = resample(this, inp, range, numDraws, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 % Panel VAR
 if this.IsPanel

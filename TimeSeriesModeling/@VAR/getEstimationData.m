@@ -5,7 +5,7 @@ function [y, x, extdRange] = getEstimationData(this, d, range, p, startDate)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

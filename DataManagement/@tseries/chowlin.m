@@ -67,7 +67,7 @@ function [Y2, B, Rho, U1, U2] = chowlin(Y1, X2, Range, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 try
     Range; %#ok<VUNUS>

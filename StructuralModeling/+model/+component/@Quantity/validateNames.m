@@ -1,7 +1,7 @@
 % validateNames  Must be unique, no reserved names, no reserved prefixes
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function validateNames(this)
 

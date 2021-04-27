@@ -1,7 +1,7 @@
 % Type `web +x13/season.md` for help on this function
 %
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function varargout = season(inputSeries, range, opt, specs)
 

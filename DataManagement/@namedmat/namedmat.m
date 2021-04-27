@@ -36,7 +36,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 classdef namedmat < double 
     properties (SetAccess = protected)
@@ -100,7 +100,7 @@ classdef namedmat < double
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 %--------------------------------------------------------------
             

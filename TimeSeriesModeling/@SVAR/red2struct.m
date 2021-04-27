@@ -5,7 +5,7 @@ function outp = red2struct(this, inp, opt)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 % Panel SVAR
 if this.IsPanel

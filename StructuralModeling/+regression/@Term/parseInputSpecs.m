@@ -7,7 +7,7 @@ function this = parseInputSpecs(this, expy, inputSpecs, type)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 LIST_TRANSFORMS = ["log", "exp", "roc", "pct", "diff", "difflog"];
 

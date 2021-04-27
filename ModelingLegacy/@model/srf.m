@@ -42,7 +42,7 @@ function [s, range, select, opt] = srf(this, time, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 TYPE = @int8;
 

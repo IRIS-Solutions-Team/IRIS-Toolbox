@@ -72,7 +72,7 @@ function [x1,f1,B1] = irismin(This,x0,varargin)
 % Mathematical Programming.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c1) 2007-2020 IRIS Solutions Team.
+% -Copyright (c1) 2007-2021 IRIS Solutions Team.
 
 options = passvalopt('irisoptim.irismin',varargin{:});
 e = 2*sqrt(eps) ;

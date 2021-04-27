@@ -2,7 +2,7 @@ function this = plus(this, d2)
 % See help on dbase/dbplus.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('this', @isstruct);

@@ -58,7 +58,7 @@
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [B, BStd, residuals, EStd, fitted, range, BCov] = lasso(Y, X, varargin)
 

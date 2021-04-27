@@ -1,7 +1,7 @@
 % implementCheckSteady  Discrepancy in steady state of model equtions
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [flag, dcy, maxAbsDcy, listEquations] = implementCheckSteady(this, variantsRequested, options)
 

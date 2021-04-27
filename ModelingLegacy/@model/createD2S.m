@@ -1,7 +1,7 @@
 % createD2S  Create derivatives-to-system convertor
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 function this = createD2S(this, opt)
 

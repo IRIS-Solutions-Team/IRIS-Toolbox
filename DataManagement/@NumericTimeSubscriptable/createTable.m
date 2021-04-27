@@ -1,7 +1,7 @@
 % createTable  Create table from Series object
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function outputTable = createTable(startDate, data, comments, padDates)
 

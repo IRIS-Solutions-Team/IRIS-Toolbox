@@ -4,7 +4,7 @@ function varargout = qtitle(varargin)
 % See help on [`grfun.ftitle`](grfun/ftitle).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 [varargout{1:nargout}] = grfun.ftitle(varargin{:});
 

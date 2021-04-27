@@ -1,7 +1,7 @@
 % lookup  Look up names of variables, std and corr in Quantity component
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function output = lookup(this, query, varargin)
 
