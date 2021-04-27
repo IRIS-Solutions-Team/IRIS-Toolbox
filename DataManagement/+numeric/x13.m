@@ -5,7 +5,7 @@ function [Y, Outp, Logbk, Err, arimaModel] = x13(inputData, startDate, dummy, op
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 switch lower(opt.Mode)
     case {0, 'mult', 'm'}

@@ -2,7 +2,7 @@ function varargout = getCovarianceMatrix(this, varargin)
 % getCovarianceMatrix  Retrieve LinearSystem matrices by their names
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 function varargout = testSuite(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 persistent X %#ok<*USENS>
 

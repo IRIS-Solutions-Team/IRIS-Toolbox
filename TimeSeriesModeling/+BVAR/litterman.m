@@ -96,7 +96,7 @@ function [this, y0, k, y1, g] = litterman(rho, mu, lambda, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 persistent pp
 if isempty(pp)

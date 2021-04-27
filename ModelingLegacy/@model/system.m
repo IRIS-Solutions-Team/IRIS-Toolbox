@@ -56,7 +56,7 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 persistent inputParser
 if isempty(inputParser)

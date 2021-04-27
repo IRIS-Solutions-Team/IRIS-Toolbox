@@ -6,7 +6,7 @@ function C = maxdisp(C,N)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 try
     N; %#ok<VUNUS>

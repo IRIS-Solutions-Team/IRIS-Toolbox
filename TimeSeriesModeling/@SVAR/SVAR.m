@@ -76,7 +76,7 @@
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
     
 classdef (CaseInsensitiveProperties=true) ...
     SVAR ...
@@ -197,7 +197,7 @@ classdef (CaseInsensitiveProperties=true) ...
             %
             
             % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2020 IRIS Solutions Team
+            % -Copyright (c) 2007-2021 IRIS Solutions Team
             
             this = this@VAR( );
             this.IsIdentified = true;

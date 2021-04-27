@@ -1,7 +1,7 @@
 % prepareCheckSteady  Prepare stead state check
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function options = prepareCheckSteady(this, options)
 

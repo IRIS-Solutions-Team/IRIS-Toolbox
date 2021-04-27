@@ -40,7 +40,7 @@ function flag = rngcmp(r1, r2)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 % Parse required input arguments.
 pp = inputParser( );

@@ -1,7 +1,7 @@
 % lookupNames  Look up positions of base names
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [pos, validNames, invalidNames] = lookupNames(this, names, throw, types)
 

@@ -293,7 +293,7 @@ function varargout = get(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 [varargout{1:nargout}] = get@shared.GetterSetter(this, varargin{:});
 

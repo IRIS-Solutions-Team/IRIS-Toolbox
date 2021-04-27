@@ -1,7 +1,7 @@
 % populateTransient  Populate transient properties of model.component.Equation
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function this = populateTransient(this)
 

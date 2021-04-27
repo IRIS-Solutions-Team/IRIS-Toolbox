@@ -1,7 +1,7 @@
 % qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
 

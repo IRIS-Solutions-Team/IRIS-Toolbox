@@ -1,7 +1,7 @@
 % getAutoswap  Get autoexogenized parameter-variable or shock-parameter pairs
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [namesExogenized, namesEndogenized, autoswaps] = getAutoswaps(p, quantity)
 

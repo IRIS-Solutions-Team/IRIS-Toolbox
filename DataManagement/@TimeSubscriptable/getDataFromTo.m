@@ -1,7 +1,7 @@
 % getDataFromTo  Retrieve time series data from date to date
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [x, actualFrom, actualTo, actualRange] = getDataFromTo(this, from, to)
 

@@ -55,7 +55,7 @@ function [B,CovRes,R2] = regress(This,Lhs,Rhs,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 opt = passvalopt('model.regress',varargin{:});
 

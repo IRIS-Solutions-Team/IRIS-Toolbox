@@ -5,7 +5,7 @@ function [R, Y] = expandFirstOrder(R0, Y0, expansion, k)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

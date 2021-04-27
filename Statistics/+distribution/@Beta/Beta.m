@@ -1,7 +1,7 @@
 % Type `web +diistribution/@Beta/index.md` for help on this class
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 classdef Beta ...
     < distribution.Distribution

@@ -1,7 +1,7 @@
 % dater.day2ww  Convert Matlab serial date number into weekly IRIS serial date number
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function dateCode = day2ww(day)
 

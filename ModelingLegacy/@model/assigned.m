@@ -28,7 +28,7 @@ function [assignedValues, assignedStdCorr] = assigned(this, variantsRequested)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = ':';

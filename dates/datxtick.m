@@ -47,7 +47,7 @@ function datxtick(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 if all(ishandle(varargin{1}))
     ax = varargin{1};

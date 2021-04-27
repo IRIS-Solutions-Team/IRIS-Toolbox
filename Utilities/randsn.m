@@ -2,7 +2,7 @@ function R = randsn(Dim,Ex,Sx,Tau)
 % randsn  Split-normally distributed random numbers.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

@@ -52,7 +52,7 @@ function [range, freqList] = dbrange(varargin)
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2021 IRIS Solutions Team
 
 [d, list, varargin] = irisinp.parser.parse('dbase.dbrange', varargin{:});
 opt = passvalopt('dbase.dbrange', varargin{:});

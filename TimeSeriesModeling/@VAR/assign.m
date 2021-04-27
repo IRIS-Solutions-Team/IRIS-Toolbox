@@ -53,7 +53,7 @@ function this = assign(this, A, K, J, Omg, Fitted)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 try
     if isnumeric(Fitted)

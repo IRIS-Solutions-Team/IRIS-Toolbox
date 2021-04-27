@@ -1,7 +1,7 @@
 % implementPlot  Implement plot function for tseries objects
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % If the caller supplies empty `Func`, the graph will not be actually
 % rendered. This is a dry call to `implementPlot` used from within `plotyy`.

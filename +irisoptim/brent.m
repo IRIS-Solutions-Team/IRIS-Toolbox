@@ -50,7 +50,7 @@ function x = brent(This,a,b,varargin)
 % Prentice Hall. 
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team and Richard Brent. 
+% -Copyright (c) 2007-2021 IRIS Solutions Team and Richard Brent. 
 
 options = passvalopt('irisoptim.brent',varargin{:}) ;
 
