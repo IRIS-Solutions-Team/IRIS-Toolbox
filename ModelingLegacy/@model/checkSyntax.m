@@ -12,8 +12,8 @@ TYPE = @int8;
 %--------------------------------------------------------------------------
 
 numQuan = length(qty);
-sh0 = this.Incidence.Dynamic.PosOfZeroShift;
-nsh = this.Incidence.Dynamic.NumOfShifts;
+sh0 = this.Incidence.Dynamic.PosZeroShift;
+nsh = this.Incidence.Dynamic.NumShifts;
 ne = sum(qty.Type==TYPE(31) | qty.Type==TYPE(32));
 ixl = eqn.Type==TYPE(4);
 inxYX = getIndexByType(qty, TYPE(1), TYPE(2));

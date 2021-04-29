@@ -226,7 +226,7 @@ classdef (Abstract) Block < handle
                 return
             end
             incid = selectEquation(this.ParentBlazer.Incidence, this.PtrEquations);
-            sh0 = this.ParentBlazer.Incidence.PosOfZeroShift;
+            sh0 = this.ParentBlazer.Incidence.PosZeroShift;
             ixIncid = across(incid, 'Equation');
             ixIncid = any(ixIncid, 1);
             from = find(ixIncid, 1, 'first') - sh0;

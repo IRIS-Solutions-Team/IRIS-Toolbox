@@ -6,16 +6,15 @@ classdef Incidence
 
 
     properties (Dependent)
-        PosOfZeroShift
-        NumOfShifts
+        PosZeroShift
+        NumShifts
         NumQuantities
-        NumOfEquations
         MinShift
         MaxShift
         FullMatrix
     end
-    
-    
+
+
     methods
         function this = Incidence(nEqtn, nQuan, minSh, maxSh)
             if nargin==0
@@ -26,8 +25,8 @@ classdef Incidence
             this.Matrix = logical( sparse(nEqtn, nQuan*nsh) );
         end
     end
-    
-    
+
+
     methods
         varargout = across(varargin)
         varargout = fill(varargin)
@@ -42,7 +41,7 @@ classdef Incidence
             firstInc = find(anyInc, 1);
             lastInc = find(anyInc, 1, 'last');
             numQuantities = this.NumQuantities;
-            if lastInc<this.NumOfShifts
+            if lastInc<this.NumShifts
                 this.Shift = this.Shift(1:lastInc);
                 this.Matrix = this.Matrix(:, 1:lastInc*numQuantities);
             end
@@ -65,28 +64,23 @@ classdef Incidence
 
 
     methods
-        function pos = get.PosOfZeroShift(this)
+        function pos = get.PosZeroShift(this)
             pos = find(this.Shift==0);
         end%
 
 
-        function nsh = get.NumOfShifts(this)
-            nsh = length(this.Shift);
+        function nsh = get.NumShifts(this)
+            nsh = numel(this.Shift);
         end%
 
 
         function n = get.NumQuantities(this)
-            n = size(this.Matrix, 2) / this.NumOfShifts;
-        end%
-
-
-        function n = get.NumOfEquations(this)
-            n = size(this.Matrix, 1);
+            n = size(this.Matrix, 2) / this.NumShifts;
         end%
 
 
         function [minSh, maxSh] = getMinMaxShifts(this)
-            sh0 = this.PosOfZeroShift;
+            sh0 = this.PosZeroShift;
             inc = across(this, 'Eqtn');
             inc = any(inc, 1);
             pos = find(inc);
@@ -96,7 +90,7 @@ classdef Incidence
 
 
         function minShift = get.MinShift(this)
-            sh0 = this.PosOfZeroShift;
+            sh0 = this.PosZeroShift;
             inc = across(this, 'Eqtn');
             inc = any(inc, 1);
             minShift = find(inc, 1) - sh0;
@@ -104,7 +98,7 @@ classdef Incidence
 
 
         function maxShift = get.MaxShift(this)
-            sh0 = this.PosOfZeroShift;
+            sh0 = this.PosZeroShift;
             inc = across(this, 'Eqtn');
             inc = any(inc, 1);
             maxShift = find(inc, 1, "last") - sh0;
@@ -113,13 +107,13 @@ classdef Incidence
 
         function fullMatrix = get.FullMatrix(this)
             fullMatrix = full(this.Matrix);
-            numShifts = this.NumOfShifts;
+            numShifts = this.NumShifts;
             numQuantities = size(fullMatrix, 2) / numShifts;
             fullMatrix = reshape(fullMatrix, [ ], numQuantities, numShifts);
         end%
     end
-    
-    
+
+
     methods (Static)
         varargout = getIncidenceEps(varargin)        
     end

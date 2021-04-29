@@ -25,7 +25,7 @@ end
 % equations+periods that reach into the terminal condition
 %
 
-sh0 = this.ParentBlazer.Incidence.PosOfZeroShift;
+sh0 = this.ParentBlazer.Incidence.PosZeroShift;
 inxQuantitiesDeterminingTerminal = false(1, numQuantities);
 if any(this.InxEquationsUsingTerminal)
     % Incidence matrix numQuantities-by-numShifts

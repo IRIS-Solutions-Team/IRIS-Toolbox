@@ -13,7 +13,7 @@ inxX = getIndexByType(this.Quantity, TYPE(2));
 
 % Get numQuants-by-numShifts incidence matrix
 incidence = across(this.Incidence.Dynamic, 'Equations');
-posZeroShift = this.Incidence.Dynamic.PosOfZeroShift;
+posZeroShift = this.Incidence.Dynamic.PosZeroShift;
 
 incidence(~inxX, :) = false;
 

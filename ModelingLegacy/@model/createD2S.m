@@ -27,7 +27,7 @@ numY = sum(inxY);
 numX = sum(inxX);
 numE = sum(inxE);
 numYXE = numY + numX + numE;
-sh0 = this.Incidence.Dynamic.PosOfZeroShift;
+sh0 = this.Incidence.Dynamic.PosZeroShift;
 
 
 % Look up the actual maximum lead. The maximum lead determines

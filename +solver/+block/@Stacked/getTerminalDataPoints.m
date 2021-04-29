@@ -11,7 +11,7 @@
 function getTerminalDataPoints(this, sizeYXEPG)
 
 columnsToRun = this.ParentBlazer.ColumnsToRun;
-sh0 = this.ParentBlazer.Incidence.PosOfZeroShift;
+sh0 = this.ParentBlazer.Incidence.PosZeroShift;
 numEquations = numel(this.IdEquations);
 incEquationsShifts = across(this.ParentBlazer.Incidence, "Quantities");
 maxLeads = zeros(1, numEquations);

@@ -32,7 +32,7 @@ return
         this.LastSystem.Values = nan(1, numQuantities);
 
         % __Derivatives__
-        numDerivatives = numYXE*this.Incidence.Dynamic.NumOfShifts;
+        numDerivatives = numYXE*this.Incidence.Dynamic.NumShifts;
         nEqtn12 = sum(this.Equation.Type<=(2));
         deriv = struct( );
         deriv.c = zeros(nEqtn12, 1);
