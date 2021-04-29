@@ -31,7 +31,7 @@ NumericTimeSubscriptable ...
                 else
                     missingTest = @(x) isnan(real(x)) & isnan(imag(x));
                 end
-            elseif isequaln(missingValue, missing)
+            elseif isa(missingValue, 'missing')
                 missingTest = @ismissing;
             else
                 missingTest = @(x) x==missingValue;
