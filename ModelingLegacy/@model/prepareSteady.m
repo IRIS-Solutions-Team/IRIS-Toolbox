@@ -13,7 +13,7 @@ function output = prepareSteady(this, varargin)
     % options.Silent (1, 1) logical = false
     % options.Run (1, 1) logical = true
 % 
-    % options.Growth (1, :) logical {mustBeScalarOrEmpty} = []
+    % options.Growth (1, :) logical {validate.mustBeScalarOrEmpty} = []
     % options.Solve (1, :) {validate.mustBeLogicalOrSuboptions} = {"run", false}
 % 
     % options.LevelWithin (1, 1) struct = struct()

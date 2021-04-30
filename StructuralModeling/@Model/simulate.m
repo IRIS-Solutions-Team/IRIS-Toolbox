@@ -16,8 +16,7 @@ arguments
     options.Contributions (1, 1) logical = false
     options.IgnoreShocks (1, 1) logical = false
     options.MaxFrames (1, 1) double {mustBeInteger, mustBeNonnegative} = intmax()
-    % options.OutputData (1, 1) string {validate.mustBeAnyString(options.OutputData, ["databank", "simulate.Data"])} = "databank"
-    options.OutputData (1, 1) string = "databank"
+    options.OutputData (1, 1) string {mustBeMember(options.OutputData, ["databank", "simulate.Data"])} = "databank"
     options.OutputType (1, 1) {validate.mustBeOutputType} = @auto
     options.Plan {locallyValidatePlanOption} = []
     options.Progress (1, 1) logical = false
@@ -32,10 +31,8 @@ arguments
 
     options.Method {locallyValidateMethodOption} = solver.Method.FIRSTORDER
     options.Window {locallyValidateWindowOption} = @auto
-    % options.Terminal (1, 1) string {validate.mustBeAnyString(options.Terminal, ["firstOrder", "data"])} = "firstOrder"
-    options.Terminal (1, 1) string = "firstOrder"
-    % options.StartIterationsFrom (1, 1) string {validate.mustBeAnyString(options.StartIterationsFrom, ["firstOrder", "data"])} = "firstOrder"
-    options.StartIterationsFrom (1, 1) string = "firstOrder"
+    options.Terminal (1, 1) string {mustBeMember(options.Terminal, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
+    options.StartIterationsFrom (1, 1) string {mustBeMember(options.StartIterationsFrom, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
     options.PrepareGradient (1, 1) logical = true
 
     options.PrependInput (1, 1) logical = false

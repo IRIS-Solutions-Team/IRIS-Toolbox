@@ -246,7 +246,7 @@ classdef validate
             if validate.anyString(x, varargin{:})
                 return
             end
-            error("Input value must be one of the following strings: " + sprintf("""%s""", varargin{:}) + ".");
+            error("Input value must be one of the following strings: " + sprintf(" ""%s""", varargin{:}) + ".");
         end%
         
         

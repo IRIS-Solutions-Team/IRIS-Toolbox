@@ -8,12 +8,12 @@
 function mainDatabank = merge(method, mainDatabank, mergeWith, opt)
 
 arguments
-    method (1, :) char {validate.anyString(method, ["horzcat", "vertcat", "replace", "discard", "error"])}
-    mainDatabank (1, 1) {validate.databank(mainDatabank)}
+    method (1, 1) string { mustBeMember(method, ["horzcat", "vertcat", "replace", "discard", "error"]) }
+    mainDatabank (1, 1) { validate.databank(mainDatabank) }
 end
 
 arguments (Repeating)
-    mergeWith (1, 1) {validate.databank(mergeWith)}
+    mergeWith (1, 1) { locallyValidateMergeWith }
 end
 
 arguments
@@ -88,6 +88,7 @@ end%
 %
 
 function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
+    %(
     if isequal(opt.Names, @all)
         fieldsMainDatabank = fieldnames(mainDatabank);
         fieldsMergeWith = fieldnames(mergeWith);
@@ -120,10 +121,12 @@ function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
         mainDatabankField = func(mainDatabankField, mergeWithField);
         mainDatabank.(name__) = mainDatabankField;
     end
+    %)
 end%
 
 
 function mainDatabank = replaceNext(mainDatabank, mergeWith, opt)
+    %(
     if isequal(opt.Names, @all)
         newFields = fieldnames(mergeWith);
     else
@@ -139,12 +142,12 @@ function mainDatabank = replaceNext(mainDatabank, mergeWith, opt)
             mainDatabank.(name__) = mergeWith.(name__);
         end
     end
+    %)
 end%
 
 
-
-
 function mainDatabank = discardNext(mainDatabank, mergeWith, opt)
+    %(
     if isequal(opt.Names, @all)
         newFields = fieldnames(mergeWith);
     else
@@ -160,12 +163,12 @@ function mainDatabank = discardNext(mainDatabank, mergeWith, opt)
             mainDatabank.(name__) = mergeWith.(name__);
         end
     end
+    %)
 end%
 
 
-
-
 function mainDatabank = errorNext(mainDatabank, mergeWith, opt)
+    %(
     if isequal(opt.Names, @all)
         newFields = fieldnames(mergeWith);
     else
@@ -191,6 +194,7 @@ function mainDatabank = errorNext(mainDatabank, mergeWith, opt)
         ];
         throw(exception.Base(thisError, 'error'), newFields{inxErrorFields});
     end
+    %)
 end%
 
 
@@ -198,6 +202,16 @@ function locallyValidateNames(input)
     if isequal(input, @all) || validate.list(input)
         return
     end
-    error("ValidationFailed:Names", "Option Names must be @all or a string array");
+    error("Input value must be @all or a string array");
+end%
+
+
+function locallyValidateMergeWith(input)
+    %(
+    if validate.databank(input)
+        return
+    end
+    error("Input value must be a struct or a Dictionary.");
+    %)
 end%
 

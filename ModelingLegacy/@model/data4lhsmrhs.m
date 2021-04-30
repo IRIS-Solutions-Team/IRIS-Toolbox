@@ -62,7 +62,7 @@ arguments
     inputDb {locallyValidateInputDbOption} 
     baseRange (1, :) double {validate.mustBeProperRange}
 
-    opt.DbInfo struct {mustBeScalarOrEmpty} = struct([])
+    opt.DbInfo (1, 1) struct = struct()
     opt.IgnoreShocks (1, 1) logical = false
     opt.ResetShocks (1, 1) logical = false
     opt.NumDummyPeriods (1, 1) double {mustBeInteger, mustBeNonnegative} = 0
@@ -86,7 +86,7 @@ rowNamesExceptParameters = rowNames(~inxP);
 lenExtdRange = round(extdEnd - extdStart + 1);
 extdRange = extdStart:extdEnd;
 
-if isempty(opt.DbInfo)
+if isempty(fieldnames(opt.DbInfo))
     dbInfo = checkInputDatabank(this, inputDb, extdRange, [ ], rowNamesExceptParameters);
 else
     dbInfo = opt.DbInfo;

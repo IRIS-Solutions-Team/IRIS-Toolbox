@@ -12,6 +12,7 @@ MAX_ITER_IMPROVE_PROGRESS = 40;
 MAX_ITER_MAKE_PROGRESS = 40;
 DEFAULT_STEP_SIZE = 1;
 NUM_OF_OPTIM_STEP_SIZES = 10;
+THRESHOLD_MULTIPLIER = 1.5;
 
 ITER_STRUCT = struct( );
 ITER_STRUCT.Iter = NaN;
@@ -128,7 +129,7 @@ exitFlag = solver.ExitFlag.IN_PROGRESS;
 fnCount = 1;
 iter = 0;
 needsPrintHeader = true;
-extraJacobUpdate = false;
+forceJacobUpdate = false;
 
 headerInfo = hereCompileHeaderInfo( );
 
@@ -136,17 +137,15 @@ headerInfo = hereCompileHeaderInfo( );
 %===========================================================================
 while true
     %
-    % Set jacobUpdate=false in case this is the last iteration, which means
-    % no Jacobian update no matter what.
+    % Set jacobUpdateString="None" in case this is the last iteration and
+    % the Jacobian update needs to be reported.
     %
-
-    jacobUpdate = false;
     jacobUpdateString = "None";
+    
 
     %
     % Check convergence before calculating current Jacobian
     %
-
     if ~isfinite(current.Norm)
         exitFlag = solver.ExitFlag.NAN_INF_OBJECTIVE;
         break
@@ -177,7 +176,10 @@ while true
     %
     % Calculate Jacobian for current iteration
     %
-    jacobUpdate = (iter<=lastJacobUpdate && mod(iter, modJacobUpdate)==0) || extraJacobUpdate;
+    jacobUpdate ...
+        = (iter<=lastJacobUpdate && mod(iter, modJacobUpdate)==0) ...
+        || forceJacobUpdate;
+    
     if jacobUpdate 
         if useAnalyticalJacob
             [~, current.J] = objectiveFuncReshaped(current.X, [ ], last.J);
@@ -264,7 +266,31 @@ while true
     else
         hereMakeHybridStep( );
     end
+    
 
+    %
+    % If Jacobian was not updated, check the progress in the norm of the
+    % objective function. The objective function does not need to improve
+    % with no Jaciobian update but should not explode too much, e.g. exceed
+    % some threshold relative to the previous or best iteration.
+    %
+    threshold = THRESHOLD_MULTIPLIER*best.Norm;
+    if ~jacobUpdate && next.Norm>threshold
+        if opt.StepSizeSwitch==1
+            % StepSizeSwitch==1 is the legacy solver for hash equations
+            current = best;
+            current.Step = 0.5*next.Step;
+        end
+        current.Iter = iter;
+        current.Reverse = true;
+        forceJacobUpdate = opt.ForceJacobUpdateWhenReversing;
+        if displayLevel.Iter
+            hereReportReversal();
+        end
+        continue
+    end
+
+    
     %
     % Try to deflate or inflate the step size if needed or desirable
     %
@@ -286,7 +312,8 @@ while true
     
 
     %
-    % Check progress between Current and Next iteration
+    % Check progress between the Current and Next iteration (only if the
+    % Jacobian was updated)
     %
     if jacobUpdate
         threshold = current.Norm;
@@ -296,23 +323,6 @@ while true
             exitFlag = solver.ExitFlag.NO_PROGRESS;
             break
         end
-    else
-        if opt.StepSizeSwitch==1
-            threshold = 1.5*best.Norm;
-            if next.Norm>threshold
-                current = best;
-                current.Step = 0.5*next.Step;
-                current.Iter = iter;
-                current.Reverse = true;
-                if displayLevel.Iter
-                    hereReportReversal( );
-                end
-                if opt.ForceJacobUpdateWhenReversing
-                    extraJacobUpdate = true;
-                end
-                continue
-            end
-        end
     end
 
     next.MaxXChng = maxChgFunc(next.X, current.X);
@@ -320,7 +330,7 @@ while true
     %
     % Move to Next iteration
     %
-    extraJacobUpdate = false;
+    forceJacobUpdate = false;
     last = current;
     current = next;
 end

@@ -92,7 +92,7 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_SKIP_JACOB_UPDATE = 0
         DEFAULT_FINITE_DIFFERENCE_STEP_SIZE = eps( )^(1/3)
         DEFAULT_FINITE_DIFFERENCE_TYPE = 'forward'
-        DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING = false
+        DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING = true
         DEFAULT_LAST_BROYDEN_UPDATE = -1
         DEFAULT_PSEUDOINVERSE_WHEN_SINGULAR = false
 
@@ -139,6 +139,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_STEP_SIZE_SWITCH = 1;
                 this.DEFAULT_INFLATE_STEP = false;
                 this.DEFAULT_DEFLATE_STEP = false;
+                this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING = false;
             elseif locallyValidateSolver(solverName, {'Iris-Qnsdx', 'Qnsdx'})
                 this.DEFAULT_INCLUDE_NEWTON = false;
             elseif locallyValidateSolver(solverName, {'Iris-QuickNewton', 'QuickNewton'})
