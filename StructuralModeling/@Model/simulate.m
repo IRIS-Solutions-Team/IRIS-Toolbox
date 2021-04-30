@@ -6,7 +6,7 @@
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, options)
 
 arguments
-    this Model {mustBeA(this, "Model")}
+    this Model {validate.mustBeA(this, "Model")}
     inputDb (1, 1) {validate.mustBeDatabank}
     baseRange (1, :) double {validate.mustBeProperRange(baseRange)}
 
