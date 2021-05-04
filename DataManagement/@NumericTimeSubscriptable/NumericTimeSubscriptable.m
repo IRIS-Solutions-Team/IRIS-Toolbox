@@ -31,6 +31,8 @@ NumericTimeSubscriptable ...
                 else
                     missingTest = @(x) isnan(real(x)) & isnan(imag(x));
                 end
+            elseif iscell(missingValue)
+                missingTest = @(array) arrayfun(@(element) isequal(element, missingValue), array);
             elseif isa(missingValue, 'missing')
                 missingTest = @ismissing;
             else
@@ -143,7 +145,7 @@ NumericTimeSubscriptable ...
 
 
         function checkDataClass(this, data)
-            if isnumeric(data) || islogical(data) || isstring(data)
+            if isnumeric(data) || islogical(data) || isstring(data) || iscell(data)
                 return
             end
             thisError = [ "NumericTimeSubscriptable:InvalidClassOfData"
@@ -170,6 +172,8 @@ NumericTimeSubscriptable ...
                 this.MissingValue = complex(NaN, NaN);
             elseif isstring(values)
                 this.MissingValue = string(missing( ));
+            elseif iscell(values)
+                this.MissingValue = {[]};
             else
                 this.MissingValue = NaN;
             end
@@ -605,7 +609,7 @@ NumericTimeSubscriptable ...
                 pp.KeepDefaultOptions = true;
 
                 addRequired(pp, 'Dates', @Dater.validateDateInput);
-                addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle') || isstring(x));
+                addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle') || isstring(x) || iscell(x));
                 addRequired(pp, 'Comment', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
                 addRequired(pp, 'UserData');
             end

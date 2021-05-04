@@ -1,6 +1,5 @@
 classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
          TimeSubscriptable
-        % Exchange Rate Valuation Effect
     properties 
         % Start  Date of first observation in time series
         Start (1, 1) = NaN
