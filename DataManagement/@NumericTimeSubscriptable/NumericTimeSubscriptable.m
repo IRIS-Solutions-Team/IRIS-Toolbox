@@ -72,6 +72,11 @@ NumericTimeSubscriptable ...
         end%
 
         varargout = horzcat(varargin)
+        
+        function inx = isMissing(this)
+            inx = this.MissingTest(this.Data);
+        end%
+
         varargout = llf(varargin)
         varargout = llf2(varargin)
         varargout = moving(varargin)
