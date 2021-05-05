@@ -89,14 +89,19 @@ return
     function sourceNames = hereResolveSourceNames( )
         sourceNames = opt.SourceNames;
         if isa(sourceNames, "function_handle")
-            % sourceNames=@auto
-            if isa(sourceDb, 'Dictionary')
+            func = sourceNames;
+            if isa(sourceDb, "Dictionary")
                 sourceNames = keys(sourceDb);
             else
-                sourceNames = fieldnames(sourceDb);
+                sourceNames = reshape(string(fieldnames(sourceDb)), 1, []);
             end
+            if ~isequal(func, @all)
+                inxPass = func(sourceNames);
+                sourceNames = sourceNames(inxPass);
+            end
+        else
+            sourceNames = reshape(string(sourceNames), 1, []);
         end
-        sourceNames = string(sourceNames);
     end%
 
 

@@ -11,11 +11,13 @@ if nargin==1
     return
 end
 
-if strcmp(varargin{1}, ":") || isequal(varargin{1}, @all)
+if isequal(varargin{1}, @all) ...
+    || ((ischar(varargin{1}) || isstring(varargin{1})) && string(varargin{1})==":")
     varargin{1} = Inf;
+else
+    varargin{1} = double(varargin{1});
 end
 
-varargin{1} = double(varargin{1});
 from = varargin{1}(1);
 if nargin>=3
     varargin{2} = double(varargin{2});

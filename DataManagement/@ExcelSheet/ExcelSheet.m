@@ -16,7 +16,7 @@ classdef ExcelSheet ...
         Description = NaN
         NamesLocation = NaN
         CommentsLocation = NaN
-        Dates (1, :) DateWrapper = DateWrapper.NaD
+        Dates (1, :) Dater = Dater.empty(1, 0)
         InsertEmpty = [0, 0]
     end
 
@@ -295,7 +295,13 @@ classdef ExcelSheet ...
                 value = this.DataRange;
                 return
             end
+            dataStart = this.DataStart;
             dataEnd = this.DataEnd;
+            dataSkip = this.DataSkip;
+            if isequaln(dataStart, NaN) || isequaln(dataEnd, NaN)
+                value = double.empty(1, 0);
+                return
+            end
             try
                 value = this.DataStart : this.DataSkip : dataEnd;
             catch
@@ -352,26 +358,6 @@ classdef ExcelSheet ...
             else
                 anchor = ExcelReference.decodeRow(value);
             end
-        end%
-
-
-        function this = set.Dates(this, value)
-            dataRange = this.DataRange;
-            if isempty(dataRange)
-                exception.error([
-                    "ExcelSheet:CannotSetDates"
-                    "Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates."
-                ]);
-            end
-            numDates = numel(value);
-            if numDates==1 || numDates==this.NumData
-                this.Dates = value;
-                return
-            end
-            exception.error([
-                "ExcelSheet:DatesNotMatchData"
-                "Number of Dates must match the number of elements in DataRange."
-            ]);
         end%
     end
 end

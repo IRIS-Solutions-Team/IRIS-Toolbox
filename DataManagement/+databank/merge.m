@@ -98,11 +98,13 @@ function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
     end
     fieldsToMerge = unique(fieldsToMerge, "stable");
     numFieldsToMerge = numel(fieldsToMerge);
+    fieldsToRemove = string.empty(1, 0);
     for i = 1 : numFieldsToMerge
         name__ = fieldsToMerge{i};
         if isequal(opt.MissingField, @remove) || isequal(opt.MissingField, @rmfield)
             if ~isfield(mergeWith, name__)
-                mainDatabank = rmfield(mainDatabank, name__);
+                fieldsToRemove(end+1) = string(name__);
+                % mainDatabank = rmfield(mainDatabank, name__);
                 continue
             elseif ~isfield(mainDatabank, name__)
                 continue
@@ -120,6 +122,9 @@ function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
         end
         mainDatabankField = func(mainDatabankField, mergeWithField);
         mainDatabank.(name__) = mainDatabankField;
+    end
+    if ~isempty(fieldsToRemove);
+        mainDatabank = rmfield(mainDatabank, fieldsToRemove);
     end
     %)
 end%
