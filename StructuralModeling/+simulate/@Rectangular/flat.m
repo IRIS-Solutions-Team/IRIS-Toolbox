@@ -1,23 +1,16 @@
 % flat  Flat rectangular simulation
 %
-% Backend [IrisToolbox] methodk
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function flat(this, data)
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 [ny, nxi, nb, nf, ne, ng] = sizeSolution(this);
 nh = this.NumHashEquations;
 YXEPG = data.YXEPG;
 
-inxY = getIndexByType(this.Quantity, TYPE(1));
-inxE = getIndexByType(this.Quantity, TYPE(31) , TYPE(32));
+inxY = getIndexByType(this.Quantity, 1);
+inxE = getIndexByType(this.Quantity, 31, 32);
 inxCurrentWithinXi = this.InxOfCurrentWithinXi;
 inxLog = this.Quantity.InxLog;
 
@@ -41,6 +34,12 @@ if ignoreShocks
 end
 
 
+% Retrieve first-order solution after making sure expansion is sufficient
+[T, R, K, Z, H, D, Q] = this.FirstOrderSolution{:};
+R0 = R(:, 1:ne);
+lenR = size(R, 2);
+
+
 lastAnticipatedE = 0;
 lastUnanticipatedE = 0;
 if ne>0
@@ -57,12 +56,6 @@ if ne>0
         lastAnticipatedE = data.LastAnticipatedE;
     end
 end
-
-
-% Retrieve first-order solution after making sure expansion is sufficient
-[T, R, K, Z, H, D, Q] = this.FirstOrderSolution{:};
-R0 = R(:, 1:ne);
-lenR = size(R, 2);
 
 % Nonlinear add-factors
 nlaf = data.NonlinAddf;
@@ -123,8 +116,17 @@ for t = columnsToRun
         if t<=lastAnticipatedE
             vecAnticipatedE_t = anticipatedE(:, t:lastAnticipatedE);
             vecAnticipatedE_t = vecAnticipatedE_t(:);
-            lenToAdd = lenR - numel(vecAnticipatedE_t);
-            vecAnticipatedE_t = [vecAnticipatedE_t; zeros(lenToAdd, 1)];
+            lenVecAnticipatedE_t = numel(vecAnticipatedE_t);
+            if lenR>lenVecAnticipatedE_t
+                % Pad the the trailing missing anticipated shocks with
+                % zeros to fit the size of the expanded R matrix
+                lenToAdd = lenR - numel(vecAnticipatedE_t);
+                vecAnticipatedE_t = [vecAnticipatedE_t; zeros(lenToAdd, 1)];
+            elseif lenR<lenVecAnticipatedE_t
+                % Cut off the anticipated shocks; this may happen in
+                % backward looking models where no expansion is available
+                vecAnticipatedE_t = vecAnticipatedE_t(1:lenR);
+            end
             if sparseShocks
                 vecAnticipatedE_t = sparse(vecAnticipatedE_t);
             end

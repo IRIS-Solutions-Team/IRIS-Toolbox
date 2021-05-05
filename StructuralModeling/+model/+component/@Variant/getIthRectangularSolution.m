@@ -33,14 +33,18 @@ if ~isempty(T0)
     T = T0;
 else
     % Bkw compatibility for older models saved to mat files
-    T = T(:, :) / U;
-    T(numXif+1:end, :) = U*T(numXif+1:end, :);
+    if ~isempty(U)
+        T = T / U;
+        T(numXif+1:end, :) = U*T(numXif+1:end, :);
+    end
 end
 
-R(numXif+1:end, :) = U*R(numXif+1:end, :);
-K(numXif+1:end, :) = U*K(numXif+1:end, :);
-if ~isempty(Y)
-    Y(numXif+1:end, :) = U*Y(numXif+1:end, :);
+if ~isempty(U)
+    R(numXif+1:end, :) = U*R(numXif+1:end, :);
+    K(numXif+1:end, :) = U*K(numXif+1:end, :);
+    if ~isempty(Y)
+        Y(numXif+1:end, :) = U*Y(numXif+1:end, :);
+    end
 end
 
 end%

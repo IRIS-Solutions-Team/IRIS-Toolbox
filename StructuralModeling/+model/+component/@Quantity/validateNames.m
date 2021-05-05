@@ -5,14 +5,14 @@
 
 function validateNames(this)
 
-if isempty(this.Name)
-    return
-end
-
 stringify = @(x) reshape(string(x), 1, []);
 allNames = stringify(this.Name);
 
-hereCheckValidMatlabNames();
+if isempty(allNames)
+    return
+end
+
+% hereCheckValidMatlabNames();
 hereCheckReservedNames();
 hereCheckDoubleUnderscores();
 hereCheckNonuniqueNames();
@@ -41,18 +41,25 @@ return
             string(this.RESERVED_NAME_TTREND)
             string(this.RESERVED_NAME_LINEAR)
         ];
+        allNamesExReserved = allNames(1:end-1);
         for n = reshape(reservedNames, 1, [])
-            if any(allNames==n)
+            if any(allNamesExReserved==n)
                 exception.error([
                     "Parser:ReservedName"
                     "This is an IrisT keyword and cannot be used as a model name: %s "
                 ], n);
             end
         end
+        if allNames(end)~=string(this.RESERVED_NAME_TTREND)
+            exception.error([
+                "Parser:ReservedName"
+                "The " + this.RESERVED_NAME_TTREND + " keyword is not allowed to be renamed."
+            ]);
+        end
         %)
     end%
 
-    
+
     function hereCheckDoubleUnderscores()
         % Shock names must not contain double scores because of the way
         % cross-correlations are referenced

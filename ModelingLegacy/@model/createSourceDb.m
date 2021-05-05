@@ -8,7 +8,6 @@
 
 function outputDb = createSourceDb(this, range, varargin)
 
-TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
@@ -31,6 +30,7 @@ if isempty(pp)
     addParameter(pp, ["NumDraws", "NDraw"], 1, @(x) validate.roundScalar(x, 1, Inf));
     addParameter(pp, ["NumColumns", "NCol"], 1, @(x) validate.roundScalar(x, 1, Inf));
     addParameter(pp, 'ShockFunc', @zeros, @(x) isequal(x, @zeros) || isequal(x, @randn) || isequal(x, @lhsnorm)); 
+    addParameter(pp, 'AddParameters', true);
     addDeviationOptions(pp, false);
 end
 %)
@@ -74,10 +74,10 @@ numExtdPeriods = numel(extdRange);
 
 labelsOrNames = getLabelsOrNames(this.Quantity);
 
-inxY = this.Quantity.Type==TYPE(1);
-inxX = this.Quantity.Type==TYPE(2);
-inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-inxG = this.Quantity.Type==TYPE(5);
+inxY = this.Quantity.Type==1;
+inxX = this.Quantity.Type==2;
+inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
+inxG = this.Quantity.Type==5;
 inxYXG = inxY | inxX | inxG;
 posYXG = find(inxY | inxX | inxG);
 inxLog = this.Quantity.IxLog;
@@ -165,7 +165,9 @@ end
 %
 % Add parameters
 %
-outputDb = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outputDb);
+if isequal(opt.AddParameters, true)
+    outputDb = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outputDb);
+end
 
 
 %

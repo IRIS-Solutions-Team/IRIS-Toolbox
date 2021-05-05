@@ -65,7 +65,8 @@ parser.parse(this, range);
 
 %--------------------------------------------------------------------------
 
-d = createSourceDb(this, range, varargin{:}, 'Deviation=', true);
+d = createSourceDb(this, range, varargin{:}, "deviation", true);
 deviation = true;
 
 end%
+

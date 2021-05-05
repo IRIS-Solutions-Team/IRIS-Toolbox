@@ -1,4 +1,3 @@
-function outputSeries = retrieveSeries(this, locationRef, varargin)
 % retrieveSeries  Retrieve time series from ExcelSheet
 %{
 % ## Syntax ##
@@ -33,6 +32,8 @@ function outputSeries = retrieveSeries(this, locationRef, varargin)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function outputSeries = retrieveSeries(this, locationRef, varargin)
 
 dataRange = this.DataRange;
 if isempty(dataRange)

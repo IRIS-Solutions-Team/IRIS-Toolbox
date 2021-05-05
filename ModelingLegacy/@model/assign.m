@@ -71,11 +71,10 @@ function [this, namesAssigned] = assign(this, varargin)
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 persistent POS_VALUES INDEX_VALUES_RHS POS_STDCORR INDEX_STDCORR_RHS NAMES_ASSIGNED
-TYPE = @int8;
 
-%--------------------------------------------------------------------------
+stringify = @(x) reshape(string(x), 1, []);
 
-inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
 
 namesAssigned = cell(1, 0);
 if isempty(varargin)
@@ -186,13 +185,13 @@ elseif n<=2 && (isstruct(varargin{1}) || isa(varargin{1}, 'table'))
         clonePattern = varargin{1};
         inputNames = model.File.cloneAllNames(inputNames, clonePattern);
     end
-    numNames = numel(inputNames);
+    numInputNames = numel(inputNames);
     invalidLength = cell(1, 0);
     invalidImag = cell(1, 0);
     ell = lookup(this.Quantity, inputNames);
     posQuantity = ell.PosName;
     posStdCorr = ell.PosStdCorr;
-    for i = 1 : numNames
+    for i = 1 : numInputNames
         if iscell(inputValues)
             value__ = inputValues{i};
         else
@@ -423,7 +422,7 @@ return
         isValidImag = all(imag(value)==0) ...
             || ( ~flags.Change && ~flags.Level ...
             && all(isnan(posStdCorr)) ...
-            && ~any(this.Quantity.Type(posValues)==TYPE(4)) );
+            && ~any(this.Quantity.Type(posValues)==4) );
         if ~isValidImag
             invalidImag{end+1} = name;
             return

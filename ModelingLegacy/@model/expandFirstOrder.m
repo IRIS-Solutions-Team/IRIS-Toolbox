@@ -1,13 +1,9 @@
-function [R, Y] = expandFirstOrder(R0, Y0, expansion, k)
 % expandFirstOrder  Reconstruct forward expansion up to t+k for one parameter variant
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
+function [R, Y] = expandFirstOrder(R0, Y0, expansion, k)
 
 nv = size(R0, 3);
 returnY = nargout>=2;
@@ -21,18 +17,37 @@ else
     nh = 0;
 end
 
-if ne==0 && nh==0
+
+%
+% No shocks and no nonlinear add-factors, or no expansion available
+%
+if (ne==0 && nh==0) || all(cellfun(@isempty, expansion))
+    R = R0;
+    if returnY
+        Y = Y0;
+    end
     return
 end
 
+
+%
 % Pre-allocate NaNs
+%
 R = [R0(:, 1:ne, :), nan(size(R0, 1), ne*k, nv)];
 if returnY
     Y = [Y0(:, 1:nh, :), nan(size(Y0, 1), nh*k, nv)];
 end
 
+
+
+%
 % Expansion matrices not available
+%
 if any(isnan(Xa(:))) || k==0
+    R = R0;
+    if returnY
+        Y = Y0;
+    end
     return
 end
 

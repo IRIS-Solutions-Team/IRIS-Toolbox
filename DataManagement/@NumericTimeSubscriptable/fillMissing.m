@@ -4,7 +4,7 @@ function [this, datesMissing] = fillMissing(this, range, method)
 
 arguments
     this NumericTimeSubscriptable
-    range {validate.rangeInput(range)}
+    range { validate.mustBeRange(range) }
 end
 
 arguments (Repeating)
@@ -62,7 +62,7 @@ if nargout>=2
     end
 end
 
-if ~any(inxMissing(:))
+if nnz(inxMissing)==0
     return
 end
 

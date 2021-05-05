@@ -17,7 +17,7 @@ ttrendName = stringify(this.RESERVED_NAME_TTREND);
 
 if lower(what)==lower("names")
     output = allNames;
-    output = setdiff(output, ttrendName, "stable");
+    output(output==ttrendName) = [];
 
 elseif lower(what)==lower("measurementVariables")
     output = allNames(this.Type==1);
