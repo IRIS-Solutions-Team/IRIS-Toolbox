@@ -39,7 +39,6 @@ equation.Steady = strcat(id, equation.Steady);
 %
 % Dynamic equations except dtrends and links
 %
-
 isLinks = false;
 equation.Dynamic(~inxL) = regexprep( ...
     equation.Dynamic(~inxL), ...
@@ -105,8 +104,6 @@ equation.Steady = strrep(equation.Steady, '&x(', 'x(');
 return
 
 
-
-
     function c = hereReplaceName(name, pre)
         try
             c = d.(name);
@@ -120,8 +117,6 @@ return
             c = '';
         end
     end%
-
-
 
 
     function hereReportUndeclared( )
@@ -154,5 +149,6 @@ return
                 report{:} ...
             );
         end
-    end
-end
+    end%
+end%
+

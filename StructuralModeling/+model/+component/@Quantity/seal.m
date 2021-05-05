@@ -7,9 +7,10 @@ function this = seal(this)
 
 stringify = @(x) reshape(string(x), 1, []);
 
-validateNames(this);
 this = locallyAddSpecialExogenous(this); % Add special exogenous variables
 this.OriginalNames = stringify(this.Name); % Store original names from source model code
+
+validateNames(this);
 
 % Populate transient properties after the placeholders for optimal policy
 % variables have been created; the transient properties are needed in the

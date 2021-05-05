@@ -16,8 +16,6 @@ arguments
     options.Contributions (1, 1) logical = false
     options.IgnoreShocks (1, 1) logical = false
     options.MaxFrames (1, 1) double {mustBeInteger, mustBeNonnegative} = intmax()
-    options.OutputData (1, 1) string {mustBeMember(options.OutputData, ["databank", "simulate.Data"])} = "databank"
-    options.OutputType (1, 1) {validate.mustBeOutputType} = @auto
     options.Plan {locallyValidatePlanOption} = []
     options.Progress (1, 1) logical = false
     options.Solver {locallyValidateSolverOption} = @auto
@@ -35,16 +33,17 @@ arguments
     options.StartIterationsFrom (1, 1) string {mustBeMember(options.StartIterationsFrom, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
     options.PrepareGradient (1, 1) logical = true
 
+    options.OutputData (1, 1) string {mustBeMember(options.OutputData, ["databank", "simulate.Data"])} = "databank"
+    options.OutputType (1, 1) {validate.mustBeOutputType} = @auto
     options.PrependInput (1, 1) logical = false
     options.AppendInput (1, 1) logical = false
     options.AddParameters (1, 1) logical = true
+    options.AddToDatabank = false
 end
 
 if isequal(options.EvalTrends, @auto)
     options.EvalTrends = ~options.Deviation;
 end
-
-TYPE = @int8;
 
 if ~isequal(baseRange, @auto)
     baseRange = double(baseRange);
@@ -80,7 +79,7 @@ locallyCheckSolvedModel(this, options.Method, options.StartIterationsFrom, optio
 
 % Prepare running data
 runningData = simulate.InputOutputData();
-runningData.InxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+runningData.InxE = getIndexByType(this.Quantity, 31, 32);
 runningData.IsAsynchronous = isAsynchronous;
 runningData.PrepareOutputInfo = nargout>=2;
 runningData.PrepareFrameData = nargout>=3;
@@ -199,7 +198,7 @@ return
         % Check the input databank; treat all names as optional, and check for
         % missing initial conditions later
         requiredNames = string.empty(1, 0);
-        optionalNames = this.Quantity.Name(this.Quantity.Type~=TYPE(4));
+        optionalNames = this.Quantity.Name(this.Quantity.Type~=4);
         dbInfo = checkInputDatabank(this, inputDb, baseRange, requiredNames, optionalNames);
 
         % Retrieve data from the input databank
@@ -241,7 +240,7 @@ return
         %(
         firstColumnToSimulate = runningData.BaseRangeColumns(1);
         inxLog = this.Quantity.InxLog;
-        inxE = getIndexByType(this, TYPE(31), TYPE(32));
+        inxE = getIndexByType(this, 31, 32);
         posE = find(inxE);
         numE = nnz(inxE);
         numRuns = numE + 2;
@@ -527,22 +526,21 @@ end%
 
 function outputDb = locallyCreateOutputDb(this, YXEPG, startDate, options)
     %(
-    TYPE = @int8;
     if options.Contributions
         comments = getLabelsForShockContributions(this.Quantity);
     else
         comments = getLabelsOrNames(this.Quantity);
     end
-    inxInclude = ~getIndexByType(this.Quantity, TYPE(4));
+    inxInclude = ~getIndexByType(this.Quantity, 4);
     timeSeriesConstructor = @default;
     outputDb = databank.backend.fromDoubleArrayNoFrills( ...
-        YXEPG, ...
-        this.Quantity.Name, ...
-        startDate, ...
-        comments, ...
-        inxInclude, ...
-        timeSeriesConstructor, ...
-        options.OutputType ...
+        YXEPG ...
+        , this.Quantity.Name ...
+        , startDate ...
+        , comments ...
+        , inxInclude ...
+        , timeSeriesConstructor ...
+        , options.OutputType ...
     );
     if options.AddParameters
         outputDb = addToDatabank("default", this, outputDb);
