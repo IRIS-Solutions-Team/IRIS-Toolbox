@@ -14,7 +14,7 @@ DEFAULT_STEP_SIZE = 1;
 NUM_OF_OPTIM_STEP_SIZES = 10;
 THRESHOLD_MULTIPLIER = 1.5;
 
-ITER_STRUCT = struct( );
+ITER_STRUCT = struct();
 ITER_STRUCT.Iter = NaN;
 ITER_STRUCT.X = NaN;
 ITER_STRUCT.MaxXChng = NaN;
@@ -121,7 +121,7 @@ last = ITER_STRUCT;
 best = ITER_STRUCT;
 best.Norm = Inf;
 
-w = warning( );
+w = warning();
 warning('off', 'MATLAB:nearlySingularMatrix');
 warning('off', 'MATLAB:singularMatrix');
 
@@ -131,7 +131,7 @@ iter = 0;
 needsPrintHeader = true;
 forceJacobUpdate = false;
 
-headerInfo = hereCompileHeaderInfo( );
+headerInfo = hereCompileHeaderInfo();
 
 
 %===========================================================================
@@ -141,7 +141,7 @@ while true
     % the Jacobian update needs to be reported.
     %
     jacobUpdateString = "None";
-    
+
 
     %
     % Check convergence before calculating current Jacobian
@@ -154,19 +154,19 @@ while true
     if current.Norm<=best.Norm
         best = current;
     end
-    
-    if hereVerifyConvergence( ) 
+
+    if hereVerifyConvergence() 
         % Convergence reached, exit
         exitFlag = solver.ExitFlag.CONVERGED;
         break
     end
-    
+
     if iter>=maxIter
         % Max iter reached, exit
         exitFlag = solver.ExitFlag.MAX_ITER;
         break
     end
-    
+
     if fnCount>=maxFunEvals
         % Max fun evals reached, exit
         exitFlag = solver.ExitFlag.MAX_FUN_EVALS;
@@ -179,7 +179,7 @@ while true
     jacobUpdate ...
         = (iter<=lastJacobUpdate && mod(iter, modJacobUpdate)==0) ...
         || forceJacobUpdate;
-    
+
     if jacobUpdate 
         if useAnalyticalJacob
             [~, current.J] = objectiveFuncReshaped(current.X, [ ], last.J);
@@ -195,7 +195,7 @@ while true
         current.InvJ = [ ];
 
     elseif iter>0 && iter<=lastBroydenUpdate && ~current.Reverse
-        jacobUpdateString = hereUpdateJacobByBroyden( );
+        jacobUpdateString = hereUpdateJacobByBroyden();
 
     else
         current.J = last.J;
@@ -223,7 +223,7 @@ while true
     %
     if displayLevel.Iter
         if mod(iter, displayLevel.Every)==0
-            hereReportIter( );
+            hereReportIter();
             fprintf('\n');
         end
     end
@@ -262,35 +262,13 @@ while true
     end
 
     if maxLambda==0
-        hereMakeNewtonStep( );
+        hereMakeNewtonStep();
     else
-        hereMakeHybridStep( );
-    end
-    
-
-    %
-    % If Jacobian was not updated, check the progress in the norm of the
-    % objective function. The objective function does not need to improve
-    % with no Jaciobian update but should not explode too much, e.g. exceed
-    % some threshold relative to the previous or best iteration.
-    %
-    threshold = THRESHOLD_MULTIPLIER*best.Norm;
-    if ~jacobUpdate && next.Norm>threshold
-        if opt.StepSizeSwitch==1
-            % StepSizeSwitch==1 is the legacy solver for hash equations
-            current = best;
-            current.Step = 0.5*next.Step;
-        end
-        current.Iter = iter;
-        current.Reverse = true;
-        forceJacobUpdate = opt.ForceJacobUpdateWhenReversing;
-        if displayLevel.Iter
-            hereReportReversal();
-        end
-        continue
+        hereMakeHybridStep();
     end
 
-    
+
+
     %
     % Try to deflate or inflate the step size if needed or desirable
     %
@@ -309,7 +287,35 @@ while true
             hereTryImproveProgress(deflateStep);
         end
     end
-    
+
+
+    %
+    % If Jacobian was not updated, check the progress in the norm of the
+    % objective function. The objective function does not need to improve
+    % with no Jaciobian update but should not explode too much, e.g. exceed
+    % some threshold relative to the previous or best iteration.
+    %
+    threshold = THRESHOLD_MULTIPLIER*best.Norm;
+    if ~jacobUpdate && next.Norm>threshold
+        if opt.StepSizeSwitch==1
+            % StepSizeSwitch==1 is the QaD solver (developed originally for hash equations)
+            current = best;
+            current.Step = 0.5*next.Step;
+            forceJacobUpdate = opt.ForceJacobUpdateWhenReversing;
+            if displayLevel.Iter
+                hereReportReversal();
+            end
+        else
+            forceJacobUpdate = true;
+            if displayLevel.Iter
+                hereReportForcedJacobUpdate();
+            end
+        end
+        current.Iter = iter;
+        current.Reverse = true;
+        continue
+    end
+
 
     %
     % Check progress between the Current and Next iteration (only if the
@@ -341,7 +347,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    hereReportIter( );
+    hereReportIter();
     fprintf('\n');
 end
 
@@ -353,7 +359,7 @@ f = reshape(current.F, sizeF);
 return
 
 
-    function headerInfo = hereCompileHeaderInfo( )
+    function headerInfo = hereCompileHeaderInfo()
         headerInfo.Format = '%6s %8s %13s %6s %13s %13s %13s %13s %13s %9s';
 
         % Function norm
@@ -381,7 +387,7 @@ return
     end%
 
 
-    function jacobUpdateString = hereUpdateJacobByBroyden( )
+    function jacobUpdateString = hereUpdateJacobByBroyden()
         step = current.Step;
         if ~isscalar(step) || isnan(step) || isinf(step)
             jacobUpdateString = "None";
@@ -404,9 +410,9 @@ return
     end%
 
 
-    function hereMakeNewtonStep( )
+    function hereMakeNewtonStep()
         % Get and trim current objective function
-        F0 = hereGetCurrentObjectiveFunction( );
+        F0 = hereGetCurrentObjectiveFunction();
         step = next.Step;
         lenStepSize = numel(step);
         lastwarn('');
@@ -446,17 +452,17 @@ return
         next.Lambda = 0;
         next.BoundsReport = boundsReport(pos);
         if lenStepSize>1 && displayLevel.Iter
-            hereReportStepSizeOptim( );
+            hereReportStepSizeOptim();
         end
     end%
 
 
-    function hereMakeHybridStep( )
+    function hereMakeHybridStep()
         X0 = current.X;
         J0 = current.J;
 
         % Get and trim current objective function
-        F0 = hereGetCurrentObjectiveFunction( );
+        F0 = hereGetCurrentObjectiveFunction();
 
         step = next.Step;
         if issparse(J0)
@@ -519,7 +525,7 @@ return
     %
     % Get and trim current value of objective function
     %
-    function F0 = hereGetCurrentObjectiveFunction( )
+    function F0 = hereGetCurrentObjectiveFunction()
         F0 = current.F;
         if trimObjectiveFunction
             F0(abs(F0)<=tolFun) = 0;
@@ -591,7 +597,7 @@ return
     %
     % Check for function and step convergence
     %
-    function flag = hereVerifyConvergence( )
+    function flag = hereVerifyConvergence()
         flag = all( max(abs(current.F(:)))<=tolFun );
         if current.Iter>0
             flag = flag && all(current.MaxXChng<=tolX);
@@ -599,7 +605,7 @@ return
     end%
 
 
-    function herePrintHeader( )
+    function herePrintHeader()
         %(
         rows = repmat({''}, 1, 4);
         rows{1} = sprintf( ...
@@ -642,10 +648,10 @@ return
     end%
 
 
-    function hereReportIter( )
+    function hereReportIter()
         %(
         if needsPrintHeader
-            herePrintHeader( );
+            herePrintHeader();
             needsPrintHeader = false;
         end
         jacobChange = NaN;
@@ -669,13 +675,21 @@ return
     end%
 
 
-    function hereReportReversal( )
-        fprintf('Reversing to Iteration %g\nReducing Step Size to %g', best.Iter, current.Step);
-        fprintf('\n');
+    function hereReportReversal()
+        %(
+        fprintf("Reversing to Iteration %g\nReducing Step Size to %g\n", best.Iter, current.Step);
+        %)
     end%
 
 
-    function hereReportStepSizeOptim( )
+    function hereReportForcedJacobUpdate()
+        %(
+        fprintf("Forced update of Jacobian\n");
+        %)
+    end%
+
+
+    function hereReportStepSizeOptim()
         fprintf('Optimal Step Size %g', next.Step);
         fprintf('\n');
     end%
