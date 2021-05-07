@@ -48,6 +48,7 @@ if isempty(pp)
     addParameter(pp, "MissingObservations", @auto, @(x) isequal(x, @auto) || validate.anyString(x, ["Error", "Warning", "Silent"]));
     addParameter(pp, "Optim", [], @(x) isempty(x) || isa(x, 'optim.options.Lsqnonlin'));
     addParameter(pp, "Progress", false, @validate.logicalScalar);
+    addParameter(pp, "Regularize", 0, @validate.numericScalar);
     addParameter(pp, 'ResidualsOnly', false, @validate.logicalScalar);
     addParameter(pp, "Journal", false);
 end
