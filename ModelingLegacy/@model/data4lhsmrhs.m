@@ -88,7 +88,7 @@ if isempty(inputParser)
     addRequired(inputParser, "inputDb", @locallyValidateInputDb);
     addRequired(inputParser, "baseRange", @validate.mustBeProperRange);
 
-    addOptional(inputParser, "DbInfo", @isstruct);
+    addOptional(inputParser, "DbInfo", struct(), @isstruct);
     addOptional(inputParser, "IgnoreShocks", false, @validate.logicalScalar);
     addOptional(inputParser, "ResetShocks", false, @validate.logicalScalar);
     addOptional(inputParser, "NumDummyPeriods", 0, @(x) validate.roundScalar(x, 0, Inf));
