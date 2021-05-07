@@ -26,6 +26,7 @@ function options = prepareCheckSteady(this, varargin)
 
 persistent inputParser
 if isempty(inputParser)
+    inputParser = extend.InputParser("Model/prepareCheckSteady");
     addParameter(inputParser, "Run", true, @validate.logicalScalar);
     addParameter(inputParser, "Silent", false, @validate.logicalScalar);
     addParameter(inputParser, "EquationSwitch", "dynamic", @(x) mustBeMember(x, ["dynamic", "steady"]));
