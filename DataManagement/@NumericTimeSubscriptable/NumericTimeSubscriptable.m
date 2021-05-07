@@ -66,13 +66,13 @@ NumericTimeSubscriptable ...
         varargout = difflog(varargin)
         varargout = diffChart(varargin)
         varargout = ellone(varargin)
-        
+
         function varargout = isfreq(this, freq)
             [varargout{1:nargout}] = this.Frequency==freq;
         end%
 
         varargout = horzcat(varargin)
-        
+
         function this = isMissing(this)
             this.Data = this.MissingTest(this.Data);
             this = resetMissingValue(this, this.Data);
@@ -113,7 +113,7 @@ NumericTimeSubscriptable ...
         end%
 
         varargout = size(varargin)
-        
+
         function s = sizeData(this)
             s = size(this.Data);
         end%
@@ -202,7 +202,7 @@ NumericTimeSubscriptable ...
         varargout = getExpSmoothMatrix(varargin)
         varargout = linearTrend(varargin)
     end
-    
+
 
 
 
@@ -405,8 +405,8 @@ NumericTimeSubscriptable ...
         end%
         function x = uplus(x)
         end%
-        
-        
+
+
         %
         % Distribution functions (Stats Toolbox)
         %
@@ -450,10 +450,10 @@ NumericTimeSubscriptable ...
             x.Data = gevinv(x.Data, varargin{:});
             x = trim(x);
         end%
-        
-        
-        
-        
+
+
+
+
         %
         % Functions whose behavior differs in different dimensions
         %
@@ -559,7 +559,7 @@ NumericTimeSubscriptable ...
 
     methods
         function this = NumericTimeSubscriptable(varargin)
-            
+
             this = this@shared.GetterSetter( );
             this = this@shared.UserDataContainer( );
 
@@ -580,7 +580,7 @@ NumericTimeSubscriptable ...
             if nargin==0
                 return
             end
-            
+
             % NumericTimeSubscriptable input
             if nargin==1 && isequal(string(class(varargin{1})), "NumericTimeSubscriptable")
                 this = varargin{1};
@@ -630,7 +630,7 @@ NumericTimeSubscriptable ...
             %
             this = init(this, dates, values);
 
-            
+
             %
             % Populate comments for each data column
             %

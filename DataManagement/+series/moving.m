@@ -1,5 +1,8 @@
+
 function outputData = moving(inputData, freq, window, func, missingValue, missingTest, periodByPeriod)
 
+% >=R2019b
+%(
 arguments
     inputData double
     freq (1, 1) double
@@ -10,6 +13,9 @@ arguments
     missingTest = @isnan
     periodByPeriod = false
 end
+%)
+% >=R2019b
+
 
 sizeData = size(inputData);
 window = locallyResolveWindow(window, freq);

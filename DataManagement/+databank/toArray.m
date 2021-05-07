@@ -16,24 +16,26 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function [outputArray, names, dates] = toArray(inputDb, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('+databank/toArray');
-    addRequired(pp, 'inputDb', @(x) validate.databank(x) && isscalar(x)); 
-    addOptional(pp, 'names', @locallyValidateNames);
-    addOptional(pp, 'dates', @DateWrapper.validateProperRangeInput);
-    addOptional(pp, 'columns', 1, @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser("databank.toArray");
+    addRequired(inputParser, "inputDb", @(x) validate.databank(x) && isscalar(x)); 
+    addOptional(inputParser, "names", @all, @locallyValidateNames);
+    addOptional(inputParser, "dates", @all, @DateWrapper.validateProperRangeInput);
+    addOptional(inputParser, "columns", 1, @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
 end
-parse(pp, inputDb, varargin{:});
-names =  pp.Results.names;
-dates = pp.Results.dates;
-columns = pp.Results.columns;
+parse(inputParser, inputDb, varargin{:});
+names =  inputParser.Results.names;
+dates = inputParser.Results.dates;
+columns = inputParser.Results.columns;
 %}
 % <=R2019a
+
 
 %
 % Extract data as a cell array of numeric arrays

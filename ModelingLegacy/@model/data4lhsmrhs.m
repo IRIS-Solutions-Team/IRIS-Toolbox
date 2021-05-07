@@ -51,6 +51,9 @@
 %
 %}
 
+
+% >=R2019b
+%(
 function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
@@ -59,7 +62,7 @@ function [ ...
 
 arguments
     this
-    inputDb {locallyValidateInputDbOption} 
+    inputDb {locallyValidateInputDb} 
     baseRange (1, :) double {validate.mustBeProperRange}
 
     opt.DbInfo (1, 1) struct = struct()
@@ -67,8 +70,32 @@ arguments
     opt.ResetShocks (1, 1) logical = false
     opt.NumDummyPeriods (1, 1) double {mustBeInteger, mustBeNonnegative} = 0
 end
+%)
 
-TYPE = @int8;
+
+% <=R2019a
+%{
+function [ ...
+    YXEPG, rowNames, extdRange ...
+    , minShift, maxShift ...
+    , extdTimeTrend, dbInfo ...
+] = data4lhsmrhs(this, inputDb, baseRange, varargin)
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser("Model/data4lhsmrh");
+    addRequired(inputParser, "inputDb", @locallyValidateInputDb);
+    addRequired(inputParser, "baseRange", @validate.mustBeProperRange);
+
+    addOptional(inputParser, "DbInfo", @isstruct);
+    addOptional(inputParser, "IgnoreShocks", false, @validate.logicalScalar);
+    addOptional(inputParser, "ResetShocks", false, @validate.logicalScalar);
+    addOptional(inputParser, "NumDummyPeriods", 0, @(x) validate.roundScalar(x, 0, Inf));
+end
+opt = parse(inputParser, inputDb, baseRange, varargin{:});
+%}
+% <=R2019a
+
 
 baseRange = double(baseRange);
 baseStart = baseRange(1);
@@ -76,8 +103,8 @@ baseEnd = baseRange(end);
 
 %--------------------------------------------------------------------------
 
-inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
-inxP = getIndexByType(this.Quantity, TYPE(4));
+inxE = getIndexByType(this.Quantity, 31, 32);
+inxP = getIndexByType(this.Quantity, 4);
 rowNames = this.Quantity.Name;
 numQuants = numel(rowNames);
 rowNamesExceptParameters = rowNames(~inxP);
@@ -149,12 +176,12 @@ return
 end%
 
 
-function locallyValidateInputDbOption(x)
+function locallyValidateInputDb(x)
     %(
     if validate.databank(x) || validate.anyString(x, "asynchronous")
         return
     end
-    error("Input argument must be a struct or Dictionary.");
+    error("Input argument must be a struct or a Dictionary.");
     %)
 end%
 

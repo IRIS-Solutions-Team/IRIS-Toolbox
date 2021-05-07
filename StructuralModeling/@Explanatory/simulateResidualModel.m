@@ -17,6 +17,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, varargin)
@@ -32,6 +33,7 @@ end
 opt = parse(pp, varargin{:});
 %}
 % <=R2019a
+
 
 if isempty(range)
     return

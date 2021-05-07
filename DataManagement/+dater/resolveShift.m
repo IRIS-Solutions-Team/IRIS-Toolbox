@@ -1,8 +1,5 @@
 % resolveShift  Resolve time shift for time change and time growth functions
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
@@ -13,33 +10,34 @@ function [shift, power] = resolveShift(dates, shift, opt)
 arguments
     dates {mustBeReal}
     shift (1, :) {locallyValidateShift} = -1
+
     opt.Annualize (1, 1) logical = false
 end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function [shift, power] = resolveShift(dates, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@DateWrapper/resolveShift');
-    addRequired(pp, 'dates', @isnumeric);
-    addOptional(pp, 'shift', -1, @locallyValidateShift);
-    addParameter(pp, 'Annualize', false, @validate.logicalScalar);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('DateWrapper/resolveShift');
+    addRequired(inputParser, "dates", @isnumeric);
+    addOptional(inputParser, "shift", -1, @locallyValidateShift);
+    addParameter(inputParser, "Annualize", false, @validate.logicalScalar);
 end
-opt = parse(pp, dates, varargin{:});
-shift = pp.Results.shift;
+opt = parse(inputParser, dates, varargin{:});
+shift = inputParser.Results.shift;
 %}
 % <=R2019a
+
 
 outputFreq = [];
 if opt.Annualize
     outputFreq = 1;
 end
-
-%--------------------------------------------------------------------------
 
 dates = reshape(double(dates), 1, [ ]);
 inputFreq = dater.getFrequency(dates(1));

@@ -28,6 +28,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function [this, outputDb, info] = regress(this, inputDb, fittedRange, varargin)
@@ -53,6 +54,7 @@ end
 opt = parse(pp, this, inputDb, fittedRange, varargin{:});
 %}
 % <=R2019a
+
 
 opt.AppendPresample = false;
 opt.AppendPostsample = false;

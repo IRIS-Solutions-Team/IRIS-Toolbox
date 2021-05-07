@@ -75,17 +75,29 @@ function [isoDate, inxMissing] = locallyFixIsoDate(isoDate)
     inxMissing = ismissing(isoDate);
     isoDate(inxMissing) = [ ];
     lenIsoDate = strlength(isoDate);
+
+    % "2020-01-31 xxx"
     inx10 = lenIsoDate>10;
     if any(inx10)
         isoDate(inx10) = extractBefore(isoDate(inx10), 11);
     end
+
+    % "2020-01"
     inx7 = lenIsoDate==7;
     if any(inx7)
         isoDate(inx7) = isoDate(inx7) + "-01";
     end
+
+    % "2020"
     inx4 = lenIsoDate==4;
     if any(inx4)
         isoDate(inx4) = isoDate(inx4) + "-01-01";
+    end
+
+    % "20200131"
+    inx8 = lenIsoDate==8 & ~contains(isoDate, "-");
+    if any(inx8)
+        isoDate(inx8) = extractBetween(isoDate(inx8), 1, 4) + "-" + extractBetween(isoDate(inx8), 5, 6) + "-" + extractBetween(isoDate(inx8), 7, 8);
     end
 end%
 

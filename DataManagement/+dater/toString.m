@@ -3,10 +3,10 @@
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function outputString = toString(inputDate, dateFormat, options)
-
 % >=R2019b
 %(
+function outputString = toString(inputDate, dateFormat, options)
+
 arguments
     inputDate {mustBeNumeric}
     dateFormat (1, 1) string
@@ -16,6 +16,24 @@ arguments
 end
 %)
 % >=R2019b
+
+
+% <=R2019a
+%{
+function outputString = toString(inputDate, dateFormat, varargin)
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser("dater.toString");
+    addRequired(inputParser, "inputData", @isnumeric);
+    addRequired(inputParser, "dateFormat", @(x) ischar(x) || isstring(x));
+    addOptional(inputParser, "Open", "", @(x) ischar(x) || isstring(x));
+    addOptional(inputParser, "Close", "", @(x) ischar(x) || isstring(x));
+end
+options = parse(inputParser, inputDate, dateFormat, varargin{:});
+%}
+% <=R2019a
+
 
 inputDate = double(inputDate);
 sizeInput = size(inputDate);

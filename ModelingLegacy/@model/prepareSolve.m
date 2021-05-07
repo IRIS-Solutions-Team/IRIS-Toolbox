@@ -3,10 +3,10 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function options = prepareSolve(this, options)
-
 % >=R2019b
 %(
+function options = prepareSolve(this, options)
+
 arguments
     this %#ok<INUSA>
 
@@ -23,6 +23,30 @@ arguments
 end
 %)
 % >=R2019b
+
+
+% <=R2019a
+%{
+function options = prepareSolve(this, varargin)
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser("Model/prepareSolve");
+    addParameter(inputParser, "Run", true, @validate.logicalScalar);
+    addParameter(inputParser, "Silent", false, @validate.logicalScalar);
+    addParameter(inputParser, "Equations", "");
+    addParameter(inputParser, "Normalize", true, @validate.logicalScalar);
+    addParameter(inputParser, "PreferredSchur", "schur", @(x) mustBeMember(x, ["schur", "qz"]));
+    addParameter(inputParser, "Select", true, @validate.logicalScalar);
+    addParameter(inputParser, "Symbolic", true, @validate.logicalScalar);
+    addParameter(inputParser, "Error", false, @validate.logicalScalar);
+    addParameter(inputParser, "Progress", false, @validate.logicalScalar);
+    addParameter(inputParser, "Warning", true, @validate.logicalScalar);
+end
+options = parse(inputParser, varargin{:});
+%}
+% <=R2019a
+
 
 if options.Silent
     options.Progress = false;

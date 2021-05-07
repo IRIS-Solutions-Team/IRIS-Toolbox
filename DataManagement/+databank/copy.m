@@ -17,30 +17,30 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function targetDb = copy(sourceDb, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('databank.copy');
-    addRequired(pp, 'sourceDb', @validate.databank);
+    pp = extend.InputParser("databank.copy");
+    addRequired(pp, "sourceDb", @validate.databank);
 
-    addParameter(pp, 'SourceNames', @all, @(x) isequal(x, @all) || validate.list(x));
-    addParameter(pp, 'TargetDb', @empty, @(x) isequal(x, @empty) || validate.databank(x));
-    addParameter(pp, 'TargetNames', @auto, @(x) isequal(x, @auto) || validate.list(x) || isa(x, 'function_handle'));
-    addParameter(pp, 'Transform', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
-    addParameter(pp, 'WhenTransformFails', 'Error', @(x) validate.anyString(x, 'Error', 'Warning'));
+    addParameter(pp, "SourceNames", @all, @locallyValidateNames);
+    addParameter(pp, "TargetNames", @auto, @locallyValidateNames);
+    addParameter(pp, "TargetDb", @empty, @locallyValidateDb);
+    addParameter(pp, "Transform", [], @locallyValidateTransform);
+    addParameter(pp, "WhenTransformFails", "error", @locallyValidateWhenTransformFails);
 end
 opt = parse(pp, sourceDb, varargin{:});
 %}
 % <=R2019a
 
+
 sourceNames = opt.SourceNames;
 targetNames = opt.TargetNames;
 transform = opt.Transform;
-
-%--------------------------------------------------------------------------
 
 %
 % Resolve source names

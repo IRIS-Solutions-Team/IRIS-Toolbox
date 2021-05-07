@@ -7,7 +7,7 @@ function [deriv, inxNaDeriv] = diffFirstOrder(this, eqSelect, variantRequested, 
 
 isNaDeriv = nargout>2;
 
-% Copy last computed derivatives.
+% Copy last computed derivatives
 deriv = this.LastSystem.Deriv;
 
 asgn = this.Variant.Values(:, :, variantRequested);
@@ -18,16 +18,15 @@ inxX = this.Quantity.Type==2;
 inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
 inxYXE = inxY | inxX | inxE;
 inxP = this.Quantity.Type==4;
+inxLog = this.Quantity.InxLog;
+nsh = this.Incidence.Dynamic.NumShifts;
+
 inxM = this.Equation.Type==1;
 inxT = this.Equation.Type==2;
-inxLog = this.Quantity.InxLog;
-eqSelect(~inxM & ~inxT) = false;
+inxMT = inxM | inxT;
+eqSelect(~inxMT) = false;
 
 inxNaDeriv = false(1, numEquations);
-
-% Prepare 3D occur array limited to occurences of variables and shocks in
-% measurement and transition equations.
-nsh = this.Incidence.Dynamic.NumShifts;
 
 if any(eqSelect)
     numYXE = sum(inxYXE);
@@ -40,23 +39,25 @@ if any(eqSelect)
     inxSymbolic = inxSymbolic & eqSelect;
     inxNumeric = ~inxSymbolic & eqSelect;
 
+    % Symbolic differentiation
     if any(inxSymbolic)
-        % Symbolic differentiation
-        hereDiffSymbolically();
+        deriv = hereDiffSymbolically(deriv);
     end
+
+    % Numerical differentiation 
     if any(inxNumeric)
         if this.IsLinear
-            % Numerical differentiation in nonlinear models
-            hereDiffNumericallyLinear();
+            % Linear models 
+            deriv = hereDiffNumericallyLinear(deriv);
         else
-            % Numerical differentiation in linear models
-            hereDiffNumericallyNonlinear();
+            % Nonlinear models
+            deriv = hereDiffNumericallyNonlinear(deriv);
         end
     end
 
     % Reset the add-factors in nonlinear equations to 1
-    tempEye = -eye(sum(this.Equation.Type<=2));
-    deriv.n(eqSelect, :) = tempEye(eqSelect, this.Equation.IxHash);
+    eyeAddf = -eye(sum(this.Equation.Type<=2));
+    deriv.n(eqSelect, :) = eyeAddf(eqSelect, this.Equation.IxHash);
 
     % Normalize derivatives by largest number in nonlinear models
     if ~this.IsLinear && opt.Normalize
@@ -73,15 +74,17 @@ end
 
 return
 
-    function hereDiffNumericallyLinear()
+    function deriv = hereDiffNumericallyLinear(deriv)
         %(
         init = zeros(numQuantities, 1);
         init(inxP) = real(asgn(inxP));
         init = repmat(init, 1, nsh);
+        xPlus = ones(numQuantities, 1);
 
         % Delog log-plus variables
         if any(inxLog)
-            init(inxLog, :) = 1;
+            init(inxLog, :) = exp(0);
+            xPlus(inxLog) = exp(1);
         end
 
         for iiEq = find(inxNumeric)
@@ -100,7 +103,7 @@ return
                 iNm = nm(jj);
                 iSh = sh(jj);
                 temp = init(iNm, iSh);
-                init(iNm, iSh) = 1;
+                init(iNm, iSh) = xPlus(iNm);
                 fPlus = equationFunc(init, sh0, []);
                 init(iNm, iSh) = temp;
                 value(jj) = fPlus - f0; 
@@ -122,7 +125,7 @@ return
     end%
 
 
-    function hereDiffNumericallyNonlinear()
+    function deriv = hereDiffNumericallyNonlinear(deriv)
         %(
         minT = 1 - sh0;
         maxT = nsh - sh0;
@@ -199,7 +202,7 @@ return
     end%
 
 
-    function hereDiffSymbolically()
+    function deriv = hereDiffSymbolically(deriv)
         %(
         if this.IsLinear
             x = zeros(numQuantities, 1);

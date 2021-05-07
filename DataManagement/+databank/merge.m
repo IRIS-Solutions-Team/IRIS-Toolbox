@@ -5,11 +5,11 @@
 
 % >=R2019b
 %(
-function mainDatabank = merge(method, mainDatabank, mergeWith, opt)
+function mainDb = merge(method, mainDb, mergeWith, opt)
 
 arguments
     method (1, 1) string { mustBeMember(method, ["horzcat", "vertcat", "replace", "discard", "error"]) }
-    mainDatabank (1, 1) { validate.databank(mainDatabank) }
+    mainDb (1, 1) { validate.databank(mainDb) }
 end
 
 arguments (Repeating)
@@ -25,7 +25,7 @@ end
 
 % <=R2019a
 %{
-function mainDatabank = merge(method, mainDatabank, varargin)
+function mainDb = merge(method, mainDb, varargin)
 
 if isempty(varargin)
     return
@@ -49,18 +49,16 @@ end
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.merge');
-    pp.addRequired('Method', @(x) validate.anyString(char(x), 'horzcat', 'vertcat', 'replace', 'discard', 'error'));
-    pp.addRequired('InputDatabank', @validate.databank);
+    pp.addRequired("method", @(x) validate.anyString(string(x), ["horzcat", "vertcat", "replace", "discard", "error"]));
+    pp.addRequired("mainDb", @validate.databank);
     pp.addRequired('MergeWith');
     pp.addParameter('MissingField', @remove);
     pp.addParameter({'Names', 'List'}, @all, @(x) isequal(x, @all) || validate.list(x));
 end
-parse(pp, method, mainDatabank, mergeWith, varargin{:});
+parse(pp, method, mainDb, mergeWith, varargin{:});
 opt = pp.Options;
 %}
 % <=R2019a
-
-%--------------------------------------------------------------------------
 
 numMergeWith = numel(mergeWith);
 method = char(method);
@@ -78,7 +76,7 @@ else
 end
 
 for i = 1 : numMergeWith
-    mainDatabank = mergeNext(mainDatabank, mergeWith{i}, opt);
+    mainDb = mergeNext(mainDb, mergeWith{i}, opt);
 end
 
 end%
@@ -87,10 +85,10 @@ end%
 % Local Functions
 %
 
-function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
+function mainDb = concatenateNext(func, mainDb, mergeWith, opt)
     %(
     if isequal(opt.Names, @all)
-        fieldsMainDatabank = fieldnames(mainDatabank);
+        fieldsMainDatabank = fieldnames(mainDb);
         fieldsMergeWith = fieldnames(mergeWith);
         fieldsToMerge = [fieldsMainDatabank; fieldsMergeWith];
     else
@@ -104,14 +102,14 @@ function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
         if isequal(opt.MissingField, @remove) || isequal(opt.MissingField, @rmfield)
             if ~isfield(mergeWith, name__)
                 fieldsToRemove(end+1) = string(name__);
-                % mainDatabank = rmfield(mainDatabank, name__);
+                % mainDb = rmfield(mainDb, name__);
                 continue
-            elseif ~isfield(mainDatabank, name__)
+            elseif ~isfield(mainDb, name__)
                 continue
             end
         end
-        if isfield(mainDatabank, name__)
-            mainDatabankField = mainDatabank.(name__);
+        if isfield(mainDb, name__)
+            mainDatabankField = mainDb.(name__);
         else
             mainDatabankField = opt.MissingField;
         end
@@ -121,16 +119,16 @@ function mainDatabank = concatenateNext(func, mainDatabank, mergeWith, opt)
             mergeWithField = opt.MissingField;
         end
         mainDatabankField = func(mainDatabankField, mergeWithField);
-        mainDatabank.(name__) = mainDatabankField;
+        mainDb.(name__) = mainDatabankField;
     end
     if ~isempty(fieldsToRemove);
-        mainDatabank = rmfield(mainDatabank, fieldsToRemove);
+        mainDb = rmfield(mainDb, fieldsToRemove);
     end
     %)
 end%
 
 
-function mainDatabank = replaceNext(mainDatabank, mergeWith, opt)
+function mainDb = replaceNext(mainDb, mergeWith, opt)
     %(
     if isequal(opt.Names, @all)
         newFields = fieldnames(mergeWith);
@@ -144,14 +142,14 @@ function mainDatabank = replaceNext(mainDatabank, mergeWith, opt)
             continue
         end
         if isfield(mergeWith, name__)
-            mainDatabank.(name__) = mergeWith.(name__);
+            mainDb.(name__) = mergeWith.(name__);
         end
     end
     %)
 end%
 
 
-function mainDatabank = discardNext(mainDatabank, mergeWith, opt)
+function mainDb = discardNext(mainDb, mergeWith, opt)
     %(
     if isequal(opt.Names, @all)
         newFields = fieldnames(mergeWith);
@@ -164,15 +162,15 @@ function mainDatabank = discardNext(mainDatabank, mergeWith, opt)
         if ~isfield(mergeWith, name__)
             continue
         end
-        if ~isfield(mainDatabank, name__)
-            mainDatabank.(name__) = mergeWith.(name__);
+        if ~isfield(mainDb, name__)
+            mainDb.(name__) = mergeWith.(name__);
         end
     end
     %)
 end%
 
 
-function mainDatabank = errorNext(mainDatabank, mergeWith, opt)
+function mainDb = errorNext(mainDb, mergeWith, opt)
     %(
     if isequal(opt.Names, @all)
         newFields = fieldnames(mergeWith);
@@ -186,11 +184,11 @@ function mainDatabank = errorNext(mainDatabank, mergeWith, opt)
         if ~isfield(mergeWith, name__)
             continue
         end
-        if isfield(mainDatabank, name__)
+        if isfield(mainDb, name__)
             inxErrorFields(i) = true;
             continue
         end
-        mainDatabank.(name__) = mergeWith.(name__);
+        mainDb.(name__) = mergeWith.(name__);
     end
     if any(inxErrorFields)
         thisError = [

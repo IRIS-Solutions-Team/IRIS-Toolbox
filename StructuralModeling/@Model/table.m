@@ -182,6 +182,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function outputTable = table(this, requests, varargin)
@@ -204,7 +205,6 @@ opt = parse(pp, this, requests, varargin{:});
 %}
 % <=R2019a
 
-TYPE = @int8;
 
 if ischar(requests)
     requests = regexp(requests, '\w+', 'match');
@@ -268,14 +268,14 @@ for i = 1 : numRequests
 
 
     elseif any(strcmpi(requests{i}, {'Parameter', 'Parameters'}))
-        inxParameters = this.Quantity.Type==TYPE(4);
+        inxParameters = this.Quantity.Type==4;
         compare = false;
         setNaN = '';
         addTable = tableValues(this, @real, compare, inxParameters, setNaN, 'Parameter', opt);
 
 
     elseif any(strcmpi(requests{i}, {'CompareParameter', 'CompareParameters'}))
-        inxParameters = this.Quantity.Type==TYPE(4);
+        inxParameters = this.Quantity.Type==4;
         compare = true;
         setNaN = '';
         addTable = tableValues(this, @real, compare, inxParameters, setNaN, 'CompareParameters', opt);

@@ -27,6 +27,13 @@ if nargin<2 || testColon(timeRef) || isequal(timeRef, Inf)
     return
 end
 
+timeRef = double(timeRef);
+
+if numel(timeRef)==2 && any(isinf(timeRef))
+    [from, to] = resolveRange(this, timeRef);
+    timeRef = dater.colon(from, to);
+end
+
 missingValue = this.MissingValue;
 
 if isempty(timeRef)
@@ -39,7 +46,8 @@ if isempty(timeRef)
 end
 
 switch locallyDetermineCase(thisStart, timeRef)
-    case {'NaN_[]', 'NaN_NaN', 'NaN_:'}
+    % case {'NaN_[]', 'NaN_NaN', 'NaN_:'}
+    case {'NaN_[]', 'NaN_NaN'}
         data = repmat(missingValue, [0, sizeData(2:end)]);
         if nargout>1
             dates = TimeSubscriptable.StartDateWhenEmpty;
@@ -93,7 +101,6 @@ switch locallyDetermineCase(thisStart, timeRef)
             dates = reshape(dates, 1, []);
         end
         return
-
 end
 
 end%
@@ -110,8 +117,8 @@ function output = locallyDetermineCase(start, timeRef)
         ref = '[]';
     elseif isnumeric(timeRef)
         ref = 'Date';
-    elseif isequal(timeRef, Inf) || (ischar(x) && isequal(x, ':'))
-        ref = ':';
+    % elseif isequal(timeRef, Inf) || (ischar(x) && isequal(x, ':'))
+        % ref = ':';
     else
         exception.error([
             "Series:InvalidSubscript"

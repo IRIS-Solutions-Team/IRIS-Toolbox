@@ -1,7 +1,7 @@
-function this = replaceData(this, pairs)
-
 % >=R2019b
 %(
+function this = replaceData(this, pairs)
+
 arguments
     this NumericTimeSubscriptable
 end
@@ -11,6 +11,15 @@ arguments (Repeating)
 end
 %)
 % >=R2019b
+
+
+% <=R2019a
+%{
+function this = replaceData(this, varargin)
+
+pairs = varargin;
+%}
+% <=R2019a
 
 if isempty(this.Data)
     return
