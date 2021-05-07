@@ -81,6 +81,7 @@ if isempty(pp)
     addRequired(pp, 'inputDb', @validate.databank);
     addOptional(pp, 'names', @all, @(x) isa(x, 'function_handle') || isstring(x) || iscellstr(x) || ischar(x));
     addOptional(pp, 'dates', "longRange", @(x) (isstring(x) && startsWith(x, ["longRange", "shortRange", "head", "tail"], "ignoreCase", true) || DateWrapper.validateProperRangeInput));
+
     addParameter(pp, 'Timetable', false, @(x) isequal(x, true) || isequal(x, false));
 end
 %)

@@ -1,4 +1,3 @@
-function varargout = dbeval(d, varargin)
 % dbeval  Evaluate expression in specified database
 %{
 % __Syntax__
@@ -60,6 +59,8 @@ function varargout = dbeval(d, varargin)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
+
+function varargout = dbeval(d, varargin)
 
 if ~isempty(varargin) && (isstruct(varargin{1}) || isa(varargin{1}, 'model'))
     ss = varargin{1};

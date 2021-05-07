@@ -26,11 +26,11 @@ function options = prepareCheckSteady(this, varargin)
 
 persistent inputParser
 if isempty(inputParser)
-    addOptional(inputParser, "Run", true, @validate.logicalScalar);
-    addOptional(inputParser, "Silent", false, @validate.logicalScalar);
-    addOptional(inputParser, "EquationSwitch", "dynamic", @(x) mustBeMember(x, ["dynamic", "steady"]));
-    addOptional(inputParser, "Error", true, @validate.logicalScalar);
-    addOptional(inputParser, "Warning", true, @validate.logicalScalar);
+    addParameter(inputParser, "Run", true, @validate.logicalScalar);
+    addParameter(inputParser, "Silent", false, @validate.logicalScalar);
+    addParameter(inputParser, "EquationSwitch", "dynamic", @(x) mustBeMember(x, ["dynamic", "steady"]));
+    addParameter(inputParser, "Error", true, @validate.logicalScalar);
+    addParameter(inputParser, "Warning", true, @validate.logicalScalar);
 end
 options = parse(inputParser, varargin{:});
 %}

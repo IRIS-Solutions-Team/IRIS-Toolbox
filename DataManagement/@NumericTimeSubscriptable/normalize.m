@@ -44,6 +44,7 @@ function this = normalize(this, dates, opt)
 arguments
     this NumericTimeSubscriptable
     dates {locallyValidateDates(dates)} = "start"
+
     opt.Aggregation {validate.mustBeA(opt.Aggregation, "function_handle")} = @mean
     opt.Mode (1, 1) string {startsWith(opt.Mode, ["mult", "add"], "ignoreCase", 1)} = "mult"
 end

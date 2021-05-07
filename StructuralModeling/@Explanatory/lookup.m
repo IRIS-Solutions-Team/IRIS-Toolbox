@@ -60,19 +60,6 @@
 
 function [inx, this, lhsNames] = lookup(this, varargin)
 
-%( Input parser
-% persistent pp
-% if isempty(pp)
-    % pp = extend.InputParser('@Explanatory/lookup');
-    % addRequired(pp, 'xq', @(x) isa(x, 'Explanatory'));
-    % addOptional(pp, "operator", @or, @(x) isequal(x, @or) || isequal(x, @xor) || isequal(x, @and));
-    % addOptional(pp, 'lookFor', cell.empty(1, 0), @(x) all(cellfun(@(y) isstring(y) || ischar(y) || iscellstr(y), x)));
-% end
-%)
-% parse(pp, this, varargin);
-
-%--------------------------------------------------------------------------
-
 operator = @or;
 if ~isempty(varargin) && isa(varargin{1}, "function_handle")
     operator = varargin{1};

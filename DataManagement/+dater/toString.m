@@ -27,8 +27,8 @@ if isempty(inputParser)
     inputParser = extend.InputParser("dater.toString");
     addRequired(inputParser, "inputData", @isnumeric);
     addRequired(inputParser, "dateFormat", @(x) ischar(x) || isstring(x));
-    addOptional(inputParser, "Open", "", @(x) ischar(x) || isstring(x));
-    addOptional(inputParser, "Close", "", @(x) ischar(x) || isstring(x));
+    addParameter(inputParser, "Open", "", @(x) ischar(x) || isstring(x));
+    addParameter(inputParser, "Close", "", @(x) ischar(x) || isstring(x));
 end
 options = parse(inputParser, inputDate, dateFormat, varargin{:});
 %}

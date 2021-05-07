@@ -10,12 +10,12 @@ function y = prctile(x, percents, varargin)
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('numeric.prctile');
-    inputParser.addRequired('InputData', @isnumeric);
-    inputParser.addRequired('Percents', @(x) isnumeric(x) && all(x>=0) && all(x<=100));
-    inputParser.addOptional('Dim', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
+    inputParser.addRequired('inputData', @isnumeric);
+    inputParser.addRequired('percents', @(x) isnumeric(x) && all(x>=0) && all(x<=100));
+    inputParser.addOptional('dim', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
 end
 inputParser.parse(x, percents, varargin{:});
-dim = inputParser.Results.Dim;
+dim = inputParser.Results.dim;
 
 %--------------------------------------------------------------------------
 

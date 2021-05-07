@@ -19,6 +19,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function this = grow(this, operator, growth, dates, varargin)
@@ -46,6 +47,7 @@ else
 end
 %}
 % <=R2019a
+
 
 if startsWith(opt.Direction, "backward", "ignoreCase", true)
     shift = -shift;

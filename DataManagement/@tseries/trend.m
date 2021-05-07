@@ -1,4 +1,3 @@
-function [this, tt, ts] = trend(this, varargin)
 % trend  Estimate time trend in time series data.
 %
 % __Syntax__
@@ -47,6 +46,8 @@ function [this, tt, ts] = trend(this, varargin)
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
+
+function [this, tt, ts] = trend(this, varargin)
 
 if ~isempty(varargin) && validate.range(varargin{1})
     range = double(varargin{1});

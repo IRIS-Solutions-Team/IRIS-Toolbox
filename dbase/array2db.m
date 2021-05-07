@@ -51,6 +51,7 @@ if isempty(inputParser)
     inputParser.addRequired('List', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     inputParser.addOptional('IndexLog', [ ], @(x) isempty(x) || islogical(x) || isstruct(x));
     inputParser.addOptional('Databank', struct( ), @isstruct);
+
     inputParser.addParameter('Comments', cell.empty(1, 0), @iscellstr);
 end
 inputParser.parse(X, date, list, varargin{:});

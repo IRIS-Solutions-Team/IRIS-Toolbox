@@ -28,6 +28,7 @@ if isempty(pp)
     addRequired(pp, 'inputDatabank', @validate.databank);
     addRequired(pp, 'newStart', @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
     addOptional(pp, 'newEnd', [], @(x) isempty(x) || isequal(x, Inf) || DateWrapper.validateDateInput(x));
+
     addParameter(pp, "SourceNames", @all, @(x) isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x));
     addParameter(pp, "TargetDb", @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end

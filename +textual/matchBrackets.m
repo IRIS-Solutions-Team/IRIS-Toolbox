@@ -1,4 +1,3 @@
-function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 % matchBrakets  Match an opening bracket found at the beginning of char string
 %{
 % ## Syntax ##
@@ -51,6 +50,8 @@ function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (inputText) 2007-2021 IRIS Solutions Team.
+
+function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 
 persistent parser
 if isempty(parser)

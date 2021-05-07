@@ -69,6 +69,7 @@ if isempty(pp)
     addRequired(pp, 'actual', @(x) isa(x, 'NumericTimeSubscriptable') && ndims(x) == 2 && size(x, 2) == 1); %#ok<ISMAT>
     addRequired(pp, 'prediction', @(x) isa(x, 'NumericTimeSubscriptable'));
     addOptional(pp, 'legacyRange', Inf, @Dater.validateRangeInput);
+
     addParameter(pp, 'Range', Inf, @Dater.validateRangeInput);
 end
 [skip, opt] = maybeSkip(pp, varargin{:});

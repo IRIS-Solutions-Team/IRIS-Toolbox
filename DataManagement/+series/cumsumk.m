@@ -13,11 +13,11 @@ if isempty(pp)
     addRequired(pp, 'InputData', @isnumeric);
     addRequired(pp, 'K', @(x) isnumeric(x) && isscalar(x) && x==round(x));
     addOptional(pp, 'Rho', 1, @(x) isnumeric(x) && isscalar(x));
-    addOptional(pp, 'NaNInit', 0, @isnumeric);
+    addOptional(pp, 'naInit', 0, @isnumeric);
 end
 parse(pp, x, k, varargin{:});
 rho = pp.Results.Rho;
-nanInit = pp.Results.NaNInit;
+naInit = pp.Results.naInit;
 
 %--------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ end
 numPeriods = sizeX(1);
 for i = 1 : size(x, 2)
     inxNaN = isnan(x(:, i));
-    x(inxNaN, i) = nanInit;
+    x(inxNaN, i) = naInit;
     if k<0
         first = find(~isnan(x(:, i)), 1);
         if isempty(first)

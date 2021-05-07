@@ -47,6 +47,7 @@ if isempty(pp)
     pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     pp.addRequired('Beta', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1);
     pp.addOptional('Range', Inf, @Dater.validateRangeInput);
+
     pp.addParameter('Init', NaN, @(x) isnumeric(x) && isscalar(x));
     pp.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
 end
