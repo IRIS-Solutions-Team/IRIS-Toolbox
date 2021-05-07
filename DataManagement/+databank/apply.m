@@ -65,9 +65,11 @@ end
 %)
 % >=R2019b
 
+
 if validate.databank(func)
     [func, inputDb] = deal(inputDb, func);
 end
+
 
 % <=R2019a
 %{
@@ -93,6 +95,7 @@ end
 opt = pp.parse(func, inputDb, varargin{:});
 %}
 % <=R2019a
+
 
 if ~isa(opt.SourceNames, "function_handle")
     if isa(opt.SourceNames, 'Rxp')

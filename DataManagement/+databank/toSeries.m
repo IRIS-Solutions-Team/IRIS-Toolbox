@@ -75,8 +75,6 @@ columns = pp.Results.columns;
 %}
 % <=R2019a
 
-%--------------------------------------------------------------------------
-
 if isequal(names, @all)
     names = keys(inputDb);
     inxSeries = cellfun(@(n) isa(inputDb.(n), "NumericTimeSubscriptable"), names);

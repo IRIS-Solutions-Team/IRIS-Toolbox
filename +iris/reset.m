@@ -1,11 +1,10 @@
 % iris.reset  Reset IRIS configuration options to start-up values
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%(
 function irisConfig = reset(options)
 
 arguments
@@ -14,8 +13,26 @@ arguments
     options.CheckId (1, 1) logical = true
     options.TeX (1, 1) logical = false
 end
+%)
+% >=R2019b
 
-%--------------------------------------------------------------------------
+
+% <=R2019a
+%{
+function irisConfig = reset(varargin)
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser("iris.reset");
+    addParameter(inputParser, "Silent", false, @validate.logicalScalar);
+    addParameter(inputParser, "SeriesConstructor", @Series, @(x) isa(x, "function_handle"));
+    addParameter(inputParser, "CheckId", true, @validate.logicalScalar);
+    addParameter(inputParser, "TeX", false, @validate.logicalScalar);
+end
+options = parse(inputParser, varargin{:});
+%}
+% <=R2019a
+
 
 passvalopt( );
 

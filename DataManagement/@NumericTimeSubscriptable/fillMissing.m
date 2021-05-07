@@ -24,10 +24,10 @@ end
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('NumericTimeSubscriptable.fillMissing');
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(pp, 'range', @Dater.validateRangeInput);
-    addRequired(pp, 'method', @(x) ~isempty(x));
+    pp = extend.InputParser("NumericTimeSubscriptable/fillMissing");
+    addRequired(pp, "inputSeries", @(x) isa(x, "NumericTimeSubscriptable"));
+    addRequired(pp, "range", @validate.range);
+    addRequired(pp, "method", @mustBeNonempty);
 end
 %)
 opt = parse(pp, this, range, varargin);

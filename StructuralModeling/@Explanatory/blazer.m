@@ -110,7 +110,6 @@ opt = parse(pp, this, varargin{:});
 %}
 % <=R2019a
 
-%--------------------------------------------------------------------------
 
 newlineString = string(newline( ));
 numEquations = numel(this);

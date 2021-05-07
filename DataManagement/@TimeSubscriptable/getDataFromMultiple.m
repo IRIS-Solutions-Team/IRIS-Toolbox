@@ -1,3 +1,5 @@
+% >=R2019b
+%(
 function [outputDates, varargout] = getDataFromMultiple(dates, context, inputSeries)
 
 arguments
@@ -8,6 +10,18 @@ end
 arguments (Repeating)
     inputSeries
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [outputDates, varargout] = getDataFromMultiple(dates, context, varargin)
+
+inputSeries = varargin;
+%}
+% <=R2019a
+
 
 if ~isstring(dates)
     dates = double(dates);

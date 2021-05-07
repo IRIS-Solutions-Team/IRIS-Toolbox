@@ -28,15 +28,15 @@ opt = pp.parse(varargin{:});
 %)
 unmatchedOptions = pp.UnmatchedInCell;
 
-dates = reshape(double(dates), [], 1);
+dates = reshape(double(dates), 1, []);
 enforceXLimHere = true;
 if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
-    dates = reshape(this.RangeAsNumeric, [], 1);
+    dates = reshape(this.RangeAsNumeric, 1, []);
     enforceXLimHere = false;
 elseif isempty(dates) || all(isnan(dates))
     dates = double.empty(0, 1);
 else
-    dates = reshape(dates, [], 1);
+    dates = reshape(dates, 1, []);
     locallyCheckUserFrequency(this, dates);
 end
 

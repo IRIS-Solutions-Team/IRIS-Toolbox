@@ -1,4 +1,3 @@
-function varargout = comment(this, newComment)
 % comment  Get or set user comments in time series
 %
 %
@@ -81,10 +80,25 @@ function varargout = comment(this, newComment)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
+function varargout = comment(this, newComment)
+
+% >=R2019b
+%(
 arguments
     this TimeSubscriptable
     newComment {locallyValidateNewComment} = @get
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+if nargin<2
+    newComment = @get;
+end
+%}
+% <=R2019a
 
 
 if isequal(newComment, @get)

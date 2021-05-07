@@ -20,25 +20,27 @@ end
 
 % <=R2019a
 %{
-function outputDb = clip(inputDb, newStart, newEnd, varargin)
+function outputDb = clip(inputDb, newStart, varargin)
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.clip');
-    addRequired(pp, 'InputDatabank', @validate.databank);
-    addRequired(pp, 'NewStart', @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
-    addRequired(pp, 'NewEnd', @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
+    addRequired(pp, 'inputDatabank', @validate.databank);
+    addRequired(pp, 'newStart', @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
+    addOptional(pp, 'newEnd', [], @(x) isempty(x) || isequal(x, Inf) || DateWrapper.validateDateInput(x));
     addParameter(pp, "SourceNames", @all, @(x) isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x));
     addParameter(pp, "TargetDb", @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end
-opt = parse(pp, inputDb, newStart, newEnd, varargin{:});
+opt = parse(pp, inputDb, newStart, varargin{:});
+newEnd = pp.Results.newEnd;
 %}
 % <=R2019a
 
 newStart = double(newStart);
 newEnd = double(newEnd);
-
-%--------------------------------------------------------------------------
+if isempty(newEnd)
+    newEnd = newStart(end);
+end
 
 if isequal(opt.TargetDb, @auto)
     outputDb = inputDb;

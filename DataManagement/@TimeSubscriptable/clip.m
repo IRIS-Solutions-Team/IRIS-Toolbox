@@ -75,8 +75,8 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('TimeSubscriptable.clip');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    addRequired(pp, 'newStart', @(x) Dater.validateDateInput(x));
-    addOptional(pp, 'newEnd', [ ], @(x) isempty(x) || (Dater.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf)));
+    addRequired(pp, 'newStart', @validate.date);
+    addOptional(pp, 'newEnd', [ ], @(x) isempty(x) || (validate.date(x) && isscalar(x) && ~isequal(x, -Inf)));
 end
 parse(pp, this, newStart, varargin{:});
 newStart = double(newStart);
