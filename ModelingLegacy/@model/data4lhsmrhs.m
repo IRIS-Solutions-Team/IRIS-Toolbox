@@ -71,6 +71,7 @@ arguments
     opt.NumDummyPeriods (1, 1) double {mustBeInteger, mustBeNonnegative} = 0
 end
 %)
+% >=R2019b
 
 
 % <=R2019a
