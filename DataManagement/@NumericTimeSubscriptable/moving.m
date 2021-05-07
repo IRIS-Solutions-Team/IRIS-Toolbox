@@ -26,7 +26,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Series/moving');
     pp.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    pp.addOptional('range', Inf, @Dater.validateRangeInput);
+    pp.addOptional('range_', Inf, @Dater.validateRangeInput);
 
     pp.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
     pp.addParameter('Window', @auto, @(x) isequal(x, @auto) || isnumeric(x));
@@ -34,7 +34,7 @@ if isempty(pp)
     pp.addParameter('Range', Inf, @validate.range);
 end
 opt = pp.parse(this, varargin{:});
-range = pp.Results.range;
+range = pp.Results.range_;
 %}
 % <=R2019a
 
