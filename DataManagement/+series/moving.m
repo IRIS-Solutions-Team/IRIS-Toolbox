@@ -17,10 +17,35 @@ end
 % >=R2019b
 
 
+% <=R2019a
+%{
+if nargin<3
+    window = @auto;
+end
+
+if nargin<4
+    func = @mean;
+end
+
+if nargin<5
+    missingValue = NaN;
+end
+
+if nargin<6
+    missingTest = @isnan;
+end
+
+if nargin<7
+    periodByPeriod = false;
+end
+%}
+% <=R2019a
+
+
 sizeData = size(inputData);
 window = locallyResolveWindow(window, freq);
 if isempty(window)
-    inputData = reshape(inputData([], :), [0, sizeData(2:end)]);
+    outputData = reshape(inputData([], :), [0, sizeData(2:end)]);
     return
 end
 
