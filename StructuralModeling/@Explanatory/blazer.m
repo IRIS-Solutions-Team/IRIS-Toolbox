@@ -103,7 +103,7 @@ if isempty(pp)
     addRequired(pp, 'equations', @(x) isa(x, 'Explanatory'));
 
     addParameter(pp, 'Reorder', true, @(x) validate.logicalScalar(x) || (iscell(x) && all(cellfun(@(y) isnumeric(y), x))));
-    addParameter(pp, "SaveAs", "", @(x) isempty(x) || validate.string(x));
+    addParameter(pp, "SaveAs", "", @validate.stringScalar);
     addParameter(pp, 'Period', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
 opt = parse(pp, this, varargin{:});
