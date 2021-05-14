@@ -13,6 +13,7 @@ beenHandled = true;
 output = [ ];
 stringify = @(x) reshape(string(x), 1, [ ]);
 allNames = stringify(this.Name);
+numQuantities = numel(allNames);
 ttrendName = stringify(this.RESERVED_NAME_TTREND);
 
 if lower(what)==lower("names")
@@ -42,8 +43,7 @@ elseif lower(what)==lower("exogenousVariables")
     output = setdiff(output, ttrendName, "stable");
 
 elseif lower(what)==lower("logVariables")
-    inxType = this.Type==1 | this.Type==2;
-    output = stringify(this.Name(this.InxLog & inxType));
+    inxType = this.Type==1 | this.Type==2; output = stringify(this.Name(this.InxLog & inxType));
 
 elseif any(lower(what)==lower(["^logVariables", "nonLogVariables"]))
     inxType = this.Type==1 | this.Type==2;
@@ -58,6 +58,10 @@ elseif lower(what)==lower("logStatus")
 elseif any(lower(what)==lower(["nameDescription", "nameLabel"]))
     labels = arrayfun(@(x) string(x), this.Label, "uniformOutput", false);
     output = cell2struct(labels, this.Name, 2);
+
+elseif lower(what)==lower("positions")
+    positions = num2cell(1 : numQuantities);
+    output= cell2struct(positions, allNames, 2);
 
 else
     beenHandled = false;
