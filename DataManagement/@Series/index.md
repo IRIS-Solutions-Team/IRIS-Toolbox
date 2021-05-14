@@ -13,11 +13,12 @@ Function | Description
 [`Series.randomlyGrowing`](randomlyGrowing.md) | {{ series._randomlyGrowing }} 
 
 
-#### Filtering time series
+#### Filtering and aggregating time series
 
 Function | Description 
 ---|---
 [`moving`](moving.md) | {{ series._moving }} 
+[`chainlink`](chainlink.md) | {{ series._chainlink }}
 
 
 #### Regression and statistics
