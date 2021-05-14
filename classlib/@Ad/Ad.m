@@ -473,12 +473,14 @@ classdef Ad
             if numWrt==1
                 D.(lsWrt{1}).Diff = { Ad.X1 };
             else
-                wrt = repmat('0;', 1, numWrt);
+                % wrt = repmat('0;', 1, numWrt);
+                wrt = repmat('0,', 1, numWrt);
                 if mode==1
                     for i = 1:numWrt
                         name = lsWrt{i};
                         wrt(2*i-1) = '1';
-                        D.(name).Diff{1}.Expression = ['[', wrt(1:end-1), ']'];
+                        % D.(name).Diff{1}.Expression = [' [', wrt(1:end-1), '] '];
+                        D.(name).Diff{1}.Expression = [' [', wrt(1:end-1), ']'' '];
                         wrt(2*i-1) = '0';
                     end
                 else
