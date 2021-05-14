@@ -1,166 +1,3 @@
-% table  Create table based on selected indicators from Model object 
-%{
-% Syntax
-%--------------------------------------------------------------------------
-%
-%
-%     outputTable = table(model, request, ...)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-%
-% __`model`__ [ Model ] 
-%
-%     Model object based on which the table will be prepared.
-%
-%
-% __`requests`__ [ char | cellstr | string ] 
-% 
-%     Requested columns for the table; see Description for the list of
-%     valid requests.
-%
-% 
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-%
-% __`outputTable`__ [ table ]
-% 
-%     Table object with requested values.
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-%
-% __`CompareFirstColumn=true`__ [ `true` | `false` ] 
-% 
-%     Include the first column in comparison tables (first column compares
-%     itself with itself).
-%
-%
-% __`Diary=''`__ [ char | string ] 
-%
-%     If `Diary=` is not empty, the table will be printed on the screen in
-%     the command window, and captured in a text file under this file name.
-%
-%
-% __`SelectRows=false`__ [ `false` | string ]
-% 
-%     Select only a subset of rows (names of variables, shocks and/or
-%     parameters) to be included in the `outputTable`.
-%
-%
-% __`Sort=false`__ [ `true` | `false` ] 
-%
-%     If `true` sort the table rows alphabetically by the row names.
-%
-%
-% __`Round=Inf`__ [ `Inf` | numeric ] 
-%
-%     Round numeric entries in the table to the specified number of digits;
-%     `Inf` means no rounding.
-%
-%
-% __`WriteTable=""`__ [ string | cell ] 
-%
-%     If non-empty, the table will be exported to a text or spreadsheet
-%     file (depending on the file extension provided) under this file name
-%     using the standard `writetable( )` function;
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% This is the list of valid requests that can be combined in one call of
-% the `table(~)` function:
-%
-% * `'SteadyLevel'` - Steady-state level for each model variable.
-%
-% * `'SteadyChange'` - Steady-state difference (for nonlog-variables) or
-% steady-state gross rate of change (for log-variables) for each model
-% variables.
-%
-% * `'SteadyDiff'` - Steady-state difference for each model variable not
-% declared as log-variables; `NaN` for log-variables.
-%
-% * `'SteadyRate'` - Steady-state gross rate of growth for each model
-% variable declared as log-variables; `NaN` for nonlog-variables.
-%
-% * `'Form'` - Indicator of the form in which steady-state change and/or
-% comparison are reported for each model variable: `'Diff-'` (meaning a
-% first difference when reporting steady-state growth, or a difference
-% between two steady states when reporting steady-state comparison) for
-% each nonlog-variable, and `'Rate/'` for each log-variable.
-%
-% * `'CompareSteadyLevel'` - Steady-state level for each model variable
-% compared to the first parameter variant (a difference for each
-% nonlog-variable, a ratio for each log-variable).
-%
-% * `'CompareSteadyChange'` - Steady-state difference (for
-% nonlog-variables) or steady-state gross rate of change (for
-% log-variables) for each model variables compared to the first parameter
-% variant (a difference for each nonlog-variable, a ratio for each
-% log-variable).
-%
-% * `'CompareSteadyDiff'` - Steady-state difference for each model variable
-% not declared as log-variables, compared to the first parameter variant;
-% `NaN` for log-variables.
-%
-% * `'SteadyRate'` - Steady-state gross rate of growth for each model
-% variable declared as log-variables, compared to the first parameter
-% variant; `NaN` for nonlog-variables.
-%
-% * `'Description'` - Description text from the model file.
-%
-% * `'Log'` - Indicator of log-variables: `true` for each model variable
-% declared as a log-variable, `false` otherwise.
-%
-% This is the list of valid requests that can be called individually:
-%
-% * `'Parameters'` - The currently assigned value for each parameter; this
-% request can be combined with `'Description'`.
-%
-% * `'Stationary'` - Indicator of stationarity of variables or log
-% variables.
-%
-% * `'Std'` - The currently assigned value for the standard deviation of
-% each model shock.
-%
-% * `'Corr'` - The currently assigned value for the cross-correlation
-% coefficient of each pair of model shocks.
-%
-% * `'CompareParameters'` - The currently assigned value for each parameter
-% compared to the first parameter variant (a difference); this request can
-% be combined with `'Description'`.
-%
-% * `'CompareStd'` - The currently assigned value for the standard
-% deviation of each model shock compared to the first parameter variant (a
-% difference).
-%
-% * `'CompareCorr'` - The currently assigned value for the cross-correlation
-% coefficient of each pair of model shocks compared to the first parameter
-% variant (a difference).
-%
-% * `'AllRoots'` - All eigenvalues associated with the current solution.
-%
-% * `'StableRoots'` - All stable eigenvalues (smaller than `1` in
-% magnitude) associated with the current solution.
-%
-% * `'UnitRoots'` - All unit eigenvalues (equal `1` in magnitude)
-% associated with the current solution.
-%
-% * `'UnstableRoots'` - All unstable eigenvalues (greater than `1` in
-% magnitude) associated with the current solution.
-%
-%
-% __Example__
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
@@ -170,7 +7,7 @@ function outputTable = table(this, requests, opt)
 
 arguments
     this Model
-    requests {validate.mustBeText}
+    requests (1, :) string {validate.mustBeText}
 
     opt.CompareFirstColumn (1, 1) logical = false
     opt.Diary (1, 1) string = ""
@@ -206,133 +43,135 @@ opt = parse(pp, this, requests, varargin{:});
 % <=R2019a
 
 
-if ischar(requests)
-    requests = regexp(requests, '\w+', 'match');
-else
-    requests = cellstr(requests);
-end
-
-%--------------------------------------------------------------------------
-
+requests = reshape(string(requests), 1, []);
 numRequests = numel(requests);
 
 outputTable = table(this.Quantity.Name(:), 'VariableNames', {'Name'});
 
-for i = 1 : numRequests
-    if any(strcmpi(requests{i}, {'SteadyLevel', 'SteadyLevels'}))
+isFirstRequest = true;
+for n = requests
+    if lower(n)==lower("steady")
+        compare = false;
+        addTable = tableValues(this, @(x)x, compare, [ ], '', 'Steady', opt);
+
+    elseif any(strcmpi(n, {'SteadyLevel', 'SteadyLevels'}))
         compare = false;
         addTable = tableValues(this, @real, compare, [ ], '', 'SteadyLevel', opt);
 
 
-    elseif any(strcmpi(requests{i}, {'CompareSteadyLevel', 'CompareSteadyLevels'}))
+    elseif any(strcmpi(n, {'CompareSteadyLevel', 'CompareSteadyLevels'}))
         compare = true;
         addTable = tableValues(this, @real, compare, [ ], '', 'CompareSteadyLevel', opt);
 
         
-    elseif any(strcmpi(requests{i}, {'SteadyChange', 'SteadyChanges'}))
+    elseif any(strcmpi(n, {'SteadyChange', 'SteadyChanges'}))
         compare = false;
         addTable = tableValues(this, @imag, compare, [ ], '', 'SteadyChange', opt);
 
 
-    elseif any(strcmpi(requests{i}, {'CompareSteadyChange', 'CompareSteadyChanges'}))
+    elseif any(strcmpi(n, {'CompareSteadyChange', 'CompareSteadyChanges'}))
         compare = true;
         addTable = tableValues(this, @imag, compare, [ ], '', 'CompareSteadyChange', opt);
 
         
-    elseif any(strcmpi(requests{i}, {'SteadyDiff', 'SteadyDiffs'}))
+    elseif any(strcmpi(n, {'SteadyDiff', 'SteadyDiffs'}))
         compare = false;
         setNaN = 'log';
         addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyDiff', opt);
 
 
-    elseif any(strcmpi(requests{i}, {'CompareSteadyDiff', 'CompareSteadyDiffs'}))
+    elseif any(strcmpi(n, {'CompareSteadyDiff', 'CompareSteadyDiffs'}))
         compare = true;
         setNaN = 'log';
         addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyDiff', opt);
 
         
-    elseif strcmpi(requests{i}, 'SteadyRate')
+    elseif strcmpi(n, 'SteadyRate')
         compare = false;
         setNaN = 'nonlog';
         addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyRate', opt);
 
 
-    elseif strcmpi(requests{i}, 'CompareSteadyRate')
+    elseif strcmpi(n, 'CompareSteadyRate')
         compare = true;
         setNaN = 'nonlog';
         addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyRate', opt);
 
 
-    elseif strcmpi(requests{i}, 'Form')
+    elseif strcmpi(n, 'Form')
         addTable = tableForm(this);
 
 
-    elseif any(strcmpi(requests{i}, {'Parameter', 'Parameters'}))
+    elseif lower(string(n))=="position"
+        addTable = tablePosition(this);
+
+
+    elseif any(strcmpi(n, {'Parameter', 'Parameters'}))
         inxParameters = this.Quantity.Type==4;
         compare = false;
         setNaN = '';
         addTable = tableValues(this, @real, compare, inxParameters, setNaN, 'Parameter', opt);
 
 
-    elseif any(strcmpi(requests{i}, {'CompareParameter', 'CompareParameters'}))
+    elseif any(strcmpi(n, {'CompareParameter', 'CompareParameters'}))
         inxParameters = this.Quantity.Type==4;
         compare = true;
         setNaN = '';
         addTable = tableValues(this, @real, compare, inxParameters, setNaN, 'CompareParameters', opt);
 
 
-    elseif any(strcmpi(requests{i}, {'Description', 'Descriptions'}))
+    elseif any(strcmpi(n, {'Description', 'Descriptions'}))
         addTable = tableDescription(this);
 
 
-    elseif any(strcmpi(requests{i}, {'Log', 'LogStatus'}))
+    elseif any(strcmpi(n, {'Log', 'LogStatus'}))
         addTable = tableLog(this);
 
 
-    elseif any(strcmpi(requests{i}, {'Stationary'}))
+    elseif any(strcmpi(n, {'Stationary'}))
         addTable = tableStationary(this);
 
 
-    elseif any(strcmpi(requests{i}, {'Std', 'StdDeviation', 'StdDeviations'}))
+    elseif any(strcmpi(n, {'Std', 'StdDeviation', 'StdDeviations'}))
         compare = false;
         outputTable = tableStd(this, compare);
         break
 
-    elseif any(strcmpi(requests{i}, {'CompareStd', 'CompareStdDeviation', 'CompareStdDeviations'}))
+    elseif any(strcmpi(n, {'CompareStd', 'CompareStdDeviation', 'CompareStdDeviations'}))
         compare = true;
         outputTable = tableStd(this, compare);
         break
 
 
-    elseif any(strcmpi(requests{i}, {'Corr', 'CorrCoeff', 'CorrCoeffs'}))
+    elseif any(strcmpi(n, {'Corr', 'CorrCoeff', 'CorrCoeffs'}))
         nonzero = false;
         compare = false;
         outputTable = tableCorr(this, nonzero, compare);
         break
 
 
-    elseif any(strcmpi(requests{i}, {'NonzeroCorr', 'NonzeroCorrCoeff', 'NonzeroCorrCoeffs'}))
+    elseif any(strcmpi(n, {'NonzeroCorr', 'NonzeroCorrCoeff', 'NonzeroCorrCoeffs'}))
         nonzero = true;
         compare = false;
         outputTable = tableCorr(this, nonzero, compare);
         break
 
 
-    elseif any(strcmpi(requests{i}, {'CompareCorr', 'CompareCorrCoeff', 'CompareCorrCoeffs'}))
+    elseif any(strcmpi(n, {'CompareCorr', 'CompareCorrCoeff', 'CompareCorrCoeffs'}))
         nonzero = false;
         compare = true;
         outputTable = tableCorr(this, nonzero, compare);
         break
 
 
-    elseif any(strcmpi(requests{i}, {'CompareNonzeroCorr', 'CompareNonzeroCorrCoeff', 'CompareNonzeroCorrCoeffs'}))
+    elseif any(strcmpi(n, {'CompareNonzeroCorr', 'CompareNonzeroCorrCoeff', 'CompareNonzeroCorrCoeffs'}))
         nonzero = true;
         compare = true;
         outputTable = tableCorr(this, nonzero, compare);
         break
 
 
-    elseif any(strcmpi(requests{i}, {'Roots', 'AllRoots', 'EigenValues', 'AllEigenValues'}))
+    elseif any(strcmpi(n, {'Roots', 'AllRoots', 'EigenValues', 'AllEigenValues'}))
         values = get(this, 'Roots');
         values = values(:);
         outputTable = table( values, abs(values), ...
@@ -340,7 +179,7 @@ for i = 1 : numRequests
         break
 
 
-    elseif any(strcmpi(requests{i}, {'StableRoots', 'StableEigenValues'}))
+    elseif any(strcmpi(n, {'StableRoots', 'StableEigenValues'}))
         values = get(this, 'StableRoots');
         values = values(:);
         outputTable = table( values, abs(values), ...
@@ -348,7 +187,7 @@ for i = 1 : numRequests
         break
 
 
-    elseif any(strcmpi(requests{i}, {'UnstableRoots', 'UnstableEigenValues'}))
+    elseif any(strcmpi(n, {'UnstableRoots', 'UnstableEigenValues'}))
         values = get(this, 'UnstableRoots');
         values = values(:);
         outputTable = table( values, abs(values), ...
@@ -356,7 +195,7 @@ for i = 1 : numRequests
         break
 
 
-    elseif any(strcmpi(requests{i}, {'UnitRoots', 'UnitEigenValues'}))
+    elseif any(strcmpi(n, {'UnitRoots', 'UnitEigenValues'}))
         values = get(this, 'UnitRoots');
         values = values(:);
         outputTable = table( values, abs(values), ...
@@ -365,12 +204,12 @@ for i = 1 : numRequests
 
 
     else
-        throw( exception.Base('Model:TableInvalidRequest', 'error'), ...
-               requests{i} );
+        throw(exception.Base('Model:TableInvalidRequest', 'error'), n);
     end
 
-    if i==1
+    if isFirstRequest
         outputTable = addTable;
+        isFirstRequest = false;
     else
         outputTable = innerjoin(outputTable, addTable);
     end
@@ -408,7 +247,9 @@ if (iscell(opt.WriteTable) && ~isempty(opt.WriteTable)) || any(strlength(opt.Wri
 end
 
 
+%
 % Print table to screen and capture output in diary
+%
 if strlength(opt.Diary)>0
     if exist(opt.Diary, 'file')==2
         delete(opt.Diary);
@@ -459,12 +300,17 @@ end%
 
 
 function addTable = tableForm(this)
-    inxLog = this.Quantity.IxLog;
-    inxLog = inxLog(:);
+    inxLog = reshape(this.Quantity.IxLog, [], 1);
     values = repmat("", numel(inxLog), 1);
     values(~inxLog) = "Diff-";
     values(inxLog) = "Rate/";
     addTable = tableTopic(this, {'Form'}, [ ], values);
+end%
+
+
+function addTable = tablePosition(this);
+    values = reshape(1 : numel(this.Quantity.Name), [], 1);
+    addTable = tableTopic(this, {'Position'}, [], values);
 end%
 
 
