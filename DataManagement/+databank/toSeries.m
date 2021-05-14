@@ -56,6 +56,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function [outputSeries, names, dates] = toSeries(inputDb, varargin)
@@ -75,6 +76,7 @@ columns = pp.Results.columns;
 %}
 % <=R2019a
 
+
 if isequal(names, @all)
     names = keys(inputDb);
     inxSeries = cellfun(@(n) isa(inputDb.(n), "NumericTimeSubscriptable"), names);
@@ -90,7 +92,7 @@ if isempty(names)
     ]);
 end
 
-if isequal(dates, @all)
+if isequal(dates, @all) || isequal(dates, Inf)
     dates = databank.range(inputDb, "NameList", names);
     if iscell(dates)
         exception.error([
@@ -117,18 +119,22 @@ end%
 %
 
 function locallyValidateNames(input)
+    %(
     if isequal(input, @all) || isstring(input) || ischar(input) || iscellstr(input)
         return
     end
     error("Validation:Failed", "Input value must be an array of strings");
+    %)
 end%
 
 
 function locallyValidateDates(input)
-    if isequal(input, @all) || validate.properDates(input)
+    %(
+    if isequal(input, @all) || isequal(input, Inf) || validate.properDates(input)
         return
     end
     error("Validation:Failed", "Input value must be @all or an array of proper dates");
+    %)
 end%
 
 
