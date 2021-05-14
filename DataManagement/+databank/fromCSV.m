@@ -142,7 +142,7 @@ if ~isempty(dates)
 else
     numPeriods = 0;
     posDates = [ ];
-    minDate = DateWrapper(NaN);
+    minDate = NaN;
 end
 
 % Change variable names.
@@ -219,7 +219,6 @@ return
 
 
     function hereReadHeaders( )
-        strFindFunc = @(x, y) ~isempty(strfind(lower(x), y));
         isDate = false;
         isNameRowDone = false;
         ident = '';
@@ -307,20 +306,20 @@ return
                 isDate = false;
             end
 
-            if strncmp(ident, '%', 1) || isempty(ident) || strlength(ident)==0
+            if startsWith(ident, "%") || isempty(ident) || strlength(ident)==0
                 isDate = false;
-            elseif strFindFunc(ident, 'userdata')
+            elseif contains(ident, "UserData", "ignoreCase", true)
                 databankUserDataFieldName = getUserdataFieldName(tkn{1});
                 databankUserDataValueString = tkn{2};
                 isUserData = true;
                 isDate = false;
-            elseif strFindFunc(ident, 'class[size]')
+            elseif contains(ident, "Class[Size]", "ignoreCase", true)
                 classRow = tkn(2:end);
                 isDate = false;
             elseif hereTestCommentsHeader( )
                 cmtRow = tkn(2:end);
                 isDate = false;
-            elseif ~isempty(strfind(lower(ident), 'units'))
+            elseif contains(ident, "Units", "ignoreCase", true)
                 isDate = false;
             elseif ~isnumeric(opt.SkipRows) ...
                     && any(~cellfun(@isempty, regexp(ident, opt.SkipRows)))
@@ -424,12 +423,10 @@ return
         
         % Remove single and double quotes from the data part of the file
         if ~isempty(opt.RemoveFromData)
-            list = opt.RemoveFromData;
-            if ~iscellstr(list)
-                list = cellstr(list);
-            end
-            for i = 1 : numel(list)
-                file = strrep(file, list{i}, '');
+            for n = reshape(string(opt.RemoveFromData), 1, [])
+                if strlength(n)>0
+                    file = replace(file, n, "");
+                end
             end
         end
 
@@ -472,14 +469,15 @@ return
 
 
 
-    function [dates, inxNaNDates] = hereParseDates( )
+    function [dates, inxNaDates] = hereParseDates( )
         numDates = numel(datesColumn);
-        dates = DateWrapper(nan(1, numDates));
+        % dates = DateWrapper(nan(1, numDates));
+        dates = nan(1, numDates);
         datesColumn = datesColumn(1:min(end, size(data, 1)));
         if ~isempty(datesColumn)
-            if strcmpi(opt.Continuous, 'Ascending')
+            if startsWith(string(opt.Continuous), "ascend", "ignoreCase", true)
                 datesColumn(2:end) = {''};
-            elseif strcmpi(opt.Continuous, 'Descending')
+            elseif startsWith(string(opt.Continuous), "descend", "ignoreCase", true)
                 datesColumn(1:end-1) = {''};
             end
             % Rows with empty dates.
@@ -499,22 +497,24 @@ return
             else
                 dates(~inxEmptyDates) = str2dat( ...
                     datesColumn(~inxEmptyDates), ...
-                    'DateFormat=', opt.DateFormat, ...
-                    'Months=', opt.Months, ...
-                    'EnforceFrequency=', opt.EnforceFrequency, ...
-                    'FreqLetters=', opt.FreqLetters ...
+                    "dateFormat", opt.DateFormat, ...
+                    "months", opt.Months, ...
+                    "enforceFrequency", opt.EnforceFrequency, ...
+                    "freqLetters", opt.FreqLetters ...
                 );
             end
-            if strcmpi(opt.Continuous, 'Ascending')
-                dates(2:end) = dates(1) + (1 : numDates-1);
-            elseif strcmpi(opt.Continuous, 'Descending')
-                dates(end-1:-1:1) = dates(end) - (1 : numDates-1);
+            
+            if startsWith(string(opt.Continuous), "ascend", "ignoreCase", true)
+                dates = dater.plus(dates(1), 0 : numDates-1);
+            elseif startsWith(string(opt.Continuous), "descend", "ignoreCase", true)
+                dates = fliplr(dater.plus(dates(end), -(0 : numDates-1)));
             end
+            
         end
         % Exclude NaN dates (that includes also empty dates), but keep all data
         % rows; this is because of non-time-series data
-        inxNaNDates = isnan(dates);
-        dates(inxNaNDates) = [ ];
+        inxNaDates = isnan(dates);
+        dates(inxNaDates) = [ ];
         
         % Homogeneous frequency check
         if ~isempty(dates)
@@ -658,7 +658,7 @@ return
         % etc. at the end of the string; did not use to be the case in older
         % versions of Matlab.
         if any(inxToGenerate)
-            nameRow(inxToGenerate) = genvarname(nameRow(inxToGenerate), nameRow(inxToProtect)); %#ok<DEPGENAM>
+            nameRow(inxToGenerate) = genvarname(nameRow(inxToGenerate), nameRow(inxToProtect));
         end
     end%
 
