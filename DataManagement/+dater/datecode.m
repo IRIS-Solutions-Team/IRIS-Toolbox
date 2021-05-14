@@ -5,6 +5,11 @@
 
 function dat = datecode(freq, year, per, day)
 
+if nargin==1
+    dat = dater.today(freq);
+    return
+end
+
 if nargin<3
     per = 1;
 end
@@ -12,8 +17,6 @@ end
 if nargin<4
     day = 1;
 end
-
-%--------------------------------------------------------------------------
 
 freq = double(freq);
 year = double(year);

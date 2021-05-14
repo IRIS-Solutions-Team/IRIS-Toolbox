@@ -1,5 +1,10 @@
 classdef Dater < DateWrapper
     methods (Static)
+        function t = today(varargin)
+            t = Dater(dater.today(varargin{:}));
+        end%
+
+
         function t = dd(varargin)
             t = Dater(dater.dd(varargin{:}));
         end%
