@@ -104,7 +104,7 @@ for v = variantsRequested
         this.Variant.Values(:, :, v) = levelX;
     end
 
-    
+
     % 
     % Check for zero or negative levels or rates of change in variables
     % with log-status=true
@@ -119,13 +119,13 @@ for v = variantsRequested
     % Overall success of the v-th variant
     %
     success(v) = flagLog && all(hasSucceeded(outputInfo.ExitFlags{v}));
-    
+
 
     % TODO: Report more details on failed equations and variables
     if blazer.Warning && ~success(v)
         throw(exception.Base('Model:SteadyInaccurate', 'warning'));
     end
-    
+
     % Store current values to initialize next parameterisation
     levelX0 = levelX(1:numQuantities);
     changeX0 = changeX(1:numQuantities);

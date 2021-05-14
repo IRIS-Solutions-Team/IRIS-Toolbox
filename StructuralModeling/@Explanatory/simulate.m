@@ -73,9 +73,10 @@ arguments
     opt.NaNSimulation (1, 1) string = "warning"
     opt.OutputType (1, 1) string = "struct"
     opt.Plan = [ ];
-    opt.Progress (1, 1) logical = false
     opt.SkipWhenData (:, :) logical {mustBeNonempty} = false
     opt.ExogenizeWhenData (:, :) logical {mustBeNonempty} = false
+
+    opt.Progress (1, 1) logical = false
     opt.Journal = false
 end
 

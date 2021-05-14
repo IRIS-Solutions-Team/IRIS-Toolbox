@@ -286,11 +286,11 @@ function c = locallySerialize(oo, opt)
     end
 
     if isfield(oo, 'NanString')
-        nanString = oo.NanString;
+        naString = oo.NanString;
     else
-        nanString = 'NaN';
+        naString = 'NaN';
     end
-    isNanString = ~strcmpi(nanString, 'NaN');
+    isNaString = ~strcmpi(naString, 'NaN');
 
     if isfield(oo, 'Format')
         format = oo.Format;
@@ -403,15 +403,15 @@ function c = locallySerialize(oo, opt)
     if isempty(strDat)
         % If there is no time series in the input database, create a vector 1:N in
         % the first column instead of dates.
-        strDat = cellfun( @(x) sprintf('%g', x), ...
-                          num2cell(1:numRows), ...
-                          'UniformOutput', false );
+        strDat = cellfun( ...
+            @(x) sprintf('%g', x), num2cell(1:numRows), 'UniformOutput', false ...
+        );
     end
 
     % Transpose data in cellData so that they are read correctly in sprintf.
     cellData = cell(1+size(xData, 2), numRows);
-    nDat = numel(strDat);
-    cellData(1, 1:nDat) = strDat(:);
+    numDates = numel(strDat);
+    cellData(1, 1:numDates) = strDat(:);
     cellData(2:end, :) = num2cell(xData.');
     cc = sprintf(['\n', formatString, formatLine], cellData{:});
 
@@ -424,8 +424,8 @@ function c = locallySerialize(oo, opt)
 
     % Replace NaNs in the date/data matrix with a user-supplied string. We
     % don't protect NaNs in date strings; these too will be replaced.
-    if isNanString
-        cc = strrep(cc, 'NaN', nanString);
+    if isNaString && string(naString)~="NaN"
+        cc = replace(cc, "NaN", naString);
     end
 
     % Splice the headings and the data, and save the buffer. No need to put

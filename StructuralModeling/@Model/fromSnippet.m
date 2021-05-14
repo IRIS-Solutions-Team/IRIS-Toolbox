@@ -3,6 +3,8 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%(
 function varargout = fromSnippet(snippetName, args)
 
 arguments
@@ -12,6 +14,18 @@ end
 arguments (Repeating)
     args
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function varargout = fromSnippet(snippetName, varargin)
+
+args = varargin;
+%}
+% <=R2019a
+
 
 OPEN_SNIPPET = ">>>";
 CLOSE_SNIPPET = "<<<";

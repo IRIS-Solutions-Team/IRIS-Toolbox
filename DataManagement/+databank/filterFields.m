@@ -2,6 +2,7 @@ function outputNames = filterFields(inputDb, options)
 
 arguments
     inputDb (1, 1) { validate.databank(inputDb) }
+    
     options.Name (1, 1) function_handle = @all
     options.Class (1, :) {locallyValidateClass} = @all
     options.Value (1, 1) function_handle = @all

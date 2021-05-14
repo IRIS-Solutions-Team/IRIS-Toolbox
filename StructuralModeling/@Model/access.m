@@ -68,10 +68,10 @@ end
 %)
 % >=R2019b
 
+
 %
 % Preprocess the input query
 %
-
 what = input;
 what = erase(what, ["_", "-", ":", "."]);
 
@@ -79,7 +79,6 @@ what = erase(what, ["_", "-", ":", "."]);
 %
 % Model components
 %
-
 [output, beenHandled] = access(this.Quantity, what);
 if beenHandled, return, end
 

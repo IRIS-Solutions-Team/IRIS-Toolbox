@@ -18,3 +18,9 @@ Function | Description
 ['solve'](solve.md) | {{ model._solve }}
 
 
+### Getting information about models
+
+Function | Description 
+---|---
+[`table`](table.md) | {{ model._table }}
+

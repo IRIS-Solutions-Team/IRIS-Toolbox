@@ -35,8 +35,8 @@
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function varargout = loadFrom(fileName, varargin)
 

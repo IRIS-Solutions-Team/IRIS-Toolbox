@@ -21,9 +21,13 @@ classdef Generic < handle
     
     methods (Static)
         function [label, alias] = splitLabelAlias(inputLabel)
+            % >=R2019b
+            %(
             arguments
                 inputLabel (1, :) string
             end
+            %)
+            % >=R2019b
 
             SEPARATORS = ["||", "!!"];
 

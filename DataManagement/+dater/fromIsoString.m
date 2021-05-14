@@ -45,6 +45,16 @@
 
 function dateCode = fromIsoString(freq, isoDate)
 
+% >=R2019b
+%(
+arguments
+    freq (1, 1) Frequency
+    isoDate string
+end
+%)
+% >=R2019b
+
+
 freq = round(double(freq));
 isoDate = string(isoDate);
 
@@ -56,7 +66,6 @@ end
 reshapeOutput = size(isoDate);
 isoDate = reshape(isoDate, 1, [ ]);
 [isoDate, inxMissing] = locallyFixIsoDate(isoDate);
-
 [year, month, day] = locallyGetYearMonthDay(isoDate);
 
 serial = dater.serialFromYmd(freq, year, month, day);

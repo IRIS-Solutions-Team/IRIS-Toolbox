@@ -3,6 +3,8 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%(
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, options)
 
 arguments
@@ -40,6 +42,50 @@ arguments
     options.AddParameters (1, 1) logical = true
     options.AddToDatabank = false
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, varargin)
+
+persistent inputParser
+if isempty(inputParser)
+    addParameter(inputParser, "Anticipate", []);
+    addParameter(inputParser, "Deviation", false);
+    addParameter(inputParser, "EvalTrends", @auto);
+    addParameter(inputParser, "Contributions", false);
+    addParameter(inputParser, "IgnoreShocks", false);
+    addParameter(inputParser, "MaxFrames", intmax());
+    addParameter(inputParser, "Plan", []);
+    addParameter(inputParser, "Progress", false);
+    addParameter(inputParser, "Solver", @auto);
+    addParameter(inputParser, "SparseShocks", false);
+    addParameter(inputParser, "SystemProperty", false);
+
+    addParameter(inputParser, "SuccessOnly", false);
+    addParameter(inputParser, "Blocks", false);
+    addParameter(inputParser, "Log", []);
+    addParameter(inputParser, "Unlog", []);
+
+    addParameter(inputParser, "Method", solver.Method.FIRSTORDER);
+    addParameter(inputParser, "Window", @auto);
+    addParameter(inputParser, "Terminal", "firstOrder");
+    addParameter(inputParser, "StartIterationsFrom", "firstOrder");
+    addParameter(inputParser, "PrepareGradient", true);
+
+    addParameter(inputParser, "OutputData", "databank");
+    addParameter(inputParser, "OutputType", @auto);
+    addParameter(inputParser, "PrependInput", false);
+    addParameter(inputParser, "AppendInput", false);
+    addParameter(inputParser, "AddParameters", true);
+    addParameter(inputParser, "AddToDatabank", false);
+end
+options = parse(inputParser, varargin{:});
+%}
+% <=R2019a
+
 
 if isequal(options.EvalTrends, @auto)
     options.EvalTrends = ~options.Deviation;
