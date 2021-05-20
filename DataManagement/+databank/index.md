@@ -8,7 +8,7 @@ handling tasks.
 
 ## Categorical List of Functions 
 
-### Creating, Converting, Importing, and Exporting Databanks 
+### Creating, converting, importing, and exporting databanks 
 
 | Function      | Description       |
 |---            |---                |
@@ -17,15 +17,16 @@ handling tasks.
 | [`databank.withEmpty`](withEmpty.md)                  | {{ databank._withEmpty }} |
 
 
-### Getting Information about Databanks 
+### Getting information about databanks 
 
 | Function      | Description       |
 |---            |---                |
 | [`databank.fieldNames`](fieldNames.md)                | {{ databank._fieldNames }} |
 | [`databank.list`](list.md)                            | {{ databank._list }} |
+| [`databank.range`](range.md)                          | {{ databank._range }} |
 
 
-### Processing Databanks 
+### Processing databanks 
 
 | Function      | Description       |
 |---            |---                |
@@ -38,7 +39,7 @@ handling tasks.
 | [`databank.retrieveColumns`](retrieveColumns.md)      | {{ databank._retrieveColumns }} |
 
 
-### Manipulating Model Databanks 
+### Manipulating model databanks 
 
 | Function      | Description       |
 |---            |---                |

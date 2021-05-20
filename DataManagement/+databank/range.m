@@ -1,69 +1,5 @@
-% range  Find a range that encompasses the ranges of all or selected databank time series
-%{
-%% Syntax
-%--------------------------------------------------------------------------
+% Type `web +databank/range.md` for help on this function
 %
-%     [range, listFreq] = databank.range(inputDb, ...)
-%
-%
-%% Input Arguments
-%--------------------------------------------------------------------------
-%
-% __`inputDb`__ [ struct | containers.Map | Dictionary ]
-%
-%     Input databank; can be either a struct, a containers.Map, or a
-%     Dictionary.
-%
-%
-%% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __`range`__ [ numeric | cell ] 
-%
-%     Range that encompasses the observations of the tseries objects in the
-%     input database; if tseries objects with different frequencies exist,
-%     the ranges are returned in a cell array.
-%
-%
-% __`listFreq`__ [ numeric ]
-%
-%     Vector of date frequencies coresponding to the returned ranges.
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-% __`List=@all`__ [ cellstr | rexp | `@all` ]
-%
-%     List of time series that will be included in the range search or a
-%     regular expression that will be matched to compose the list; `@all`
-%     means all time series objects existing in the input databases will be
-%     included.
-%
-%
-% __`StartDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ]
-%
-%     `'MaxRange'` means the output `Range` will start at the earliest
-%     start date among all them time series included in the search;
-%     `'MinRange'` means the `range` will start at the latest start date.
-%
-%
-% __`EndDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ] 
-%
-%     `'MaxRange'` means the `range` will end at the latest end date among
-%     all the time series included in the search; `'MinRange'` means the
-%     `range` will end at the earliest end date.
-%
-%
-%% Description
-%--------------------------------------------------------------------------
-%
-%
-%% Example
-%--------------------------------------------------------------------------
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
@@ -75,16 +11,16 @@ if isempty(pp)
     pp = extend.InputParser('databank.range');
     addRequired(pp, 'inputDb', @validate.databank);
 
-    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
+    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, "Rexp"));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
-%)
 opt = parse(pp, inputDb, varargin{:});
+%)
 
-%--------------------------------------------------------------------------
+stringify = @(x) reshape(string(x), 1, []);
 
 listNames = hereFilterNames( );
 listFreq = hereFilterFreq( );
@@ -156,13 +92,14 @@ return
                         listNames = regexp(listNames, '\w+', 'match');
                     end
                 end
-            elseif isa(listNames, 'rexp') || isa(listNames, 'Rxp')
+            elseif isa(listNames, "rexp") || isa(listNames, "Rxp")
                 inxMatched = ~cellfun("isempty", regexp(allInputEntries, string(listNames), 'once'));
                 listNames = allInputEntries(inxMatched);
             elseif isequal(listNames, @all)
                 listNames = allInputEntries;
             end
         end
+        listNames = stringify(listNames);
         %)
     end%
 
