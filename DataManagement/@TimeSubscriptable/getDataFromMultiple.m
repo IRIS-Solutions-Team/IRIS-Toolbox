@@ -3,7 +3,7 @@
 function [outputDates, varargout] = getDataFromMultiple(dates, context, inputSeries)
 
 arguments
-    dates {validate.mustBeA(dates, ["double", "string"])}
+    dates
     context (1, 1) string
 end
 
@@ -22,6 +22,9 @@ inputSeries = varargin;
 %}
 % <=R2019a
 
+if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
+    dates = "unbalanced";
+end
 
 if ~isstring(dates)
     dates = double(dates);
@@ -56,7 +59,7 @@ if all(inxNaN)
 end
 
 if isnumeric(dates)
-    locallyVerifyFrequencyWhenProperDates(dates, freq, context);
+    locallyCheckFrequencyWhenProperDates(dates, freq, context);
     outputDates = double(dates);
     for i = 1 : numSeries
         varargout{i} = getDataNoFrills(inputSeries{i}, dates);
@@ -64,11 +67,7 @@ if isnumeric(dates)
     return
 end
 
-locallyVerifyFrequencyWhenImproperDates(freq, context);
-
-if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
-    dates = "unbalanced";
-end
+locallyCheckFrequencyWhenImproperDates(freq, context);
 
 if startsWith(dates, ["unbalanced", "longRange"], "ignoreCase", true)
     from = min(startDate); 
@@ -95,14 +94,19 @@ end%
 % Localy Functions
 %
 
-function locallyVerifyFrequencyWhenProperDates(dates, freq, context)
+function locallyCheckFrequencyWhenProperDates(dates, freqSeries, context)
     %(
+    freqSeries = double(freqSeries);
+    freqSeries(isnan(freqSeries)) = [];
+    if isempty(freqSeries)
+        return
+    end
     if isempty(dates)
-        locallyVerifyFrequencyWhenImproperDates(freq, context);
+        locallyCheckFrequencyWhenImproperDates(freqSeries, context);
         return
     end
     freqDates = dater.getFrequency(dates(1));
-    if all(freq==freqDates)
+    if all(freqSeries==freqDates)
         return
     end
     exception.error([
@@ -113,7 +117,7 @@ function locallyVerifyFrequencyWhenProperDates(dates, freq, context)
 end%
 
 
-function locallyVerifyFrequencyWhenImproperDates(freq, context)
+function locallyCheckFrequencyWhenImproperDates(freq, context)
     %(
     freq0 = freq;
     freq(isnan(freq)) = [];

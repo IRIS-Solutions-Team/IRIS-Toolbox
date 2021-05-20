@@ -10,7 +10,7 @@ function [outputArray, names, dates] = toArray(inputDb, names, dates, columns)
 arguments
     inputDb (1, 1) {validate.databank}
     names {locallyValidateNames} = @all
-    dates {validate.properRange} = @all
+    dates {locallyValidateDates} = Inf
     columns (1, :) {mustBeInteger, mustBePositive} = 1
 end
 %)
@@ -26,7 +26,7 @@ if isempty(inputParser)
     inputParser = extend.InputParser("databank.toArray");
     addRequired(inputParser, "inputDb", @(x) validate.databank(x) && isscalar(x)); 
     addOptional(inputParser, "names", @all, @locallyValidateNames);
-    addOptional(inputParser, "dates", @all, @DateWrapper.validateProperRangeInput);
+    addOptional(inputParser, "dates", @all, @locallyValidateDates);
     addOptional(inputParser, "columns", 1, @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
 end
 parse(inputParser, inputDb, varargin{:});
@@ -36,6 +36,11 @@ columns = inputParser.Results.columns;
 %}
 % <=R2019a
 
+
+% Legacy value
+if isequal(dates, @all)
+    dates = Inf;
+end
 
 %
 % Extract data as a cell array of numeric arrays
@@ -62,11 +67,28 @@ end%
 
 function flag = locallyValidateNames(x)
     %(
+    flag = true;
     if isa(x, 'function_handle') || isstring(string(x))
-        flag = true;
         return
     end
     error("Input value must be an array of strings or a test function.");
+    %)
+end%
+
+
+function flag = locallyValidateDates(x)
+    %(
+    flag = true;
+    if isnumeric(x)
+        return
+    end
+    if isequal(x, @all)
+        return
+    end
+    if isstring(x) && ismember(x, ["balanced", "unbalanced"])
+        return
+    end
+    error("Input value must be a date vector, an Inf range, or one of {""balanced"", ""unbalanced""}.");
     %)
 end%
 

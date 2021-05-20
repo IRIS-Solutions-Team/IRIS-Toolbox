@@ -142,7 +142,7 @@ for i = 1 : nList
         else
             data__ = getData(x, dates);
         end
-        comment__ = comment(x);
+        comment__ = cellstr(comment(x));
         class__ = class(x);
         userData__ = x.UserData;
     elseif isnumeric(x)
