@@ -9,7 +9,6 @@ arguments (Repeating)
     varargin
 end
 
-numCharts = numel(this.Charts);
 tiles = resolveTiles(this);
 numTilesPerWindow = prod(tiles);
 range = this.Range;
@@ -21,15 +20,17 @@ end
 figureHandles = gobjects(1, 0);
 axesHandles = cell(1, 0);
 titleHandles = cell(1, 0);
+subtitleHandles = cell(1, 0);
 plotHandles = cell(1, 0);
 
 countChartsInWindow = 0;
 for x = this.Charts
     if countChartsInWindow==0
         currentFigure = figure(this.FigureSettings{:});
-        figureHandles(end+1) = currentFigure;
+        figureHandles(end+1) = currentFigure; 
         axesHandles{end+1} = gobjects(1, 0);
         titleHandles{end+1} = gobjects(1, 0);
+        subtitleHandles{end+1} = gobjects(1, 0);
         plotHandles{end+1} = cell(1, 0);
     end
     countChartsInWindow = countChartsInWindow + 1;
@@ -38,10 +39,14 @@ for x = this.Charts
     if this.Round<Inf
         x.Data = round(x.Data, this.Round);
     end
-    plotHandles{end}{end+1} = this.PlotFunc(range, x.Data, this.PlotSettings{:});
+    plotHandles{end}{end+1} = this.PlotFunc(range, x.Data, this.PlotSettings{:});    
 
-    titleHandles{end}(end+1) = locallyCreateTitle(x, currentAxes);
+    [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
+        = locallyCreateTitle(x, currentAxes);
+    
     locallyHighlight(x, currentAxes);
+    
+    runAxesExtras(x, currentAxes);
 
     if countChartsInWindow==numTilesPerWindow
         countChartsInWindow = 0;
@@ -50,8 +55,9 @@ end
 
 info = struct();
 info.FigureHandles = figureHandles;
-info.AxesHandels = axesHandles;
-info.TitleHandels = titleHandles;
+info.AxesHandles = axesHandles;
+info.TitleHandles = titleHandles;
+info.SubtitleHandlens = subtitleHandles;
 info.PlotHandles = plotHandles;
 
 end%
@@ -60,12 +66,16 @@ end%
 % Local Functions
 %
 
-function titleHandle = locallyCreateTitle(x, currentAxes) 
+function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes) 
     %(
     parent = x.ParentChartpack;
     caption = resolveCaption(x);
     if ~ismissing(caption)
-        titleHandle = title(currentAxes, caption, parent.TitleSettings{:});
+        [titleHandle, subtitleHandle] = title(currentAxes, caption(1), caption(2:end));
+        set(titleHandle, "interpreter", parent.Interpreter, parent.TitleSettings{:});
+        if numel(caption)>1
+            set(subtitleHandle, "interpreter", parent.Interpreter, parent.SubtitleSettings{:});
+        end
     else
         titleHandle = gobjects(1);
     end
@@ -83,3 +93,4 @@ function locallyHighlight(x, currentAxes)
     %)
 end%
 
+%#ok<*AGROW>

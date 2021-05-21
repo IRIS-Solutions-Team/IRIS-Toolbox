@@ -6,6 +6,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         Range {validate.mustBeRange} = Inf
         PlotFunc {validate.mustBeFunc} = @plot
         Highlight {locallyValidateHighlight} = double.empty(1, 0)
+        Extra = []
         Transform {validate.mustBeScalarOrEmpty} = []
         NewLine (1, 1) string = "//"
         CaptionFromComment (1, 1) logical = false
@@ -22,6 +23,11 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         AxesSettings (1, :) cell = cell.empty(1, 0)
         PlotSettings (1, :) cell = cell.empty(1, 0)
         TitleSettings (1, :) cell = cell.empty(1, 0)
+        SubtitleSettings (1, :) cell = cell.empty(1, 0)
+        Interpreter (1, 1) string {mustBeMember(Interpreter, ["none", "tex" "latex"])} = "none"
+        
+        FigureExtras (1, :) cell = cell.empty(1, 0)
+        AxesExtras (1, :) cell = cell.empty(1, 0)
     end
 
 
@@ -45,7 +51,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         end%
 
 
-        function this = le(this, varargin);
+        function this = le(this, varargin)
             this = clear(this);
             this = add(this, varargin{:});
         end%

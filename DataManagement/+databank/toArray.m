@@ -1,5 +1,5 @@
-% toArray  Collect time series data into plain numeric array
-
+% Type `web +databank/toArray.md` for help on this function
+%
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 

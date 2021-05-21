@@ -83,12 +83,12 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         function caption = resolveCaption(this)
             parent = this.ParentChartpack;
             if ~ismissing(this.Caption) && strlength(this.Caption)>0
-                caption = this.Caption;
+                caption = hereSplitCaption(this.Caption, parent.NewLine);
                 if parent.ShowFormulas
                     caption = [caption; hereCreateFormula()];
                 end
             elseif parent.CaptionFromComment && isa(this.Data, "Series") && strlength(this.Data.Comment(1))>0
-                caption = string(this.Data.Comment(1));
+                caption = hereSplitCaption(string(this.Data.Comment(1)), parent.NewLine);
                 if parent.ShowFormulas
                     caption = [caption; hereCreateFormula()];
                 end
@@ -96,9 +96,6 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                 caption = hereCreateFormula();
             else
                 caption = string(missing);
-            end
-            if ~ismissing(parent.NewLine) && strlength(parent.NewLine)>0
-                caption = strip(split(caption, parent.NewLine));
             end
 
             function formula = hereCreateFormula()
@@ -108,6 +105,25 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                     formula(1) = formula(1) + "; " + string(func2str(this.Transform));
                 end
             end%
+            
+            function caption = hereSplitCaption(caption, newLine)
+                if ~ismissing(newLine) && strlength(newLine)>0
+                    caption = strip(split(caption, newLine));
+                end
+            end%
+        end%
+        
+        
+        function runAxesExtras(this, axesHandle)
+            %(
+            parent = this.ParentChartpack;
+            if isempty(parent.AxesExtras)
+                return
+            end
+            for i = 1 : numel(parent.AxesExtras)
+                parent.AxesExtras{i}(axesHandle);
+            end
+            %)
         end%
     end
 
@@ -123,13 +139,12 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             end
 
             this = databank.chartpack.Chart.empty(1, 0);
-            inxValid = logical.empty(1, 0);
             for n = inputString
                 temp = databank.chartpack.Chart(varargin{:});
                 temp.InputString = strip(n);
                 [temp.Caption, temp.Expression, temp.ApplyTransform] ...
                     = databank.chartpack.Chart.parseInputString(temp.InputString); 
-                this(end+1) = temp;
+                this(end+1) = temp; 
             end
             %)
         end%
@@ -158,3 +173,4 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
     end
 end
 
+%#ok<*AGROW>

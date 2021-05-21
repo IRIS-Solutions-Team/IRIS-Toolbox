@@ -1,7 +1,7 @@
 % Type `web +databank/merge.md` for help on this function
 %
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
 %(

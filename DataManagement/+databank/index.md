@@ -12,6 +12,7 @@ handling tasks.
 
 | Function      | Description       |
 |---            |---                |
+| [`databank.toArray`](toArray.md)                      | {{ databank._toArray }} |
 | [`databank.fromCSV`](fromCSV.md)                      | {{ databank._fromCSV }} |
 | [`databank.toCSV`](toCSV.md)                          | {{ databank._toCSV }} |
 | [`databank.withEmpty`](withEmpty.md)                  | {{ databank._withEmpty }} |

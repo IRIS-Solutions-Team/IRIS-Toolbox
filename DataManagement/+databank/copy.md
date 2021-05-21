@@ -33,7 +33,7 @@ __`TargetDb=@empty`__ [ `@empty` | struct | Dictionary ]
 > Dictionary).
 > 
 
-__`TargetNames=@auto`__ [ cellstr | string | function_handle]
+__`TargetNames=@auto`__ [ cellstr | string | function_handle ]
 > 
 > Names under which the fields from the `sourceDb` will be stored in
 > the `targetDb`; `@auto` means the `TargetNames` will be simply the
