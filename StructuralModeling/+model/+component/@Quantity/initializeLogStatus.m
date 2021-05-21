@@ -29,7 +29,7 @@ if any(~inxValidLogNames)
     exception.error([
         "Model:InvalidLogName"
         "This is not a valid name to appear in the !log-variables section: %s "
-    ], logNames(inxValidNames));
+    ], logNames(~inxValidLogNames));
 end
 
 this.IxLog(inxCanBeLog) = default;
