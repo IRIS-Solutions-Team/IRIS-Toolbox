@@ -1,3 +1,6 @@
+
+% >=R2019b
+%(
 function this = randomlyGrowing(range, params, options)
 
 arguments
@@ -10,6 +13,28 @@ arguments
     options.Comment = ""
     options.UserData = []
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function this = randomlyGrowing(range, params, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, 'Initial', 0);
+    addParameter(pp, 'Exponentiate', true);
+    addParameter(pp, 'Dimensions', 1);
+    addParameter(pp, 'Comment', "");
+    addParameter(pp, 'UserData', []);
+end
+parse(pp, varargin{:});
+options = pp.Results;
+%}
+% <=R2019a
+
 
 numPeriods = dater.rangeLength(range);
 data = params(1) + randn([numPeriods, options.Dimensions]) * params(2);

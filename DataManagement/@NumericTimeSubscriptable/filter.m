@@ -70,18 +70,19 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function this = filter(this, armani, range, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser("@Series/filter");
-    addRequired(pp, "inputSeries", @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(pp, "model", @(x) isa(x, 'Armani'));
-    addRequired(pp, "range", @Dater.validateRangeInput);
-    
-    addParameter(pp, "FillMissing", 0);
+    pp = extend.InputParser();
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(pp, 'model', @(x) isa(x, 'Armani'));
+    addRequired(pp, 'range', @Dater.validateRangeInput);
+
+    addParameter(pp, 'FillMissing', 0);
 end
 
 [skipped, opt] = maybeSkip(pp, varargin{:});
@@ -91,7 +92,6 @@ end
 %}
 % <=R2019a
 
-%--------------------------------------------------------------------------
 
 [data, startDate] = getDataFromTo(this, range);
 

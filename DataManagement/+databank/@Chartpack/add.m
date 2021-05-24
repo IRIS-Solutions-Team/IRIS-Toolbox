@@ -3,22 +3,26 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function this = add(this, input, options)
+function this = add(this, input, varargin)
 
+% >=R2019b
+%(
 arguments
     this
     input (1, :) string = string.empty(1, 0)
 end
 
 arguments (Repeating)
-    options
+    varargin
 end
+%)
+% >=R2019b
 
 
 if ~isempty(input)
-    addCharts = databank.chartpack.Chart.fromString(input, options{:});
+    addCharts = databank.chartpack.Chart.fromString(input, varargin{:});
 else
-    addCharts = databank.chartpack.Chart(options{:});
+    addCharts = databank.chartpack.Chart(varargin{:});
     addCharts.Data = input;
 end
 
@@ -29,3 +33,4 @@ end
 this.Charts = [this.Charts, addCharts];
 
 end%
+

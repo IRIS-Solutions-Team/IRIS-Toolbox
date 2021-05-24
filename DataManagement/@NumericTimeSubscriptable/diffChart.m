@@ -1,7 +1,11 @@
+
+% >=R2019b
+%(
 function [axesHandle, plotHandles, diffPlotHandle] = diffChart(inputSeries, opt)
 
 arguments
     inputSeries (:, 2) Series
+
     opt.Range = Inf
     opt.Axes = "current"
     opt.DiffFunc = @minus
@@ -12,6 +16,32 @@ arguments
     opt.SecondPlot (1, :) cell = cell.empty(1, 0)
     opt.DiffPlot (1, :) cell = {"lineStyle", "none", "faceAlpha", 0.75}
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [axesHandle, plotHandles, diffPlotHandle] = diffChart(inputSeries, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, 'Range', Inf);
+    addParameter(pp, 'Axes', "current");
+    addParameter(pp, 'DiffFunc', @minus);
+    addParameter(pp, 'PlotFunc', @plot);
+    addParameter(pp, 'DiffPlotFunc', @bar);
+    addParameter(pp, 'Transform', []);
+    addParameter(pp, 'FirstPlot', cell.empty(1, 0));
+    addParameter(pp, 'SecondPlot', cell.empty(1, 0));
+    addParameter(pp, 'DiffPlot', {'lineStyle', 'none', 'faceAlpha', 0.75});
+end
+parse(pp, varargin{:});
+opt = pp.Results;
+%}
+% <=R2019a
+
 
 axesHandle = locallyPrepareAxes(opt);
 

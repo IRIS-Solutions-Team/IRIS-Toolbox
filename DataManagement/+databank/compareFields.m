@@ -1,13 +1,37 @@
+
+% >=R2019b
+%(
 function [success, info] = compareFields(d1, d2, opt)
 
 arguments
     d1 (1, 1) {validate.databank(d1)}
     d2 (1, 1) {validate.databank(d2)}
+
     opt.AbsTol = 1e-12
     opt.Keys = @all
     opt.Error = false
     opt.Warning = false
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [success, info] = compareFields(d1, d2, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, 'AbsTol', 1e-12);
+    addParameter(pp, 'Keys', @all);
+    addParameter(pp, 'Error', false);
+    addParameter(pp, 'Warning', false);
+end
+parse(pp, varargin{:});
+opt = pp.Results;
+%}
+% <=R2019a
 
 
 success = true;

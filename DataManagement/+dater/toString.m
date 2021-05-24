@@ -22,15 +22,14 @@ end
 %{
 function outputString = toString(inputDate, dateFormat, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser("dater.toString");
-    addRequired(inputParser, "inputData", @isnumeric);
-    addRequired(inputParser, "dateFormat", @(x) ischar(x) || isstring(x));
-    addParameter(inputParser, "Open", "", @(x) ischar(x) || isstring(x));
-    addParameter(inputParser, "Close", "", @(x) ischar(x) || isstring(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, 'Open', "");
+    addParameter(pp, 'Close', "");
 end
-options = parse(inputParser, inputDate, dateFormat, varargin{:});
+parse(pp, varargin{:});
+options = pp.Results;
 %}
 % <=R2019a
 

@@ -84,6 +84,7 @@ newEnd = double(pp.Results.newEnd);
 %}
 % <=R2019a
 
+
 if isempty(newEnd)
     newEnd = newStart(end);
 end

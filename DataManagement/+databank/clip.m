@@ -18,6 +18,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function outputDb = clip(inputDb, newStart, varargin)
@@ -36,6 +37,7 @@ opt = parse(pp, inputDb, newStart, varargin{:});
 newEnd = pp.Results.newEnd;
 %}
 % <=R2019a
+
 
 newStart = double(newStart);
 newEnd = double(newEnd);

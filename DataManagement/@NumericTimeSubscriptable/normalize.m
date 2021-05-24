@@ -51,6 +51,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function this = normalize(this, varargin)
@@ -68,6 +69,7 @@ opt = pp.parse(this, varargin{:});
 dates = pp.Results.dates;
 %}
 % <=R2019a
+
 
 if startsWith(opt.Mode, "add", "ignoreCase", true)
     func = @minus;

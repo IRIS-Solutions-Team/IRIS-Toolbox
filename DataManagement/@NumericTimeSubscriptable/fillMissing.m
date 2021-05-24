@@ -13,6 +13,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function [this, datesMissing] = fillMissing(this, range, varargin)

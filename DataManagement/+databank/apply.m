@@ -2,10 +2,10 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
-
 % >=R2019b
 %(
+function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
+
 arguments
     inputDb (1, 1) {locallyValidateInputDbOrFunc}
     func (1, 1) {locallyValidateInputDbOrFunc}
@@ -97,9 +97,9 @@ opt = pp.parse(func, inputDb, varargin{:});
 % <=R2019a
 
 
-if ~isa(opt.SourceNames, "function_handle")
+if ~isa(opt.SourceNames, 'function_handle')
     if isa(opt.SourceNames, 'Rxp')
-        opt.SourceNames = databank.filter(inputDb, 'Name=', opt.SourceNames);
+        opt.SourceNames = databank.filter(inputDb, 'name', opt.SourceNames);
     end
     opt.SourceNames = cellstr(opt.SourceNames);
 end
@@ -132,7 +132,7 @@ inxApplied = false(1, numFields);
 inxToRemove = false(1, numFields);
 for i = 1 : numFields
     name__ = namesFields{i};
-    if ~isa(opt.SourceNames, "function_handle") && ~any(strcmpi(name__, opt.SourceNames))
+    if ~isa(opt.SourceNames, 'function_handle') && ~any(strcmpi(name__, opt.SourceNames))
        continue
     end 
     if ~isempty(opt.StartsWith) && ~startsWith(name__, opt.StartsWith)
@@ -171,7 +171,7 @@ for i = 1 : numFields
     if ~isempty(func)
         field__ = func(field__);
     end
-    if isa(outputDb, "Dictionary")
+    if isa(outputDb, 'Dictionary')
         store(outputDb, newName__, field__);
     else
         outputDb.(newName__) = field__;
@@ -190,7 +190,7 @@ return
 
 
     function hereCheckInputOutputNames( )
-        if isa(opt.TargetNames, "function_handle")
+        if isa(opt.TargetNames, 'function_handle')
             return
         end
         if validate.list(opt.SourceNames)
@@ -215,7 +215,7 @@ end%
 
 
 function locallyValidateInputDbOrFunc(input)
-    if isempty(input) || validate.databank(input) || isa(input, "function_handle")
+    if isempty(input) || validate.databank(input) || isa(input, 'function_handle')
         return
     end
     error("Validation:Failed", "Input value must empty, a databank or a function handle");
@@ -223,7 +223,7 @@ end%
 
 
 function locallyValidateNames(input)
-    if isa(input, "function_handle") || validate.list(input)
+    if isa(input, 'function_handle') || validate.list(input)
         return
     end
     error("Validation:Failed", "Input value must be a string array");
@@ -231,7 +231,7 @@ end%
 
 
 function locallyValidateDb(input)
-    if isa(input, "function_handle") || validate.databank(input)
+    if isa(input, 'function_handle') || validate.databank(input)
         return
     end
     error("Validation:Failed", "Input value must be a struct or a Dictionary");

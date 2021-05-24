@@ -3,6 +3,8 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%(
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, dates, options, legacy)
 
 arguments
@@ -19,6 +21,34 @@ arguments
     % Legacy options
     legacy.Constant = []
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, dates, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addOptional(pp, 'Dates_', [], @isnumeric);
+    addParameter(pp, 'Dates', Inf);
+    addParameter(pp, 'Intercept', false);
+    addParameter(pp, 'Weights', []);
+    addParameter(pp, 'Constant', []);
+end
+parse(pp, varargin{:});
+options = pp.Results;
+options = rmfield(options, 'Constant');
+options = rmfield(options, 'Dates_');
+
+legacy = struct();
+legacy.Constant = pp.Results.Constant;
+
+dates = pp.Results.Dates_;
+%}
+% <=R2019a
 
 
 %( Legacy input arguments
@@ -142,8 +172,8 @@ assertEqual(testCase, round(est(3), 1), round(d.c, 1));
 %% Test dates   
 
 est = regress(d.lhs, [d.x, d.y, d.z]);
-est1 = regress(d.lhs, [d.x, d.y, d.z], dates=Inf);
-est2 = regress(d.lhs, [d.x, d.y, d.z], dates=qq(2020,1)+(0:5000));
+est1 = regress(d.lhs, [d.x, d.y, d.z], 'dates', Inf);
+est2 = regress(d.lhs, [d.x, d.y, d.z], 'dates', qq(2020,1)+(0:5000));
 
 assertEqual(testCase, est, est1);
 assertNotEqual(testCase, round(est(1), 5), round(est2(1), 5));
@@ -154,7 +184,7 @@ assertNotEqual(testCase, round(est(3), 5), round(est2(3), 5));
 %% Test weights   
 
 estw1 = regress(d.lhsw, [d.x, d.y, d.z]);
-estw2 = regress(d.lhsw, [d.x, d.y, d.z], weights=d.w);
+estw2 = regress(d.lhsw, [d.x, d.y, d.z], 'weights', d.w);
 assertGreaterThan(testCase, abs(estw1(1)-d.a), abs(estw2(1)-d.a));
 assertGreaterThan(testCase, abs(estw1(2)-d.b), abs(estw2(2)-d.b));
 assertGreaterThan(testCase, abs(estw1(3)-d.c), abs(estw2(3)-d.c));

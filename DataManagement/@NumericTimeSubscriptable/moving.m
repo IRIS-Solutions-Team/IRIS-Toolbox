@@ -38,6 +38,7 @@ range = pp.Results.range_;
 %}
 % <=R2019a
 
+
 % Legacy input argument
 if ~isequal(range, Inf)
     opt.Range = range;

@@ -5,11 +5,16 @@
 
 function this = replaceNames(this, oldNames, newNames)
 
+% >=R2019b
+%(
 arguments
     this model.component.Quantity
     oldNames (1, :) string {locallyValidateOldNames(this, oldNames)}
     newNames (1, :) string {locallyValidateNames(oldNames, newNames)}
 end
+%)
+% >=R2019b
+
 
 allOldNames = access(this, "names");
 allNewNames = allOldNames;

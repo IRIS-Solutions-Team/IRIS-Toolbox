@@ -6,6 +6,8 @@
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
+% >=R2019b
+%(
 function outputDb = minusControl(model, inputDb, controlDb, opt)
 
 arguments
@@ -16,6 +18,25 @@ arguments
     opt.Range {validate.mustBeRange} = Inf
     opt.AddToDatabank (1, 1) {locallyValidateDatabank} = @auto
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function outputDb = minusControl(model, inputDb, controlDb, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, 'Range', Inf);
+    addParameter(pp, 'AddToDatabank', @auto);
+end
+parse(pp, varargin{:});
+opt = pp.Results;
+%}
+% <=R2019a
+
 
 opt.Range = double(opt.Range);
 

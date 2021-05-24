@@ -1,3 +1,5 @@
+% >=R2019b
+%(
 function outputNames = filterFields(inputDb, options)
 
 arguments
@@ -7,6 +9,25 @@ arguments
     options.Class (1, :) {locallyValidateClass} = @all
     options.Value (1, 1) function_handle = @all
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%(
+function outputNames = filterFields(inputDb, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, 'Name', @all);
+    addParameter(pp, 'Class', @all);
+    addParameter(pp, 'Value', @all);
+end
+parse(pp, varargin{:});
+options = pp.Results;
+%)
+% <=R2019a
 
 
 isNameFilter = ~isequal(options.Name, @all);

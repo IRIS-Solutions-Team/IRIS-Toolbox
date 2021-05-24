@@ -1,3 +1,6 @@
+
+% >=R2019b
+%(
 function code = printWithValues(modelObject, modelFile, options)
 
 arguments
@@ -8,6 +11,27 @@ arguments
     options.Steady (1, 1) logical = true
     options.MarkdownCode (1, 1) = false
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function code = printWithValues(modelObject, modelFile, varargin)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, 'SaveAs', "");
+    addParameter(pp, 'Parameters', true);
+    addParameter(pp, 'Steady' , true);
+    addParameter(pp, 'MarkdownCode', false);
+end
+parse(pp, varargin{:});
+options = pp.Results;
+%}
+% <=R2019a
+
 
 modelFile = reshape(string(modelFile), 1, []);
 
