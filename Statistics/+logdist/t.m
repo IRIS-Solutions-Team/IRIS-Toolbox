@@ -122,7 +122,7 @@ return
     function y = logMultT( )
         tpY = false;
         if size(x, 1)~=numel(mean_)
-            x=x';
+            x = transpose(x);
             tpY = true;
         end
         sX = bsxfun(@minus, x, mean_)' / std_;

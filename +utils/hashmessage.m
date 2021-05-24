@@ -1,13 +1,9 @@
-function body = hashmessage(body)
-% hashmessage  Frequent error/warning messages.
+% hashmessage  Frequent error/warning messages
 %
-% Backend IRIS function.
-% No help provided.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
+function body = hashmessage(body)
 
 pos = strfind(body,':');
 if ~isempty(pos)
@@ -21,7 +17,7 @@ switch body
         body = [ ...
             'Cannot simulate multiple parameter variants ', ...
             'or multiple data sets ', ...
-            'with option contributions=true.', ...
+            'with option Contributions=true.', ...
             ];
         
     case '#Invalid_assign'
@@ -37,7 +33,7 @@ switch body
         
     case '#Internal'
         body = [ ...
-            'Internal IRIS error. ', ...
+            'Internal IrisT error. ', ...
             'Please report this error with a copy of the screen message.', ...
             ];
     
@@ -45,4 +41,5 @@ switch body
         % Do nothing.
 end
 
-end
+end%
+

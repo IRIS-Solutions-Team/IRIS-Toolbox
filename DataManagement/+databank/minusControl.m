@@ -121,7 +121,7 @@ end%
 
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-m = Model.fromSnippet("test", linear=true);
+m = Model.fromSnippet("test", "linear", true);
 m = solve(m);
 m = steady(m);
 
@@ -151,7 +151,7 @@ end
 range = 3:8;
 c = steadydb(m, range);
 smc1 = databank.minusControl(m, d, c);
-smc2 = databank.minusControl(m, d, range=range);
+smc2 = databank.minusControl(m, d, "range", range);
 
 for n = access(m, "transition-variables")
         assertEqual(testCase, smc1.(n).Data, smc2.(n).Data);
@@ -162,7 +162,7 @@ end
 
 outputDb = Dictionary();
 smc1 = databank.minusControl(m, d);
-smc2 = databank.minusControl(m, d, addToDatabank=outputDb);
+smc2 = databank.minusControl(m, d, "addToDatabank", outputDb);
 
 assertClass(testCase, smc2, "Dictionary");
 
