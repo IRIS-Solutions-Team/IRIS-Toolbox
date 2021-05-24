@@ -27,7 +27,7 @@ end
 
 % <=R2019a
 %{
-function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, dates, varargin)
+function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, varargin)
 
 persistent pp
 if isempty(pp)
