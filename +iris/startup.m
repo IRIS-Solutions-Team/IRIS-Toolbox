@@ -137,7 +137,7 @@ return
         warning( ...
             join([
                 ""
-                "This is a legacy release of [IrisToolbox]."
+                "This is a **legacy** release of [IrisToolbox]."
                 "We strongly recommend upgrading to Matlab R2019b or later,"
                 "and switching to the regular release of [IrisToolbox]."
             ], newline()) ...
