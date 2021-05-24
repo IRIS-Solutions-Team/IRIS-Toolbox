@@ -91,7 +91,7 @@ return
         end
         if fid==-1
             THIS_ERROR = { 'CannotOpenFileForWriting'
-                           'Cannot open this file for writing: %s ' };
+                           'Cannot open this file for reading: %s ' };
             throw( exception.Base(THIS_ERROR, 'error'), ...
                    fileName );
         end
