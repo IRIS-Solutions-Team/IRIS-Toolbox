@@ -173,7 +173,8 @@ return
 
     function hereReadFile( )
         % Read CSV file to char
-        file = file2char(fileName);
+        file = fileread(fileName);
+        file = textual.removeUTFBOM(file);
         file = textual.convertEndOfLines(file);
         if isempty(opt.Preprocess)
             return
