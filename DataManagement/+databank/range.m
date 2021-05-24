@@ -58,11 +58,11 @@ else
     endDates = cellfun(@min, endDates, 'uniformOutput', false);
 end
 
-for i = find(~cellfun("isempty", startDates))
+for i = find(~cellfun(@isempty, startDates))
     range{i} = DateWrapper(startDates{i} : endDates{i});
 end
 
-inxEmpty = cellfun("isempty", range);
+inxEmpty = cellfun(@isempty, range);
 if sum(~inxEmpty)==0
     range = [ ];
     listFreq = [ ];
@@ -93,7 +93,7 @@ return
                     end
                 end
             elseif isa(listNames, "rexp") || isa(listNames, "Rxp")
-                inxMatched = ~cellfun("isempty", regexp(allInputEntries, string(listNames), 'once'));
+                inxMatched = ~cellfun(@isempty, regexp(allInputEntries, string(listNames), 'once'));
                 listNames = allInputEntries(inxMatched);
             elseif isequal(listNames, @all)
                 listNames = allInputEntries;
