@@ -403,31 +403,24 @@ d.z = d.x{qq(2005,3):Inf};
 
 %% Test Plain Vanilla
 
-sa = x13.season(d.x);
-assertClass(testCase, sa, "Series");
-assertEqual(testCase, sa.StartAsNumeric, d.x.StartAsNumeric, "AbsTol", 1e-10);
-assertEqual(testCase, sa.EndAsNumeric, d.x.EndAsNumeric, "AbsTol", 1e-10);
+if ~verLessThan("matlab", "9.9")
+    sa = x13.season(d.x);
+    assertClass(testCase, sa, "Series");
+    assertEqual(testCase, sa.StartAsNumeric, d.x.StartAsNumeric, "AbsTol", 1e-10);
+    assertEqual(testCase, sa.EndAsNumeric, d.x.EndAsNumeric, "AbsTol", 1e-10);
+end
 
 
 %% Test Multiple Outputs
 
 if ~verLessThan("matlab", "9.9")
-    options = { ...
-    };
     [sa, sf, tc, ir, info] = x13.season( ...
         d.x ...
         , "Output", ["d11", "d10", "d12", "d13", "fct"] ...
         , "X11_Mode", "add" ...
     );
-else
-    options = struct();
-    specs = struct();
-    options.Output = ["d11", "d10", "d12", "d13", "fct"];
-    specs.X11_Mode = "add";
-    [sa, sf, tc, ir, info] = x13.season(d.x, Inf, options, specs);
+    assertEqual(testCase, getData(d.x, Inf), getData(sf+tc+ir, Inf), "AbsTol", 1e-10);
 end
-
-assertEqual(testCase, getData(d.x, Inf), getData(sf+tc+ir, Inf), "AbsTol", 1e-10);
 
 
 %% Test Multiple Inputs
@@ -474,6 +467,7 @@ if ~verLessThan("matlab", "9.9")
     assertSize(testCase, info.OutputSpecs.Arima_MA, [1, 2]);
 end
 
+
 %% Test Forecast
 
 if ~verLessThan("matlab", "9.9")
@@ -483,16 +477,16 @@ if ~verLessThan("matlab", "9.9")
         , "Automdl", true ...
         , "Forecast_MaxLead", 24 ...
     );
-
+    %
     assertSize(testCase, fct, [24, 1]);
-
+    %
     [fct, bct, info] = x13.season( ...
         [d.x, d.y, d.z] ...
         , "Output", ["fct", "bct"] ...
         , "Automdl", true ...
         , "Forecast_MaxLead", 24 ...
     );
-
+    %
     assertSize(testCase, fct, [30, 3]);
     assertSize(testCase, bct, [0, 3]);
 end

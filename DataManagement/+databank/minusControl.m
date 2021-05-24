@@ -12,8 +12,8 @@ function outputDb = minusControl(model, inputDb, controlDb, opt)
 
 arguments
     model Model
-    inputDb {validate.databank}
-    controlDb {validate.databank} = struct([])
+    inputDb {validate.mustBeDatabank}
+    controlDb {validate.mustBeDatabank} = struct([])
 
     opt.Range {validate.mustBeRange} = Inf
     opt.AddToDatabank (1, 1) {locallyValidateDatabank} = @auto
@@ -24,16 +24,19 @@ end
 
 % <=R2019a
 %{
-function outputDb = minusControl(model, inputDb, controlDb, varargin)
+function outputDb = minusControl(model, inputDb, varargin)
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser();
+    addOptional(pp, 'controlDb', struct([]), @validate.databank);
     addParameter(pp, 'Range', Inf);
     addParameter(pp, 'AddToDatabank', @auto);
 end
 parse(pp, varargin{:});
 opt = pp.Results;
+opt = rmfield(opt, 'controlDb');
+controlDb = pp.Results.controlDb;
 %}
 % <=R2019a
 
