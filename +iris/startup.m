@@ -3,7 +3,19 @@
 
 function startup(varargin)
 
+% >=R2019b
+%(
 MINIMUM_MATLAB = 'R2019b';
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+MINIMUM_MATLAB = 'R2017b';
+%}
+% <=R2019a
+
 
 options = locallyResolveInputOptions(varargin{:});
 
