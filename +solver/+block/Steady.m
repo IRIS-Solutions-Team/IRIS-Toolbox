@@ -4,8 +4,8 @@ classdef Steady < solver.block.Block
         VECTORIZE = false
         PREAMBLE = "@(x,t)"
     end
-    
-    
+
+
     methods
         function this = Steady(varargin)
             this = this@solver.block.Block(varargin{:});
@@ -47,14 +47,14 @@ classdef Steady < solver.block.Block
         function [lx, gx, exitFlag, error] = run(this, link, lx, gx, addStdCorr, exitFlagHeader)
             %(
             exitFlag = solver.ExitFlag.IN_PROGRESS;
-            error = struct("EvaluatesToNan", [], "LogAssignedNonpositive", []);
+            error = struct('EvaluatesToNan', [], 'LogAssignedNonpositive', []);
             inxLogWithinModel = this.ParentBlazer.Model.Quantity.InxLog;
-                
+
             if isEmptyBlock(this.Type) || isempty(this.PtrQuantities)
                 exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
                 return
             end
-            
+
             [ptrLevel, ptrChange] = iris.utils.splitRealImag(this.PtrQuantities);
 
             needsRefresh = any(link);
@@ -66,7 +66,7 @@ classdef Steady < solver.block.Block
             inxLogZ = [ inxLogWithinModel(ptrLevel), inxLogWithinModel(ptrChange) ];
             numRows = length(this.PtrEquations);
             numColumns = length(ptrLevel) + length(ptrChange);
-            
+
             if this.Type==solver.block.Type.SOLVE
                 % 
                 % Solve
@@ -95,16 +95,16 @@ classdef Steady < solver.block.Block
                 %
                 [z, exitFlag] = hereAssign( );
             end
-            
+
             lx(ptrLevel) = z(1:numLevels);
             gx(ptrChange) = z(numLevels+1:end);
 
             if any(isnan(z(:)) | isinf(z(:)))
                 exitFlag = solver.ExitFlag.NAN_INF_SOLUTION;
             end
-            
+
             return
-            
+
                 function hereCheckEquationsForCorrupt( )
                     XX = hereCreateTimeArray(0);
                     evalToCheck = this.EquationsFunc(XX, t0);
@@ -156,8 +156,8 @@ classdef Steady < solver.block.Block
                         exitFlag = solver.ExitFlag.ASSIGNED;
                     end
                 end%
-                
-                
+
+
                 function hereCheckInitBounds( )
                     ixOutOfBnds = z0<this.Lower | z0>this.Upper;
                     ixLowerInf = isinf(this.Lower);
@@ -187,7 +187,7 @@ classdef Steady < solver.block.Block
                     if any(inxLogZ)
                         z(inxLogZ) = exp(z(inxLogZ));
                     end
-                    
+
                     % Split the input vector of unknows into levels and growth rates; nlx is
                     % the number of levels in the input vector
                     lx(ptrLevel) = z(1:numLevels);
@@ -209,7 +209,7 @@ classdef Steady < solver.block.Block
                         gx = imag(temp);
                         gx(inxLogWithinModel & gx==0) = 1;
                     end
-                    
+
                     XX = hereCreateTimeArray(0);
                     y = [ ];
                     if isFunctionRequested
@@ -219,7 +219,7 @@ classdef Steady < solver.block.Block
                             y = this.NumericalJacobFunc{jacobColumn}(XX, t0);
                         end
                     end
-                    
+
                     if isJacobRequested
                         XX(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
                         j = cellfun( ...
@@ -235,7 +235,7 @@ classdef Steady < solver.block.Block
                             );
                         j = transpose(reshape([j{:}], numColumns, numRows));
                     end
-                    
+
                     if ~isempty(ptrChange)
                         % Some growth rates need to be calculated. Evaluate the model equations at
                         % time t and t+STEADY_SHIFT if at least one growth rate is needed.
@@ -264,8 +264,8 @@ classdef Steady < solver.block.Block
                         end
                     end
                 end%
-                
-                
+
+
                 function XX = hereCreateTimeArray(k)
                     XX = repmat(transpose(lx), 1, nsh);
                     XX(~inxLogWithinModel, :) = XX(~inxLogWithinModel, :)  + bsxfun(@times, gx(~inxLogWithinModel).', sh+k);
@@ -274,15 +274,15 @@ classdef Steady < solver.block.Block
         %)
         end%
     end
-    
-    
+
+
     methods       
         function prepareBlock(this, blazer)
             prepareBlock@solver.block.Block(this, blazer);
 
             [ptrLevelToExclude, ptrChangeToExclude] = iris.utils.splitRealImag(this.ParentBlazer.QuantitiesToExclude);
-            ptrLevel = setdiff(double(this.PtrQuantities), double(ptrLevelToExclude), "stable");
-            ptrChange = setdiff(double(this.PtrQuantities), double(ptrChangeToExclude), "stable");
+            ptrLevel = setdiff(double(this.PtrQuantities), double(ptrLevelToExclude), 'stable');
+            ptrChange = setdiff(double(this.PtrQuantities), double(ptrChangeToExclude), 'stable');
 
             this.PtrQuantities = [ptrLevel, 1i*ptrChange];
         end%
@@ -374,7 +374,7 @@ classdef Steady < solver.block.Block
             %)
         end%
 
-        
+
         function gr = getGradients(this, posEqn)
             %
             % Create the gradient for the union of levels and changes
@@ -402,8 +402,8 @@ classdef Steady < solver.block.Block
                 gr = {d; vecWrtNeeded; [ ]};
             end
         end%
-            
-        
+
+
         function excludeQuantitiesFromJacob(this)
             % excludeQuantitiesFromJacob  Exclude rows and columns
             % corresponding to excluded Levels and Changes from
