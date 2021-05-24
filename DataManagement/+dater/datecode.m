@@ -58,7 +58,7 @@ if any(~inxRegular & ~inxZero & ~inxDaily & ~inxWeekly)
 end
 
 if any(inxRegular)
-    if isequal(per, 'end')
+    if (ischar(per) || isstring(per)) && isequal(string(per), "end")
         per = nan(size(freq));
         per(inxRegular) = freq(inxRegular);
     end
@@ -75,7 +75,7 @@ if any(inxDaily)
 end
 
 if any(inxWeekly)
-    if isequal(per, 'end')
+    if (ischar(per) || isstring(per)) && isequal(string(per), "end")
         per = nan(size(year));
         per(inxWeekly) = weeksinyear(year(inxWeekly));
     end
