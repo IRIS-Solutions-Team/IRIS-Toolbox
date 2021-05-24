@@ -45,6 +45,14 @@ if ~options.Silent
     hereDisplayDetails();
 end
 
+% <=R2019a
+%{
+if options.LegacyWarning
+    hereDisplayLegacyWarning();
+end
+%}
+% <=R2019a
+
 return
 
     function hereDisplayIntro()
@@ -52,30 +60,43 @@ return
         % Intro message
         fprintf('\n');
         fprintf('\t[IrisToolbox] for Macroeconomic Modeling ');
+
+% >=R2019b
+%(
         fprintf('Release %s', release);
+%)
+% >=R2019b
+
+% <=R2019a
+%{
+        fprintf('Legacy release %s', release);
+%}
+% <=R2019a
+
         fprintf('\n');
         % Copyright
         fprintf('\tCopyright (c) 2007-%s ', datestr(now, 'YYYY'));
-        fprintf('IRIS Solutions Team');
+        fprintf('[IrisToolbox] Solutions Team');
         fprintf('\n\n');
     end%
-        
+
 
     function hereDisplayDetails()
+        %(
         % Matlab requirements
         fprintf("\tMatlab requirements: %s or later", MINIMUM_MATLAB);
         fprintf("\n");
 
-        % IRIS root folder
+        % IrisT root folder
         fprintf('\tRoot folder: %s', root);
         fprintf('\n');
-        
+
         % Default time series constructor
         defaultTimeSeriesConstructor = config.DefaultTimeSeriesConstructor;
         defaultTimeSeriesConstructor = func2str(defaultTimeSeriesConstructor);
         fprintf('\tDefault time series constructor: @%s', defaultTimeSeriesConstructor);
         fprintf('\n');
-        
+
         % LaTeX engine
         latex = config.PdfLaTeXPath;
         if strlength(config.PdfLaTeXPath)==0
@@ -91,16 +112,16 @@ return
         end
         fprintf('\tGhostscript engine: %s', ghost);
         fprintf('\n');
-        
+
         % X12/X13 version
         fprintf('\tX13-ARIMA-SEATS: Version 1.1 Build 39 (March 10, 2017)');
         fprintf('\n');
 
-        % IRIS folders removed
+        % IrisT folders removed
         if ~isempty(rootsRemoved)
             q = warning('query', 'backtrace');
             warning('off', 'backtrace');
-            msg = 'Some other IRIS releases have been found and removed from Matlab path:';
+            msg = 'Some other [IrisToolbox] releases have been found and removed from Matlab path:';
             list = cellfun(@(x) sprintf('\n*** %s', x), rootsRemoved, 'UniformOutput', false);
             fprintf('\n');
             warning([msg, list{:}]);
@@ -108,11 +129,26 @@ return
         end
 
         fprintf('\n');
+        %)
+    end%
+
+    function hereDisplayLegacyWarning()
+        %(
+        warning( ...
+            join([
+                ""
+                "This is a legacy release of [IrisToolbox]."
+                "We strongly recommend upgrading to Matlab R2019b or later,"
+                "and switching to the regular release of [IrisToolbox]."
+            ], newline()) ...
+        );
+        %)
     end%
 end%
 
 
 function r = locallyGetMatlabRelease()
+    %(
     r = uint16(0);
     try %#ok<TRYNC>
         s = ver('MATLAB');
@@ -125,10 +161,12 @@ function r = locallyGetMatlabRelease()
             end
         end
     end
+    %)
 end%
 
 
 function n = locallyReleaseToNum(r)
+    %(
     n = uint16(0);
     r = lower(r);
     if length(r)~=6 || r(1)~='r' || ~any(r(6)=='ab')
@@ -140,16 +178,19 @@ function n = locallyReleaseToNum(r)
     end
     ab = 1 + double(r(6)) - double('a');
     n = uint16(10*year + ab);
+    %)
 end%
 
 
 function options = locallyResolveInputOptions(varargin)
+    %(
     options = struct();
     options.CheckMatlab = true;
     options.Silent = false;
     options.SeriesConstructor = @Series;
     options.CheckId = true;
     options.TeX = true;
+    options.LegacyWarning = true;
     if nargin==0
         return
     end
@@ -169,7 +210,10 @@ function options = locallyResolveInputOptions(varargin)
             options.TeX = false;
         elseif contains(n, "NoMatlabCheck", "ignoreCase", true)
             options.CheckMatlab = false;
+        elseif contains(n, "NoLegacyWarning", "ignoreCase", true)
+            options.LegacyWarning = false;
         end
     end
+    %)
 end%
 
