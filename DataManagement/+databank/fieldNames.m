@@ -6,11 +6,11 @@
 function list = fieldNames(inputDb)
 
 % >=R2019b
-%(
+%{
 arguments
     inputDb {validate.mustBeDatabank}
 end
-%)
+%}
 % >=R2019b
 
 

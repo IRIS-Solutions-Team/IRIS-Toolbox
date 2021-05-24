@@ -57,7 +57,7 @@
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = filter(this, armani, range, opt)
 
 arguments
@@ -67,12 +67,12 @@ arguments
 
     opt.FillMissing = 0
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = filter(this, armani, range, varargin)
 
 persistent pp
@@ -89,7 +89,7 @@ end
 if ~skipped
     opt = parse(pp, this, armani, range, varargin{:});
 end
-%}
+%)
 % <=R2019a
 
 

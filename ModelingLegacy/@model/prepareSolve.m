@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function options = prepareSolve(this, options)
 
 arguments
@@ -21,12 +21,12 @@ arguments
     options.Progress (1, 1) logical = false
     options.Warning (1, 1) logical = true
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function options = prepareSolve(this, varargin)
 
 persistent inputParser
@@ -44,7 +44,7 @@ if isempty(inputParser)
     addParameter(inputParser, "Warning", true, @validate.logicalScalar);
 end
 options = parse(inputParser, varargin{:});
-%}
+%)
 % <=R2019a
 
 

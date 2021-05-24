@@ -83,21 +83,21 @@
 function varargout = comment(this, newComment)
 
 % >=R2019b
-%(
+%{
 arguments
     this TimeSubscriptable
     newComment {locallyValidateNewComment} = @get
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 if nargin<2
     newComment = @get;
 end
-%}
+%)
 % <=R2019a
 
 

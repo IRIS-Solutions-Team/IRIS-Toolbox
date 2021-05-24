@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, dates, options, legacy)
 
 arguments
@@ -21,12 +21,12 @@ arguments
     % Legacy options
     legacy.Constant = []
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, varargin)
 
 persistent pp
@@ -47,7 +47,7 @@ legacy = struct();
 legacy.Constant = pp.Results.Constant;
 
 dates = pp.Results.Dates_;
-%}
+%)
 % <=R2019a
 
 

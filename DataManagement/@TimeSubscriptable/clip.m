@@ -43,7 +43,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 
 arguments
@@ -57,11 +57,11 @@ newEnd = double(newEnd);
 if all(isinf(newStart)) && all(isinf(newEnd))
     return
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [this, newStart, newEnd] = clip(this, newStart, varargin)
 
 %
@@ -81,7 +81,7 @@ end
 parse(pp, this, newStart, varargin{:});
 newStart = double(newStart);
 newEnd = double(pp.Results.newEnd);
-%}
+%)
 % <=R2019a
 
 

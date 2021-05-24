@@ -6,7 +6,7 @@
 function this = add(this, input, varargin)
 
 % >=R2019b
-%(
+%{
 arguments
     this
     input (1, :) string = string.empty(1, 0)
@@ -15,7 +15,7 @@ end
 arguments (Repeating)
     varargin
 end
-%)
+%}
 % >=R2019b
 
 
