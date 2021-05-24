@@ -21,11 +21,11 @@ classdef White
         function code = whiteOutParenth(code, level)
             code = char(code);
             code = [code, parser.White.WHITEOUT_CHAR];
-            x = zeros(1, numel(code), "int8");
+            x = zeros(1, numel(code), 'int8');
             x(code=='(') = 1;
             x(find(code==')')+1) = -1;
             code(cumsum(x)>=level) = parser.White.WHITEOUT_CHAR;
-            x = zeros(1, numel(code), "int8");
+            x = zeros(1, numel(code), 'int8');
             x(code=='[') = 1;
             x(find(code==']')+1) = -1;
             code(cumsum(x)>=level) = parser.White.WHITEOUT_CHAR;

@@ -105,7 +105,7 @@ classdef Interp
 
 
         function sh = createShadowCode(whiteCode, strOpen, strClose)
-            sh = zeros(1, numel(whiteCode), "int8");
+            sh = zeros(1, numel(whiteCode), 'int8');
             posOpen = strfind(whiteCode, strOpen);
             if ~isempty(posOpen)
                 sh(posOpen) = 1;
