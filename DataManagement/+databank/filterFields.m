@@ -3,7 +3,7 @@
 function outputNames = filterFields(inputDb, options)
 
 arguments
-    inputDb (1, 1) { validate.databank(inputDb) }
+    inputDb (1, 1) {validate.databank(inputDb)}
     
     options.Name (1, 1) function_handle = @all
     options.Class (1, :) {locallyValidateClass} = @all
@@ -14,7 +14,7 @@ end
 
 
 % <=R2019a
-%(
+%{
 function outputNames = filterFields(inputDb, varargin)
 
 persistent pp
@@ -26,7 +26,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 options = pp.Results;
-%)
+%}
 % <=R2019a
 
 
