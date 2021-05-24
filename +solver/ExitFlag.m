@@ -22,22 +22,22 @@ classdef ExitFlag
         LOG_NEGATIVE_ASSIGNED(-10, 'Failed. Negative number assigned to log variable.')
         NAN_INF_OBJECTIVE    (-11, 'Failed. Objective function or its norm evaluates to NaN or Inf.') 
     end
-    
-    
+
+
     properties
         Id
         Message
         Iterations
     end
-    
-    
+
+
     methods
         function this = ExitFlag(id, message)
             this.Id = id;
             this.Message = message;
         end%
-        
-        
+
+
         function flag = hasSucceeded(this)
             flag = double(this)>0;
         end%
@@ -62,8 +62,8 @@ classdef ExitFlag
             end
             fprintf('%s%s\n\n', header, this.Message);
         end%
-        
-        
+
+
         function x = double(this)
             x = double([this.Id]);
             x = reshape(x, size(this));

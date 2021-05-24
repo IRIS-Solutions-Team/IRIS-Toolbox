@@ -55,6 +55,12 @@ for i = 1 : numBlocks
     [exitFlag, error] = run(block__, data, exitFlagHeader);
     if ~isempty(error.EvaluatesToNan) || ~hasSucceeded(exitFlag)
         if blazer.SuccessOnly
+            if i<numBlocks
+                fprintf( ...
+                    "Leaving prematurely because SuccessOnly=true. Blocks %g:%g not executed.\n" ...
+                    , i+1, numBlocks ...
+                );
+            end
             break
         end
     end

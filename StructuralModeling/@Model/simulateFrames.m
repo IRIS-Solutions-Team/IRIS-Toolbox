@@ -166,9 +166,15 @@ for frame = 1 : numFrames
     % request results from failed simulations, break immediately from
     % the loop and do not continue to the next frame
     if ~hasSucceeded(exitFlag) && runningData.SuccessOnly
+        if frame<numFrames
+            fprintf( ...
+                "Leaving prematurely because SuccessOnly=true. Frames %g:%g not executed.\n" ...
+                , frame+1, numFrames ...
+            );
+        end
         break
     end
-    
+
     if runningData.PrepareFrameData
         YXEPG__ = data.YXEPG;
         columnsToRun = data.FirstColumnFrame : data.LastColumnFrame;
