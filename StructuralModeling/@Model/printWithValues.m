@@ -81,7 +81,7 @@ if ~isequal(options.MarkdownCode, false)
 end
 
 if ~isempty(options.SaveAs) && strlength(options.SaveAs)>0
-    writematrix(code, options.SaveAs, "fileType", "text", "quoteStrings", false);
+    writematrix(string(code), options.SaveAs, "fileType", "text", "quoteStrings", false);
 end
 
 end%

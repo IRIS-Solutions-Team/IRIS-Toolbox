@@ -382,7 +382,7 @@ classdef Preparser ...
 
         function saveAs(code, fileName)
             if ~isempty(fileName) && any(strlength(fileName)>0)
-                writematrix(code, fileName, "fileType", "text", "quoteString", false);
+                writematrix(string(code), fileName, "fileType", "text", "quoteStrings", false);
             end
         end%
 
