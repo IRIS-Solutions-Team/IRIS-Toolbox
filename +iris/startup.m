@@ -69,7 +69,7 @@ return
 
 % <=R2019a
 %{
-        fprintf('Legacy release %s', release);
+        fprintf('**Legacy** Release %s', release);
 %}
 % <=R2019a
 
