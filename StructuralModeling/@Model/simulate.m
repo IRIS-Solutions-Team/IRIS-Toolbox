@@ -50,39 +50,40 @@ end
 %{
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    addParameter(inputParser, "Anticipate", []);
-    addParameter(inputParser, "Deviation", false);
-    addParameter(inputParser, "EvalTrends", @auto);
-    addParameter(inputParser, "Contributions", false);
-    addParameter(inputParser, "IgnoreShocks", false);
-    addParameter(inputParser, "MaxFrames", intmax());
-    addParameter(inputParser, "Plan", []);
-    addParameter(inputParser, "Progress", false);
-    addParameter(inputParser, "Solver", @auto);
-    addParameter(inputParser, "SparseShocks", false);
-    addParameter(inputParser, "SystemProperty", false);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser();
+    addParameter(pp, "Anticipate", []);
+    addParameter(pp, "Deviation", false);
+    addParameter(pp, "EvalTrends", @auto);
+    addParameter(pp, "Contributions", false);
+    addParameter(pp, "IgnoreShocks", false);
+    addParameter(pp, "MaxFrames", intmax());
+    addParameter(pp, "Plan", []);
+    addParameter(pp, "Progress", false);
+    addParameter(pp, "Solver", @auto);
+    addParameter(pp, "SparseShocks", false);
+    addParameter(pp, "SystemProperty", false);
 
-    addParameter(inputParser, "SuccessOnly", false);
-    addParameter(inputParser, "Blocks", false);
-    addParameter(inputParser, "Log", []);
-    addParameter(inputParser, "Unlog", []);
+    addParameter(pp, "SuccessOnly", false);
+    addParameter(pp, "Blocks", false);
+    addParameter(pp, "Log", []);
+    addParameter(pp, "Unlog", []);
 
-    addParameter(inputParser, "Method", solver.Method.FIRSTORDER);
-    addParameter(inputParser, "Window", @auto);
-    addParameter(inputParser, "Terminal", "firstOrder");
-    addParameter(inputParser, "StartIterationsFrom", "firstOrder");
-    addParameter(inputParser, "PrepareGradient", true);
+    addParameter(pp, "Method", solver.Method.FIRSTORDER);
+    addParameter(pp, "Window", @auto);
+    addParameter(pp, "Terminal", "firstOrder");
+    addParameter(pp, "StartIterationsFrom", "firstOrder");
+    addParameter(pp, "PrepareGradient", true);
 
-    addParameter(inputParser, "OutputData", "databank");
-    addParameter(inputParser, "OutputType", @auto);
-    addParameter(inputParser, "PrependInput", false);
-    addParameter(inputParser, "AppendInput", false);
-    addParameter(inputParser, "AddParameters", true);
-    addParameter(inputParser, "AddToDatabank", false);
+    addParameter(pp, "OutputData", "databank");
+    addParameter(pp, "OutputType", @auto);
+    addParameter(pp, "PrependInput", false);
+    addParameter(pp, "AppendInput", false);
+    addParameter(pp, "AddParameters", true);
+    addParameter(pp, "AddToDatabank", false);
 end
-options = parse(inputParser, varargin{:});
+options = parse(pp, varargin{:});
 %}
 % <=R2019a
 
