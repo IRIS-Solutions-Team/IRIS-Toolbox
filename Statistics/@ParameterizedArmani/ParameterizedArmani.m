@@ -125,7 +125,7 @@ classdef ParameterizedArmani ...
             if strlength(test)>0
                 hereThrowError(preserveInput);
             end
-            s = struct("ar", [], "sar", [], "ma", [], "sma", []);
+            s = struct('ar', [], 'sar', [], 'ma', [], 'sma', []);
             tokens = regexpi(input, "#(s?ar|s?ma)\{(-[^\}]+)\}", "tokens");
             for i = 1 : numel(tokens)
                 x = double(tokens{i}(2));
@@ -133,8 +133,8 @@ classdef ParameterizedArmani ...
                     s.(lower(tokens{i}(1)))(end+1) = x;
                 end
             end
-            num = struct("ar", 0, "sar", 0, "ma", 0, "sma", 0);
-            func = struct("ar", "", "sar", "", "ma", "", "sma", "");
+            num = struct('ar', 0, 'sar', 0, 'ma', 0, 'sma', 0);
+            func = struct('ar', "", 'sar', "", 'ma', "", 'sma', "");
             numParameters = 0;
             for n = ["ar", "sar", "ma", "sma"]
                 s.(n) = reshape(sort(unique(abs(s.(n)))), 1, []);

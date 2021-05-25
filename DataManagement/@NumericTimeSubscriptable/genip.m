@@ -29,7 +29,7 @@
 %>    the interpolated series and the indicator (if included).
 %
 %
-% __`aggregation`__ [ `"Mean"` | `"Sum"` | `"First"` | `"Last"` | numeric ]
+% __`aggregation`__ [ `"mean"` | `"sum"` | `"first"` | `"last"` | numeric ]
 %
 %>     Type of aggregation of quarterly observations to yearly observations;
 %>     the `aggregation` can be assigned a `1-by-N` numeric vector with
@@ -492,7 +492,7 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     x__ = reshape(hard.Level(numInit+1:end), numWithin, [ ]);
     inxFull = all(isfinite(x__), 1);
 
-    lastFull = find(~inxFull, 1, "First") - 1; % [^1]
+    lastFull = find(~inxFull, 1, 'first') - 1; % [^1]
     if ~isempty(lastFull) && lastFull>1;
         inxRunLow(1:lastFull-1) = false;
         inxRunHigh(1:(lastFull-1)*numWithin) = false;
@@ -504,7 +504,7 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     % be included in clipped range (becuase it may be needed for initial
     % condition).
 
-    firstFull = find(~inxFull, 1, "Last") + 1;
+    firstFull = find(~inxFull, 1, 'last') + 1;
     if ~isempty(firstFull) && firstFull<numLowPeriods
         numLowRemove = numLowPeriods - firstFull;
         numHighRemove = numLowRemove*numWithin;

@@ -101,7 +101,7 @@ classdef Incidence
             sh0 = this.PosZeroShift;
             inc = across(this, 'Eqtn');
             inc = any(inc, 1);
-            maxShift = find(inc, 1, "last") - sh0;
+            maxShift = find(inc, 1, 'last') - sh0;
         end%
 
 
