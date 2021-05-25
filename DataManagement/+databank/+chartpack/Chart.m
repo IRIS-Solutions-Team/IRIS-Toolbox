@@ -117,6 +117,9 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         function runAxesExtras(this, axesHandle)
             %(
             parent = this.ParentChartpack;
+            if ~isempty(parent.AxesSettings)
+                set(axesHandle, parent.AxesSettings{:});
+            end
             if isempty(parent.AxesExtras)
                 return
             end
