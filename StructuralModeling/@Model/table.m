@@ -302,7 +302,7 @@ end%
 function addTable = tableForm(this)
     inxLog = reshape(this.Quantity.IxLog, [], 1);
     values = repmat("", numel(inxLog), 1);
-    values(~inxLog) = "Diff-";
+    values(~inxLog) = "Diff–";
     values(inxLog) = "Rate/";
     addTable = tableTopic(this, {'Form'}, [ ], values);
 end%

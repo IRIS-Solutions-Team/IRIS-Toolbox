@@ -58,7 +58,7 @@ if isempty(parserLinear) || isempty(parserNonlinear)
     parserNonlinear.addParameter('Growth', [], @(x) isempty(x) || validate.logicalScalar(x));
     parserNonlinear.addParameter('Log', string.empty(1, 0), @(x) isequal(x, @all) || validate.list(x));
     parserNonlinear.addParameter('Unlog', string.empty(1, 0), @(x) isequal(x, @all) || validate.list(x));
-    parserNonlinear.addParameter('SaveAs', [ ], @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
+    parserNonlinear.addParameter('SaveAs', "", @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
     parserNonlinear.addSwapFixOptions( );
 end
 %)
@@ -124,16 +124,14 @@ end%
 %
 
 function blazer = locallyRunBlazer(this, opt)
-    TYPE = @int8;
-
     numQuants = numel(this.Quantity.Name);
 
     %
     % Look up shocks and parameters; steady change will be fixed for these
     % at zero no matter what
     %
-    inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-    inxP = this.Quantity.Type==TYPE(4);
+    inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
+    inxP = this.Quantity.Type==4;
 
     %
     % Prepare solver.blazer.Blazer for steady equations, process Exogenize=,
@@ -143,19 +141,11 @@ function blazer = locallyRunBlazer(this, opt)
 
 
     %
-    % Split equations into sequential blocks, prepare blocks, and prepare
-    % solver options within the blocks
+    % Split equations into sequential blocks, prepare blocks, save blazer
+    % to file if requested, and prepare solver options within the blocks
     %
     run(blazer);
     prepareForSolver(blazer, opt.SolverOptions);
-
-
-    %
-    % Save block-recursive structure to a text file
-    %
-    if ~isempty(opt.SaveAs)
-        saveAs(blazer, opt.SaveAs);
-    end
 
 
     %

@@ -68,7 +68,12 @@ for i = find(inxSelect)
         continue
     end
     value = reshape(values(1, i, :), 1, []);
-    valueString = "<" + join(replace(string(value), " ", ""), ", ") + ">";
+    if isreal(value)
+        valueString = compose("%g", value);
+    else
+        valueString = compose("%g", real(value)) + compose("%+gi", imag(value));
+    end
+    valueString = "<" + join(valueString, ", ") + ">";
     code = regexprep(code, "\<" + name + "\>(\{[^\}]*\})?", name + "$1" + valueString);
 end
 
@@ -81,7 +86,8 @@ if ~isequal(options.MarkdownCode, false)
 end
 
 if ~isempty(options.SaveAs) && strlength(options.SaveAs)>0
-    writematrix(string(code), options.SaveAs, "fileType", "text", "quoteStrings", false);
+    % Convert to char for old Matlab compatibility
+    writematrix(char(code), options.SaveAs, "fileType", "text", "quoteStrings", false);
 end
 
 end%
