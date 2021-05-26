@@ -1,6 +1,6 @@
 classdef seriesobj < report.genericobj & report.condformatobj
     properties
-        data = { iris.get('DefaultTimeSeriesConstructor') };
+        data = { feval(iris.get('DefaultTimeSeriesConstructor')) };
     end
     
 
