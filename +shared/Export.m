@@ -51,7 +51,7 @@ classdef Export < handle
                     beenDeleted(i) = true;
                 end
                 contents = [stamp, BR, BR, contents]; %#ok<AGROW>
-                char2file(contents, fileName);
+                textual.write(contents, fileName);
             end
             rehash( );
         end%

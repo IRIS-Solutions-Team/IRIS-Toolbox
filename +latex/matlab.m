@@ -1,4 +1,4 @@
-function matlab(FName,D,varargin)
+function matlab(fileName,D,varargin)
 
 default = { ...
     'format','%g',@ischar, ...
@@ -13,7 +13,7 @@ end
 
 %--------------------------------------------------------------------------
 
-c = file2char(FName);
+c = fileread(fileName);
 command = '\matlab';
 
 allpos = strfind(c,command);
@@ -50,7 +50,7 @@ while ~isempty(allpos)
     allpos = allpos + newLength - oldLength;
 end
 
-char2file(c,FName);
+textual.write(c, fileName);
 
 % Nested functions.
 

@@ -180,7 +180,7 @@ warning('off');%#ok<WNOFF>
 xmlFile = publish([inpTitle, inpExt], m2xmlOpt);
 warning(ss);
 xmlDoc = xmlread(xmlFile);
-char2file(copy, [inpTitle, inpExt]);
+textual.write(copy, [inpTitle, inpExt]);
 
 % Reset spacing.
 set(0, 'formatSpacing', spacing);
@@ -198,13 +198,13 @@ try
         opt.event = event;
     end
     tex = expandDocSubs(tex, rptFileName, opt);
-    char2file(tex,texFile);
+    textual.write(tex,texFile);
     body = [body, '\input{', texFile, '}', br];
     
     template = strrep(template, '$body$', body);
     template = expandDocSubs(template, rptFileName, opt);
     
-    char2file(template, 'main.tex');
+    textual.write(template, 'main.tex');
     latex.compilepdf('main.tex');
     copyfile('main.pdf', outpFile);
     movefile(outpFile, thisDir);
@@ -326,5 +326,5 @@ function copy = prepareToPublish(file)
     c = regexprep(c, '^% ?----+','%','lineanchors');
     % Replace ` with |.
     c = strrep(c, '`', '|');
-    char2file(c, file);
+    textual.write(c, file);
 end

@@ -395,7 +395,7 @@ function locallyWriteSpecFile(fileTitle, data, startDate, dummy, opt)
     spec = strrep(spec, '$x11_save$', sprintf('%s ', opt.Output{:}));
 
     % Write specs to text file
-    char2file(char(spec), [fileTitle, '.spc']);
+    textual.write(char(spec), [fileTitle, '.spc']);
 end%
 
 

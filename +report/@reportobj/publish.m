@@ -149,7 +149,7 @@ return
     function doSaveLatexFile( )
         tempDir = this.hInfo.tempDir;
         latexFile = [tempname(tempDir), '.tex'];
-        char2file(c, latexFile, 'char', 'Encoding=', opt.Encoding);
+        textual.write(c, latexFile, 'char', 'Encoding=', opt.Encoding);
     end
 
 

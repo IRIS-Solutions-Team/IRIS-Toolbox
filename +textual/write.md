@@ -1,11 +1,11 @@
-# char2file 
+# `textual.write`
 
 {== Write character string to text file ==}
 
 ## Syntax
 
-    char2file(c, fileName, ...)
-    char2file(c, fileName, precision, ...)
+    textual.write(c, fileName, ...)
+    textual.write(c, fileName, precision, ...)
 
 
 ## Input Arguments

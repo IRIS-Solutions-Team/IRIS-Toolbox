@@ -61,6 +61,6 @@ for i = 1 : nSect
 end
 
 c = [ sect{:} ];
-char2file(c, 'read_me_first.m');
+textual.write(c, 'read_me_first.m');
 
 end

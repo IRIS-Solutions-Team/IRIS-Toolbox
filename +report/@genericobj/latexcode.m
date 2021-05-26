@@ -17,7 +17,8 @@ if ~isempty(this.options.saveas)
     if isempty(ext)
         saveAs = [saveAs, '.tex'];
     end
-    char2file(c, saveAs);
+    textual.write(c, saveAs);
 end
 
-end
+end%
+

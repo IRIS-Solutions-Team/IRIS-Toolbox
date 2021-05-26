@@ -381,7 +381,6 @@ classdef Preparser ...
 
 
         function saveAs(code, fileName, sourceFiles)
-            %(
             if isempty(fileName) || all(strlength(fileName)==0)
                 return
             end
@@ -411,12 +410,7 @@ classdef Preparser ...
 
             % Convert to char for older Matlab compatibility and save to
             % text file
-            writematrix( ...
-                char(codeToSave), fileName ...
-                , "fileType", "text" ...
-                , "quoteStrings", false ...
-            );
-            %)
+            textual.write(codeToSave, fileName);
         end%
 
 
@@ -426,3 +420,4 @@ classdef Preparser ...
         end%
     end
 end
+

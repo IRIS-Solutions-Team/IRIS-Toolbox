@@ -77,7 +77,7 @@ code = [code, '\end{tabular}', newline];
 code = [code, '\endgroup', newline];
 
 if ~isempty(fileName)
-    char2file(code, fileName);
+    textual.write(code, fileName);
 end
 
 end

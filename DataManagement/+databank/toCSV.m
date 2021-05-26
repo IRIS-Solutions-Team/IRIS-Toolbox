@@ -15,7 +15,7 @@ end
 parse(parser, fileName);
 
 [c, fieldsSaved] = databank.serialize(inputDatabank, varargin{:});
-char2file(c, fileName);
+textual.write(c, fileName);
 
 end%
 

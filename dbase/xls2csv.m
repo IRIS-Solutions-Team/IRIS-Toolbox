@@ -100,7 +100,7 @@ c = strrep(c,'$inpFileTitle$',inpTitle);
 c = strrep(c,'$inpFileExt$',inpExt);
 c = strrep(c,'$sheet$',sheet);
 c = strrep(c,'$outpFileName$',OutpFile);
-char2file(c,fullfile(inpDir,'xls2csv.js'));
+textual.write(c,fullfile(inpDir,'xls2csv.js'));
 
 try %#ok<TRYNC>
     if ~isempty(inpDir)

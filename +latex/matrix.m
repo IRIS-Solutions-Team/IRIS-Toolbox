@@ -59,7 +59,7 @@ end
 c = [c, '\end{tabular}'];
 
 if ~isempty(fileName)
-    char2file(c, fileName);
+    textual.write(c, fileName);
 end
 
 end

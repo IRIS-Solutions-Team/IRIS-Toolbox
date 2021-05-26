@@ -334,7 +334,7 @@ c = hereSerialize(o, opt);
 
 % Save to fileName if not empty
 if ~isempty(fileName)
-    char2file(c, fileName);
+    textual.write(c, fileName);
 end
 
 % Save nested databanks

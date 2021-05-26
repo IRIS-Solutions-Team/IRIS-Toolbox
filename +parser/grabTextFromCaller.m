@@ -39,7 +39,7 @@ end
 code = tkn{1};
 
 if nargin>1
-    char2file(code, outputFileName);
+    textual.write(code, outputFileName);
 end
 
 end%

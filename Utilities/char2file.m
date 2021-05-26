@@ -1,4 +1,4 @@
 function char2file(varargin)
-writeText(varargin{:});
+textual.write(varargin{:});
 end%
 

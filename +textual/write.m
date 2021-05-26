@@ -1,4 +1,4 @@
-function writeText(c, fileName, varargin)
+function write(c, fileName, varargin)
 
 if nargin<3
     precision = 'char';
@@ -9,10 +9,10 @@ end
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('char2file');
-    parser.addRequired('InputString', @validate.string);
-    parser.addRequired('FileName', @validate.string);
-    parser.addRequired('Precision', @validate.string);
+    parser = extend.InputParser();
+    parser.addRequired('inputString', @validate.string);
+    parser.addRequired('fileName', @validate.string);
+    parser.addRequired('precision', @validate.string);
     parser.addParameter('MachineFormat', 'Native', @validate.string);
     parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || validate.string(x));
 end
@@ -26,7 +26,7 @@ fid = locallyOpenFile(fileName, opt);
 try
     c = string(c);
     if numel(c)>1
-        c = join(c, newline());
+        c = join(c, string(newline()));
     end
     locallyWriteToFile(c, fid, fileName, precision, opt);
 catch mexp
@@ -36,7 +36,7 @@ end
 
 fclose(fid);
 
-end
+end%
 
 %
 % Local functions
