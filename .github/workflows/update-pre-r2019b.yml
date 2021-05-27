@@ -22,8 +22,4 @@ jobs:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
-          git status
-          git branch
-          git switch pre-r2019b
-          cat +iris/startup.m
-          
+          source .scripts/update-pre-r2019b
