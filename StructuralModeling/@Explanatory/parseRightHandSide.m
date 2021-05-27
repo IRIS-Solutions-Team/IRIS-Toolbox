@@ -1,4 +1,4 @@
-function this = parserRighHandSide(this, rhsString)
+function this = parseRightHandSide(this, rhsString)
 
 %
 % Legacy syntax for free parameters
@@ -120,3 +120,4 @@ function [this, rhsString] = locallyParseExplanatoryTerms(this, rhsString)
     %)
 end%
 
+    
