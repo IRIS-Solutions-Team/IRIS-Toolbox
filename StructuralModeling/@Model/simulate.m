@@ -41,6 +41,13 @@ arguments
     options.AppendInput (1, 1) logical = false
     options.AddParameters (1, 1) logical = true
     options.AddToDatabank = false
+
+    % Legacy options
+    options.Initial (1, 1) string {mustBeMember(options.StartIterationsFrom, ["", "firstOrder", "FirstOrder", "data", "Data"])} = ""
+end
+
+if string(options.Initial)~=""
+    options.StartIterationsFrom = string(options.Initial);
 end
 %}
 % >=R2019b
@@ -73,7 +80,7 @@ if isempty(pp)
     addParameter(pp, "Method", solver.Method.FIRSTORDER);
     addParameter(pp, "Window", @auto);
     addParameter(pp, "Terminal", "firstOrder");
-    addParameter(pp, "StartIterationsFrom", "firstOrder");
+    addParameter(pp, {"StartIterationsFrom", "Initial"}, "firstOrder");
     addParameter(pp, "PrepareGradient", true);
 
     addParameter(pp, "OutputData", "databank");
