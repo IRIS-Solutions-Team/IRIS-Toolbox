@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
+%(
 function irisConfig = reset(options)
 
 arguments
@@ -13,12 +13,12 @@ arguments
     options.CheckId (1, 1) logical = true
     options.TeX (1, 1) logical = false
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function irisConfig = reset(varargin)
 
 persistent inputParser
@@ -30,7 +30,7 @@ if isempty(inputParser)
     addParameter(inputParser, "TeX", false, @validate.logicalScalar);
 end
 options = parse(inputParser, varargin{:});
-%)
+%}
 % <=R2019a
 
 

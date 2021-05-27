@@ -13,15 +13,15 @@ classdef Explanatory ...
 % value) or NaNs (if the parameter can be changed or estimated)
 
 % >=R2019b
-%{
+%(
         Fixed (1, :, :) double = double.empty(1, 0, 1)
-%}
+%)
 % >=R2019b
 
 % <=R2019a
-%(
+%{
         Fixed double = double.empty(1, 0, 1)
-%)
+%}
 % <=R2019a
 
 
@@ -30,15 +30,15 @@ classdef Explanatory ...
 % plus the lump-sum term (if present).
 
 % >=R2019b
-%{
+%(
         Parameters (1, :, :) double = double.empty(1, 0, 1)
-%}
+%)
 % >=R2019b
 
 % <=R2019a
-%(
+%{
         Parameters double = double.empty(1, 0, 1)
-%)
+%}
 % <=R2019a
 
 

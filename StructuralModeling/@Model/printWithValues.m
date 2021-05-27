@@ -1,6 +1,6 @@
 
 % >=R2019b
-%{
+%(
 function code = printWithValues(modelObject, modelFile, options)
 
 arguments
@@ -11,12 +11,12 @@ arguments
     options.Steady (1, 1) logical = true
     options.MarkdownCode (1, 1) = false
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function code = printWithValues(modelObject, modelFile, varargin)
 
 persistent pp
@@ -29,7 +29,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 options = pp.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -86,8 +86,7 @@ if ~isequal(options.MarkdownCode, false)
 end
 
 if ~isempty(options.SaveAs) && strlength(options.SaveAs)>0
-    % Convert to char for old Matlab compatibility
-    writematrix(char(code), options.SaveAs, "fileType", "text", "quoteStrings", false);
+    textual.write(code, options.SaveAs);
 end
 
 end%

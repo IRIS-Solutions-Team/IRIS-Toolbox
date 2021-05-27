@@ -53,7 +53,7 @@
 
 
 % >=R2019b
-%{
+%(
 function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
@@ -70,12 +70,12 @@ arguments
     opt.ResetShocks (1, 1) logical = false
     opt.NumDummyPeriods (1, 1) double {mustBeInteger, mustBeNonnegative} = 0
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
@@ -94,7 +94,7 @@ if isempty(inputParser)
     addParameter(inputParser, "NumDummyPeriods", 0, @(x) validate.roundScalar(x, 0, Inf));
 end
 opt = parse(inputParser, inputDb, baseRange, varargin{:});
-%)
+%}
 % <=R2019a
 
 

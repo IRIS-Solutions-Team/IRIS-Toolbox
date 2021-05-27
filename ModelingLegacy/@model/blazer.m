@@ -122,7 +122,7 @@ if isempty(pp)
     pp.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     pp.addParameter('Log', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
     pp.addParameter('Unlog', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
-    pp.addParameter('SaveAs', [ ], @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
+    pp.addParameter('SaveAs', "", @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
     pp.addParameter("SuccessOnly", false, @validate.logicalScalar);
     pp.addSwapFixOptions( );
 end
@@ -143,21 +143,20 @@ elseif startsWith(opt.Kind, "stacked", "ignoreCase", true)
     blazer = solver.blazer.Stacked.forModel(this, opt);
 elseif startsWith(opt.Kind, "period", "ignoreCase", true)
     blazer = solver.blazer.Period.forModel(this, opt);
-else
-    blazer = [ ];
+end
+
+if ~isempty(opt.SaveAs)
+    blazer.SaveAs = string(opt.SaveAs);
 end
 
 %
 % Split equations into sequential blocks and prepare blocks; do not prepare
-% solver options and Jacobian information
+% solver options and Jacobian information; save to opt.SaveAs file if
+% requested
 %
 run(blazer);
 
 [eqtnBlk, nameBlk, blkType] = locallyGetHuman(blazer, opt.Kind);
-
-if ~isempty(opt.SaveAs)
-    saveAs(blazer, opt.SaveAs);
-end
 
 end%
 
@@ -178,8 +177,8 @@ function [blkEqnHuman, blkQtyHuman, blkType] = locallyGetHuman(blazer, kind)
         if startsWith(kind, "steady", "ignoreCase", true)
             [ptrLevel__, ptrChange__] = iris.utils.splitRealImag(block__.PtrQuantities);
             blkQtyHuman{i} = struct( ...
-                "Level", reshape(string(blazer.Model.Quantity.Name(ptrLevel__)), 1, [ ]), ...
-                "Change", reshape(string(blazer.Model.Quantity.Name(ptrChange__)), 1, [ ]) ...
+                'Level', reshape(string(blazer.Model.Quantity.Name(ptrLevel__)), 1, [ ]), ...
+                'Change', reshape(string(blazer.Model.Quantity.Name(ptrChange__)), 1, [ ]) ...
             );
         else
             blkQtyHuman{i} = reshape(string(blazer.Model.Quantity.Name(block__.PtrQuantities)), 1, [ ]);
