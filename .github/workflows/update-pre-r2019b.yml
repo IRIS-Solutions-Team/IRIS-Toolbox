@@ -69,6 +69,9 @@ jobs:
           git status
           git add -u .
           git status
-          git commit -m "Update pre-r2019b"
-          git push origin pre-r2019b
+          files_to_commit=$(git diff --cached --name-status)
+          if [[ $files_to_commit ]]; then
+            git commit -m "Update pre-r2019b"
+            git push origin pre-r2019b
+          fi
           git status
