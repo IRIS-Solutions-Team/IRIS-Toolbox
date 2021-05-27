@@ -1,4 +1,4 @@
-name: Update the pre-r2019b branch
+name: Update pre-r2019b branch
 
 on:
   push:
@@ -21,6 +21,7 @@ jobs:
 
       - name: Test
         run: |
+          cd $GITHUB_WORKSPACE/iris-toolbox
           git status
           git branch
           
