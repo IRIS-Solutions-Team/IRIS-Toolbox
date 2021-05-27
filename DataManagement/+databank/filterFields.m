@@ -29,12 +29,13 @@ options = pp.Results;
 %}
 % <=R2019a
 
+stringify = @(x) reshape(string(x), 1, []);
 
 isNameFilter = ~isequal(options.Name, @all);
 isClassFilter = ~isequal(options.Class, @all);
 isValueFilter = ~isequal(options.Value, @all);
 
-allKeys = reshape(string(fieldnames(inputDb)), 1, [ ]);
+allKeys = stringify(fieldnames(inputDb));
 if ~isNameFilter && ~isClassFilter && ~isValueFilter
     outputNames = allKeys;
     return
@@ -46,7 +47,7 @@ if isNameFilter
     shortlistUpdate = string.empty(1, 0);
     for n = shortlist
         if isequal(options.Name(n), true)
-            shortlistUpdate(end+1) = n;
+            shortlistUpdate(end+1) = n; 
         end
     end
     shortlist = shortlistUpdate;
@@ -54,7 +55,7 @@ end
 
 
 if isClassFilter
-    options.Class = reshape(string(options.Class), 1, []);
+    options.Class = stringify(options.Class);
     shortlistUpdate = string.empty(1, 0);
     for n = shortlist
         if isa(inputDb, "Dictionary")
@@ -97,10 +98,12 @@ end%
 
 function locallyValidateClass(x)
     %( 
-    if isequal(x, @all) || isstring(x)
+    if isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x)
         return
     end
     error("Input value must be a string or array of strings.");
     %)
 end%
+
+%#ok<*AGROW>
 
