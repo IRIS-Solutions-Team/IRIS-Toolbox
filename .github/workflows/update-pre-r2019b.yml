@@ -24,4 +24,5 @@ jobs:
           cd $GITHUB_WORKSPACE/iris-toolbox
           git status
           git branch
+          git switch pre-r2019b
           
