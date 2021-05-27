@@ -86,8 +86,7 @@ if ~isequal(options.MarkdownCode, false)
 end
 
 if ~isempty(options.SaveAs) && strlength(options.SaveAs)>0
-    % Convert to char for old Matlab compatibility
-    writematrix(char(code), options.SaveAs, "fileType", "text", "quoteStrings", false);
+    textual.write(code, options.SaveAs);
 end
 
 end%

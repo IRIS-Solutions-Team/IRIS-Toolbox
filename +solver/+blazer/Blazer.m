@@ -285,7 +285,7 @@ classdef (Abstract) Blazer ...
                 datestr(now( )), numBlocks, numEquations ...
             );
             c = [char(header), char(c), newline( ), newline( )];
-            writematrix(c, fileName, "fileType", "text", "quoteStrings", false);
+            textual.write(c, fileName);
         end%
     end
 end
