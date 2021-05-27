@@ -13,7 +13,17 @@ classdef Armani
         Tolerance (1, 1) double = 1e-14
 
 % Parameters  Empty array
+% >=R2019b
+%(
         Parameters (1, :, :) double = double.empty(1, 0, 1)
+%)
+% >=R2019b
+
+% <=R2019a
+%{
+        Parameters double = double.empty(1, 0, 1)
+%}
+% <=R2019a
     end
 
 
