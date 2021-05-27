@@ -11,13 +11,35 @@ classdef Explanatory ...
     properties
 % Fixed  Row vector of parameter values (if the parameter is fixed to that
 % value) or NaNs (if the parameter can be changed or estimated)
+
+% >=R2019b
+%(
         Fixed (1, :, :) double = double.empty(1, 0, 1)
+%)
+% >=R2019b
+
+% <=R2019a
+%{
+        Fixed double = double.empty(1, 0, 1)
+%}
+% <=R2019a
 
 
 % Parameters  Row vector of parameter values (with parameter variants
 % running in 3rd dimension) corresponding to individual regression terms
 % plus the lump-sum term (if present).
+
+% >=R2019b
+%(
         Parameters (1, :, :) double = double.empty(1, 0, 1)
+%)
+% >=R2019b
+
+% <=R2019a
+%{
+        Parameters double = double.empty(1, 0, 1)
+%}
+% <=R2019a
 
 
 % ResidualNamePattern  Two-element string array with a prefix and a suffix

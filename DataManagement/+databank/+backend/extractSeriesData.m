@@ -1,25 +1,25 @@
 function [data, names, dates, dateTransform] = extractSeriesData(inputDb, names, dates) 
 
-if isa(names, "function_handle")
-    names = databank.filterFields(inputDb, "name", names, "class", "NumericTimeSubscriptable");
+if isa(names, 'function_handle')
+    names = databank.filterFields(inputDb, 'name', names, 'class', 'NumericTimeSubscriptable');
 end
 names = reshape(string(names), 1, [ ]);
 
 if isa(inputDb, 'Dictionary')
     allSeries = arrayfun( ...
         @(n) locallyMustBeSeries(retrieve(inputDb, n), n), names ...
-        , "uniformOutput", false ...
+        , 'uniformOutput', false ...
     );
 else
     allSeries = arrayfun( ...
         @(n) locallyMustBeSeries(inputDb.(n), n), names ...
-        , "uniformOutput", false ...
+        , 'uniformOutput', false ...
     );
 end
 
 [dates, dateTransform] = locallyResolveDates(dates);
 data = cell(size(allSeries));
-context = "";
+context = '';
 [dates, data{:}] = getDataFromMultiple(dates, context, allSeries{:});
 dates = reshape(double(dates), 1, []);
 
@@ -32,10 +32,10 @@ end%
 function [dates, dateTransform] = locallyResolveDates(dates)
     dateTransform = [ ];
     if isstring(dates)
-        if startsWith(dates, "head", "ignoreCase", true)
+        if startsWith(dates, 'head', 'ignoreCase', true)
             dateTransform = @head;
             dates = "unbalanced";
-        elseif startsWith(dates, "tail", "ignoreCase", true)
+        elseif startsWith(dates, 'tail', 'ignoreCase', true)
             dateTransform = @tail;
             dates = "unbalanced";
         end
@@ -47,7 +47,7 @@ end%
 %
 
 function value = locallyMustBeSeries(value, name)
-    if isa(value, "NumericTimeSubscriptable")
+    if isa(value, 'NumericTimeSubscriptable')
         return
     end
     exception.error([
