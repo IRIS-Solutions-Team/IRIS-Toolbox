@@ -1,4 +1,4 @@
-function this = parserRighHandSide(this, rhsString)
+function this = parseRighHandSide(this, rhsString)
 
 %
 % Legacy syntax for free parameters
