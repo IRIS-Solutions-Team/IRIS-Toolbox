@@ -135,7 +135,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test in model source file 
 
 K = 5;
-m = Model.fromSnippet("test", "assign", struct("K", K));
+m = Model.fromSnippet("test", "assign", struct('K', K));
 m = steady(m);
 
 % test>>>
