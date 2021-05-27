@@ -20,6 +20,8 @@ classdef CommentContainer
 
 
     methods
+        varargout = assignComment(varargin)
+        varargout = accessComment(varargin)
         varargout = comment(varargin)
     end
 
@@ -39,3 +41,4 @@ classdef CommentContainer
         end%
     end
 end
+
