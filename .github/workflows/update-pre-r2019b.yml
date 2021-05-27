@@ -19,7 +19,7 @@ jobs:
           ref: master
           path: iris-toolbox      
 
-      - name: Test
+      - name: Merge pre-r2019 with master
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
           
@@ -28,23 +28,28 @@ jobs:
           
           git switch pre-r2019b
 
-          # Merge all changes from master with auto resolution
-          echo ===============================================================
           git merge -X theirs master
           git status
-
+          
+      - name: Remove files deleted from master but modified previously in pre-r2019b
+        run: |
           # Files that differed between master and pre-r2019b and were deleted in
           # master will not be resolved (i.e. deleted) in pre-r2019b. Do this
           # manually here:
           # * Look up names of files that are U=unmerged
           # * Remove these files
-          echo ===============================================================
-          git diff --name-only --diff-filter=U | xargs git rm
-          git status 
 
+          cd $GITHUB_WORKSPACE/iris-toolbox
+          files_to_remove=$(git diff --name-only --diff-filter=U)
+          if [[ $files_to_remove ]]; then
+             git rm $files_to_remove
+             git status
+          fi
+          
+      - name: Make sure all r2019a/r2019b switches are set correctly
+        run: |
           for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
               echo $f
-              echo ========================= $f ===============================
               gsed -i 's/\r//g' $f
               cp $f temp.orig
               gtr '\n' '\v' < temp.orig > temp.replaced
@@ -58,10 +63,11 @@ jobs:
               rm temp.orig temp.replaced temp.final
           done
 
-          echo ===============================================================
+      - name: Commit and push
+        run: |
+          cd $GITHUB_WORKSPACE/iris-toolbox        
           git status
           git add -u .
           git status
           git commit -m "Update pre-r2019b"
-          
-
+          git push origin pre-r2019b
