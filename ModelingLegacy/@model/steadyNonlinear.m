@@ -92,7 +92,6 @@ for v = variantsRequested
         hereHandleErrors();
     end
 
-
     %
     % Remove 1i from parameters with log-status=true
     %

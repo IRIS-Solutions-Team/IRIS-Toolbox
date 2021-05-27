@@ -415,17 +415,15 @@ return
         F0 = hereGetCurrentObjectiveFunction();
         step = next.Step;
         lenStepSize = numel(step);
-        lastwarn('');
 
         if isfield(current, "InvJ") && ~isempty(current.InvJ)
             next.D = -current.InvJ * F0;
         else
+            lastwarn('');
             jacob = current.J;
             next.D = -jacob \ F0;
-            if ~isempty(lastwarn())
-                if opt.PseudoinverseWhenSingular
-                    next.D = -pinv(full(jacob)) * F0;
-                end
+            if ~isempty(lastwarn()) && opt.PseudoinvWhenSingular
+                next.D = -pinv(full(jacob)) * F0;
             end
         end
 
