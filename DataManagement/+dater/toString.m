@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
+%(
 function outputString = toString(inputDate, dateFormat, options)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     options.Open (1, 1) string = ""
     options.Close (1, 1) string = ""
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function outputString = toString(inputDate, dateFormat, varargin)
 
 persistent pp
@@ -30,7 +30,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 options = pp.Results;
-%)
+%}
 % <=R2019a
 
 

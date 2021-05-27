@@ -1,6 +1,6 @@
 
 % >=R2019b
-%{
+%(
 function this = randomlyGrowing(range, params, options)
 
 arguments
@@ -13,12 +13,12 @@ arguments
     options.Comment = ""
     options.UserData = []
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function this = randomlyGrowing(range, params, varargin)
 
 persistent pp
@@ -32,7 +32,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 options = pp.Results;
-%)
+%}
 % <=R2019a
 
 

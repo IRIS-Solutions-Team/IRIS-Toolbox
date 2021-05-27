@@ -2,7 +2,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
+%(
 function outputTable = table(this, requests, opt)
 
 arguments
@@ -16,12 +16,12 @@ arguments
     opt.SortAlphabetically (1, 1) logical = false
     opt.WriteTable (1, :) string = ""
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function outputTable = table(this, requests, varargin)
 
 persistent pp
@@ -39,7 +39,7 @@ if isempty(pp)
     addParameter(pp, 'WriteTable', "", @validate.mustBeTextScalar);
 end
 opt = parse(pp, this, requests, varargin{:});
-%)
+%}
 % <=R2019a
 
 
