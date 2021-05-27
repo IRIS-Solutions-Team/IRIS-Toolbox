@@ -198,7 +198,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Test Unicode Brackets 
 
-if ~verLessThan("matlab", "9.9")
+if ~verLessThan('matlab', '9.9')
     open = string(parser.Interp.OPEN);
     open = string(parser.Interp.OPEN);
     close = string(parser.Interp.CLOSE);
