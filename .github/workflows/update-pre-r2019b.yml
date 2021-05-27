@@ -1,0 +1,26 @@
+name: Update the pre-r2019b branch
+
+on:
+  push:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Update the pre-r2019b branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+          ref: master
+          path: iris-toolbox      
+
+      - name: Test
+        run: |
+          git status
+          git branch
+          
