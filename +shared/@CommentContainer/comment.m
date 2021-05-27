@@ -1,4 +1,3 @@
-function varargout = comment(this, varargin)
 % comment  Inquire about or assign user comments in IRIS object
 %{
 % ## Syntax for Getting User Comments ##
@@ -33,23 +32,15 @@ function varargout = comment(this, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-if ~isempty(varargin)
-    newComment = varargin{1};
-    parser = inputParser( );
-    parser.addRequired('NewComment', @ischar);
-    parser.parse(newComment);
-end
+function varargout = comment(this, varargin)
 
-%--------------------------------------------------------------------------
-
-if isempty(varargin)
-    varargout{1} = this.Comment;
-else
-    this.Comment = newComment;
-    varargout{1} = this;
+if nargin==1
+    varargout{1} = accessComment(this);
+elseif nargin==2
+    varargout{1} = assignComment(this, varargin{1});
 end
 
 end%
