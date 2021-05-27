@@ -71,3 +71,4 @@ jobs:
           git status
           git commit -m "Update pre-r2019b"
           git push origin pre-r2019b
+          git status
