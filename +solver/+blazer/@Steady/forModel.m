@@ -17,7 +17,10 @@ this = solver.blazer.Steady(numEquations);
 this.SuccessOnly = opt.SuccessOnly;
 this.IsBlocks = opt.Blocks;
 this.IsGrowth = opt.Growth;
-this.SaveAs = opt.SaveAs;
+if isempty(opt.SaveAs)
+    opt.SaveAs = "";
+end
+this.SaveAs = string(opt.SaveAs);
 
 prepareBlazer(model, this);
 
