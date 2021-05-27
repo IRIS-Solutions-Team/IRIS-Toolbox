@@ -3,7 +3,7 @@ name: Update pre-r2019b branch
 on:
   push:
     tags:
-      - 'pre-r2019b*'
+      - 'Create-pre-r2019b*'
 
   workflow_dispatch:
 
