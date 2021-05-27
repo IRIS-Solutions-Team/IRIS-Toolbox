@@ -1,12 +1,12 @@
 function this = quickAssign(this, from)
 
 % >=R2019b
-%(
+%{
 arguments
     this Model
     from (1, 1) struct
 end
-%)
+%}
 % >=R2019b
 
 for i = 1 : numel(this.Quantity.Name(1:end-1))

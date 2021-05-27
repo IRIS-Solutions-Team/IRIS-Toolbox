@@ -2,7 +2,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = moving(this, range, opt)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     opt.Period (1, 1) logical = false
     opt.Range (1, :) {validate.mustBeRange} = Inf
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = moving(this, varargin)
 
 persistent pp
@@ -35,7 +35,7 @@ if isempty(pp)
 end
 opt = pp.parse(this, varargin{:});
 range = pp.Results.range_;
-%}
+%)
 % <=R2019a
 
 

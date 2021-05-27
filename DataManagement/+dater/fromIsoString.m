@@ -46,12 +46,12 @@
 function dateCode = fromIsoString(freq, isoDate)
 
 % >=R2019b
-%(
+%{
 arguments
     freq (1, 1) Frequency
     isoDate string
 end
-%)
+%}
 % >=R2019b
 
 

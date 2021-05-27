@@ -1,5 +1,5 @@
 % >=R2019b
-%(
+%{
 function [this, datesMissing] = fillMissing(this, range, method)
 
 arguments
@@ -10,12 +10,12 @@ end
 arguments (Repeating)
     method
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [this, datesMissing] = fillMissing(this, range, varargin)
 
 %( Input parser
@@ -33,7 +33,7 @@ end
 %)
 opt = parse(pp, this, range, varargin);
 method = pp.Results.method;
-%}
+%)
 % <=R2019a
 
 
