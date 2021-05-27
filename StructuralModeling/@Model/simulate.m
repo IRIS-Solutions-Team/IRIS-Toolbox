@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, options)
 
 arguments
@@ -42,12 +42,12 @@ arguments
     options.AddParameters (1, 1) logical = true
     options.AddToDatabank = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, varargin)
 
 persistent pp
@@ -84,7 +84,7 @@ if isempty(pp)
     addParameter(pp, "AddToDatabank", false);
 end
 options = parse(pp, varargin{:});
-%}
+%)
 % <=R2019a
 
 
