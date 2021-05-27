@@ -4,16 +4,16 @@
 function startup(varargin)
 
 % >=R2019b
-%(
+%{
 MINIMUM_MATLAB = 'R2019b';
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 MINIMUM_MATLAB = 'R2017b';
-%}
+%)
 % <=R2019a
 
 
@@ -46,11 +46,11 @@ if ~options.Silent
 end
 
 % <=R2019a
-%{
+%(
 if options.LegacyWarning
     hereDisplayLegacyWarning();
 end
-%}
+%)
 % <=R2019a
 
 return
@@ -62,15 +62,15 @@ return
         fprintf('\t[IrisToolbox] for Macroeconomic Modeling ');
 
 % >=R2019b
-%(
+%{
         fprintf('Release %s', release);
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
         fprintf('**Legacy** Release %s', release);
-%}
+%)
 % <=R2019a
 
         fprintf('\n');

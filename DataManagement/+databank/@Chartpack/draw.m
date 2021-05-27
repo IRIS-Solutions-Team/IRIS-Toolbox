@@ -1,7 +1,7 @@
 function info = draw(this, inputDb, varargin)
 
 % >=R2019b
-%(
+%{
 arguments
     this (1, 1) databank.Chartpack
     inputDb (1, 1) {validate.mustBeDatabank}
@@ -10,7 +10,7 @@ end
 arguments (Repeating)
     varargin
 end
-%)
+%}
 % >=R2019b
 
 

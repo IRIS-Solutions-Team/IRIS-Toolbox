@@ -4,7 +4,7 @@
 function [outputDb, info] = data(dataset, freq, areas, items, counters, options, nameOptions)
 
 % >=R2019b
-%(
+%{
 arguments
     dataset (1, 1) string
     freq (1, 1) Frequency {locallyValidateFrequency}
@@ -24,7 +24,7 @@ arguments
     nameOptions.Separator (1, 1) string = "_"
     nameOptions.NameFunc = [ ]
 end
-%)
+%}
 % >=R2019b
 
 [areas, areaMap, areasString] = locallyCreateNameMap(areas);

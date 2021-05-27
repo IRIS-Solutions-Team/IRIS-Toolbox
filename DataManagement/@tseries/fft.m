@@ -43,7 +43,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [y, range, freq, per] = fft(this, opt)
 
 arguments
@@ -51,11 +51,11 @@ arguments
     opt.Range {validate.mustBeRange} = Inf
     opt.Full (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [y, range, freq, per] = fft(this, varargin)
 
 persistent pp
@@ -66,7 +66,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 opt = pp.Results;
-%}
+%)
 % <=R2019a
 
 sizeData = size(this.Data);

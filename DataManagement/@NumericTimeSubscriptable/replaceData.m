@@ -1,5 +1,5 @@
 % >=R2019b
-%(
+%{
 function this = replaceData(this, pairs)
 
 arguments
@@ -9,16 +9,16 @@ end
 arguments (Repeating)
     pairs
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = replaceData(this, varargin)
 
 pairs = varargin;
-%}
+%)
 % <=R2019a
 
 

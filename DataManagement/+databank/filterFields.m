@@ -1,5 +1,5 @@
 % >=R2019b
-%(
+%{
 function outputNames = filterFields(inputDb, options)
 
 arguments
@@ -9,12 +9,12 @@ arguments
     options.Class (1, :) {locallyValidateClass} = @all
     options.Value (1, 1) function_handle = @all
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputNames = filterFields(inputDb, varargin)
 
 persistent pp
@@ -26,7 +26,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 options = pp.Results;
-%}
+%)
 % <=R2019a
 
 stringify = @(x) reshape(string(x), 1, []);
