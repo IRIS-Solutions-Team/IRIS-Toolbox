@@ -70,7 +70,7 @@ end
 if numel(method)==1 && isa(method{1}, "NumericTimeSubscriptable")
     data = locallyReplaceData(data, startDate, endDate, inxMissing, method{1});
 else
-    data = numeric.fillMissing(data, inxMissing, method{:});
+    data = series.fillMissing(data, inxMissing, method{:});
 end
 
 this = fill(this, data, startDate);
