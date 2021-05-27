@@ -29,7 +29,7 @@ if isa(transition.Std, "NumericTimeSubscriptable")
     transition.Std = abs(transition.Std);
     inxNaN = isnan(transition.Std);
     if any(inxNaN(:))
-        transition.Std = numeric.fillMissing(transition.Std, inxNaN, "regressLogTrend");
+        transition.Std = series.fillMissing(transition.Std, inxNaN, "regressLogTrend");
     end
     transition.Std = transition.Std/transition.Std(1);
     transition.Std = reshape(transition.Std, 1, 1, [ ]);
