@@ -1,0 +1,41 @@
+
+git switch pre-r2019b
+
+# Merge all changes from master with auto resolution
+echo ===============================================================
+git merge -X theirs master
+git status
+
+# Files that differed between master and pre-r2019b and were deleted in
+# master will not be resolved (i.e. deleted) in pre-r2019b. Do this
+# manually here:
+# * Look up names of files that are U=unmerged
+# * Remove these files
+echo ===============================================================
+git diff --name-only --diff-filter=U | xargs git rm
+git status 
+
+for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
+    echo $f
+    echo ========================= $f ===============================
+    gsed -i 's/\r//g' $f
+    cp $f temp.orig
+    gtr '\n' '\v' < temp.orig > temp.replaced
+    gsed -i 's/% >=R2019b[ ]*\v%(/% >=R2019b\v%{/g' temp.replaced
+    gsed -i 's/%)\v% >=R2019b[ ]*/%}\v% >=R2019b/g' temp.replaced
+    gsed -i 's/% <=R2019a[ ]*\v%{/% <=R2019a\v%(/g' temp.replaced
+    gsed -i 's/%}\v% <=R2019a[ ]*/%)\v% <=R2019a/g' temp.replaced
+    gtr '\v' '\n' < temp.replaced > temp.final
+    # cat temp.final
+    cp temp.final $f
+    rm temp.orig temp.replaced temp.final
+done
+
+echo ===============================================================
+git status
+git add -u .
+git status
+git commit -m "Update pre-R2019b"
+
+git switch develop
+
