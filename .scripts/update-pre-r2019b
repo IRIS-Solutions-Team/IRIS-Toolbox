@@ -1,8 +1,4 @@
 
-log_file=$d/.logs/write-pre-r2019b.log
-
-cd $iris
-
 git switch pre-r2019b
 
 # Merge all changes from master with auto resolution
@@ -16,11 +12,9 @@ git merge -X theirs master
 git diff --name-only --diff-filter=U | xargs git rm
 git status 
 
-echo > $log_file
-
 for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
     echo $f
-    echo ============================== $f ==================================== >> $log_file
+    echo ============================== $f ====================================
     gsed -i 's/\r//g' $f
     cp $f temp.orig
     gtr '\n' '\v' < temp.orig > temp.replaced
@@ -30,7 +24,6 @@ for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
     gsed -i 's/%}\v% <=R2019a[ ]*/%)\v% <=R2019a/g' temp.replaced
     gtr '\v' '\n' < temp.replaced > temp.final
     # cat temp.final
-    cat temp.final >> $log_file
     cp temp.final $f
     rm temp.orig temp.replaced temp.final
 done
