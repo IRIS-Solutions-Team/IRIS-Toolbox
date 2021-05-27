@@ -17,7 +17,6 @@ git status
 
 for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
     echo $f
-    echo ========================= $f ===============================
     gsed -i 's/\r//g' $f
     cp $f temp.orig
     gtr '\n' '\v' < temp.orig > temp.replaced

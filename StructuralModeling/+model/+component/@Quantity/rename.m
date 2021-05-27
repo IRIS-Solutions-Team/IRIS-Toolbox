@@ -1,7 +1,7 @@
 function this = rename(this, method, varargin)
 
 % >=R2019b
-%{
+%(
 arguments
     this model.component.Quantity
     method (1, 1) string {mustBeMember(method, ["pair", "list", "func"])}
@@ -10,7 +10,7 @@ end
 arguments (Repeating)
     varargin
 end
-%}
+%)
 % >=R2019b
 
 stringify = @(x) reshape(string(x), 1, []);
