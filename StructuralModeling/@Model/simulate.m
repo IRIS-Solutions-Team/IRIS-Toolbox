@@ -43,11 +43,26 @@ arguments
     options.AddToDatabank = false
 
     % Legacy options
-    options.Initial (1, 1) string {mustBeMember(options.StartIterationsFrom, ["", "firstOrder", "FirstOrder", "data", "Data"])} = ""
+    options.Initial = []
+    options.AppendPresample = []
+    options.AppendPostsample = []
 end
 
-if string(options.Initial)~=""
-    options.StartIterationsFrom = string(options.Initial);
+legacy = [
+    "Initial", "StartIterationsFrom"
+    "AppendPresample", "PrependInput"
+    "AppendPostsample", "AppendInput"
+];
+
+for i = 1 : size(legacy, 2)
+    if ~isempty(options.(legacy(i, 1)))
+        options.(legacy(i, 2)) = string(options.(legacy(i, 1)));
+        exception.warning([
+            "Legacy:Option"
+            "Option %s= is obsolete and will be removed from IrisT in the future. "
+            "Use %s= instead. "
+        ], legacy(i, :));
+    end
 end
 %}
 % >=R2019b
@@ -85,8 +100,8 @@ if isempty(pp)
 
     addParameter(pp, "OutputData", "databank");
     addParameter(pp, "OutputType", @auto);
-    addParameter(pp, "PrependInput", false);
-    addParameter(pp, "AppendInput", false);
+    addParameter(pp, {"PrependInput", "AppendPresample"}, false);
+    addParameter(pp, {"AppendInput", "AppendPostsample"}, false);
     addParameter(pp, "AddParameters", true);
     addParameter(pp, "AddToDatabank", false);
 end
