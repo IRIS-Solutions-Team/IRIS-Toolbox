@@ -49,16 +49,16 @@ jobs:
           
       - name: Make sure all r2019a/r2019b switches are set correctly
         run: |
-          for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
+          for f in $( grep -rl --include=*.m "% [><]=R2019[ab]" .); do
               echo $f
-              gsed -i 's/\r//g' $f
+              sed -i 's/\r//g' $f
               cp $f temp.orig
-              gtr '\n' '\v' < temp.orig > temp.replaced
-              gsed -i 's/% >=R2019b[ ]*\v%(/% >=R2019b\v%{/g' temp.replaced
-              gsed -i 's/%)\v% >=R2019b[ ]*/%}\v% >=R2019b/g' temp.replaced
-              gsed -i 's/% <=R2019a[ ]*\v%{/% <=R2019a\v%(/g' temp.replaced
-              gsed -i 's/%}\v% <=R2019a[ ]*/%)\v% <=R2019a/g' temp.replaced
-              gtr '\v' '\n' < temp.replaced > temp.final
+              tr '\n' '\v' < temp.orig > temp.replaced
+              sed -i 's/% >=R2019b[ ]*\v%(/% >=R2019b\v%{/g' temp.replaced
+              sed -i 's/%)\v% >=R2019b[ ]*/%}\v% >=R2019b/g' temp.replaced
+              sed -i 's/% <=R2019a[ ]*\v%{/% <=R2019a\v%(/g' temp.replaced
+              sed -i 's/%}\v% <=R2019a[ ]*/%)\v% <=R2019a/g' temp.replaced
+              tr '\v' '\n' < temp.replaced > temp.final
               # cat temp.final
               cp temp.final $f
               rm temp.orig temp.replaced temp.final
@@ -73,6 +73,6 @@ jobs:
           files_to_commit=$(git diff --cached --name-status)
           if [[ $files_to_commit ]]; then
             git commit -m "Update pre-r2019b"
-            git push origin pre-r2019b
           fi
+          git push origin pre-r2019b
           git status
