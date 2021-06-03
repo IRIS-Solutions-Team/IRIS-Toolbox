@@ -86,6 +86,13 @@ __`NaN="NaN"`__ [ string ]
 > String to represent `NaN` values.
 > 
 
+__`TargetNames=[]`__ [ empty | function ]
+>
+> Function transforming the databank field names to the names under which
+> the data are saved in the CSV file; `TargetNames=[]` means no
+> transformation.
+> 
+
 __`UserDataFields=[]`__ [ empty | string ]
 > 
 > List of user data fields that will be extracted from each time series

@@ -48,6 +48,7 @@ if isempty(pp)
     addOptional(pp, 'dates', Inf, @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
 
     addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, 'TargetNames', [], @(x) isempty(x) || isa(x, 'function_handle'));
     addParameter(pp, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'Class', true, @validate.logicalScalar);
     addParameter(pp, {'Comments', 'Comment'}, true, @validate.logicalScalar);
@@ -153,7 +154,7 @@ for i = 1 : nList
     else
         continue
     end
-    
+
     data__ = double(data__);
     sizeData__ = size(data__);
     data__ = data__(:, :);
@@ -166,7 +167,11 @@ for i = 1 : nList
     inxSerialized(i) = true;
     % Add data, expand first dimension if necessary.
     data{i} = data__;
-    nameRow{end+1} = list{i}; %#ok<AGROW>
+    nameToAdd = list{i};
+    if isa(opt.TargetNames, 'function_handle')
+        nameToAdd = opt.TargetNames(nameToAdd);
+    end
+    nameRow{end+1} = char(nameToAdd); %#ok<AGROW>
     classRow{end+1} = [class__, FN_PRINT_SIZE(sizeData__)]; %#ok<AGROW>
 
     if numColumns__>1

@@ -210,6 +210,7 @@ classdef Explanatory ...
         varargout = collectControlNames(varargin)
         varargout = collectLhsNames(varargin)
         varargout = collectRhsNames(varargin)
+        varargout = collectResidualNames(varargin)
         varargout = collectLogStatus(varargin)
         varargout = checkUniqueLhs(varargin)
         varargout = declareSwitches(varargin)

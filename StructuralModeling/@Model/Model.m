@@ -357,6 +357,7 @@ classdef Model ...
 
     methods % Public Interface
         %(
+        varargout = checkInitials(varargin)
         varargout = quickAssign(varargin)
         varargout = access(varargin)
         varargout = equationStartsWith(varargin)

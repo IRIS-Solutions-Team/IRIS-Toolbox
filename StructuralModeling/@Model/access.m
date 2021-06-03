@@ -85,6 +85,9 @@ if beenHandled, return, end
 [output, beenHandled] = access(this.Equation, what);
 if beenHandled, return, end
 
+[output, beenHandled] = access(this.Pairing, what, this.Quantity);
+if beenHandled, return, end
+
 
 output = [ ];
 beenHandled = true;

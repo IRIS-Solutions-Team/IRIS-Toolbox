@@ -1,13 +1,27 @@
 classdef Frequency < double
     enumeration
-        INTEGER           (  0) 
-        YEARLY            (  1) 
-        HALFYEARLY        (  2) 
-        QUARTERLY         (  4) 
-        MONTHLY           ( 12) 
-        WEEKLY            ( 52) 
-        DAILY             (365) 
-        NaN               (NaN) 
+        INTEGER           (  0)
+        Integer           (  0)
+
+        YEARLY            (  1)
+        Yearly            (  1)
+
+        HALFYEARLY        (  2)
+        HalfYearly        (  2)
+
+        QUARTERLY         (  4)
+        Quarterly         (  4)
+
+        MONTHLY           ( 12)
+        Monthly           ( 12)
+
+        WEEKLY            ( 52)
+        Weekly            ( 52)
+
+        DAILY             (365)
+        Daily             (365)
+
+        NaN               (NaN)
     end
 
 
@@ -281,7 +295,7 @@ classdef Frequency < double
                         case "e" % End of period
                             month = month + 6;
                             day = eomday(year, month);
-                    end 
+                    end
                 case 4
                     [year, quarter] = Frequency.deserialize(this, serial);
                     month = 3*(quarter-1);
@@ -376,7 +390,7 @@ classdef Frequency < double
             end
             %)
         end%
-        
+
 
         function c = toChar(freq)
             if ~isa(freq, 'Frequency')
@@ -518,7 +532,7 @@ classdef Frequency < double
 
 
         function letter = toLetter(freq)
-            freqLetters = iris.get('FreqLetters'); 
+            freqLetters = iris.get('FreqLetters');
             letter = repmat("", size(freq));
             letter(freq==Frequency.YEARLY) = freqLetters(1);
             letter(freq==Frequency.HALFYEARLY) = freqLetters(2);
@@ -568,10 +582,10 @@ classdef Frequency < double
                 case Frequency.MONTHLY
                     c = "M";
                 otherwise
-                    exception.error([ 
-                        "Frequency:InvalidFredFrequency" 
-                        "This is not a valid Fred frequency: %s" 
-                        "Fred frequency needs to be one of {YEARLY, HALFYEARLY, QUARTERY, MONTHLY}." 
+                    exception.error([
+                        "Frequency:InvalidFredFrequency"
+                        "This is not a valid Fred frequency: %s"
+                        "Fred frequency needs to be one of {YEARLY, HALFYEARLY, QUARTERY, MONTHLY}."
                     ], this);
             end
             %)
@@ -588,10 +602,10 @@ classdef Frequency < double
                 case Frequency.MONTHLY
                     c = "M";
                 otherwise
-                    exception.error([ 
-                        "Frequency:InvalidIMFFrequency" 
-                        "This is not a valid IMF frequency: %s" 
-                        "IMF frequency needs to be one of {YEARLY, QUARTERY, MONTHLY}." 
+                    exception.error([
+                        "Frequency:InvalidIMFFrequency"
+                        "This is not a valid IMF frequency: %s"
+                        "IMF frequency needs to be one of {YEARLY, QUARTERY, MONTHLY}."
                     ], this);
             end
             %)

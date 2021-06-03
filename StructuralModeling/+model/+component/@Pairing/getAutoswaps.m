@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [namesExogenized, namesEndogenized, autoswaps] = getAutoswaps(p, quantity)
+function [namesExogenized, namesEndogenized, autoswaps] = getAutoswaps(p, quantity, namesFunc)
 
 PTR = @int16;
 
@@ -20,6 +20,9 @@ autoswaps = struct( );
 namesExogenized = reshape(namesExogenized, 1, []);
 namesEndogenized = reshape(namesEndogenized, 1, []);
 if ~isempty(namesExogenized)
+    if nargin>=3
+        namesEndogenized = cellfun(namesFunc, namesEndogenized, "uniformOutput", false);
+    end
     autoswaps = cell2struct(namesEndogenized, namesExogenized, 2);
 end
 

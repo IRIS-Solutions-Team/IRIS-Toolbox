@@ -13,6 +13,13 @@ Function | Description
 [`Series.randomlyGrowing`](randomlyGrowing.md) | {{ series._randomlyGrowing }} 
 
 
+#### Modifying time series
+
+Function | Description
+---|---
+[`rebase`](rebase.md) | {{ series._rebase }} 
+
+
 #### Filtering and aggregating time series
 
 Function | Description 

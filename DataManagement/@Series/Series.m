@@ -93,13 +93,9 @@ classdef ( ...
     end
 
 
-
-
     methods
         varargout = spy(varargin)
     end
-
-
 
 
     methods (Static)
