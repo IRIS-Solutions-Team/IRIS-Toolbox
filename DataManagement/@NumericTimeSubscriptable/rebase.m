@@ -1,39 +1,3 @@
-% rebase  Rebase times seriss data to specified period
-%
-%
-% __Syntax__
-%
-% Input arguments marked with a `~` sign may be omitted
-%
-%     X = rebase(X, ~BasePeriod, ~BaseValue, ...)
-%
-%
-% __Input Arguments__
-%
-% * `X` [ Series | tseries ] -  Input time series that will be rebased.
-%
-% * `~BasePeriod='AllStart'` [ Dater | `'AllStart'` | `'AllEnd'` ] -
-% Date relative to which the input data will be rebased (baseValue period);
-% `'AllStart'` means the first date for which all time series columns have
-% a NaN observation; `'AllEnd'` means the last such date.
-%
-% * `~BaseValue=1` [ `0` | `1` | `100` ] - Rebasing mode: `B=0` means
-% additive rebasing with `0` in the baseValue period; `B=1` means
-% multiplicative rebasing with `1` in the baseValue period; `B=100` means
-% multiplicative rebasing with `100` in the baseValue period.
-%
-%
-% __Output Arguments__
-%
-% * `X` [ Series | tseries ] - Rebased time series.
-%
-%
-% __Description__
-%
-%
-% __Example__
-%
-
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 

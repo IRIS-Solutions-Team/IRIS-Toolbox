@@ -3,10 +3,10 @@
 % Backend [IrisToolbox] class
 % No help provided
 
-% -[IrisToolbox] for Macroeconomic Modeling 
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-classdef ProgressBar < handle    
+classdef ProgressBar < handle
     properties
         Title = ''
         TitleRow = ''
@@ -28,8 +28,8 @@ classdef ProgressBar < handle
         LEFT_EDGE = '|'
         RIGHT_EDGE = '|'
     end
-    
-    
+
+
     methods
         function this = ProgressBar(varargin)
             if nargin>=1
@@ -54,8 +54,8 @@ classdef ProgressBar < handle
             fprintf('%s', this.LastIndicatorRow);
             this.Diary = cell.empty(0, 2);
         end%
-    
-        
+
+
         function update(this, varargin)
             if this.Done
                 return
@@ -69,7 +69,7 @@ classdef ProgressBar < handle
             end
             emptyBars = repmat(this.EMPTY_BAR, 1, this.NumProgress - numel(fullBars) - numel(partialBar));
             deleteLastIndicatorRow(this);
-            indicatorRow = [ 
+            indicatorRow = [
                 this.LEFT_EDGE, fullBars, partialBar, emptyBars, this.RIGHT_EDGE ...
                 sprintf(' %5.1f%%', permille/10)
             ];
