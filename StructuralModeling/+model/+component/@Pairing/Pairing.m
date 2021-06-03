@@ -26,6 +26,8 @@ classdef Pairing
 
 
     methods
+        varargout = access(varargin)
+
         function this = set.Autoexog(this, value)
             autoswaps = model.component.AutoswapStruct( );
             autoswaps.Simulate = value.Dynamic;
