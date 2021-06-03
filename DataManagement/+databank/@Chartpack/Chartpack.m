@@ -25,7 +25,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         TitleSettings (1, :) cell = cell.empty(1, 0)
         SubtitleSettings (1, :) cell = cell.empty(1, 0)
         Interpreter (1, 1) string {mustBeMember(Interpreter, ["none", "tex" "latex"])} = "none"
-        
+
         FigureExtras (1, :) cell = cell.empty(1, 0)
         AxesExtras (1, :) cell = cell.empty(1, 0)
     end

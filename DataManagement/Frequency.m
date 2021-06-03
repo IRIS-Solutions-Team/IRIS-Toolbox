@@ -2,18 +2,25 @@ classdef Frequency < double
     enumeration
         INTEGER           (  0)
         Integer           (  0)
+
         YEARLY            (  1)
         Yearly            (  1)
+
         HALFYEARLY        (  2)
         HalfYearly        (  2)
+
         QUARTERLY         (  4)
         Quarterly         (  4)
+
         MONTHLY           ( 12)
         Monthly           ( 12)
+
         WEEKLY            ( 52)
         Weekly            ( 52)
+
         DAILY             (365)
         Daily             (365)
+
         NaN               (NaN)
     end
 
