@@ -88,7 +88,7 @@ if isempty(pp)
     pp.addParameter({'AddToDatabank', 'TargetDb'}, @default, @(x) isequal(x, @default) || validate.databank(x));
 end
 opt = pp.parse(inputDb, func, varargin{:});
-%}
+%)
 % <=R2019a
 
 
