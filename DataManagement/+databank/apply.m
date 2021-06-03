@@ -241,6 +241,7 @@ end%
 
 %
 % Unit tests
+%
 %{
 ##### SOURCE BEGIN #####
 % saveAs=databank/applyUnitTest.m
@@ -284,7 +285,4 @@ assertEqual(testCase, databank.fieldNames(d3), sourceNames);
 
 
 ##### SOURCE END #####
-%}
-
-
 %}
