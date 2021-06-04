@@ -144,8 +144,18 @@ classdef (Abstract) Block < handle
                 %
                 % Iris solvers
                 %
-                this.SolverOptions.JacobPattern = this.JacobPattern;
-                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.SolverOptions, exitFlagHeader);
+
+                % Iterate over different solver settings until
+                % successfully solved
+                for i = 1 : numel(this.SolverOptions)
+                    this.SolverOptions(i).JacobPattern = this.JacobPattern;
+                    [z, ~, exitFlag] = solver.algorithm.qnsd( ...
+                        fnObjective, z0, this.SolverOptions(i), exitFlagHeader ...
+                    );
+                    if hasSucceeded(exitFlag)
+                        break
+                    end
+                end
 
             elseif isa(this.SolverOptions, 'optim.options.SolverOptions')
                 %

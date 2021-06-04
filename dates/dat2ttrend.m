@@ -72,7 +72,7 @@ if isempty(range)
     trend = double(range);
 else
     freq = dater.getFrequency(range);
-    DateWrapper.checkMixedFrequency(freq);
+    Frequency.checkMixedFrequency(freq);
     freq = freq(1);
     if freq==0
         trend = double(range);

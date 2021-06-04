@@ -50,7 +50,7 @@ end
 
 [year, per, freq] = dat2ypf(dat);
 
-DateWrapper.checkMixedFrequency(freq);
+Frequency.checkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq

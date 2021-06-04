@@ -52,7 +52,7 @@ if isempty(inputParser)
     inputParser = extend.InputParser('model.bn');
     inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
     inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addRequired('Range', @DateWrapper.validateDateInput);
+    inputParser.addRequired('Range', @validate.date);
     inputParser.addDeviationOptions(false);
 end
 inputParser.parse(this, inp, range, varargin{:});

@@ -9,7 +9,9 @@ boundsWithinModel = this.ParentBlazer.Model.Quantity.Bounds(1:2, :);
 % All bounds are [-Inf, Inf]; return immediately an empty array
 %
 if all(all(isinf(boundsWithinModel(1:2, uniquePtrs))))
-    this.SolverOptions.Bounds = [ ];
+    for i = 1 : numel(this.SolverOptions)
+        this.SolverOptions(i).Bounds = [ ];
+    end
     return
 end
 
@@ -44,10 +46,12 @@ if ~isempty(namesInvalidUpper)
     hereReportNamesInvalidUpper( );
 end
 
-this.SolverOptions.Bounds = boundsWithinModel(:, ptrs);
+for i = 1 : numel(this.SolverOptions)
+    this.SolverOptions(i).Bounds = boundsWithinModel(:, ptrs);
+end
 
 return
-    
+
     function hereReportNamesInvalidUpper( )
         %(
         exception.error([

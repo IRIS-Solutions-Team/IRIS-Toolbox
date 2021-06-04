@@ -353,7 +353,7 @@ if isempty(parser)
     parser = extend.InputParser('dbase.dbplot');
     parser.KeepUnmatched = true;
     parser.addRequired('InputDatabase', @isstruct);
-    parser.addOptional('Range', @auto); %, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x) || (iscell(x) && ~iscellstr(x)));
+    parser.addOptional('Range', @auto); %, @(x) isequal(x, @auto) || validate.date(x) || (iscell(x) && ~iscellstr(x)));
     parser.addOptional('List', @all, @(x) isequal(x, @all) || iscellstr(x) || isa(x, 'rexp') || isa(x, 'string'));
     
     parser.addParameter('AddClick', true, @(x) isequal(x, true) || isequal(x, false));

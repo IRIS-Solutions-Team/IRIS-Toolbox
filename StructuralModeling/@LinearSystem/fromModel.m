@@ -4,7 +4,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('@LinearSystem.fromModel');
     addRequired(pp, 'model', @(x) isa(x, 'Model'));
-    addRequired(pp, 'filterRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'filterRange', @validate.properRange);
     addParameter(pp, 'Override', struct( ), @validate.databank);
     addParameter(pp, 'Multiply', struct( ), @validate.databank);
 end

@@ -59,7 +59,7 @@ function outputDate = convert(inputDate, toFreq, varargin)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('dates.convert');
-    addRequired(pp, 'inputDate', @DateWrapper.validateDateInput);
+    addRequired(pp, 'inputDate', @validate.date);
     addRequired(pp, 'newFreq', @Frequency.validateFrequency);
 end
 pp.parse(inputDate, toFreq);

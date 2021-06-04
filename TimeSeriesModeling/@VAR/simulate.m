@@ -77,7 +77,7 @@ if isempty(pp)
     pp = extend.InputParser('@VAR/simulate');
     pp.addRequired('VAR', @(x) isa(x, 'VAR'));
     pp.addRequired('InputDatabank', @validate.databank);
-    pp.addRequired('Range', @DateWrapper.validateProperRangeInput);
+    pp.addRequired('Range', @validate.properRange);
     pp.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
     pp.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
     pp.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));

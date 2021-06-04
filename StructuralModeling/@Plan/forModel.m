@@ -55,7 +55,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.Plan');
     addRequired(pp, 'model', @(x) isa(x, 'Model'));
-    addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'simulationRange', @validate.properRange);
     addParameter(pp, {'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Method', 'Exogenize', @(x) isequal(x, @auto) || validate.anyString(x, 'Exogenize', 'Condition'));
 end

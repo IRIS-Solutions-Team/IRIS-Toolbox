@@ -63,7 +63,7 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('model/fevd');
     inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Time', @DateWrapper.validateDateInput);
+    inputParser.addRequired('Time', @validate.date);
     inputParser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
     inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
 end
