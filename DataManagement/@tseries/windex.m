@@ -47,7 +47,7 @@ if isempty(pp)
     pp.KeepUnmatched = true;
     pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     pp.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
-    pp.addOptional('Range', Inf, @Dater.validateRangeInput);
+    pp.addOptional('Range', Inf, @validate.range);
 end
 parse(pp, this, weights, varargin{:});
 range = double(pp.Results.Range);

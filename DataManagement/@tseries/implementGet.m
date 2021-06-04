@@ -40,7 +40,7 @@ switch query
                 answ = dater.plus(start, pos-1);
             end
         end
-        answ = Dater(answ);
+        answ = DateWrapper(answ);
         
         
     case {'end', 'enddate', 'last'}
@@ -59,7 +59,7 @@ switch query
                 answ = dater.plus(start, pos-1);
             end
         end
-        answ = Dater(answ);
+        answ = DateWrapper(answ);
         
         
     case {'freq', 'frequency', 'per', 'periodicity'}

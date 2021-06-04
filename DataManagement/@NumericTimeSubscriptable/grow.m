@@ -30,7 +30,7 @@ if isempty(pp)
     addRequired(pp, 'level', @locallyValidateLevelInput);
     addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, 'function_handle'));
     addRequired(pp, 'growth', @locallyValidateGrowthInput);
-    addRequired(pp, 'dates', @Dater.validateProperDateInput);
+    addRequired(pp, 'dates', @validate.properDate);
     addOptional(pp, 'shift', -1, @locallyValidateShift);
 
     addParameter(pp, "Direction", "Forward", @(x) any(strcmpi(x, ["Forward", "Backward"])));

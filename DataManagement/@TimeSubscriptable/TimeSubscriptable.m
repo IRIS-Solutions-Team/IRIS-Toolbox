@@ -108,7 +108,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
          
 
         function value = getStart(this)
-            value = Dater(this.Start);
+            value = DateWrapper(this.Start);
         end%
          
 
@@ -129,7 +129,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
         function value = getBalancedStartAsNumeric(this)
             if isnan(this.Start) || isempty(this.Data)
-                value = Dater(NaN);
+                value = DateWrapper(NaN);
                 return
             end
             start = double(this.Start);
@@ -145,7 +145,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
         function value = getBalancedStart(this)
-            value = Dater(getBalancedStartAsNumeric(this));
+            value = DateWrapper(getBalancedStartAsNumeric(this));
         end%
 
 
@@ -155,7 +155,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
                 
         
         function value = getEnd(this)
-            value = Dater(getEndAsNumeric(this));
+            value = DateWrapper(getEndAsNumeric(this));
         end%
 
 
@@ -191,7 +191,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
         function value = getBalancedEndAsNumeric(this)
             if isnan(this.Start) || isempty(this.Data)
-                value = Dater(NaN);
+                value = DateWrapper(NaN);
                 return
             end
             start = double(this.Start);
@@ -207,7 +207,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
         function value = getBalancedEnd(this)
-            value = Dater(getBalancedEndAsNumeric(this));
+            value = DateWrapper(getBalancedEndAsNumeric(this));
         end%
 
 
@@ -245,7 +245,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
         function value = getRange(this)
-            value = Dater(getRangeAsNumeric(this));
+            value = DateWrapper(getRangeAsNumeric(this));
         end%
 
 

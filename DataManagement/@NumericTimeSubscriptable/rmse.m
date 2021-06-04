@@ -68,9 +68,9 @@ if isempty(pp)
     pp = extend.InputParser('@Series/rmse');
     addRequired(pp, 'actual', @(x) isa(x, 'NumericTimeSubscriptable') && ndims(x) == 2 && size(x, 2) == 1); %#ok<ISMAT>
     addRequired(pp, 'prediction', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addOptional(pp, 'legacyRange', Inf, @Dater.validateRangeInput);
+    addOptional(pp, 'legacyRange', Inf, @validate.properRange);
 
-    addParameter(pp, 'Range', Inf, @Dater.validateRangeInput);
+    addParameter(pp, 'Range', Inf, @validate.range);
 end
 [skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip

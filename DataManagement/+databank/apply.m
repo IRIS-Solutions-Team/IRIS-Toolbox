@@ -110,8 +110,6 @@ opt.AddToEnd = char(opt.AddToEnd);
 
 hereCheckInputOutputNames( );
 
-%--------------------------------------------------------------------------
-
 if isa(inputDb, 'Dictionary')
     namesFields = cellstr(keys(inputDb));
 elseif isstruct(inputDb)

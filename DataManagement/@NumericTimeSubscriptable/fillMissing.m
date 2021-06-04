@@ -40,7 +40,7 @@ method = pp.Results.method;
 % Return immediately if the range is empty
 
 if isempty(range)
-    datesMissing = Dater.empty(1, 0);
+    datesMissing = DateWrapper.empty(1, 0);
     return
 end
 
@@ -57,9 +57,9 @@ inxMissing = this.MissingTest(data) & inxRange;
 if nargout>=2
     if any(inxMissing)
         datesMissing = dater.plus(startDate, find(inxMissing)-1);
-        datesMissing = Dater(datesMissing);
+        datesMissing = DateWrapper(datesMissing);
     else
-        datesMissing = Dater.empty(0, 1);
+        datesMissing = DateWrapper.empty(0, 1);
     end
 end
 

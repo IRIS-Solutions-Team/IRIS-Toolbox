@@ -77,7 +77,7 @@ function flag = hereValidateDates(input)
         flag = true;
         return
     end
-    if Dater.validateProperDateInput(input) ...
+    if validate.properDate(input) ...
        && all(dater.getFrequency(input)==Frequency.YEARLY)
         flag = true;
         return

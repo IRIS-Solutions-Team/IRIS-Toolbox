@@ -75,7 +75,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('tseries.cumsumk');
     addRequired(pp, 'TimeSeries', @(x) isa(x, 'tseries'));
-    addRequired(pp, 'Range', @Dater.validateProperRangeInput);
+    addRequired(pp, 'Range', @validate.properRange);
     addParameter(pp, 'K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, 'Rho', 1, @(x) isnumeric(x) && isscalar(x));
     addParameter(pp, 'Log', false, @(x) islogical(x) && isscalar(x));

@@ -26,7 +26,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Series/moving');
     pp.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    pp.addOptional('range_', Inf, @Dater.validateRangeInput);
+    pp.addOptional('range_', Inf, @validate.range);
 
     pp.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
     pp.addParameter('Window', @auto, @(x) isequal(x, @auto) || isnumeric(x));

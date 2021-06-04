@@ -71,7 +71,7 @@ for i = 1 : numInputs
 end
 inxNaNFreq = isnan(freq);
 if any(~inxNaNFreq)
-    Dater.checkMixedFrequency(freq(~inxNaNFreq));
+    DateWrapper.checkMixedFrequency(freq(~inxNaNFreq));
     freq = freq( find(~inxNaNFreq, 1) );
 else
     freq = NaN;

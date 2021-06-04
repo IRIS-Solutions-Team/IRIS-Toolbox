@@ -5,7 +5,7 @@
 
 function varargout = hh(varargin)
 
-[varargout{1:nargout}] = Dater.hh(varargin{:});
+[varargout{1:nargout}] = DateWrapper.hh(varargin{:});
 
 end%
 

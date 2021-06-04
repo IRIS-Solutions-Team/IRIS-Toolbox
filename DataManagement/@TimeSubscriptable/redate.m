@@ -63,8 +63,8 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('tseries.redate');
     pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    pp.addRequired('OldDate', @Dater.validateDateInput);
-    pp.addRequired('NewDate', @Dater.validateDateInput);
+    pp.addRequired('OldDate', @validate.date);
+    pp.addRequired('NewDate', @validate.date);
 end
 parse(pp, this, oldDate, newDate);
 

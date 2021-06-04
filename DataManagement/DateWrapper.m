@@ -70,7 +70,7 @@ classdef DateWrapper ...
             if ~all(inxInf)
                 throw(exception.Base('DateWrapper:InvalidInputsIntoUminus', 'error'));
             end
-            this = Dater(-double(this));
+            this = DateWrapper(-double(this));
         end%
 
 
@@ -89,10 +89,10 @@ classdef DateWrapper ...
             end
             x = double(a) + double(b);
             x = round(x*100)/100;
-            this = Dater(x);
+            this = DateWrapper(x);
         end%
-        
-        
+
+
         function this = minus(a, b)
             a = double(a);
             b = double(b);
@@ -121,7 +121,7 @@ classdef DateWrapper ...
                     "or two dates of the same frequency from each other."
                 ]);
             end
-            this = Dater(x);
+            this = DateWrapper(x);
         end%
         
         
@@ -163,19 +163,19 @@ classdef DateWrapper ...
 
 
         function this = real(this)
-            this = Dater(real(double(this)));
+            this = DateWrapper(real(double(this)));
         end%
 
 
         function this = min(varargin)
             minDouble = min@double(varargin{:});
-            this = Dater(minDouble);
+            this = DateWrapper(minDouble);
         end%
 
 
         function this = max(varargin)
             maxDouble = max@double(varargin{:});
-            this = Dater(maxDouble);
+            this = DateWrapper(maxDouble);
         end%
 
 
@@ -270,12 +270,12 @@ classdef DateWrapper ...
 
     methods (Static)
         function this = Inf( )
-            this = Dater(Inf);
+            this = DateWrapper(Inf);
         end%
 
 
         function this = NaD( )
-            this = Dater(NaN);
+            this = DateWrapper(NaN);
         end%
 
 
@@ -295,22 +295,22 @@ classdef DateWrapper ...
 
 
         function this = fromSerial(varargin)
-            this = Dater(dater.fromSerial(varargin{:}));
+            this = DateWrapper(dater.fromSerial(varargin{:}));
         end%
 
 
         function this = fromIsoString(varargin)
-            this = Dater(dater.fromIsoString(varargin{:}));
+            this = DateWrapper(dater.fromIsoString(varargin{:}));
         end%
 
 
         function this = fromDatetime(varargin)
-            this = Dater(dater.fromMatlab(varargin{:}));
+            this = DateWrapper(dater.fromMatlab(varargin{:}));
         end%
 
 
         function this = fromMatlab(varargin)
-            this = Dater(dater.fromMatlab(varargin{:}));
+            this = DateWrapper(dater.fromMatlab(varargin{:}));
         end%
 
 
@@ -505,7 +505,7 @@ classdef DateWrapper ...
 
 
         function date = ii(input)
-            date = Dater(round(input));
+            date = DateWrapper(round(input));
         end%
 
 
@@ -572,7 +572,7 @@ classdef DateWrapper ...
                 output = [from, to];
             end
             if convertToDateWrapper
-                output = Dater(output);
+                output = DateWrapper(output);
             end
         end%
     end

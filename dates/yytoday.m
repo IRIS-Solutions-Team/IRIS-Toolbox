@@ -1,3 +1,3 @@
 function outputDate = yytoday( )
-outputDate = Dater(dater.yytoday());
+outputDate = DateWrapper(dater.yytoday());
 end%

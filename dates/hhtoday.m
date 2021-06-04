@@ -1,3 +1,3 @@
 function outputDate = hhtoday( )
-outputDate = Dater(dater.hhtoday());
+outputDate = DateWrapper(dater.hhtoday());
 end%
