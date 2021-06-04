@@ -71,7 +71,7 @@ if isempty(inputParser)
     inputParser = extend.InputParser('DFM.estimate');
     inputParser.addRequired('DFM', @(x) isa(x, 'DFM'));
     inputParser.addRequired('InputData', @isstruct);
-    inputParser.addRequired('Range', @DateWrapper.validateRangeInput);
+    inputParser.addRequired('Range', @validate.range);
     inputParser.addRequired('RQ', ...
         @(x) isnumeric(x) && numel(x)==2 && x(1)>0 && x(1)<=1 && x(2)==round(x(2)) && x(2)>=1);
     inputParser.addParameter('Cross', true, ...

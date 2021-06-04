@@ -15,7 +15,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.responseFunctions');
     parser.addRequired('Model', @(x) isa(x, 'model') && all(beenSolved(x)));
-    parser.addRequired('Time', @DateWrapper.validateDateInput);
+    parser.addRequired('Time', @validate.date);
 end
 parse(parser, this, time);
 

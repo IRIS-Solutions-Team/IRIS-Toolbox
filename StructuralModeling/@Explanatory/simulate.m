@@ -95,7 +95,7 @@ if isempty(pp)
 
     addRequired(pp, 'explanatory', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'inputData', @(x) validate.databank(x) || isa(x, 'shared.DataBlock'));
-    addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'simulationRange', @validate.properRange);
 
     addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);

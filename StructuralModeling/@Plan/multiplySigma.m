@@ -45,7 +45,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.assign');
     addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
-    addRequired(pp, 'datesToAssign', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
+    addRequired(pp, 'datesToAssign', @(x) isequal(x, @all) || validate.date(x));
     addRequired(pp, 'namesToAssign', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
     addRequired(pp, 'variantsToAssign', @(x) isequal(x, @all) || isnumeric(x));
     addRequired(pp, 'multiplier', @isnumeric);

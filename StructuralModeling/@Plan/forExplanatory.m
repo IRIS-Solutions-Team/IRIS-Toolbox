@@ -67,7 +67,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.Plan');
     addRequired(pp, 'expy', @(x) isa(x, 'Explanatory'));
-    addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'simulationRange', @validate.properRange);
 end
 %)
 parse(pp, expy, simulationRange);

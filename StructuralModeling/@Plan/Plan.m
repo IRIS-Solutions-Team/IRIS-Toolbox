@@ -164,7 +164,7 @@ classdef Plan ...
             if isempty(pp)
                 pp = extend.InputParser('Plan.autoswap');
                 addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
-                addRequired(pp, 'datesToSwap', @DateWrapper.validateDateInput);
+                addRequired(pp, 'datesToSwap', @validate.date);
                 addRequired(pp, 'namesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
                 addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
@@ -263,7 +263,7 @@ classdef Plan ...
             if isempty(pp)
                 pp = extend.InputParser('Plan.implementExogenize');
                 addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
-                addRequired(pp, 'datesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
+                addRequired(pp, 'datesToExogenize', @(x) isequal(x, @all) || validate.date(x));
                 addRequired(pp, 'namesToExogenize', @(x) isequal(x, @all) || validate.list(x));
                 addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
                 addParameter(pp, 'MissingValue', 'Error', @(x) validate.anyString(x, 'Error', 'KeepEndogenous'));
@@ -309,7 +309,7 @@ classdef Plan ...
             if isempty(pp)
                 pp = extend.InputParser('Plan.implementEndogenize');
                 addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
-                addRequired(pp, 'datesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
+                addRequired(pp, 'datesToEndogenize', @(x) isequal(x, @all) || validate.date(x));
                 addRequired(pp, 'namesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
@@ -702,7 +702,7 @@ classdef Plan ...
 
         function value = get.BaseRange(this)
             if isempty(this.BaseStart) || isempty(this.BaseEnd)
-                value = DateWrapper.NaD;
+                value = DateWrapper(NaN);
                 return
             end
             value = dater.colon(this.BaseStart, this.BaseEnd);
@@ -719,7 +719,7 @@ classdef Plan ...
 
         function value = get.ExtendedRange(this)
             if isempty(this.ExtendedStart) || isempty(this.ExtendedEnd)
-                value = DateWrapper.NaD;
+                value = DateWrapper(NaN);
                 return
             end
             value = dater.colon(this.ExtendedStart, this.ExtendedEnd);
@@ -1024,7 +1024,7 @@ end
 function date = hereGetLastDate(start, id)
     inx = id~=0;
     if not(any(inx(:)))
-        date = DateWrapper.NaD;
+        date = DateWrapper(NaN);
         return
     end
     column = find(any(inx, 1), 1, 'Last');

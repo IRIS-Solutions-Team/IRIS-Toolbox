@@ -254,15 +254,15 @@ classdef InputParser < inputParser
 
 
         function addOptionalRangeStartEnd(this)
-            addOptional(this, 'Range', @auto, @(x) isequal(x, @auto) || isequal(x, Inf) || DateWrapper.validateRangeInput(x));
+            addOptional(this, 'Range', @auto, @(x) isequal(x, @auto) || isequal(x, Inf) || validate.range(x));
             this.addStartEndOptions( );
             this.HasOptionalRangeStartEnd = true;
         end%
 
 
         function addStartEndOptions(this)
-            addParameter(this, 'Start', -Inf, @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
-            addParameter(this, 'End', Inf, @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
+            addParameter(this, 'Start', -Inf, @(x) isequal(x, -Inf) || validate.date(x));
+            addParameter(this, 'End', Inf, @(x) isequal(x, Inf) || validate.date(x));
             this.HasStartEndOptions = true;
         end%
 

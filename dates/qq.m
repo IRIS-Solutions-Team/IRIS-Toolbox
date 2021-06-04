@@ -5,7 +5,7 @@
 
 function varargout = qq(varargin)
 
-[varargout{1:nargout}] = DateWrapper.qq(varargin{:});
+[varargout{1:nargout}] = DateWrapper(dater.qq(varargin{:}));
 
 end%
 

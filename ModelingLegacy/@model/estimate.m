@@ -245,7 +245,7 @@ if isempty(pp)
     pp.KeepUnmatched = true;
     pp.addRequired('Model', @(x) isa(x, 'model'));
     pp.addRequired('InputDatabank', @validate.databank);
-    pp.addRequired('Range', @(x) isempty(x) || DateWrapper.validateProperRangeInput(x));
+    pp.addRequired('Range', @(x) isempty(x) || validate.properRange(x));
     pp.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
     pp.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'SystemPriorWrapper'));
 

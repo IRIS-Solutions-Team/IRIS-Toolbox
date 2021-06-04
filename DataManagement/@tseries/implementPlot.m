@@ -14,7 +14,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('tseries.implementPlot');
     parser.KeepUnmatched = true;
-    parser.addParameter('Comprise', [ ], @(x) isempty(x) || DateWrapper.validateDateInput(x));
+    parser.addParameter('Comprise', [ ], @(x) isempty(x) || validate.date(x));
     parser.addPlotOptions( );
     parser.addDateOptions('tseries');
 end
