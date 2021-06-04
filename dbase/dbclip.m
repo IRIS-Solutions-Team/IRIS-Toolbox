@@ -62,8 +62,8 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase.dbclip');
     parser.addRequired('InputDatabank', @isstruct);
-    parser.addRequired('RangeOrStartDate', @(x) (iscell(x) && all(cellfun(@(y) DateWrapper.validateRangeInput(y), x))) || DateWrapper.validateRangeInput(x));
-    parser.addOptional('EndDate', [ ], @(x) isempty(x) || (iscell(x) && all(cellfun(@(y) DateWrapper.validateDateInput(y), x))) || DateWrapper.validateDateInput(x));
+    parser.addRequired('RangeOrStartDate', @(x) (iscell(x) && all(cellfun(@(y) validate.range(y), x))) || validate.range(x));
+    parser.addOptional('EndDate', [ ], @(x) isempty(x) || (iscell(x) && all(cellfun(@(y) validate.date(y), x))) || validate.date(x));
 end
 parser.parse(D, varargin{:});
 endDate = parser.Results.EndDate;

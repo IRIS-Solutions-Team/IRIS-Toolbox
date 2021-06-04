@@ -100,7 +100,7 @@ if isempty(pp)
     pp = extend.InputParser('model.jforecast');
     pp.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
     pp.addRequired('InputData', @(x) validate.databank(x) || iscell(x));
-    pp.addRequired('Range', @DateWrapper.validateDateInput);
+    pp.addRequired('Range', @validate.date);
 
     pp.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     pp.addParameter('CurrentOnly', true, @(x) isequal(x, true) || isequal(x, false));

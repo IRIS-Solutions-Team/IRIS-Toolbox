@@ -41,7 +41,7 @@ function outputVAR = VAR(this, select, range, varargin)
 % Parse required arguments.
 pp = inputParser( );
 pp.addRequired('List', @(x) ischar(x) || iscellstr(x));
-pp.addRequired('Range', @DateWrapper.validateDateInput);
+pp.addRequired('Range', @validate.date);
 pp.parse(List, range);
 
 % Parse options.

@@ -17,7 +17,7 @@ if isempty(inputParser)
     inputParser.addParameter('Method', 'cf', @(x) (ischar(x) || isa(x, 'string'))  && any(strcmpi(x, {'cf', 'hwfsf'})));
     inputParser.addParameter('UnitRoot', true, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Window', 'hamming', @(x) (ischar(x) || isa(x, 'string')) && any(strcmpi(x, {'hamming', 'hanning', 'none'})));
-    inputParser.addParameter('StartDate', [ ], @(x) isempty(x) || (DateWrapper.validateDateInput(x) && isscalar(x)));
+    inputParser.addParameter('StartDate', [ ], @(x) isempty(x) || (validate.date(x) && isscalar(x)));
     inputParser.addParameter('Detrend', true, @(x) isequal(x, true) || isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
 end
 inputParser.parse(x, band, varargin{:});

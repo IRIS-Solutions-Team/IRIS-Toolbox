@@ -54,7 +54,7 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('model/fmse');
     INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('Time', @DateWrapper.validateDateInput);
+    INPUT_PARSER.addRequired('Time', @validate.date);
 end
 INPUT_PARSER.parse(this, time);
 

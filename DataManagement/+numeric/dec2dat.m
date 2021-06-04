@@ -14,7 +14,7 @@ pos = lower(pos(1));
 
 %--------------------------------------------------------------------------
 
-DateWrapper.checkMixedFrequency(freq);
+Frequency.checkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq

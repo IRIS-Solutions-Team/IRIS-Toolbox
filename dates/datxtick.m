@@ -65,7 +65,7 @@ if isempty(parser)
     parser = extend.InputParser('dates.datxtick');
     parser.KeepUnmatched = true;
     parser.addRequired('Axes', @(x) all(ishandle(x)));
-    parser.addRequired('Range', @DateWrapper.validateRangeInput);
+    parser.addRequired('Range', @validate.range);
     parser.addDateOptions('tseries');
 end
 parser.parse(ax, newRange);

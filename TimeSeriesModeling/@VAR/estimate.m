@@ -147,7 +147,7 @@ if isempty(pp)
     pp = extend.InputParser('VAR.estimate');
     addRequired(pp, 'varModel', @(x) isa(x, 'VAR'));
     addRequired(pp, 'inputData', @(x) myisvalidinpdata(this, x));
-    addRequired(pp, 'range', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'range', @validate.properRange);
 
     addParameter(pp, 'Diff', false, @validate.logicalScalar);
     addParameter(pp, 'Order', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, 0, intmax( )));

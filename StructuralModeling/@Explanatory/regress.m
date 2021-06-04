@@ -39,7 +39,7 @@ if isempty(pp)
 
     addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'inputDb', @validate.databank);
-    addRequired(pp, 'fittedRange', @DateWrapper.validateRangeInput);
+    addRequired(pp, 'fittedRange', @validate.range);
 
     addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, []) || validate.databank(x));
     addParameter(pp, "BlackoutBefore", -Inf, @Explanatory.validateBlackout);

@@ -166,7 +166,7 @@ classdef plan < shared.UserDataContainer ...
             if isempty(parser)
                  parser = extend.InputParser('plan.plan');
                  parser.addRequired('Model', @(x) isa(x, 'model') || isempty(x));
-                 parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+                 parser.addRequired('SimulationRange', @validate.properRange);
                  parser.addOptional('XList', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
                  parser.addOptional('NList', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
                  parser.addOptional('CList', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));

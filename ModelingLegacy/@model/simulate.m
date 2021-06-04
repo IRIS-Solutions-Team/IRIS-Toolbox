@@ -277,7 +277,7 @@ if isempty(parser)
     parser = extend.InputParser('model.simulate');
     parser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
     parser.addRequired('D', @isstruct);
-    parser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
+    parser.addRequired('Range', @(x) validate.properRange(x));
 end
 parser.parse(this, inputData, range);
 [opt, legacyOpt] = parseSimulateOptions(this, varargin{:});

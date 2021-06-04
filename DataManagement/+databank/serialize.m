@@ -45,7 +45,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.serialize');
     addRequired(pp, 'inputDatabank', @validate.databank);
-    addOptional(pp, 'dates', Inf, @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
+    addOptional(pp, 'dates', Inf, @(x) isequal(x, Inf) || validate.date(x));
 
     addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'TargetNames', [], @(x) isempty(x) || isa(x, 'function_handle'));

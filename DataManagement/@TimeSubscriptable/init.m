@@ -16,7 +16,7 @@ else
     if isempty(freq)
         freq = NaN;
     else
-        DateWrapper.checkMixedFrequency(freq);
+        Frequency.checkMixedFrequency(freq);
         freq = freq(1);
     end
 end

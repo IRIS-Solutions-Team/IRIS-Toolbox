@@ -23,7 +23,7 @@ if isempty(pp)
     pp = extend.InputParser("@Model/createSourceDb");
     pp.KeepDefaultOptions = true;
     addRequired(pp, "model", @(x) isa(x, 'model'));
-    addRequired(pp, "range", @DateWrapper.validateProperRangeInput);
+    addRequired(pp, "range", @validate.properRange);
 
     addParameter(pp, ["AppendPresample", "AddPresample"], true, @validate.logicalScalar);
     addParameter(pp, ["AppendPostsample", "AddPostsample"], true, @validate.logicalScalar);

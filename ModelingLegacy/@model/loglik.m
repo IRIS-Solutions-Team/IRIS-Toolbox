@@ -146,7 +146,7 @@ else
     pp = inputParser( );
     pp.addRequired('solvedModel', @(x) isa(x, 'model'));
     pp.addRequired('inputData', @validate.databank);
-    pp.addRequired('range', @DateWrapper.validateDateInput);
+    pp.addRequired('range', @validate.date);
     pp.parse(this, inputData, range);
     
     if ischar(range)

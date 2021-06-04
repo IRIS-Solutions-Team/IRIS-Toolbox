@@ -347,7 +347,7 @@ if isempty(pp)
 
     addRequired(pp, 'solvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
     addRequired(pp, 'inputDb', @(x) isempty(x) || validate.databank(x));
-    addRequired(pp, 'filterRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'filterRange', @validate.properRange);
 
     addParameter(pp, 'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
     addParameter(pp, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
