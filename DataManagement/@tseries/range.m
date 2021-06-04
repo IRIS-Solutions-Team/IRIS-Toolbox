@@ -43,7 +43,7 @@ else
     numRows = size(x.Data, 1);
     outputRange = dater.plus(double(x.Start), 0:numRows-1);
 end
-outputRange = Dater(outputRange);
+outputRange = DateWrapper(outputRange);
 
 end%
 

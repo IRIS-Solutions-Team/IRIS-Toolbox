@@ -108,7 +108,7 @@ else
 end
 
 % Plot range
-if Dater.validateRangeInput(varargin{1})
+if validate.range(varargin{1})
     range = double(varargin{1});
     varargin(1) = [ ];
 else

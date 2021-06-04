@@ -1,3 +1,3 @@
 function outputDate = qqtoday( )
-outputDate = Dater(dater.qqtoday());
+outputDate = DateWrapper(dater.qqtoday());
 end%

@@ -14,7 +14,7 @@ if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable/project');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, 'function', @(x) isa(x, 'function_handle'));
-    addRequired(pp, 'dates', @Dater.validateProperDateInput);
+    addRequired(pp, 'dates', @validate.properDate);
     addOptional(pp, 'arguments', @(x) all(cellfun(@(y) validate.numeric(y) || isa(y, 'NumericTimeSubscriptable'), x)));
 end
 %)

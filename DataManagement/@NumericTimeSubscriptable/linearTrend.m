@@ -8,7 +8,7 @@ function this = linearTrend(constructor, range, varargin)
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('NumericTimeSubscriptable.linearTrend');
-    inputParser.addRequired('range', @Dater.validateProperRangeInput);
+    inputParser.addRequired('range', @validate.properRange);
     inputParser.addOptional('step', 1, @validate.numericScalar);
     inputParser.addOptional('startValue', 0, @(x) isnumeric(x) && size(x, 1)==1);
 end

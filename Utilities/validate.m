@@ -127,6 +127,11 @@ classdef validate
 
 
         function flag = properDates(input)
+            flag = validate.properDates(input);
+        end%
+
+
+        function flag = properDate(input)
             if ~isnumeric(input)
                 flag = false;
                 return
