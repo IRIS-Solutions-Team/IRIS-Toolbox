@@ -137,8 +137,8 @@ classdef (Abstract) Block < handle
             end
             this.EquationsFunc = str2func(this.PREAMBLE + string(equationsFunc));
         end%
-        
-        
+
+
         function [z, exitFlag] = solve(this, fnObjective, z0, exitFlagHeader)
             if isa(this.SolverOptions, 'solver.Options')
                 %

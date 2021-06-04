@@ -127,7 +127,7 @@ classdef validate
 
 
         function flag = properDates(input)
-            flag = validate.properDates(input);
+            flag = validate.properDate(input);
         end%
 
 
