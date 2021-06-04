@@ -146,7 +146,7 @@ if isempty(parser)
     parser = extend.InputParser('dbase.db2array');
     parser.addRequired('InputDatabank', @validate.databank);
     parser.addRequired('List', @(x) isstring(x) || iscellstr(x) || ischar(x) || isa(x, 'rexp') || isequal(x, @all));
-    parser.addRequired('Range', @DateWrapper.validateRangeInput);
+    parser.addRequired('Range', @validate.range);
 end
 parser.parse(d, list, range);
 range = double(range);

@@ -7,7 +7,7 @@ if isempty(pp)
 
     addRequired(pp, 'array', @(x) isnumeric(x) && ndims(x)==2);
     addRequired(pp, 'names', @(x) isstring(x) || ischar(x) || iscellstr(x));
-    addRequired(pp, 'startDate', @DateWrapper.validateProperDateInput);
+    addRequired(pp, 'startDate', @validate.properDate);
 
     addParameter(pp, 'Comments', [ ], @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x));
     addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));

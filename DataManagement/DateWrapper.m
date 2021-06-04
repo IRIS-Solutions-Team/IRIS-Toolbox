@@ -1,5 +1,5 @@
 classdef DateWrapper ...
-    < double 
+    < double
 
     methods
         function value = get(this, query)
@@ -49,8 +49,8 @@ classdef DateWrapper ...
             end
             textual.looseLine( );
         end%
-        
-        
+
+
         function inx = ismember(this, that)
             inx = ismember(round(100*this), round(100*that));
         end%
@@ -123,8 +123,8 @@ classdef DateWrapper ...
             end
             this = DateWrapper(x);
         end%
-        
-        
+
+
         function this = colon(varargin)
             if nargin==2
                 [from, to] = varargin{:};
@@ -143,7 +143,7 @@ classdef DateWrapper ...
                 [from, step, to] = varargin{:};
             end
             if isnan(from) || isnan(step) || isnan(to)
-                this = DateWrapper.NaD( );
+                this = DateWrapper(NaN);
                 return
             end
             if ~isnumeric(from) || ~isnumeric(to) ...
@@ -210,7 +210,7 @@ classdef DateWrapper ...
         end%
     end
 
-        
+
 
 
     methods % == < > <= >=
@@ -240,10 +240,10 @@ classdef DateWrapper ...
         end%
         %)
     end
-    
 
 
-    
+
+
     methods (Hidden)
         function pos = positionOf(dates, start)
             dates = double(dates);
@@ -314,25 +314,6 @@ classdef DateWrapper ...
         end%
 
 
-        function checkMixedFrequency(varargin)
-            if Frequency.sameFrequency(varargin{:})
-                return
-            end
-            freq = reshape(varargin{1}, 1, [ ]);
-            if nargin>=2
-                freq = [freq, reshape(varargin{2}, 1, [ ])];
-            end
-            if nargin>=3
-                context = varargin{3};
-            else
-                context = 'in this context';
-            end
-            cellstrFreq = Frequency.toCellstr(unique(freq, 'stable'));
-            throw( exception.Base('Dates:MixedFrequency', 'error'), ...
-                   context, cellstrFreq{:} ); %#ok<GTARG>
-        end%
-        
-        
         function formats = chooseFormat(formats, freq, k)
             if nargin<3
                 k = 1;
@@ -378,99 +359,6 @@ classdef DateWrapper ...
                 otherwise
                     formats = '';
             end
-        end%
-
-
-        function flag = validateDateInput(input)
-            if isa(input, 'DateWrapper')
-                flag = true;
-                return
-            end
-            if isa(input, 'double')
-                try
-                    DateWrapper.getFrequency(input);
-                    flag = true;
-                catch
-                    flag = false;
-                end
-                return
-            end
-            if isequal(input, @all)
-                flag = true;
-                return
-            end
-            flag = false;
-        end%
-
-
-        function flag = validateProperDateInput(input)
-            if ~DateWrapper.validateDateInput(input)
-                flag = false;
-                return
-            end
-            if any(~isfinite(double(input)))
-                flag = false;
-                return
-            end
-            flag = true;
-        end%
-        
-
-        function flag = validateRangeInput(input)
-            if isequal(input, Inf) || isequal(input, @all)
-                flag = true;
-                return
-            end
-            if ischar(input) || isa(input, 'string')
-                try
-                    input = textinp2dat(input);
-                catch
-                    flag = false;
-                    return
-                end
-            end
-            if ~DateWrapper.validateDateInput(input)
-                flag = false;
-                return
-            end
-            if numel(input)==1
-                flag = true;
-                return
-            end
-            if numel(input)==2
-                if (isinf(input(1)) || isinf(input(2)))
-                    flag = true;
-                    return
-                elseif all(freqcmp(input))
-                    flag = true;
-                    return
-                else
-                    flag = false;
-                    return
-                end
-            end
-            if ~all(freqcmp(input))
-                flag = false;
-                return
-            end
-            if ~all(round(diff(input))==1)
-                flag = false;
-                return
-            end
-            flag = true;
-        end
-
-
-        function flag = validateProperRangeInput(input)
-            if ~DateWrapper.validateRangeInput(input)
-                flag = false;
-                return
-            end
-            if isequal(input, @all) || isempty(input) || any(isinf(input))
-                flag = false;
-                return
-            end
-            flag = true;
         end%
 
 

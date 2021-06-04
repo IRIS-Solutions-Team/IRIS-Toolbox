@@ -11,12 +11,12 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('numeric.trend');
     parser.addRequired('InputData', @isnumeric);
-    parser.addParameter('Break', [ ], @(x) isempty(x) || (isnumeric(x) && all(x==round(x)) && all(x>=1)) || DateWrapper.validateDateInput(x));
+    parser.addParameter('Break', [ ], @(x) isempty(x) || (isnumeric(x) && all(x==round(x)) && all(x>=1)) || validate.date(x));
     parser.addParameter('Season', [ ], @(x) isempty(x) || isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>0));
     parser.addParameter('Connect', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('StartDate', [ ], @(x) isempty(x) || (DateWrapper.validateDateInput(x) && isscalar(x)));
+    parser.addParameter('StartDate', [ ], @(x) isempty(x) || (validate.date(x) && isscalar(x)));
 end
 parser.parse(x, varargin{:});
 opt = parser.Options;

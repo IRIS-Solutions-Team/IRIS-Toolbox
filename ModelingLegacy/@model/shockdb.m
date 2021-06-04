@@ -76,7 +76,7 @@ if isempty(pp)
     pp = extend.InputParser('model.shockdb');
     addRequired(pp, 'Model', @(x) isa(x, 'model'));
     addRequired(pp, 'InputDatabank', @(x) isempty(x) || validate.databank(x));
-    addRequired(pp, 'Range', @(x) DateWrapper.validateProperRangeInput(x));
+    addRequired(pp, 'Range', @(x) validate.properRange(x));
     addOptional(pp, 'NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
     addParameter(pp, 'NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);

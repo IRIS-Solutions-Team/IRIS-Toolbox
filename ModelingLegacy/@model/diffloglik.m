@@ -68,7 +68,7 @@ if isempty(pp)
     pp = extend.InputParser('@Model/diffloglik');
     pp.KeepUnmatched = true;
     addRequired(pp, 'inputData', @(x) validate.databank(x) || iscell(x));
-    addRequired(pp, 'range', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'range', @validate.properRange);
     addRequired(pp, 'parameterNames', @(x) isstring(x) || ischar(x) || iscellstr(x));
 
     addParameter(pp, {'CheckSteady', 'ChkSstate'}, true, @model.validateChksstate);

@@ -62,7 +62,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.steadydb');
     parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+    parser.addRequired('SimulationRange', @validate.properRange);
 end
 parser.parse(this, range);
 

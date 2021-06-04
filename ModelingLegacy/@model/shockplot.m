@@ -73,7 +73,7 @@ end
 pp = inputParser( );
 pp.addRequired('M', @(x) isa(x, 'model'));
 pp.addRequired('ShockName', @ischar);
-pp.addRequired('Range', @DateWrapper.validateDateInput);
+pp.addRequired('Range', @validate.date);
 pp.addRequired('PlotList', @(x) ischar(x) || iscellstr(x));
 pp.parse(this, shockName, range, listOfNamesToPlot);
 

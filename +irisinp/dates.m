@@ -1,9 +1,9 @@
 classdef dates < irisinp.generic
     properties
-        ReportName = 'Dates';
-        Value = NaN;
-        Omitted = @error;
-        ValidFn = @DateWrapper.validateDateInput;
+        ReportName = 'Dates'
+        Value = NaN
+        Omitted = @error
+        ValidFn = @validate.date
     end
     
 

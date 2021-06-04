@@ -82,7 +82,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.swap');
     addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
-    addRequired(pp, 'datesToSwap', @DateWrapper.validateDateInput);
+    addRequired(pp, 'datesToSwap', @validate.date);
     addRequired(pp, 'pairsToSwap', @locallyValidatePairsToSwap);
     addParameter(pp, ["AnticipationStatus", "Anticipate"], @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end

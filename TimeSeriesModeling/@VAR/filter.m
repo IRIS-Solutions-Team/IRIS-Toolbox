@@ -59,7 +59,7 @@ if isempty(pp)
     % Required arguments
     addRequired(pp, 'VAR', @(x) isa(x, 'VAR'));
     addRequired(pp, 'inputDatabank', @validate.databank);
-    addRequired(pp, 'range', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'range', @validate.properRange);
     % Name-value options
     addParameter(pp, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
     addParameter(pp, 'Cross', true, @(x) validate.logicalScalar(x) || (validate.numericScalar(x) && x>=0 && x<=1));

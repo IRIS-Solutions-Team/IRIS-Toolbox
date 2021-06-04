@@ -1,9 +1,9 @@
 classdef range < irisinp.generic
     properties
-        ReportName = 'Date Range';
-        Value = NaN;
-        Omitted = @error;
-        ValidFn = @DateWrapper.validateRangeInput;
+        ReportName = 'Date Range'
+        Value = NaN
+        Omitted = @error
+        ValidFn = @validate.range
     end
     
 

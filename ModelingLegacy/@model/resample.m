@@ -88,7 +88,7 @@ if isempty(pp)
     pp = extend.InputParser('model.resample');
     addRequired(pp, 'model', @(x) isa(x, 'model') && length(x)==1 && beenSolved(x));
     addRequired(pp, 'initCondition', @(x) isempty(x) || validate.databank(x));
-    addRequired(pp, 'range', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'range', @validate.properRange);
     addRequired(pp, 'numDraws', @(x) validate.roundScalar(x, 1, Inf));
 
     addParameter(pp, 'BootstrapMethod', 'Efron', @(x) (ischar(x) && any(strcmpi(x, {'Efron', 'Wild'}))) || validate.roundScalar(x) || validate.numericScalar(x, 0, 1));

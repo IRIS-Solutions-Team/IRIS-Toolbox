@@ -164,7 +164,7 @@ if isempty(parser)
     parser = extend.InputParser('dbase/dbsave');
     addRequired(parser, 'inputDatabank', @validate.databank);
     addRequired(parser, 'fileName', @validate.string);
-    addRequired(parser, 'dates', @DateWrapper.validateDateInput);
+    addRequired(parser, 'dates', @validate.date);
     % Options
     addParameter(parser, 'VariablesHeader', 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
