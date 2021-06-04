@@ -614,7 +614,7 @@ NumericTimeSubscriptable ...
                 pp = extend.InputParser('NumericTimeSubscriptable.NumericTimeSubscriptable');
                 pp.KeepDefaultOptions = true;
 
-                addRequired(pp, 'Dates', @Dater.validateDateInput);
+                addRequired(pp, 'Dates', @validate.date);
                 addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle') || isstring(x) || iscell(x));
                 addRequired(pp, 'Comment', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
                 addRequired(pp, 'UserData');

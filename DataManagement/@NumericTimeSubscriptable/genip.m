@@ -204,7 +204,7 @@ if isempty(pp)
     addRequired(pp, 'aggregation', @(x) locallyValidateAggregation(x));
 
     % Options
-    addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || Dater.validateProperRangeInput(x));
+    addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || validate.properRange(x));
     addParameter(pp, 'Initial', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
 
@@ -333,8 +333,8 @@ if nargout>=2
     wholeRange = opt.Range(1) : opt.Range(end);
     info.LowFreq = fromFreq;
     info.HighFreq = highFreq;
-    info.LowRange = Dater(lowStart):Dater(lowEnd);
-    info.HighRange = Dater(highStart):Dater(highEnd);
+    info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
+    info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
     info.EffectiveLowRange = wholeRange(inxRunLow);
     info.TransitionRate = transition.Rate;
     info.TransitionIntercept = transition.Intercept;

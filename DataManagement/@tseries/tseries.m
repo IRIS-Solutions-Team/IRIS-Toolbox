@@ -146,8 +146,8 @@
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper, ?Dater}) ...
     tseries ...
@@ -247,12 +247,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         
 
         function date = startdate(this)
-            date = Dater(this.Start);
+            date = DateWrapper(this.Start);
         end%
         
 
         function date = enddate(this)
-            date = Dater(this.End);
+            date = DateWrapper(this.End);
         end%   
 
         

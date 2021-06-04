@@ -80,7 +80,7 @@ if isempty(parser)
     parser = extend.InputParser('TimeSubscriptable/chowlin');
     parser.addRequired('Y1', @(x) isa(x, 'TimeSubscriptable'));
     parser.addRequired('X2', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('Range', @Dater.validateDateInput);
+    parser.addRequired('Range', @validate.range);
     parser.addParameter('Constant', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('NGrid', 200, @(x) isnumeric(x) && scalar(x) && x>=1);

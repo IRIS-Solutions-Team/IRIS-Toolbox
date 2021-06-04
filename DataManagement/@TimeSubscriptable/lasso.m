@@ -67,7 +67,7 @@ if isempty(pp)
     pp = extend.InputParser('TimeSubscriptable.lasso');
     pp.addRequired('Y', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
     pp.addRequired('X', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
-    pp.addOptional('range', Inf, @Dater.validateDateInput);
+    pp.addOptional('range', Inf, @validate.date);
 
     pp.addParameter({'Intercept', 'Constant', 'Const'}, false, @(x) isequal(x, true) || isequal(x, false));
     pp.addParameter( ...

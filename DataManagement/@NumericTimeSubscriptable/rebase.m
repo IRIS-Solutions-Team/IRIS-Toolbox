@@ -7,7 +7,7 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tseries.rebase');
     inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    inputParser.addOptional('BasePeriod', 'AllStart', @(x) any(strcmpi(x, {'AllStart', 'AllEnd'})) || Dater.validateDateInput(x));
+    inputParser.addOptional('BasePeriod', 'AllStart', @(x) any(strcmpi(x, {'AllStart', 'AllEnd'})) || validate.date(x));
     inputParser.addOptional('BaseValue', 1, @(x) isnumeric(x) && isscalar(x));
 end
 inputParser.parse(this, varargin{:});

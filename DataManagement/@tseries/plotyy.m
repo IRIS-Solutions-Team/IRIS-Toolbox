@@ -67,7 +67,7 @@ function [ ax, hLhs, hRhs, rangeLhs, dataLhs, ...
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
 % Range for LHS time series
-if Dater.validateDateInput(varargin{1})
+if  validate.date(varargin{1})
     rangeLhs = varargin{1};
     varargin(1) = [ ];
 else
@@ -79,7 +79,7 @@ XLhs = varargin{1};
 varargin(1) = [ ];
 
 % range for RHS time series.
-if Dater.validateDateInput(varargin{1})
+if validate.date(varargin{1})
     rangeRhs = varargin{1};
     varargin(1) = [ ];
 else
@@ -93,8 +93,8 @@ varargin(1) = [ ];
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('tseries.plotyy');
-    parser.addRequired('LhsRange', @Dater.validateDateInput);
-    parser.addRequired('RhsRange', @Dater.validateDateInput);
+    parser.addRequired('LhsRange', @validate.date);
+    parser.addRequired('RhsRange', @validate.date);
     parser.addRequired('LhsSeries', @(x) isa(x, 'tseries'));
     parser.addRequired('RhsSeries', @(x) isa(x, 'tseries'));
     parser.addParameter({'Coincide', 'Coincident'}, false, @(x) isequal(x, true) || isequal(x, false));

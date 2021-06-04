@@ -16,7 +16,7 @@ classdef ExcelSheet ...
         Description = NaN
         NamesLocation = NaN
         CommentsLocation = NaN
-        Dates (1, :) Dater = Dater.empty(1, 0)
+        Dates (1, :) DateWrapper = DateWrapper.empty(1, 0)
         InsertEmpty = [0, 0]
     end
 

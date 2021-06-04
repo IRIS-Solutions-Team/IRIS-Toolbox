@@ -5,7 +5,7 @@
 
 function varargout = yy(varargin)
 
-[varargout{1:nargout}] = Dater.yy(varargin{:});
+[varargout{1:nargout}] = DateWrapper.yy(varargin{:});
 
 end%
 

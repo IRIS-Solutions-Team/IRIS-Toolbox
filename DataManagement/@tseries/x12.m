@@ -231,7 +231,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('tseries.x12');
     pp.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    pp.addOptional('Range', Inf, @Dater.validateRangeInput);
+    pp.addOptional('Range', Inf, @validate.range);
 
     pp.addParameter({'Backcast', 'Backcasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
     pp.addParameter({'CleanUp', 'DeleteTempFiles', 'DeleteTempFile', 'DeleteX12Files', 'DeleteX12File', 'Delete'}, true, @(x) isequal(x, true) || isequal(x, false));

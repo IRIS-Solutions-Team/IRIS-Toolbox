@@ -1,3 +1,3 @@
 function outputDate = wwtoday( )
-outputDate = Dater(dater.wwtoday());
+outputDate = DateWrapper(dater.wwtoday());
 end%
