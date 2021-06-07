@@ -6,39 +6,39 @@ classdef (CaseInsensitiveProperties=true) Options
 
         Reset
 
-        
+
         % __Convergence options__
-        
+
         FunctionNorm
         MaxIterations (1, 1) double
         MaxFunctionEvaluations (1, 1)
-        FunctionTolerance (1, 1) 
-        StepTolerance (1, 1) 
+        FunctionTolerance (1, 1)
+        StepTolerance (1, 1)
 
         % TrimObjectiveFunction  Trim values of objective function smaller than tolerance to zero
         TrimObjectiveFunction
 
 
         % __Jacobian and step improvement options__
-        
+
         MinLambda (1, 1) double
         MaxLambda (1, 1) double
         LambdaMultiplier (1, 1) double
-        
-        % IncludeNewton  Include lambda=0 (pure Newton) in QNSD 
+
+        % IncludeNewton  Include lambda=0 (pure Newton) in QNSD
         IncludeNewton (1, 1) logical = true
-        
+
         InflateStep (1, 1)
         DeflateStep (1, 1)
-        
+
 
         % __Bounds__
-        
+
         Bounds double = [ ]
-        
+
 
         % __Jacobian options__
-        
+
         JacobPattern (:, :) logical = logical.empty(0)
         JacobCalculation (1, 1) string
         LastJacobUpdate (1, 1) double = Inf
@@ -48,13 +48,13 @@ classdef (CaseInsensitiveProperties=true) Options
         PseudoinvWhenSingular
         ForceJacobUpdateWhenReversing
         LastBroydenUpdate
-        
+
 
         % __Legacy QaD options__
-        
-        LastStepSizeOptim 
+
+        LastStepSizeOptim
         InitStepSize
-        StepSizeSwitch 
+        StepSizeSwitch
     end
 
 
@@ -70,7 +70,7 @@ classdef (CaseInsensitiveProperties=true) Options
         % Convergence options
         DEFAULT_FUNCTION_NORM = 2
         DEFAULT_MAX_ITERATIONS = 5000
-        DEFAULT_MAX_FUNCTION_EVALUATIONS = @(inp) 200*inp.NumberOfVariables
+        DEFAULT_MAX_FUNCTION_EVALUATIONS = @(inp) 200*inp.NumUnknowns
         DEFAULT_FUNCTION_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
         DEFAULT_STEP_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
         DEFAULT_TRIM_OBJECTIVE_FUNCTION = false
@@ -171,7 +171,7 @@ classdef (CaseInsensitiveProperties=true) Options
 
             this.Display = resolveDisplayMode(this.Display, pp.Results.DisplayMode);
         end%
-            
+
 
         function pp = getParser(this)
             %(
@@ -214,7 +214,7 @@ classdef (CaseInsensitiveProperties=true) Options
         end%
     end
 
-    
+
     methods (Static)
         function solverOpt = parseOptions(solverOpt, defaultSolver, silent, varargin)
 
@@ -268,7 +268,7 @@ classdef (CaseInsensitiveProperties=true) Options
         end%
     end
 end
-            
+
 
 %
 % Local functions
@@ -288,7 +288,7 @@ function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
         addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
         addParameter(pp, {'StepTolerance', 'TolX'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
     end
-        
+
     if iscell(solverOpt)
         % Solver= {solverName, 'Name=', Value, ... }
         % where solverName is 'lsqnonlin' | 'fsolve'

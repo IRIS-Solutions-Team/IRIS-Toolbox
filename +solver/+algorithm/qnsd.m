@@ -93,7 +93,7 @@ trimObjectiveFunction = opt.TrimObjectiveFunction;
 initX = initX(:);
 numUnknowns = numel(initX);
 
-temp = struct('NumberOfVariables', numUnknowns);
+temp = struct('NumUnknowns', numUnknowns);
 
 tolX = opt.StepTolerance;
 tolFun = opt.FunctionTolerance;

@@ -16,6 +16,7 @@
 % ### Constructor ###
 % ------------------------------------------------------------------------------------------------------------
 %   Model.fromFile            - 
+%   Model.fromString          - 
 %   Model.fromSnippet         - 
 %
 %
@@ -136,6 +137,11 @@ classdef Model ...
     & matlab.mixin.CustomDisplay ...
     & shared.Plan ...
     & shared.DataProcessor
+
+
+    properties (Constant)
+        FILE_NAME_WHEN_INPUT_STRING = "[input-string]"
+    end
 
 
     methods % Constructor
@@ -358,6 +364,7 @@ classdef Model ...
     methods % Public Interface
         %(
         varargout = checkInitials(varargin)
+        varargout = isLinear(varargin)
         varargout = quickAssign(varargin)
         varargout = access(varargin)
         varargout = equationStartsWith(varargin)
@@ -464,6 +471,7 @@ classdef Model ...
     methods (Static) % Static constructors
         varargout = fromFile(varargin)
         varargout = fromSnippet(varargin)
+        varargout = fromString(varargin)
     end
 
 
