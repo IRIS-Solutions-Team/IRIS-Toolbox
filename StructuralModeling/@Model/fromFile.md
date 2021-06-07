@@ -1,6 +1,6 @@
 # `Model.fromFile`
 
-{== Create new Model object from model file ==}
+{== Create new Model object from model source file(s) ==}
 
 
 ## Syntax
@@ -13,8 +13,8 @@
 
 __`fileName`__ [ string ]
 >
-> Name(s) of model file(s) that will be loaded and converted to a new Model
-> object.
+> Name(s) of model source file(s) that will be loaded, parsed, and
+> converted to a new Model object.
 > 
 
 ## Output arguments

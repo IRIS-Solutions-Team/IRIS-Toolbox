@@ -6,8 +6,8 @@ under any file name with any extension) that describe the model: its
 equations, variables, parameters, etc. The model files do not describe what
 tasks to do with the model. To run the tasks you want to perform with the
 model, you need first to load the model file into Matlab using the
-[`Model`](../model/Model.md) function. This function creates a model
-object. Then you write your own m-files using Matlab and IrisT
+[`Model.fromFile`](../model/fromFile.md) function. This function creates a
+model object. Then you write your own m-files using Matlab and IrisT
 functions to perform the desired tasks with the model object.
 
 When writing model files, you can also use the IrisT preparsing commands

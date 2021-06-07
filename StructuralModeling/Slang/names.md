@@ -56,6 +56,6 @@ following snippet is equivalent to the previous example:
 ```
 
 This is useful when you use some of the control structures, such as
-[`!if`](if.md), [`!switch.md`](switch.md), or [`!for`](for.md), or when you
+[`!if`](!if.md), [`!switch.md`](!switch.md), or [`!for`](!for.md), or when you
 split the model source code into multiple source files.
 
