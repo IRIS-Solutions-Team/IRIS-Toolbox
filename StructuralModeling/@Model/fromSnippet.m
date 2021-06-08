@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function varargout = fromSnippet(snippetNames, args)
 
 arguments
@@ -19,7 +19,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function varargout = fromSnippet(snippetNames, varargin)
 
 args = varargin;
