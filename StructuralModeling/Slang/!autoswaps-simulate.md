@@ -1,6 +1,6 @@
 # `!autoswaps-simulate`
 
-{== Definitions of variable-shock pairs to be autoexogenized-autoendogenized in dynamic simulations ==}
+{== Definitions of variable-shock pairs to be autoswapped in dynamic simulations ==}
 
 
 ## Syntax
@@ -15,7 +15,7 @@
 The section `!autoswaps-simulate` defines pairs of variables and shocks
 that can be used to simplify and automate the specification of dynamic
 simulation [Plan](../plan/index.md) objects by calling the function
-[`autoexogenize`](../plan/autoexogenize.md).
+[`autoswap`](../plan/autoswap.md).
 
 On the left-hand side of the definition must be a valid measurement or
 transition variable name. On the right-hand side must be a valid

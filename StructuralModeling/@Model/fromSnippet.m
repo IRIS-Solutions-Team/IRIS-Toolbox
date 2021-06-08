@@ -4,11 +4,11 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
-function varargout = fromSnippet(snippetName, args)
+%(
+function varargout = fromSnippet(snippetNames, args)
 
 arguments
-    snippetName (1, :) string {mustBeNonempty}
+    snippetNames (1, :) string {mustBeNonempty}
 end
 
 arguments (Repeating)
@@ -19,58 +19,25 @@ end
 
 
 % <=R2019a
-%(
-function varargout = fromSnippet(snippetName, varargin)
+%{
+function varargout = fromSnippet(snippetNames, varargin)
 
 args = varargin;
 %)
 % <=R2019a
 
-
-OPEN_SNIPPET = ">>>";
-CLOSE_SNIPPET = "<<<";
-
-stack = dbstack("-completenames");
-callerFileName = stack(2).file;
-callerCode = string(fileread(callerFileName));
+[snippets, snippetNames, callerFileName] = textual.readSnippet(snippetNames);
 
 inputModelFiles = model.File.empty(1, 0);
-snippetName = reshape(strip(snippetName), 1, []);
-for n = snippetName
-    open = n + OPEN_SNIPPET;
-    close =  CLOSE_SNIPPET + n;
-    snippet = extractBetween(callerCode, "% " + open, "% " + close);
-    snippet = regexprep(snippet, "^%", "", "lineAnchors");   
-    if isempty(snippet)
-        snippet = extractBetween(callerCode, open, close);
-    end
-    if ~isscalar(snippet)
-        hereThrowError();
-    end
-
+for i = 1 : numel(snippets)
     mf = model.File;
-    mf.FileName = callerFileName + "#" + n;
-    mf.Code = char(snippet);
+    mf.FileName = callerFileName + "#" + snippetNames(i);
+    mf.Code = char(snippets(i));
     inputModelFiles(end+1) = mf;
 end
 
-[varargout{1:nargout}] = Model(mf, args{:});
+[varargout{1:nargout}] = Model(inputModelFiles, args{:});
 
-return
-
-    function hereThrowError()
-        if isempty(snippet)
-            exception.error([
-                "Model:NoSnippetFound"
-                "No snippet of code named %s found in %s"
-            ], snippetName, callerFileName);
-        else
-            exception.error([
-                "Model:NoSnippetFound"
-                "Multiple snippets of code named %s found in %s"
-            ], snippetName, callerFileName);
-        end
-    end%
 end%
 
 
@@ -88,6 +55,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test plain vanilla
 
 m = Model.fromSnippet("test");
+
 % test>>>
 % !variables
 %     x
@@ -101,6 +69,58 @@ m = Model.fromSnippet("test");
 
 act = access(m, "equations");
 exp = "x=rho_x*x{-1}+eps_x;";
+assertEqual(testCase, act, exp);
+
+
+%% Test options
+
+m = Model.fromSnippet("linear", "linear", true);
+
+% linear>>>
+% !variables
+%     x
+% !shocks
+%     eps_x
+% !parameters
+%     rho_x
+% !equations
+%     x = rho_x*x{-1} + eps_x;
+% <<<linear
+
+act = access(m, "equations");
+exp = "x=rho_x*x{-1}+eps_x;";
+assertEqual(testCase, act, exp);
+assertTrue(testCase, isLinear(m));
+
+
+%% Test multiple snippets
+
+m = Model.fromSnippet(["test2", "test3"]);
+
+% test2>>>
+% !variables
+%     x
+% !shocks
+%     eps_x
+% !parameters
+%     rho_x
+% !equations
+%     x = rho_x*x{-1} + eps_x;
+% <<<test2
+
+% test3>>>
+% !variables
+%     y
+% !shocks
+%     eps_y
+% !parameters
+%     rho_y
+% !equations
+%     y = rho_y*y{-1} + eps_y;
+% <<<test3
+
+act = access(m, "equations");
+exp = ["x=rho_x*x{-1}+eps_x;", "y=rho_y*y{-1}+eps_y;"];
 assertEqual(testCase, act, exp);
 
 ##### SOURCE END #####

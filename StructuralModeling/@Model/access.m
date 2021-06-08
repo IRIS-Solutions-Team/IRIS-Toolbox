@@ -94,7 +94,11 @@ beenHandled = true;
 
 
 %==========================================================================
-if lower(what)==lower("parameterValues")
+if lower(what)==lower("fileName")
+    output = string(this.FileName);
+
+
+elseif lower(what)==lower("parameterValues")
     inx = this.Quantity.Type==4;
     values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
     output = locallyCreateStruct(this.Quantity.Name(inx), values);
@@ -110,14 +114,14 @@ elseif startsWith(what, "steady", "ignoreCase", true)
     output = locallyCreateStruct(this.Quantity.Name, values);
 
 
-elseif lower(what)==lower("required")
+elseif any(lower(what)==lower(["required", "initials"]))
     logStyle = "none";
     idInit = getIdInitialConditions(this);
     output = printSolutionVector(this, idInit, logStyle);
     output = reshape(string(output), 1, []);
 
 
-elseif any(lower(what)==lower(["initCond", "initials"]))
+elseif lower(what)==lower("initCond")
     logStyle = "log()";
     idInit = getIdInitialConditions(this);
     output = printSolutionVector(this, idInit, logStyle);

@@ -62,7 +62,7 @@ info = struct();
 info.FigureHandles = figureHandles;
 info.AxesHandles = axesHandles;
 info.TitleHandles = titleHandles;
-info.SubtitleHandlens = subtitleHandles;
+info.SubtitleHandles = subtitleHandles;
 info.PlotHandles = plotHandles;
 
 end%
