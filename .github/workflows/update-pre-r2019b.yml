@@ -84,6 +84,7 @@ jobs:
             release_number="11111111"
           else
             release_number="$trigger_ref"
+            release_number="${release_number#'refs/tags/'}"
             release_number="${release_number#'Create-pre-r2019b-'}"
           fi
           echo "Release number: $release_number"
