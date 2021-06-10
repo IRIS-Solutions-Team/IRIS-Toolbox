@@ -3,7 +3,7 @@ name: Update pre-r2019b branch
 on:
   push:
     tags:
-      - 'Create-pre-r2019b-*'
+      - 'Legacy-Ready-*'
 
   workflow_dispatch:
 
@@ -80,15 +80,15 @@ jobs:
           
           # If github.ref == "refs/heads/branch_name" (instead of the tag), this means the action was triggered manually
           # Assign the release number "11111111" 
-          if [[ "_$release_number" == "_refs/heads/"* ]]; then
+          if [[ "_$trigger_ref" == "_refs/heads/"* ]]; then
             release_number="11111111"
           else
             release_number="$trigger_ref"
             release_number="${release_number#'refs/tags/'}"
-            release_number="${release_number#'Create-pre-r2019b-'}"
+            release_number="${release_number#'Legacy-Ready-'}"
           fi
           echo "Release number: $release_number"
           
-          git tag "Release-$release_number-pre-R2019b"
+          git tag "Legacy-Release-$release_number"
           git push origin pre-r2019b --tags
           git status
