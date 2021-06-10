@@ -56,7 +56,7 @@ jobs:
           
           # If github.ref == "refs/heads/branch_name" (instead of the tag), this means the action was triggered manually
           # Assign the release number "11111111" 
-          if [[ "_$release_number" == "_refs/heads/"* ]]; then
+          if [[ "_$trigger_ref" == "_refs/heads/"* ]]; then
             release_number="11111111"
           else
             release_number="$trigger_ref"
