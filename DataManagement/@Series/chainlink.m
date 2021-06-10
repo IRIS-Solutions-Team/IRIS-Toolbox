@@ -10,6 +10,7 @@ arguments
     options.Range = Inf
     options.RebaseDates = []
     options.NormalizeWeights (1, 1) logical = true
+    options.WhenMissing (1, 1) string {mustBeMember(options.WhenMissing, ["error", "warning", "silent"])} = "error"
 end
 %)
 % >=R2019b
@@ -35,6 +36,7 @@ options = pp.Results;
 if ~isequal(options.Range, Inf)
     levels = clip(levels, options.Range);
     weights = clip(weights, options.Range);
+    hereCheckMissing();
 end
 
 
@@ -76,5 +78,34 @@ if nargout>=3
     info.Weights = weights;
 end
 
-end%
+return
 
+    function hereCheckMissing()
+        %(
+        if options.WhenMissing=="error"
+            func = @exception.error;
+        elseif options.WhenMissing=="warning"
+            func = @exception.warning;
+        else
+            return
+        end
+        levelsData = getDataFromTo(levels, options.Range);
+        weightsData = getDataFromTo(weights, options.Range);
+        inxLevelMissing = any(~isfinite(levelsData(:)));
+        inxWeightMissing = any(~isfinite(weightsData(:)));
+        if any(inxLevelMissing)
+            func([
+                "Series:MissingInput"
+                "Some level input series into Series/chainlink have missing observations."
+            ]);
+        end
+        if any(inxWeightMissing)
+            func([
+                "Series:MissingInput"
+                "Some weight input series into Series/chainlink have missing observations."
+            ]);
+        end
+        %)
+    end%
+
+end%
