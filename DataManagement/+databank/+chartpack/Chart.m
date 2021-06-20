@@ -49,7 +49,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
         function evaluate(this, inputDb)
             expression = this.Expression;
-            if isempty(this.Data) && ~ismissing(expression) && strlength(expression)>0
+            if ~ismissing(expression) && strlength(expression)>0
                 expression = expand(this, expression);
                 this.Data = databank.eval(inputDb, expression);
                 if this.ApplyTransform

@@ -20,6 +20,7 @@ __`ch`__ [ databank.Chartpack ]
 After creating a new Chartpack object, set the following properties to
 customize the way the charts are produced and styled: 
 
+
 ### Customize visual aspects of individual charts
 
 __`PlotFunc=@plot`__ [ `@plot` ]
@@ -80,7 +81,7 @@ __`ShowTransform=false`__ [ `true` | `false` ]
 > Add the `Transform` function to the chart captions.
 >
 
-### Customize figure window
+### Customize figure windows
 
 __`Tiles=@auto`__ [ numeric | `@auto` ]
 >
@@ -93,6 +94,12 @@ __`Tiles=@auto`__ [ numeric | `@auto` ]
 __`MaxTilesPerWindow=40`__ [ numeric ]
 >
 > Maximum number of tiles (charts) in each figure window.
+>
+
+__`ShowFigure=Inf`__ [ numeric ]
+>
+> After drawing all figures, switch to this one to be shown on top;
+> `ShowFigure=Inf` means the last figure window plotted.
 >
 
 ### Customize graphics objects
