@@ -23,6 +23,32 @@ classdef Highlight
                 end
             end
         end%
+
+
+        function this = set.StartDate(this, value)
+            if isequal(value, -Inf)
+                this.StartDate = value;
+                return
+            end
+            if isstring(value) || ischar(value)
+                this.StartDate = string(value);
+                return
+            end
+            this.StartDate = dater.toIsoString(value);
+        end%
+
+
+        function this = set.EndDate(this, value)
+            if isequal(value, Inf)
+                this.EndDate = value;
+                return
+            end
+            if isstring(value) || ischar(value)
+                this.EndDate = string(value);
+                return
+            end
+            this.EndDate = dater.toIsoString(value);
+        end%
     end
 end
 

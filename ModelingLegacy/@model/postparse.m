@@ -19,7 +19,7 @@ for processor = ["Preprocessor", "Postprocessor"]
         mf.Code = collector.(processor);
         mf.Preparsed = true;
         this.(processor) = Explanatory.fromFile(mf);
-        [this.(processor).Context] = deal("Preprocessor");
+        [this.(processor).Context] = deal(processor);
         this.(processor) = initializeLogStatus(this.(processor), log);
         removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [])]; %#ok<AGROW>
     end

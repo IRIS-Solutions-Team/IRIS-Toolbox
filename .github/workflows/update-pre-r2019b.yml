@@ -3,7 +3,7 @@ name: Update pre-r2019b branch
 on:
   push:
     tags:
-      - 'Create-pre-r2019b*'
+      - 'Legacy-Ready-*'
 
   workflow_dispatch:
 
@@ -64,7 +64,7 @@ jobs:
               rm temp.orig temp.replaced temp.final
           done
 
-      - name: Commit and push
+      - name: Commit, tag and push
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox        
           git status
@@ -74,5 +74,21 @@ jobs:
           if [[ $files_to_commit ]]; then
             git commit -m "Update pre-r2019b"
           fi
-          git push origin pre-r2019b
+          
+          trigger_ref="${{ github.ref }}" 
+          echo "Triggering ref: $trigger_ref"
+          
+          # If github.ref == "refs/heads/branch_name" (instead of the tag), this means the action was triggered manually
+          # Assign the release number "11111111" 
+          if [[ "_$trigger_ref" == "_refs/heads/"* ]]; then
+            release_number="11111111"
+          else
+            release_number="$trigger_ref"
+            release_number="${release_number#'refs/tags/'}"
+            release_number="${release_number#'Legacy-Ready-'}"
+          fi
+          echo "Release number: $release_number"
+          
+          git tag "Legacy-Release-$release_number"
+          git push origin pre-r2019b --tags
           git status

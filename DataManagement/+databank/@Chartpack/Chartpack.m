@@ -12,6 +12,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         CaptionFromComment (1, 1) logical = false
         ShowFormulas (1, 1) logical = false
         ShowTransform (1, 1) logical = false
+        ShowFigure (1, 1) double = Inf
 
         Round (1, 1) double = Inf
         Expansion (1, :) cell = cell.empty(1, 0)

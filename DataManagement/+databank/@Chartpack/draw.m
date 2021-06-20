@@ -44,7 +44,11 @@ for x = this.Charts
     if this.Round<Inf
         x.Data = round(x.Data, this.Round);
     end
-    plotHandles{end}{end+1} = this.PlotFunc(range, x.Data, this.PlotSettings{:});    
+    plotHandles__ = this.PlotFunc(range, x.Data); %, this.PlotSettings{:});    
+    if ~isempty(this.PlotSettings)
+        set(plotHandles__, this.PlotSettings{:});
+    end
+    plotHandles{end}{end+1} = plotHandles__;
 
     [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
         = locallyCreateTitle(x, currentAxes);
@@ -64,6 +68,14 @@ info.AxesHandles = axesHandles;
 info.TitleHandles = titleHandles;
 info.SubtitleHandles = subtitleHandles;
 info.PlotHandles = plotHandles;
+
+if ~isempty(figureHandles)
+    showFigure = this.ShowFigure;
+    if isequal(showFigure, Inf)
+        showFigure = numel(figureHandles);
+    end
+    figure(figureHandles(showFigure));
+end
 
 end%
 
