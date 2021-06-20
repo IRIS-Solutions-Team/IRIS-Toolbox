@@ -1,7 +1,7 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-function this = rebase(this, varargin)
+function [this, rebaseValue] = rebase(this, varargin)
 
 persistent inputParser
 if isempty(inputParser)
@@ -18,16 +18,14 @@ baseValue = inputParser.Results.BaseValue;
 
 if baseValue==0
     func = @minus;
+    aggregator = @mean;
 else
     func = @rdivide;
+    aggregator = @geomean;
 end
 
-if ischar(basePeriod) || isa(basePeriod, 'string')
-    if any(strcmpi(basePeriod, {'AllStart', 'AllEnd'}))
-        basePeriod = get(this, basePeriod);
-    else
-        basePeriod = textinp2dat(basePeriod);
-    end
+if ischar(basePeriod) || isstring(basePeriod)
+    basePeriod = get(this, basePeriod);
 end
 
 % Frequency check
@@ -38,17 +36,20 @@ if isnan(basePeriod) || freqBasePeriod~=freqInput
     return
 end
 
-sizeOfData = size(this.Data);
-ndimsOfData = ndims(this.Data);
-this.Data = this.Data(:,:);
+sizeData = size(this.Data);
+ndimsData = ndims(this.Data);
+this.Data = this.Data(:, :);
 
-y = getDataFromTo(this, basePeriod, basePeriod);
+rebaseValue = getDataFromTo(this, basePeriod, basePeriod);
+if size(rebaseValue, 1)>1
+    rebaseValue = aggregator(rebaseValue, 1);
+end
 for i = 1 : size(this.Data, 2)
-    this.Data(:,i) = func(this.Data(:,i), y(i));
+    this.Data(:,i) = func(this.Data(:,i), rebaseValue(i));
 end
 
-if ndimsOfData>2
-    this.Data = reshape(this.Data, sizeOfData);
+if ndimsData>2
+    this.Data = reshape(this.Data, sizeData);
 end
 
 if baseValue~=0 && baseValue~=1
