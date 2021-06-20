@@ -75,8 +75,18 @@ else
     mergeNext = @errorNext;
 end
 
+if isequal(opt.Names, @all)
+    fieldsToMerge = fieldnames(mainDb);
+    for i = 1 : numMergeWith
+        fieldsToMerge = [fieldsToMerge; fieldnames(mergeWith{i})];
+    end
+    fieldsToMerge = unique(fieldsToMerge, 'stable');
+else
+    fieldsToMerge = reshape(cellstr(opt.Names), [], 1);
+end
+
 for i = 1 : numMergeWith
-    mainDb = mergeNext(mainDb, mergeWith{i}, opt);
+    mainDb = mergeNext(mainDb, mergeWith{i}, fieldsToMerge, opt);
 end
 
 end%
@@ -85,41 +95,30 @@ end%
 % Local Functions
 %
 
-function mainDb = concatenateNext(func, mainDb, mergeWith, opt)
+function mainDb = concatenateNext(func, mainDb, mergeWith, fieldsToMerge, opt)
     %(
-    if isequal(opt.Names, @all)
-        fieldsMainDatabank = fieldnames(mainDb);
-        fieldsMergeWith = fieldnames(mergeWith);
-        fieldsToMerge = [fieldsMainDatabank; fieldsMergeWith];
-    else
-        fieldsToMerge = reshape(cellstr(opt.Names), 1, [ ]);
-    end
-    fieldsToMerge = unique(fieldsToMerge, "stable");
-    numFieldsToMerge = numel(fieldsToMerge);
     fieldsToRemove = string.empty(1, 0);
-    for i = 1 : numFieldsToMerge
-        name__ = fieldsToMerge{i};
+    for n = reshape(string(fieldsToMerge), 1, [])
         if isequal(opt.MissingField, @remove) || isequal(opt.MissingField, @rmfield)
-            if ~isfield(mergeWith, name__)
-                fieldsToRemove(end+1) = string(name__);
-                % mainDb = rmfield(mainDb, name__);
+            if ~isfield(mergeWith, n)
+                fieldsToRemove(end+1) = string(n);
                 continue
-            elseif ~isfield(mainDb, name__)
+            elseif ~isfield(mainDb, n)
                 continue
             end
         end
-        if isfield(mainDb, name__)
-            mainDatabankField = mainDb.(name__);
+        if isfield(mainDb, n)
+            mainDatabankField = mainDb.(n);
         else
             mainDatabankField = opt.MissingField;
         end
-        if isfield(mergeWith, name__)
-            mergeWithField = mergeWith.(name__);
+        if isfield(mergeWith, n)
+            mergeWithField = mergeWith.(n);
         else
             mergeWithField = opt.MissingField;
         end
         mainDatabankField = func(mainDatabankField, mergeWithField);
-        mainDb.(name__) = mainDatabankField;
+        mainDb.(n) = mainDatabankField;
     end
     if ~isempty(fieldsToRemove);
         mainDb = rmfield(mainDb, fieldsToRemove);
@@ -128,74 +127,52 @@ function mainDb = concatenateNext(func, mainDb, mergeWith, opt)
 end%
 
 
-function mainDb = replaceNext(mainDb, mergeWith, opt)
+function mainDb = replaceNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
-    if isequal(opt.Names, @all)
-        newFields = fieldnames(mergeWith);
-    else
-        newFields = reshape(cellstr(opt.Names), 1, [ ]);
-    end
-    numNewFields = numel(newFields);
-    for i = 1 : numNewFields
-        name__ = newFields{i};
-        if ~isfield(mergeWith, name__)
+    for n = reshape(string(newFields), 1, [])
+        if ~isfield(mergeWith, n)
             continue
         end
-        if isfield(mergeWith, name__)
-            mainDb.(name__) = mergeWith.(name__);
+        if isfield(mergeWith, n)
+            mainDb.(n) = mergeWith.(n);
         end
     end
     %)
 end%
 
 
-function mainDb = discardNext(mainDb, mergeWith, opt)
+function mainDb = discardNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
-    if isequal(opt.Names, @all)
-        newFields = fieldnames(mergeWith);
-    else
-        newFields = reshape(cellstr(opt.Names), 1, [ ]);
-    end
-    numNewFields = numel(newFields);
-    for i = 1 : numNewFields
-        name__ = newFields{i};
-        if ~isfield(mergeWith, name__)
+    for n = reshape(string(newFields), 1, [])
+        if ~isfield(mergeWith, n)
             continue
         end
-        if ~isfield(mainDb, name__)
-            mainDb.(name__) = mergeWith.(name__);
+        if ~isfield(mainDb, n)
+            mainDb.(n) = mergeWith.(n);
         end
     end
     %)
 end%
 
 
-function mainDb = errorNext(mainDb, mergeWith, opt)
+function mainDb = errorNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
-    if isequal(opt.Names, @all)
-        newFields = fieldnames(mergeWith);
-    else
-        newFields = reshape(cellstr(opt.Names), 1, [ ]);
-    end
-    numNewFields = numel(newFields);
-    inxErrorFields = false(1, numNewFields);
-    for i = 1 : numNewFields
-        name__ = newFields{i};
-        if ~isfield(mergeWith, name__)
+    errorFields = string.empty(1, 0);
+    for n = reshape(string(newFields), 1, [])
+        if ~isfield(mergeWith, n)
             continue
         end
-        if isfield(mainDb, name__)
-            inxErrorFields(i) = true;
+        if isfield(mainDb, n)
+            errorFields(end+1) = n;
             continue
         end
-        mainDb.(name__) = mergeWith.(name__);
+        mainDb.(n) = mergeWith.(n);
     end
-    if any(inxErrorFields)
-        thisError = [
+    if ~isempty(errorFields)
+        exception.error([
             "Databank:ErrorMergingFieldsWithSameName"
             "This field name occurs in more than one input databank: %s "
-        ];
-        throw(exception.Base(thisError, 'error'), newFields{inxErrorFields});
+        ], errorFields);
     end
     %)
 end%

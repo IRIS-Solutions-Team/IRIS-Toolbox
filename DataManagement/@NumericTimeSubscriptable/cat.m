@@ -42,7 +42,6 @@ if isempty(inputs)
     return
 end
 
-numInputs = length(inputs);
 
 % Find min start-date and max end-date
 vecStart = double.empty(1, 0);
@@ -69,7 +68,7 @@ outputData = outputSeries.Data;
 outputComment = outputSeries.Comment;
 
 isEmpty = true;
-for i = 1 : numInputs
+for i = 1 : numel(inputs)
     if inxSeries(i)
         data__ = getDataFromTo(inputs{i}, minStart, maxEnd);
         comment__ = inputs{i}.Comment;
@@ -110,19 +109,21 @@ end%
 %
 
 function [data__, comment__] = locallyCreateDataFromNumeric(data__, numPeriods)
+    %(
     size__ = size(data__);
     data__ = data__(:, :);
     if size__(1)>1 && size__(1)<numPeriods
         data__(end+1:numPeriods, :) = NaN;
     elseif size__(1)>1 && size__(1)>numPeriods
-        data__(numPeriods+1:end,:) = [ ];
-    elseif size__(1)==1 && numPeriods>1
+        data__(numPeriods+1:end,:) = [];
+    elseif size__(1)==1
         data__ = repmat(data__, numPeriods, 1);
     end
     if numel(size__)>2
         data__ = reshape(data__, [numPeriods, size__(2:end)]);
     end
-    comment__ = repmat({''}, [1, size__(2:end)]);                                                                               
+    comment__ = repmat({''}, [1, size__(2:end)]);
+    %)
 end%
 
 
