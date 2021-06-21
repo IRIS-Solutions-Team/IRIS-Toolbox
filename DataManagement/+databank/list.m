@@ -59,7 +59,10 @@ for i = 1 : count
     end
     n = numel(ithValue);
     numelTestPassed = n>=1 && n<=10;
-    if isnumeric(ithValue) && isrow(ithValue) && numelTestPassed
+    if isa(ithValue, 'DateWrapper') && isscalar(ithValue)
+        info{i} = " " + dater.toDefaultString(ithValue);
+        info{i} = char(info{i});
+    elseif ~isa(ithValue, 'DateWrapper') && isnumeric(ithValue) && isrow(ithValue) && numelTestPassed
         info{i} = sprintf(' %g', ithValue);
         if n>1
             info{i}(1) = '';
