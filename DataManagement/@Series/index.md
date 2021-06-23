@@ -24,6 +24,7 @@ Function | Description
 
 Function | Description 
 ---|---
+[`arf`](arf.md) | {{ series._arf }} 
 [`moving`](moving.md) | {{ series._moving }} 
 [`chainlink`](chainlink.md) | {{ series._chainlink }}
 
