@@ -3,9 +3,28 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+% <=R2019a
+%(
+function [range, listFreq, namesApplied] = range(inputDb, options)
+
+arguments
+    inputDb {validate.mustBeDatabank}
+
+    options.SourceNames {locallyValidateSourceNames} = @all
+    options.StartDate {locallyValidateDate} = "unbalanced"
+    options.EndDate {locallyValidateDate} = "unbalanced"
+    options.Frequency {locallyValidateFrequency} = @any
+    options.Filter (1, :) cell = cell.empty(1, 0)
+end
+%)
+% <=R2019a
+
+
+% <=R2019a
+%{
 function [range, listFreq, namesApplied] = range(inputDb, varargin)
 
-%( Input parser
+% Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.range');
@@ -17,8 +36,10 @@ if isempty(pp)
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
-opt = parse(pp, inputDb, varargin{:});
-%)
+options = parse(pp, inputDb, varargin{:});
+%}
+% <=R2019a
+
 
 stringify = @(x) reshape(string(x), 1, []);
 
@@ -46,13 +67,13 @@ for name = listNames
     end
 end
 
-if any(strcmpi(opt.StartDate, {'MaxRange', 'Unbalanced', 'Any'}))
+if any(strcmpi(options.StartDate, {'MaxRange', 'Unbalanced', 'Any'}))
     startDates = cellfun(@min, startDates, 'uniformOutput', false);
 else
     startDates = cellfun(@max, startDates, 'uniformOutput', false);
 end
 
-if any(strcmpi(opt.EndDate, {'MaxRange', 'Unbalanced', 'Any'}))
+if any(strcmpi(options.EndDate, {'MaxRange', 'Unbalanced', 'Any'}))
     endDates = cellfun(@max, endDates, 'uniformOutput', false);
 else
     endDates = cellfun(@min, endDates, 'uniformOutput', false);
@@ -78,11 +99,11 @@ return
 
     function listNames = hereFilterNames( )
         %(
-        if ~isempty(opt.Filter)
-            listNames = databank.filter(inputDb, opt.Filter{:});
+        if ~isempty(options.Filter)
+            listNames = databank.filter(inputDb, options.Filter{:});
         else
             allInputEntries = reshape(string(fieldnames(inputDb)), 1, [ ]);
-            listNames = opt.SourceNames;
+            listNames = options.SourceNames;
             if validate.string(listNames)
                 listNames = reshape(string(listNames), 1, [ ]);
                 if numel(listNames)==1
@@ -106,12 +127,45 @@ return
 
     function listFreq = hereFilterFreq( )
         %(
-        if isequal(opt.Frequency, @any) || isequal(opt.Frequency, @all)
+        if isequal(options.Frequency, @any) || isequal(options.Frequency, @all)
             listFreq = reshape(iris.get('freq'), 1, [ ]);
         else
-            listFreq = unique(reshape(opt.Frequency, 1, [ ]), 'stable');
+            listFreq = unique(reshape(options.Frequency, 1, [ ]), 'stable');
         end
         %)
     end%
+end%
+
+%
+% Local validators
+%
+
+function locallyValidateSourceNames(x)
+    %(
+    if isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x) || isa(x, 'Rexp')
+        return
+    end
+    error("Input value must be @all, an array of strings, or a Rexp object.");
+    %)
+end%
+
+
+function locallyValidateDate(x)
+    %(
+    if validate.anyString(x, "maxRange", "minRange", "any", "all", "unbalanced", "balanced")
+        return
+    end
+    error("Input value must be ""balanced"" or ""unbalanced"".");
+    %)
+end%
+
+
+function locallyValidateFrequency(x)
+    %(
+    if validate.frequency(x) || isequal(x, @all) || isequal(x, @any)
+        return
+    end
+    error("Input values must be a valid Frequency, or @any.");
+    %)
 end%
 
