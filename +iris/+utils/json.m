@@ -8,7 +8,7 @@ classdef json
             arguments
                 input
                 fileName (1, 1) string
-                options.Beautify (1, 1) logical = false
+                options.Beautify (1, 1) logical = true
             end
             textual.write(string(jsonencode(input)), fileName);
             if options.Beautify
@@ -19,7 +19,7 @@ classdef json
         function beautify(fileName)
             fileName = string(fileName);
             tempFileName = fileName + ".temp";
-            system("jq --indent 4 . " + fileName + " > " + tempFileName);
+            [status, output] = system("jq --indent 4 . " + fileName + " > " + tempFileName);
             movefile(tempFileName, fileName);
         end%
     end
