@@ -5,17 +5,18 @@ if isa(names, 'function_handle')
 end
 names = reshape(string(names), 1, [ ]);
 
+allSeries = cell(size(names));
 if isa(inputDb, 'Dictionary')
-    allSeries = arrayfun( ...
-        @(n) locallyMustBeSeries(retrieve(inputDb, n), n), names ...
-        , 'uniformOutput', false ...
-    );
+    for i = 1 : numel(names)
+        allSeries{i} = retrieve(inputDb, names(i));
+    end
 else
-    allSeries = arrayfun( ...
-        @(n) locallyMustBeSeries(inputDb.(n), n), names ...
-        , 'uniformOutput', false ...
-    );
+    for i = 1 : numel(names)
+        allSeries{i} = inputDb.(names(i));
+    end
 end
+
+hereCheckTimeSeries();
 
 [dates, dateTransform] = locallyResolveDates(dates);
 data = cell(size(allSeries));
@@ -23,6 +24,22 @@ context = '';
 [dates, data{:}] = getDataFromMultiple(dates, context, allSeries{:});
 dates = reshape(double(dates), 1, []);
 
+return
+
+    function hereCheckTimeSeries()
+        %(
+        inxValid = true(size(names));
+        for i = 1 : numel(allSeries)
+            inxValid(i) = isa(allSeries{i}, 'NumericTimeSubscriptable');
+        end
+        if any(~inxValid)
+            exception.error([
+                "Databank:NotTimeSeries"
+                "This databank field is not a time series: %s"
+            ], names(~inxValid));
+        end
+        %)
+    end%
 end%
 
 %
@@ -30,23 +47,23 @@ end%
 %
 
 function [dates, dateTransform] = locallyResolveDates(dates)
+    %(
     dateTransform = [ ];
     if isstring(dates)
-        if startsWith(dates, 'head', 'ignoreCase', true)
+        if startsWith(dates, "head", "ignoreCase", true)
             dateTransform = @head;
             dates = "unbalanced";
-        elseif startsWith(dates, 'tail', 'ignoreCase', true)
+        elseif startsWith(dates, "tail", "ignoreCase", true)
             dateTransform = @tail;
             dates = "unbalanced";
         end
     end
+    %)
 end%
 
-%
-% Local Validators
-%
 
 function value = locallyMustBeSeries(value, name)
+    %(
     if isa(value, 'NumericTimeSubscriptable')
         return
     end
@@ -54,6 +71,7 @@ function value = locallyMustBeSeries(value, name)
         "Databank:ExtractSeries"
         "This databank field is not a time series: %s"
     ], name);
+    %)
 end%
 
 
