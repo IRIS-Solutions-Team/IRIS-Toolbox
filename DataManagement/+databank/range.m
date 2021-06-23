@@ -11,14 +11,14 @@ arguments
     inputDb {validate.mustBeDatabank}
 
     options.SourceNames {locallyValidateSourceNames} = @all
-    options.NamesList {locallyValidateSourceNames} = @all
+    options.NameList {locallyValidateSourceNames} = @all
     options.StartDate {locallyValidateDate} = "unbalanced"
     options.EndDate {locallyValidateDate} = "unbalanced"
     options.Frequency {locallyValidateFrequency} = @any
     options.Filter (1, :) cell = cell.empty(1, 0)
 end
 
-if ~isequal(options.NamesList, @all)
+if ~isequal(options.NameList, @all)
     options.SourceNames = options.NameList;
 end
 %)
