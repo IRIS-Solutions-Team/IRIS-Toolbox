@@ -65,10 +65,10 @@ for name = listNames
         continue
     end
     namesApplied = [namesApplied, name]; %#ok<*AGROW>
-    inxFreq = field.Frequency==listFreq;
+    inxFreq = getFrequencyAsNumeric(field)==listFreq;
     if any(inxFreq)
-        startDates{inxFreq}(end+1) = field.StartAsNumeric;
-        endDates{inxFreq}(end+1) = field.EndAsNumeric;
+        startDates{inxFreq}(end+1) = getStartAsNumeric(field);
+        endDates{inxFreq}(end+1) = getEndAsNumeric(field);
     end
 end
 
@@ -133,9 +133,9 @@ return
     function listFreq = hereFilterFreq( )
         %(
         if isequal(options.Frequency, @any) || isequal(options.Frequency, @all)
-            listFreq = reshape(iris.get('freq'), 1, [ ]);
+            listFreq = reshape(double(iris.get('freq')), 1, [ ]);
         else
-            listFreq = unique(reshape(options.Frequency, 1, [ ]), 'stable');
+            listFreq = unique(reshape(double(options.Frequency), 1, [ ]), 'stable');
         end
         %)
     end%
