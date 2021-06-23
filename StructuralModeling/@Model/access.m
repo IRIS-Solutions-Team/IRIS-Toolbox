@@ -98,6 +98,14 @@ if lower(what)==lower("fileName")
     output = string(this.FileName);
 
 
+elseif lower(what)==lower("preprocessor")
+    output = this.Preprocessor;
+
+
+elseif lower(what)==lower("postprocessor")
+    output = this.Postprocessor;
+
+
 elseif lower(what)==lower("parameterValues")
     inx = this.Quantity.Type==4;
     values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
