@@ -35,7 +35,7 @@ if isempty(pp)
     pp = extend.InputParser('databank.range');
     addRequired(pp, 'inputDb', @validate.databank);
 
-    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, "Rexp"));
+    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, "Rxp"));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
@@ -147,10 +147,10 @@ end%
 
 function locallyValidateSourceNames(x)
     %(
-    if isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x) || isa(x, 'Rexp')
+    if isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x) || isa(x, 'Rxp')
         return
     end
-    error("Input value must be @all, an array of strings, or a Rexp object.");
+    error("Input value must be @all, an array of strings, or a Rxp object.");
     %)
 end%
 
