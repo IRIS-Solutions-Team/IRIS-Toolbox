@@ -32,7 +32,7 @@ countChartsInWindow = 0;
 for x = this.Charts
     if countChartsInWindow==0
         currentFigure = figure(this.FigureSettings{:});
-        figureHandles(end+1) = currentFigure; 
+        figureHandles(end+1) = currentFigure;
         axesHandles{end+1} = gobjects(1, 0);
         titleHandles{end+1} = gobjects(1, 0);
         subtitleHandles{end+1} = gobjects(1, 0);
@@ -44,7 +44,7 @@ for x = this.Charts
     if this.Round<Inf
         x.Data = round(x.Data, this.Round);
     end
-    plotHandles__ = this.PlotFunc(range, x.Data); %, this.PlotSettings{:});    
+    plotHandles__ = this.PlotFunc(range, x.Data); %, this.PlotSettings{:});
     if ~isempty(this.PlotSettings)
         set(plotHandles__, this.PlotSettings{:});
     end
@@ -52,9 +52,9 @@ for x = this.Charts
 
     [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
         = locallyCreateTitle(x, currentAxes);
-    
+
     locallyHighlight(x, currentAxes);
-    
+
     runAxesExtras(x, currentAxes);
 
     if countChartsInWindow==numTilesPerWindow
@@ -83,14 +83,20 @@ end%
 % Local Functions
 %
 
-function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes) 
+function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes)
     %(
+    PLACEHOLDER = gobjects(1);
     parent = x.ParentChartpack;
     caption = resolveCaption(x);
     if ~ismissing(caption)
-        [titleHandle, subtitleHandle] = title(currentAxes, caption(1), caption(2:end));
+        try
+            [titleHandle, subtitleHandle] = title(currentAxes, caption(1), caption(2:end));
+        catch
+            titleHandle = title(currentAxes, caption);
+            subtitleHandle = PLACEHOLDER;
+        end
         set(titleHandle, "interpreter", parent.Interpreter, parent.TitleSettings{:});
-        if numel(caption)>1
+        if numel(caption)>1 && ~isempty(subtitleHandle) && ~isequal(subtitleHandle, PLACEHOLDER)
             set(subtitleHandle, "interpreter", parent.Interpreter, parent.SubtitleSettings{:});
         end
     else
