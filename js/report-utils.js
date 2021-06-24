@@ -266,6 +266,7 @@ function createChartForPlotly(data, limits, settings) {
   const DEFAULT_GRID_COLOR = '#ddd';
   const DEFAULT_SHOW_AXIS = true;
   const DEFAULT_AXIS_COLOR = '#aaa';
+  const DEFAULT_SHOW_LEGEND = true;
   const dateFormat = settings.DateFormat;
   const highlight = settings.Highlight || [];
   const interactive = (!settings.hasOwnProperty("InteractiveCharts"))
@@ -274,6 +275,7 @@ function createChartForPlotly(data, limits, settings) {
   var chartBody = document.createElement("div");
   $(chartBody).addClass("rephrase-chart-body");
   const layout = {
+    showlegend: (!settings.hasOwnProperty("ShowLegend")) ? DEFAULT_SHOW_LEGEND : settings.ShowLegend,
     font: {
       family: "Lato",
       color: "#0a0a0a"

@@ -604,7 +604,8 @@ var $reportWithoutData = {
               }
             ],
             "StartDate": "2020-01-01",
-            "EndDate": "2024-12-31"
+            "EndDate": "2024-12-31",
+            "ShowLegend": true
           },
           "Content": [
             {
