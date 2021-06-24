@@ -1,3 +1,13 @@
+/**
+ * # report-renderer.js
+ * 
+ * Dynamically adds report components defined in `$report` variable 
+ * based on data defined in `$databank` variable
+ * 
+ * ---
+ * Copyright © 2021 OGResearch. All rights reserved.
+ */
+
 // load Foundation styles
 $(document).foundation();
 
@@ -69,8 +79,8 @@ $(document).foundation();
     }
   }
 
+  // render the footer if defined
   var footerDiv = document.querySelector('.report-footer');
-
   if (!$report.Settings.hasOwnProperty("Footer") || $report.Settings.Footer === null) {
     footerDiv.style.display = 'none';
   } else {

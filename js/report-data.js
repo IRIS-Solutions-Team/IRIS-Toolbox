@@ -636,7 +636,8 @@ var $reportWithoutData = {
             "IsTitlePartOfChart": false,
             "StartDate": "2020-01-01",
             "EndDate": "2024-12-31",
-            "ChartLibrary": "chartjs"
+            "ChartLibrary": "chartjs",
+            "ShowLegend": false
           },
           "Content": [
             {

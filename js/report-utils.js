@@ -32,6 +32,7 @@ var $ru = {
 
 const DEFAULT_CHART_LIBRARY = "plotly";
 const DEFAULT_HIGHLIGHT_COLOR = "rgba(100, 100, 100, 0.2)";
+const DEFAULT_SHOW_LEGEND = true;
 
 // generic function preparing the chart area and calling the implementation
 // specific for the chosen ChartLibrary
@@ -183,6 +184,9 @@ function createChartForChartJs(data, limits, settings) {
           }
         }
       },
+      legend: {
+        display: (!settings.hasOwnProperty("ShowLegend")) ? DEFAULT_SHOW_LEGEND : settings.ShowLegend
+      },
       aspectRatio: 1.5,
       maintainAspectRatio: true,
       scales: {
@@ -266,7 +270,6 @@ function createChartForPlotly(data, limits, settings) {
   const DEFAULT_GRID_COLOR = '#ddd';
   const DEFAULT_SHOW_AXIS = true;
   const DEFAULT_AXIS_COLOR = '#aaa';
-  const DEFAULT_SHOW_LEGEND = true;
   const dateFormat = settings.DateFormat;
   const highlight = settings.Highlight || [];
   const interactive = (!settings.hasOwnProperty("InteractiveCharts"))
