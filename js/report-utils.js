@@ -581,6 +581,7 @@ function momentJsDateFormatToD3TimeFormat(dateFormat) {
   // years
   d3TimeFormat = d3TimeFormat.replace("YYYY", "%Y");
   d3TimeFormat = d3TimeFormat.replace("YY", "%y");
+  d3TimeFormat = d3TimeFormat.replace("Y", "%-Y");
   // quarters
   d3TimeFormat = d3TimeFormat.replace("QQ", "0%q");
   d3TimeFormat = d3TimeFormat.replace("Q", "%q");
