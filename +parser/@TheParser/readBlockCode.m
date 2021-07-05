@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function blockCode = readBlockCode(this)
+function [blockCode, blockAttributes] = readBlockCode(this)
 
 numBlocks = numel(this.Block);
 listBlockKeywords = getBlockKeyword(this);
@@ -22,27 +22,31 @@ eob = sprintf('|%s', listBlockKeywords{inx});
 eob = ['(?=$', eob, ')'];
 
 % Read blocks
-blockCode = repmat({''}, 1, numBlocks);
+blockCode = cell(1, numBlocks);
+blockAttributes = cell(1, numBlocks);
 inxValidEssential = true(1, numBlocks);
 for i = 1 : numBlocks
     if isempty(this.Block{i}.Keyword)
         continue
     end
     % Read a whole block
-    pattern = [this.Block{i}.Keyword, '[:,;\s]+(.*?)', eob];
-    tkn = regexpi(this.Code, pattern, 'tokens');
-    tkn = [ tkn{:} ];
+    pattern = [this.Block{i}.Keyword, '([\(:,;\s].*?)', eob];
+    tkn = regexpi(string(this.Code), string(pattern), "tokens");
+    tkn = string([tkn{:}]);
+    [tkn, blockAttributes{i}] = hereReadAttributes(tkn);
+    check = [];
     if ~isempty(tkn)
         precheck(this.Block{i}, this, tkn);
-        blockCode{i} = [ tkn{:} ];
+        blockCode{i} = strip(tkn);
         % Run block specific regexp replace
         if ~isempty(this.Block{i}.Replace)
             ptn = this.Block{i}.Replace(:,1).';
             rpl = this.Block{i}.Replace(:,2).';
             blockCode{i} = regexprep(blockCode{i}, ptn, rpl);
         end
+        check = join(blockCode{i}, "");
     end
-    if this.Block{i}.IsEssential && this.FN_EMPTY_BLOCK(blockCode{i})
+    if this.Block{i}.IsEssential && this.FN_EMPTY_BLOCK(check)
         inxValidEssential(i) = false;
     end
 end
@@ -53,6 +57,20 @@ if any(~inxValidEssential)
         listBlockKeywords{~inxValidEssential} ...
     );
 end
+
+    function [block, attributes] = hereReadAttributes(block)
+        getFirst = @(x) x(1);
+        inx = startsWith(block, "(");
+        attributes = repmat({string.empty(1, 0)}, size(block));
+        for ii = find(reshape(inx, 1, []))
+            temp = getFirst(extractBetween(block(ii), "(", ")"));
+            attributes{ii} = regexp(temp, ":\w+", "match");
+            if isempty(attributes{ii})
+                attributes{ii} = string.empty(1, 0);
+            end
+            block(ii) = extractAfter(block(ii), ")");
+        end
+    end%
 
 end%
 

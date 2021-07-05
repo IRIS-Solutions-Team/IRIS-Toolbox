@@ -1,26 +1,25 @@
 % parse  Parse equations and add them to parser.theparser.Equation object
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [qty, eqn] = parse(this, aux, code, qty, eqn, euc, ~, opt)
-
-% 'Label' x=0.8*x{-1}+ex !! x=0;
-LABEL_PATTERN =       '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
-EQUATION_PATTERN =    '(?<EQUATION>[^;]+);';
-
-%--------------------------------------------------------------------------
+function [qty, eqn, euc, puc] = parse(this, ~, code, attributes, qty, eqn, euc, puc, opt)
 
 %
 % Split the code block into individual equations
 %
+code = char(code);
 listEquations = this.splitCodeIntoEquations(code);
 if isempty(listEquations)
     return
 end
+
+%
+% Prepare pattern for
+%    'Label' x=0.8*x{-1}+ex !! x=0;
+%
+LABEL_PATTERN = '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
+EQUATION_PATTERN = '(?<EQUATION>[^;]+);';
 
 %
 % Separate labels and equations
@@ -68,7 +67,7 @@ if any(inxEmptyWarn)
     listEquations(inxEmptyWarn) = [ ] ; %#ok<UNRCH>
     listLabels(inxEmptyWarn) = [ ];
     listDynamic(inxEmptyWarn) = [ ];
-    listSteady(inxEmptyWarn) = [ ];                
+    listSteady(inxEmptyWarn) = [ ];
 end
 if isempty(listEquations)
     return
@@ -118,6 +117,7 @@ numEquations = numel(listEquations);
 eqn.Input(end+(1:numEquations)) = listEquations;
 eqn.Label(end+(1:numEquations)) = listLabels;
 eqn.Alias(end+(1:numEquations)) = alias;
+eqn.Attributes(end+(1:numEquations)) = {attributes};
 eqn.Type(end+(1:numEquations)) = repmat(this.Type, 1, numEquations);
 eqn.Dynamic(end+(1:numEquations)) = repmat({char.empty(1, 0)}, 1, numEquations);
 eqn.Steady(end+(1:numEquations)) = repmat({char.empty(1, 0)}, 1, numEquations);
@@ -212,7 +212,7 @@ end%
 
 
 
-% 
+%
 % Unit Tests
 %
 %{
@@ -239,25 +239,27 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     obj = testCase.TestData.Obj;
     code = testCase.TestData.Code;
     eqn = model.component.Equation( );
-    eun = parser.EquationUnderConstruction( );
+    euc = parser.EquationUnderConstruction( );
     opt = struct( );
     opt.EquationSwitch = @auto;
-    [~, eqn] = parse(obj, [ ], code, [ ], eqn, eun, [ ], opt);
+    attributes = string.empty(1, 0);
+    [~, eqn, euc] = parse(obj, [ ], code, attributes, [ ], eqn, euc, [ ], opt);
     exp_Input = {'a=a{-1}', 'b=0', 'c=c{-1}!!c=0', 'd=d{-1}'};
     assertEqual(testCase, eqn.Input, exp_Input);
-    assertEqual(testCase, cellfun('isempty', eun.LhsSteady), [true, true, false, true]);
+    assertEqual(testCase, cellfun('isempty', euc.LhsSteady), [true, true, false, true]);
 
 
 %% Test Equation Switch Dynamic
     obj = testCase.TestData.Obj;
     code = testCase.TestData.Code;
     eqn = model.component.Equation( );
-    eun = parser.EquationUnderConstruction( );
+    euc = parser.EquationUnderConstruction( );
     opt.EquationSwitch = 'Dynamic';
-    [~, eqn] = parse(obj, [ ], code, [ ], eqn, eun, [ ], opt);
+    attributes = string.empty(1, 0);
+    [~, eqn, euc] = parse(obj, [ ], code, attributes, [ ], eqn, euc, [ ], opt);
     exp_Input = {'a=a{-1}', 'b=b{-1}', 'c=c{-1}', 'd=d{-1}'};
     assertEqual(testCase, eqn.Input, exp_Input);
-    assertEqual(testCase, cellfun('isempty', eun.LhsSteady), true(1, 4));
+    assertEqual(testCase, cellfun('isempty', euc.LhsSteady), true(1, 4));
 
 
 
@@ -265,12 +267,14 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     obj = testCase.TestData.Obj;
     code = testCase.TestData.Code;
     eqn = model.component.Equation( );
-    eun = parser.EquationUnderConstruction( );
+    euc = parser.EquationUnderConstruction( );
     opt.EquationSwitch = 'Steady';
-    [~, eqn] = parse(obj, [ ], code, [ ], eqn, eun, [ ], opt);
+    attributes = string.empty(1, 0);
+    [~, eqn, euc] = parse(obj, [ ], code, attributes, [ ], eqn, euc, [ ], opt);
     exp_Input = {'a=0', 'b=0', 'c=0', 'd=d{-1}'};
     assertEqual(testCase, eqn.Input, exp_Input);
-    assertEqual(testCase, cellfun('isempty', eun.LhsSteady), true(1, 4));
+    assertEqual(testCase, cellfun('isempty', euc.LhsSteady), true(1, 4));
+
 
 ##### SOURCE END #####
 %}
