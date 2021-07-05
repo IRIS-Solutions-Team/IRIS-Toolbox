@@ -29,8 +29,12 @@ subtitleHandles = cell(1, 0);
 plotHandles = cell(1, 0);
 
 countChartsInWindow = 0;
+currentFigure = gobjects(0);
 for x = this.Charts
     if countChartsInWindow==0
+        if ~isempty(currentFigure)
+            runFigureExtras(this, currentFigure);
+        end
         currentFigure = figure(this.FigureSettings{:});
         figureHandles(end+1) = currentFigure;
         axesHandles{end+1} = gobjects(1, 0);
@@ -61,6 +65,11 @@ for x = this.Charts
         countChartsInWindow = 0;
     end
 end
+
+if ~isempty(currentFigure)
+    runFigureExtras(this, currentFigure);
+end
+
 
 info = struct();
 info.FigureHandles = figureHandles;

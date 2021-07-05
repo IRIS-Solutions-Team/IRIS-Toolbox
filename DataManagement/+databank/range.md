@@ -10,10 +10,9 @@
 
 ## Input Arguments
 
-__`inputDb`__ [ struct | containers.Map | Dictionary ]
+__`inputDb`__ [ struct | Dictionary ]
 > 
-> Input databank; can be either a struct, a containers.Map, or a
-> Dictionary.
+> Input databank; can be either a struct, or a Dictionary.
 > 
 
 ## Output Arguments

@@ -105,23 +105,20 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                     formula(1) = formula(1) + "; " + string(func2str(this.Transform));
                 end
             end%
-            
+
             function caption = hereSplitCaption(caption, newLine)
                 if ~ismissing(newLine) && strlength(newLine)>0
                     caption = strip(split(caption, newLine));
                 end
             end%
         end%
-        
-        
+
+
         function runAxesExtras(this, axesHandle)
             %(
             parent = this.ParentChartpack;
             if ~isempty(parent.AxesSettings)
                 set(axesHandle, parent.AxesSettings{:});
-            end
-            if isempty(parent.AxesExtras)
-                return
             end
             for i = 1 : numel(parent.AxesExtras)
                 parent.AxesExtras{i}(axesHandle);
@@ -146,8 +143,8 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                 temp = databank.chartpack.Chart(varargin{:});
                 temp.InputString = strip(n);
                 [temp.Caption, temp.Expression, temp.ApplyTransform] ...
-                    = databank.chartpack.Chart.parseInputString(temp.InputString); 
-                this(end+1) = temp; 
+                    = databank.chartpack.Chart.parseInputString(temp.InputString);
+                this(end+1) = temp;
             end
             %)
         end%
