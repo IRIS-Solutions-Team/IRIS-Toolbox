@@ -3,6 +3,17 @@ classdef Pairing
         Autoswaps
         Dtrends
         Assignments
+
+        % Slacks  In optimal policy models and comodels, Slacks(k)=n if
+        % k-th name is a regular transition variable (not a Lagrange
+        % multiplier) and n is the tune (shock) placed in the derivate of
+        % the Lagrangian wrt to k-th variable; otherwise Slacks(k)=0
+        Slacks = double.empty(1, 0)
+
+        % Costds  In comodels, Costds(k)=n if k-th name is a conditioning
+        % shock turned to a transition variable, and n is the parameter
+        % controlling the std of the shock in the loss function
+        Costds = double.empty(1, 0)
     end
 
 
@@ -15,6 +26,8 @@ classdef Pairing
             this.Autoswaps = model.component.Pairing.initAutoswaps(numQuantities);
             this.Dtrends = model.component.Pairing.initDtrends(numEquations);
             this.Assignments = model.component.Pairing.initAssignments(numEquations);
+            this.Slacks = zeros(1, numQuantities);
+            this.Costds = zeros(1, numQuantities);
         end%%
     end
 

@@ -68,6 +68,7 @@ model = pp.Results.model;
 this = Plan( );
 this.BaseStart = simulationRange(1);
 this.BaseEnd = simulationRange(end);
+
 this = preparePlan(model, this);
 
 this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;

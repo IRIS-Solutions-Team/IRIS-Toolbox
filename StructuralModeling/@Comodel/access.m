@@ -1,4 +1,4 @@
-% access  Access properties of Model objects
+% access  Access properties of Comodel objects
 %
 %{ Syntax
 %--------------------------------------------------------------------------
@@ -62,7 +62,7 @@ function [output, beenHandled] = access(this, input, options)
 % >=R2019b
 %(
 arguments
-    this (1, :) Model
+    this (1, :) Comodel
     input (1, 1) string
 
     options.Error (1, 1) logical = true
@@ -78,71 +78,26 @@ stringify = @(x) reshape(string(x), 1, []);
 what = input;
 what = erase(what, ["_", "-", ":", "."]);
 
-%
-% Model components
-%
-[output, beenHandled] = access(this.Quantity, what);
+[output, beenHandled] = access@Model(this, input, "error", false);
 if beenHandled, return, end
-
-[output, beenHandled] = access(this.Equation, what);
-if beenHandled, return, end
-
-[output, beenHandled] = access(this.Pairing, what, this.Quantity);
-if beenHandled, return, end
-
 
 output = [ ];
 beenHandled = true;
 
 
 %==========================================================================
-if lower(what)==lower("fileName")
-    output = string(this.FileName);
+if lower(what)==lower("costdValues")
+    ptr = this.Pairing.Costds;
+    ptr(ptr==0) = [];
+    values = permute(this.Variant.Values(1, ptr, :), [2, 3, 1]);
+    names = stringify(this.Quantity.Name(ptr));
+    output = locallyCreateStruct(names, values);
 
 
-elseif lower(what)==lower("preprocessor")
-    output = this.Preprocessor;
-
-
-elseif lower(what)==lower("postprocessor")
-    output = this.Postprocessor;
-
-
-elseif lower(what)==lower("parameterValues")
-    inx = this.Quantity.Type==4;
-    values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
-    output = locallyCreateStruct(this.Quantity.Name(inx), values);
-
-
-elseif lower(what)==lower("stdValues")
-    namesStd = stringify(getStdNames(this.Quantity));
-    numShocks = numel(namesStd);
-    values = permute(this.Variant.StdCorr(1, 1:numShocks, :), [2, 3, 1]);
-    output = locallyCreateStruct(namesStd, values);
-
-
-elseif startsWith(what, "steady", "ignoreCase", true)
-    values = permute(this.Variant.Values, [2, 3, 1]);
-    if endsWith(what, "level", "ignoreCase", true)
-        values = real(values);
-    elseif endsWith(what, ["change", "growth"], "ignoreCase", true)
-        values = imag(values);
-    end
-    output = locallyCreateStruct(this.Quantity.Name, values);
-
-
-elseif any(lower(what)==lower(["required", "initials"]))
-    logStyle = "none";
-    idInit = getIdInitialConditions(this);
-    output = printSolutionVector(this, idInit, logStyle);
-    output = reshape(string(output), 1, []);
-
-
-elseif lower(what)==lower("initCond")
-    logStyle = "log()";
-    idInit = getIdInitialConditions(this);
-    output = printSolutionVector(this, idInit, logStyle);
-    output = reshape(string(output), 1, []);
+elseif lower(what)==lower("costds")
+    ptr = this.Pairing.Costds;
+    ptr(ptr==0) = [];
+    output = stringify(this.Quantity.Name(ptr));
 
 
 else
@@ -154,8 +109,8 @@ end
 
 if ~beenHandled && options.Error
     exception.error([
-        "Model:InvalidAccessQuery"
-        "This is not a valid query into Model objects: %s "
+        "Comodel:InvalidAccessQuery"
+        "This is not a valid query into Comodel objects: %s "
     ], input);
 end
 

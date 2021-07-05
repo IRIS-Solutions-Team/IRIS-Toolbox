@@ -3,9 +3,9 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function varargout = fromFile(varargin)
+function this = fromFile(modelFile, varargin)
 
-[varargout{1:nargout}] = Model(varargin{:});
+this = Model(modelFile, varargin{:});
 
 end%
 

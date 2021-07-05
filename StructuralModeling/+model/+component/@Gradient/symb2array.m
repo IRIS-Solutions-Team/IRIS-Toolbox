@@ -1,8 +1,5 @@
 % symb2array  Replace symbolic names with references to variable array.
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
