@@ -143,7 +143,7 @@ classdef Explanatory ...
 
     properties (Constant)
         VARIABLE_WITH_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(\{[^\}]*\})"
-        VARIABLE_NO_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(?!\()" 
+        VARIABLE_NO_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(?!\()"
         USERDATA_PREFIX = "#"
     end
 
@@ -231,7 +231,7 @@ classdef Explanatory ...
 
 
 
-    methods 
+    methods
         %(
         function this = addParameters(this, fixed)
             fixed = double(fixed);
@@ -298,7 +298,7 @@ classdef Explanatory ...
                 this.DependentTerm.InverseTransform = [ ];
             end
             this.Simulate = str2func("@(x,e,p,t,v,controls__)" + invert);
-            
+
             for i = 1 : this.NumExplanatoryTerms
                 this.ExplanatoryTerms(i).Expression = ...
                     str2func("@(x,e,p,t,v,controls__)" + this.ExplanatoryTerms(i).Expression);
@@ -314,7 +314,7 @@ classdef Explanatory ...
             if ~isscalar(attribute) || ~startsWith(attribute, ":")
                 exception.error([
                     "Explanatory:InvalidAttributeRequest"
-                    "Attribute has to be a scalar string starting with a colon." 
+                    "Attribute has to be a scalar string starting with a colon."
                 ]);
             end
             flag = arrayfun(@(x) any(x.Attributes==attribute), this);
@@ -353,7 +353,7 @@ classdef Explanatory ...
             inx = arrayfun(@(x) isequal(term, x), this.ExplanatoryTerms);
         end%
 
-        
+
         function pos = getPosName(this, name)
             name = replace(string(name), " ", "");
             inx = name==this.VariableNames;
@@ -390,7 +390,7 @@ classdef Explanatory ...
             exception.error([
                 "Explanatory:InconsistentNumberOfVariants"
                 "All Explanatory objects grouped in an array must have "
-                "identical numbers of parameter variants." 
+                "identical numbers of parameter variants."
             ]);
         end%
 
@@ -419,23 +419,22 @@ classdef Explanatory ...
         function value = getp(this, name)
             value = this.(name);
         end%
-    end
-
-
+    end % methods
 
 
     methods (Access=protected, Hidden)
         function implementDisp(varargin)
         end%
-    end
-
-
+    end % methods
 
 
     methods (Access=protected)
         varargout = checkNames(varargin)
+    end % methods
 
 
+    methods (Hidden) % Interface for shared.Plan
+        %(
         function namesEndogenous = getEndogenousForPlan(this)
             inxIdentity = [this.IsIdentity];
             namesEndogenous = [this(~inxIdentity).LhsName];
@@ -446,7 +445,7 @@ classdef Explanatory ...
             namesExogenous = string.empty(1, 0);
         end%
 
-        
+
         function autoswaps = getAutoswapsForPlan(this)
             autoswaps = cell.empty(0, 2);
         end%
@@ -456,7 +455,8 @@ classdef Explanatory ...
             nv = countVariants(this);
             sigmas = double.empty(0, 1, nv);
         end%
-    end
+        %)
+    end % methods
 
 
     methods

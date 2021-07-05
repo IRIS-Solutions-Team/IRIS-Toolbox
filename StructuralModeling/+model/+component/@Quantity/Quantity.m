@@ -9,25 +9,28 @@ classdef (CaseInsensitiveProperties=true) ...
         Name = cell.empty(1, 0)
 
         % Type  Types of quantities
-        Type = int8.empty(1, 0)   
+        Type = int8.empty(1, 0)
 
         % Label  Description of quantities
-        Label = cell.empty(1, 0)         
+        Label = cell.empty(1, 0)
 
         % Alias  Alias strings for quantities
-        Alias = cell.empty(1, 0)            
+        Alias = cell.empty(1, 0)
+
+        % Attributes  Quantity attributes
+        Attributes = cell.empty(1, 0)
 
         % InxLog  True for variabls declared as log-variables
         IxLog = logical.empty(1, 0)
 
         % IxLagrange  True for Lagrange multipliers in optimal policy model
-        IxLagrange = logical.empty(1, 0)          
+        IxLagrange = logical.empty(1, 0)
 
         % IxObserved  True for transition variables marked as observed and forced into the backward looking vector
-        IxObserved = logical.empty(1, 0)          
+        IxObserved = logical.empty(1, 0)
 
         % Bounds  Lower and upper bounds on level and growth
-        Bounds = double.empty(4, 0)               
+        Bounds = double.empty(4, 0)
     end
 
 
@@ -62,6 +65,8 @@ classdef (CaseInsensitiveProperties=true) ...
         CORR_PREFIX = 'corr_'
         LOG_PREFIX = 'log_'
         FLOOR_PREFIX = 'floor_'
+        COSTD_PREFIX = 'costd_'
+        SLACK_PREFIX = 'slack_'
     end
 
 
@@ -70,8 +75,8 @@ classdef (CaseInsensitiveProperties=true) ...
         InxObserved
         NumQuantities
     end
-    
-    
+
+
     methods
         % Bounds
         varargout = getBounds(varargin)
@@ -100,6 +105,9 @@ classdef (CaseInsensitiveProperties=true) ...
 
         varargout = lookup(varargin)
         varargout = lookupNames(varargin)
+
+        varargout = byAttributes(varargin)
+
         varargout = pattern4postparse(varargin)
 
         varargout = populateTransient(varargin)
@@ -207,25 +215,28 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
     end
 
-    
+
     methods (Static)
         varargout = loadObject(varargin)
 
 
         function this = fromNames(names)
+            %(
             names = cellstr(names);
-            this = model.component.Quantity( );
+            this = model.component.Quantity();
             numNames = numel(names);
             this.Name = cell(1, numNames);
             this.Name(:) = names;
-            this.Type = zeros(1, numNames, 'int8');
+            this.Type = repmat(int8(0), 1, numNames);
             this.Label = repmat({''}, 1, numNames);
             this.Alias = repmat({''}, 1, numNames);
+            this.Attributes = repmat({string.empty(1, 0)}, 1, numNames);
             this.IxLog = false(1, numNames);
             this.IxLagrange = false(1, numNames);
             this.IxObserved = false(1, numNames);
             this.Bounds = repmat(this.DEFAULT_BOUNDS, 1, numNames);
             this.OriginalNames = this.Name;
+            %)
         end%
 
 

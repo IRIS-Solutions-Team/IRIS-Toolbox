@@ -72,6 +72,15 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
             [numRows, numColumns] = visual.backend.optimizeSubplot(min(numCharts, this.MaxTilesPerWindow));
             tiles = [numRows, numColumns];
         end%
+
+
+        function runFigureExtras(this, figureHandle)
+            %(
+            for i = 1 : numel(this.FigureExtras)
+                this.FigureExtras{i}(figureHandle);
+            end
+            %)
+        end%
     end
 end
 

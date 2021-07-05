@@ -50,16 +50,22 @@ this.Link = reorder(this.Link, opt);
 % Convert string equations to anonymous functions
 this = differentiate(this, opt.symbdiff);
 
+
 % Create Deriv to System convertor
 this = createD2S(this, opt);
+
 
 % Populate transient properties
 this = populateTransient(this);
 
+
+%
 % Preallocate variants
+%
 lenExpansion = 0;
 numHashed = nnz(this.Equation.IxHash);
 numObserved = nnz(this.Quantity.IxObserved);
+numQuants = numel(this.Quantity);
 defaultFloor = 0;
 preallocateFunc = getPreallocateFunc(this);
 numVariants = locallyGetNumVariants(this.Quantity, asgn);
@@ -68,11 +74,25 @@ this.Variant = model.component.Variant( ...
     defaultStd, defaultFloor, preallocateFunc ...
 );
 
-% Assign from input database. This must be done after creating
-% this.Variant.
+
+%
+% Assign values that are zero by default
+%
+inxZero.Level = false(1, numQuants);
+inxZero = prepareZeroSteady(this, inxZero);
+this.Variant.Values(1, inxZero.Level, :) = 0;
+
+
+%
+% Assign from input database; this must be done after creating
+% this.Variant and assigning default zeros
+%
 this = assign(this, asgn);
 
-% Refresh dynamic links after assigning parameters.
+
+%
+% Refresh dynamic links after assigning parameters
+%
 if opt.Refresh
     this = refresh(this);
 end

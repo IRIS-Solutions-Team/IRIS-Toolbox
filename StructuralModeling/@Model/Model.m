@@ -356,13 +356,34 @@ classdef Model ...
 % expressions.
 %}
 
-            this = this@model(varargin{:});
+            if nargin==0
+                return
+            % elseif nargin==1 && isa(varargin{1}, 'Model')
+                % this = varargin{1};
+            % elseif nargin==1 && isstruct(varargin{1})
+                % this = struct2obj(this, varargin{1});
+            elseif nargin>=1 && ( ...
+                ischar(varargin{1}) || iscellstr(varargin{1}) || isstring(varargin{1}) ...
+                || isa(varargin{1}, 'model.File') ...
+            )
+                modelFile = varargin{1};
+                varargin(1) = [];
+                [this, opt, parserOpt, optimalOpt] = processConstructorOptions(this, varargin{:});
+                [this, opt] = file2model(this, modelFile, opt, opt.Preparser, parserOpt, optimalOpt);
+                this = build(this, opt);
+            else
+                exeption.error([
+                    "Model:InvalidConstructorCall"
+                    "Invalid call to Model constructor."
+                ]);
+            end
         end%
     end % methods
 
 
     methods % Public Interface
         %(
+        varargout = byAttributes(varargin)
         varargout = checkInitials(varargin)
         varargout = isLinear(varargin)
         varargout = quickAssign(varargin)
@@ -469,9 +490,11 @@ classdef Model ...
 
 
     methods (Static) % Static constructors
+        %(
         varargout = fromFile(varargin)
         varargout = fromSnippet(varargin)
         varargout = fromString(varargin)
+        %)
     end
 
 
@@ -495,13 +518,11 @@ classdef Model ...
         function value = countExportFiles(this)
             value = numel(this.Export);
         end%
-    end
+    end % methods
 
 
-
-
-    methods (Access=protected) % mixin.Plan interface
-    %(
+    methods (Hidden) % Interface for shared.Plan
+        %(
         function names = getEndogenousForPlan(this)
             names = getNamesByType(this.Quantity, 1, 2);
         end%
@@ -525,7 +546,7 @@ classdef Model ...
             sigmas = this.Variant.StdCorr(:, 1:ne, :);
             sigmas = reshape(sigmas, ne, 1, [ ]);
         end%
-    %)
-    end
+        %)
+    end % methods
 end % classdef
 

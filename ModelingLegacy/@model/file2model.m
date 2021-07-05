@@ -6,7 +6,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [this, opt] = file2model(this, modelFile, opt, preparserOpt, parserOpt, optimalOpt)
+function [this, opt] = file2model(this, modelFile, opt, preparserOpt, parserOpt, optimalOpt, varargin)
 
 %
 % __Run preparser__
@@ -45,13 +45,13 @@ this.PreparserControl = d;
 %
 
 the = parser.TheParser('model', this.FileName, code, opt.Assign);
-[quantity, equation, euc, puc, collector, log] = parse(the, parserOpt);
+[qty, eqn, euc, puc, collector, log] = parse(the, parserOpt);
 opt.Assign = the.AssignedDatabank;
 
 %
 % Run model-specific postparser
 %
-this = postparse(this, quantity, equation, log, euc, puc, collector, opt, optimalOpt);
+this = postparse(this, qty, eqn, log, euc, puc, collector, opt, optimalOpt, varargin{:});
 
 end%
 

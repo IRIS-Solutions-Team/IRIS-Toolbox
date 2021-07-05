@@ -8,10 +8,15 @@ classdef Quantity < parser.theparser.Generic
 
 
     methods
-        function [qty, eqn] = parse(this, the, code, qty, eqn, ~, ~, opt)
+        function [qty, eqn, euc, puc] = parse(this, the, code, attributes, qty, eqn, euc, puc, opt)
             %#ok<*SPRINTFN>
-            
-            SEPARATORS = [",", ";", sprintf("\n")]; 
+
+            code = char(code);
+            if strlength(code)==0
+                return
+            end
+
+            SEPARATORS = [",", ";", sprintf("\n")];
 
             NAME_PATTERN = ...
                 "(""[ ]*""|'[ ]*')?\s*" ...    % "Label" or 'Label'
@@ -19,10 +24,6 @@ classdef Quantity < parser.theparser.Generic
                 + "(@?)" ...                   % @ Observed transition variable
                 + "\s*(=[^;,\n]+[;,\n])?" ...  % =Value
             ;
-
-            if isempty(code)
-                return
-            end
 
             if this.Type==4 && opt.AutodeclareParameters
                 return
@@ -104,6 +105,7 @@ classdef Quantity < parser.theparser.Generic
             qty.Type(end+(1:numQuantities)) = repmat(this.Type, 1, numQuantities);
             qty.Label(end+(1:numQuantities)) = label;
             qty.Alias(end+(1:numQuantities)) = alias;
+            qty.Attributes(end+(1:numQuantities)) = {attributes};
             qty.Bounds(:, end+(1:numQuantities)) = repmat(model.component.Quantity.DEFAULT_BOUNDS, 1, numQuantities);
 
             qty.IxLog(end+(1:numQuantities)) = repmat(this.IsLog, 1, numQuantities);

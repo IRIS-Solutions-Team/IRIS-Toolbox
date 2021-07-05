@@ -11,7 +11,7 @@ if isempty(pp)
     pp = extend.InputParser('@Plan/exogenize');
     pp.KeepUnmatched = true;
     addParameter(pp, 'SwapLink', this.DEFAULT_SWAP_LINK, @(x) validate.roundScalar(x) && x~=Plan.ZERO_SWAP_LINK);
-end
+end % if
 parse(pp, varargin{:});
 unmatched = pp.UnmatchedInCell;
 opt = pp.Options;

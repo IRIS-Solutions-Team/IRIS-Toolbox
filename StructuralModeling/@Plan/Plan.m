@@ -10,11 +10,13 @@ classdef Plan ...
     properties
         NamesOfEndogenous = cell.empty(1, 0)
         NamesOfExogenous = cell.empty(1, 0)
-        AutoswapPairs = cell.empty(0, 2)
         BaseStart = double.empty(0)
         BaseEnd = double.empty(0)
         ExtendedStart = double.empty(0)
         ExtendedEnd = double.empty(0)
+
+        AutoswapPairs = cell.empty(0, 2)
+        SlackPairs = string.empty(0, 2)
 
         SwapLink = int16(-1)
 
@@ -26,7 +28,7 @@ classdef Plan ...
         IdAnticipatedEndogenized = int16.empty(0, 0)
         IdUnanticipatedEndogenized = int16.empty(0, 0)
         InxToKeepEndogenousNaN = logical.empty(0)
-        
+
         SigmasExogenous = double.empty(0, 0)
         DefaultSigmasExogenous = double.empty(0, 0)
     end
@@ -94,6 +96,7 @@ classdef Plan ...
         varargout = anticipate(varargin)
         varargout = assignSigma(varargin)
         varargout = autoswap(varargin)
+        varargout = condition(varargin)
         varargout = endogenize(varargin)
         varargout = exogenize(varargin)
         varargout = exogenizeWhenData(varargin)
@@ -837,6 +840,7 @@ classdef Plan ...
     methods (Static) % Static Constructor Signatures
         %(
         varargout = forModel(varargin)
+        varargout = forComodel(varargin)
         varargout = forExplanatory(varargin)
 
         function varargout = forExplanatoryEquation(varargin)
@@ -862,10 +866,10 @@ classdef Plan ...
             end
             [inxValidNames, posNames] = ismember(selectNames, allNames);
             if throwError && any(~inxValidNames)
-                thisError = [ "Plan:InvalidNameInContext"
-                              "This name cannot %1 in the simulation Plan: %s " ];
-                throw( exception.Base(thisError, 'error'), ...
-                       context, selectNames{~inxValidNames} );
+                exception.error([
+                    "Plan:InvalidNameInContext"
+                    "This name cannot %1 in the simulation Plan: %s "
+                ], context, selectNames{~inxValidNames});
             end
             posNames(~inxValidNames) = [ ];
             inxNames = false(1, numel(allNames));

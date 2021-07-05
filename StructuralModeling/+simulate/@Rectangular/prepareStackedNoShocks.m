@@ -50,7 +50,9 @@ end
 
 this.StackedNoShocks_Transition = M;
 this.StackedNoShocks_Constant = N;
-this.StackedNoShocks_InxDataPoints = inxDataPoints;
+
+this.StackedNoShocks_InxDataPoints = false(size(inxDataPoints));
+this.StackedNoShocks_InxDataPoints(1:numYX, :) = inxDataPointsYX;
 
 return
 

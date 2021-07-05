@@ -11,10 +11,15 @@ arguments
     inputDb {validate.mustBeDatabank}
 
     options.SourceNames {locallyValidateSourceNames} = @all
+    options.NameList {locallyValidateSourceNames} = @all
     options.StartDate {locallyValidateDate} = "unbalanced"
     options.EndDate {locallyValidateDate} = "unbalanced"
     options.Frequency {locallyValidateFrequency} = @any
     options.Filter (1, :) cell = cell.empty(1, 0)
+end
+
+if ~isequal(options.NameList, @all)
+    options.SourceNames = options.NameList;
 end
 %)
 % <=R2019a
@@ -30,7 +35,7 @@ if isempty(pp)
     pp = extend.InputParser('databank.range');
     addRequired(pp, 'inputDb', @validate.databank);
 
-    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, "Rexp"));
+    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, "Rxp"));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
@@ -60,10 +65,10 @@ for name = listNames
         continue
     end
     namesApplied = [namesApplied, name]; %#ok<*AGROW>
-    inxFreq = field.Frequency==listFreq;
+    inxFreq = getFrequencyAsNumeric(field)==listFreq;
     if any(inxFreq)
-        startDates{inxFreq}(end+1) = field.StartAsNumeric;
-        endDates{inxFreq}(end+1) = field.EndAsNumeric;
+        startDates{inxFreq}(end+1) = getStartAsNumeric(field);
+        endDates{inxFreq}(end+1) = getEndAsNumeric(field);
     end
 end
 
@@ -128,9 +133,9 @@ return
     function listFreq = hereFilterFreq( )
         %(
         if isequal(options.Frequency, @any) || isequal(options.Frequency, @all)
-            listFreq = reshape(iris.get('freq'), 1, [ ]);
+            listFreq = reshape(double(iris.get('freq')), 1, [ ]);
         else
-            listFreq = unique(reshape(options.Frequency, 1, [ ]), 'stable');
+            listFreq = unique(reshape(double(options.Frequency), 1, [ ]), 'stable');
         end
         %)
     end%
@@ -142,10 +147,10 @@ end%
 
 function locallyValidateSourceNames(x)
     %(
-    if isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x) || isa(x, 'Rexp')
+    if isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x) || isa(x, 'Rxp')
         return
     end
-    error("Input value must be @all, an array of strings, or a Rexp object.");
+    error("Input value must be @all, an array of strings, or a Rxp object.");
     %)
 end%
 

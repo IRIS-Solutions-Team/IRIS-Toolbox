@@ -36,7 +36,8 @@ for i = 1 : numel(snippets)
     inputModelFiles(end+1) = mf;
 end
 
-[varargout{1:nargout}] = Model(inputModelFiles, args{:});
+% [varargout{1:nargout}] = Model(inputModelFiles, args{:});
+[varargout{1:nargout}] = Model.fromFile(inputModelFiles, args{:});
 
 end%
 

@@ -1,20 +1,26 @@
 classdef Plan
-    methods (Abstract, Access=protected)
+    methods (Abstract)
         getEndogenousForPlan
         getExogenousForPlan
         getAutoswapsForPlan
         getSigmasForPlan
-    end
+    end % methods
+
+    methods
+        function slackPairs = getSlackPairsForPlan(this, varargin)
+            slackPairs = string.empty(0, 2);
+        end%
+    end % methods
 
 
     methods (Abstract)
         varargout = getExtendedRange(varargin)
-    end
+    end % methods
 
 
     methods (Hidden)
         varargout = preparePlan(varargin)
         varargout = checkCompatibilityOfPlan(varargin)
-    end
-end
+    end % methods
+end % classdef
 

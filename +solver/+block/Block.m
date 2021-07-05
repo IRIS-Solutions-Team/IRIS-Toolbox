@@ -25,6 +25,7 @@ classdef (Abstract) Block < handle
 
         PtrQuantities = double.empty(1, 0)
         PtrEquations = double.empty(1, 0)
+        QuantityTypes = double.empty(1, 0)
 
         EquationsFunc
         NumericalJacobFunc

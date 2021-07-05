@@ -1,6 +1,6 @@
 classdef Equation < parser.theparser.Generic
     properties
-        Type
+        Type = double.empty(1, 0)
         ApplyEquationSwitch = true
     end
 
@@ -94,7 +94,7 @@ classdef Equation < parser.theparser.Generic
                         eqtn{iEqtn}( 1:from{iEqtn}(j)-1 ), ...
                         c, ...
                         eqtn{iEqtn}( to{iEqtn}(j)+1:end ), ...
-                        ];
+                    ];
                 end
             end
 

@@ -149,9 +149,10 @@ function blazer = locallyRunBlazer(this, opt)
 
 
     %
-    % Prepare index of variables that will be always set to zero
+    % Prepare the index of the quantities that will be always set to zero:
+    % these always include shocks and parameters
     %
-    inxZero = struct( );
+    inxZero = struct();
     inxZero.Level = false(1, numQuants);
     inxZero.Level(inxE) = true;
     if opt.Growth
@@ -160,10 +161,13 @@ function blazer = locallyRunBlazer(this, opt)
     else
         inxZero.Change = true(1, numQuants);
     end
-    if opt.ZeroMultipliers
-        inxZero.Level = inxZero.Level | this.Quantity.IxLagrange;
-        inxZero.Change = inxZero.Change | this.Quantity.IxLagrange;
-    end
+
+    %
+    % Add Lagrange multipliers from optimal policy models and comodels; add
+    % conditioning shocks from comodels
+    %
+    inxZero = prepareZeroSteady(this, inxZero);
+
     blazer.InxZero = inxZero;
 end%
 

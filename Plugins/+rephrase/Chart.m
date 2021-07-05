@@ -32,6 +32,32 @@ classdef Chart ...
                     this.Settings.Highlight = {this.Settings.Highlight};
                 end
             end
+            if ~isfield(this.Settings, 'DateFormat')
+                this.Settings.DateFormat = locallyCreateDefaultDateFormat(this.Settings.StartDate);
+            end
         end%
     end
 end 
+
+%
+% Local functions
+%
+
+function dateFormat = locallyCreateDefaultDateFormat(startDate)
+    %(
+    switch dater.getFrequency(startDate)
+        case Frequency.Yearly
+            dateFormat = "YYYY";
+        case Frequency.Quarterly
+            dateFormat = "YYYY-Q";
+        case {Frequency.HalfYearly, Frequency.Monthly}
+            dateFormat = "YYYY-MM";
+        case Frequency.Integer
+            dateFormat = "YY";
+        otherwise
+            dateFormat = "YYYY-MM-DD";
+    end
+    %)
+end%
+
+

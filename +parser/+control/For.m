@@ -79,7 +79,7 @@ classdef For < parser.control.Control
             % Matlab expressions may results in empty tokens
             [~, clearCode, tokens] = parser.Interp.parse(preparserObj, forTokensCode);
 
-            % Hard typed for tokens that are empty are removed
+            % Remove hard typed !for tokens that are empty
             addTokens = regexp(string(clearCode), "[\s,;]+", "split");
             addTokens(addTokens=="") = [];
 

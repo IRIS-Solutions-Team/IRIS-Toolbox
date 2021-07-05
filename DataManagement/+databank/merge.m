@@ -129,7 +129,7 @@ end%
 
 function mainDb = replaceNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
-    for n = reshape(string(newFields), 1, [])
+    for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
             continue
         end
@@ -143,7 +143,7 @@ end%
 
 function mainDb = discardNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
-    for n = reshape(string(newFields), 1, [])
+    for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
             continue
         end
@@ -158,7 +158,7 @@ end%
 function mainDb = errorNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
     errorFields = string.empty(1, 0);
-    for n = reshape(string(newFields), 1, [])
+    for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
             continue
         end

@@ -56,6 +56,8 @@ end
 % * Check for NaN in non-endogenous quantities (parameters, exogenous)
 steadyLevel = real(this.Variant.Values(:, :, variantsRequested));
 steadyChange = imag(this.Variant.Values(:, :, variantsRequested));
+steadyLevel(1, inxZero.Level, :) = 0;
+steadyChange(1, inxZero.Change, :) = 0;
 hereCheckFixedToNaN( );
 hereCheckExogenizedToNaN( );
 
