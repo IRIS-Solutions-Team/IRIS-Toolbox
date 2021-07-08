@@ -15,8 +15,8 @@ arguments
     options.AddToDatabank (1, 1) {validate.mustBeDatabank} = struct( )
     options.StartDate (1, 1) double {locallyValidateDate(options.StartDate, freq)} = -Inf
     options.EndDate (1, 1) double {locallyValidateDate(options.EndDate, freq)} = Inf
-    options.URL (1, 1) string {locallyValidateURL} = "http://dataservices.imf.org/REST/SDMX_JSON.svc/CompactData/"
-    options.WebOptions = weboptions("TimeOut", 9999)
+    options.URL (1, 1) string = databank.fromIMF.Config.URL + "CompactData/"
+    options.WebOptions = databank.fromIMF.Config.WebOptions
     options.ApplyMultiplier (1, 1) logical = true
 
     nameOptions.IncludeArea (1, 1) logical = true
@@ -26,6 +26,10 @@ arguments
 end
 %)
 % >=R2019b
+
+if ~endsWith(options.URL, "/")
+    options.URL = options.URL + "/";
+end
 
 [areas, areaMap, areasString] = locallyCreateNameMap(areas);
 [items, itemMap, itemsString] = locallyCreateNameMap(items);
@@ -38,7 +42,7 @@ else
 end
 
 dimensions = join([Frequency.toIMFLetter(freq), areasString, itemsString, countersString], ".");
-request = dataset + "/" + dimensions + "?";
+request = upper(dataset + "/" + dimensions + "?");
 
 if ~isinf(options.StartDate) 
     request = request + "&startPeriod=" + DateWrapper.toIMFString(options.StartDate);
@@ -109,6 +113,8 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
 
 
         function name = hereCreateName( )
+            responseFields = textual.stringify(fieldnames(responseData));
+
             area = string.empty(1, 0);
             if nameOptions.IncludeArea  
                 area = string(responseData.x_REF_AREA);
@@ -117,7 +123,19 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
                 end
             end
 
-            item = string(responseData.x_INDICATOR);
+            %
+            % The indicator code for the series is either in x_INDICATOR or
+            % x_INDICATOR_CODE
+            %
+            inx = startsWith(responseFields, "x_INDICATOR");
+            if nnz(inx)~=1
+                exception.error([
+                    "Databank:IMF:Data:InvalidDataStructure"
+                    "This request returned invalid data structure: %s"
+                ], request);
+            end
+            item = string(responseData.(responseFields(inx)));
+
             try
                 item = itemMap.(item);
             end
@@ -214,14 +232,6 @@ function locallyValidateFrequency(freq)
         return
     end
     error("Frequency needs to be one of {YEARLY, QUARTERLY, MONTHLY}.");
-end%
-
-
-function locallyValidateURL(value)
-    if endsWith(value, "/") && ~endsWith(value, "//")
-        return
-    end
-    error("Option URL needs to be a string ending with a single forward slash character.");
 end%
 
 
