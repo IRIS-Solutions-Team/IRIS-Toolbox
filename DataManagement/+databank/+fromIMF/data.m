@@ -9,7 +9,7 @@ arguments
     dataset (1, 1) string
     freq (1, 1) Frequency {locallyValidateFrequency}
     areas (1, :) string
-    items (1, :) string
+    items (1, :) 
     counters (1, :) string = string.empty(1, 0)
 
     options.AddToDatabank (1, 1) {validate.mustBeDatabank} = struct( )
@@ -32,7 +32,14 @@ if ~endsWith(options.URL, "/")
 end
 
 [areas, areaMap, areasString] = locallyCreateNameMap(areas);
-[items, itemMap, itemsString] = locallyCreateNameMap(items);
+
+if iscell(items)
+    itemsString = cellfun(@(x) join(x, "+"), items);
+    itemMap = [];
+else
+    [items, itemMap, itemsString] = locallyCreateNameMap(items);
+end
+
 if isempty(counters) || counters==""
     counters = [];
     counterMap = [];
