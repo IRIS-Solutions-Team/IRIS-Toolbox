@@ -39,8 +39,9 @@ for i = 1 : numDimensions
     summaryID(end+1, 1) = json{i}.x_id;
     summaryName(end+1, 1) = json{i}.Name.x_text;
     dimTables{i} = table(codes, descriptions);
-    dimTables{i}.Properties.Description = json{i}.Name.x_text;
-    dimTables{i}.Properties.VariableNames = { 'Code', json{i}.Name.x_text };
+	dimTables{i}.Properties.Description = json{i}.Name.x_text;
+	columnName = locallyFixColumnName(json{i}.Name.x_text);
+    dimTables{i}.Properties.VariableNames = { 'Code', char(columnName) };
 end % for
 
 summaryTable = table(summaryID, summaryName);
@@ -79,9 +80,19 @@ function id = locallyFixId(id)
 	%(
 	id = erase(id, "CL_");
 	id = erase(id, "Balance of Payments (BOP) ");
-	id = erase(id, " ");
+	id = erase(id, [" ", "(", ")"]);
 	if strlength(id)>31
 		id = extractBefore(id, 31);
+	end
+	%)
+end%
+
+
+function columnName = locallyFixColumnName(columnName)
+	%(
+	if contains(columnName, "Indicator", "ignoreCase", true)
+		columnName = "Indicator";
+		return
 	end
 	%)
 end%
