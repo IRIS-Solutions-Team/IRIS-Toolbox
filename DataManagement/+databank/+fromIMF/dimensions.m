@@ -35,6 +35,7 @@ for i = 1 : numDimensions
     codes = reshape(string({json{i}.Code(:).x_value}), [], 1);
     descriptions = [json{i}.Code(:).Description];
     descriptions = reshape(string({descriptions.x_text}), [], 1);
+	json{i}.x_id = locallyFixId(json{i}.x_id);
     summaryID(end+1, 1) = json{i}.x_id;
     summaryName(end+1, 1) = json{i}.Name.x_text;
     dimTables{i} = table(codes, descriptions);
@@ -72,4 +73,17 @@ function locallyWriteDimTables(fileName, dimTables, json)
     end % for
     %)
 end%
+
+
+function id = locallyFixId(id)
+	%(
+	id = erase(id, "CL_");
+	id = erase(id, "Balance of Payments (BOP) ");
+	id = erase(id, " ");
+	if strlength(id)>31
+		id = extractBefore(id, 31);
+	end
+	%)
+end%
+
 
