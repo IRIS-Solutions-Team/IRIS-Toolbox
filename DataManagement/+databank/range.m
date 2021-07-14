@@ -26,7 +26,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function [range, listFreq, namesApplied] = range(inputDb, varargin)
 
 % Input parser
@@ -42,7 +42,7 @@ if isempty(pp)
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
 options = parse(pp, inputDb, varargin{:});
-%}
+%)
 % <=R2019a
 
 
