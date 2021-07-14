@@ -34,7 +34,7 @@ classdef File ...
             if nargin==0
                 return
             end
-            if nargin==1 && isa(varargin{1}, "model.File")
+            if nargin==1 && isa(varargin{1}, 'model.File')
                 this = varargin{1};
                 return
             end

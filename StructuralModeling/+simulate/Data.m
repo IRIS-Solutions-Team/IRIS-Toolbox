@@ -414,7 +414,7 @@ classdef Data ...
             %
             this.InxAnticipatedE = false(1, numQuantities);
             this.InxUnanticipatedE = false(1, numQuantities);
-            if isa(plan, "Plan")
+            if isa(plan, 'Plan')
                 this.InxAnticipatedE(this.InxE) = plan.AnticipationStatusExogenous;
                 this.InxUnanticipatedE(this.InxE) = not(plan.AnticipationStatusExogenous);
             else

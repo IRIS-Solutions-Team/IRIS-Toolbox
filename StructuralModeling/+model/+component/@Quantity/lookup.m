@@ -75,7 +75,7 @@ if iscell(query)
             end
         end
     end
-elseif ischar(query) || isa(query, "rexp") || isa(query, "string") || isa(query, "Rxp")
+elseif ischar(query) || isa(query, 'rexp') || isa(query, 'string') || isa(query, 'Rxp')
     % Single input can be regular expression. Return logical index of all
     % possible matches. No shock1, shock2 indices needed.
     query = string(query);
@@ -145,7 +145,7 @@ end%
 
 
 function ix = locallyCallStrcmpOrRegexp(list, query)
-    if isa(query, "rexp") || ~isvarname(query)
+    if isa(query, 'rexp') || ~isvarname(query)
         ix = ~cellfun(@isempty, regexp(list, query, "once"));
     else
         ix = string(query)==string(list);

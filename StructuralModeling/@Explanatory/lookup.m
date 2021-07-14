@@ -61,7 +61,7 @@
 function [inx, this, lhsNames] = lookup(this, varargin)
 
 operator = @or;
-if ~isempty(varargin) && isa(varargin{1}, "function_handle")
+if ~isempty(varargin) && isa(varargin{1}, 'function_handle')
     operator = varargin{1};
     varargin(1) = [];
 end

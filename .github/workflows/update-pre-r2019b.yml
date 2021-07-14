@@ -20,12 +20,12 @@ jobs:
           ref: master
           path: iris-toolbox      
 
-      - name: Merge pre-r2019 with master
+      - name: Merge master into pre-r2019 
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
           
-          git config user.email "you@example.com"
-          git config user.name "Your Name"
+          git config user.email "jaromir.benes@gmail.com"
+          git config user.name "Jaromir Benes"
           
           git switch pre-r2019b
 
@@ -49,7 +49,7 @@ jobs:
           
       - name: Make sure all r2019a/r2019b switches are set correctly
         run: |
-          for f in $( grep -rl --include=*.m "% [><]=R2019[ab]" .); do
+          for f in $( grep -rl --include=*.m "% [><]=R2019[ab]" $GITHUB_WORKSPACE/iris-toolbox); do
               echo $f
               sed -i 's/\r//g' $f
               cp $f temp.orig

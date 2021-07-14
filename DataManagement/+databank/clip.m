@@ -72,19 +72,19 @@ for n = list
     if ~isfield(inputDb, n)
         continue
     end
-    if isa(inputDb, "Dictionary")
+    if isa(inputDb, 'Dictionary')
         field__ = retrieve(inputDb, n);
     else
         field__ = inputDb.(n);
     end
-    if isa(field__, "TimeSubscriptable")
+    if isa(field__, 'TimeSubscriptable')
         if isequaln(freq, NaN) || getFrequencyAsNumeric(field__)==freq
             field__ = clip(field__, newStart, newEnd);
         end
     elseif validate.databank(field__)
         field__ = databank.clip(field__, newStart, newEnd, opt);
     end
-    if isa(outputDb, "Dictionary")
+    if isa(outputDb, 'Dictionary')
         store(outputDb, n, field__);
     else
         outputDb.(n) = field__;
@@ -98,7 +98,7 @@ end%
 %
 
 function locallyValidateNames(input)
-    if isa(input, "function_handle") || validate.list(input)
+    if isa(input, 'function_handle') || validate.list(input)
         return
     end
     error("Validation:Failed", "Input value must be a string array");
@@ -106,7 +106,7 @@ end%
 
 
 function locallyValidateDb(input)
-    if isa(input, "function_handle") || validate.databank(input)
+    if isa(input, 'function_handle') || validate.databank(input)
         return
     end
     error("Validation:Failed", "Input value must be a struct or a Dictionary");

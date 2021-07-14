@@ -30,7 +30,7 @@ for name = dbInfo.NamesAvailable
     if isempty(field)
         continue
     end
-    if isa(field, "NumericTimeSubscriptable") 
+    if isa(field, 'NumericTimeSubscriptable') 
         %
         % Databank field is a time series
         %

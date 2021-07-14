@@ -5,7 +5,7 @@
 
 function this = initializeLogStatus(this, logNames)
 
-if isa(logNames, "Except")
+if isa(logNames, 'Except')
     default = true;
     logNames = logNames.List;
 elseif ischar(logNames) || iscellstr(logNames) || isstring(logNames)

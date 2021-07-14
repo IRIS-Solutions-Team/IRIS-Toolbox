@@ -38,7 +38,7 @@ for n = condShocks
     qty = retype(qty, n, 2);
 end
 
-if isa(log, "Except")
+if isa(log, 'Except')
     log.List = [log.List, condShocks];
 end
 
