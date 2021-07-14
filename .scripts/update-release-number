@@ -22,3 +22,7 @@ echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
 echo "% Version $release_name $date_time_stamp" >> Contents.m
 cat Contents.m
 
+# Add the new id file to index
+git add "$id_file_name"
+git add Contents.m
+
