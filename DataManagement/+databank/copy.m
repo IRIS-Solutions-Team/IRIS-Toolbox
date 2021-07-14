@@ -2,7 +2,7 @@
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function targetDb = copy(sourceDb, opt)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     opt.Transform {locallyValidateTransform(opt.Transform)} = []
     opt.WhenTransformFails {locallyValidateWhenTransformFails} = "error"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function targetDb = copy(sourceDb, varargin)
 
 persistent pp
@@ -34,7 +34,7 @@ if isempty(pp)
     addParameter(pp, "WhenTransformFails", "error", @locallyValidateWhenTransformFails);
 end
 opt = parse(pp, sourceDb, varargin{:});
-%}
+%)
 % <=R2019a
 
 

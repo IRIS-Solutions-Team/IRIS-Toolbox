@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [shift, power] = resolveShift(dates, shift, opt)
 
 arguments
@@ -13,12 +13,12 @@ arguments
 
     opt.Annualize (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [shift, power] = resolveShift(dates, varargin)
 
 persistent inputParser
@@ -30,7 +30,7 @@ if isempty(inputParser)
 end
 opt = parse(inputParser, dates, varargin{:});
 shift = inputParser.Results.shift;
-%}
+%)
 % <=R2019a
 
 

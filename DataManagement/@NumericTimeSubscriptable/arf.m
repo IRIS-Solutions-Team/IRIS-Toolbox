@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = arf(this, A, Z, range, options)
 
 arguments
@@ -16,11 +16,11 @@ arguments
     options.PrependInput (1, 1) logical = false
     options.AppendInput (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function this = arf(this, A, Z, range, varargin)
 
 persistent parser
@@ -34,7 +34,7 @@ if isempty(parser)
     addParameter(parser, 'AppendInput', false, @validate.logicalScalar);
 end%
 options = parse(parser, this, A, Z, range, varargin{:});
-%}
+%)
 % <=R2019a
 
 range = double(range);

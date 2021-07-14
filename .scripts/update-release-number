@@ -1,0 +1,29 @@
+
+# Get release number/name from the first input argument or from the
+# current date
+release_name="$1"
+if [[ "_$release_name" == "_" ]]; then
+    release_name=$(date "+%Y%m%d")
+fi
+echo "$release_name"
+
+# Remove all existing id files iristbx*
+find . -name iristbx* -type f -maxdepth 1 -exec git rm {} +
+
+# Create new id file iristbxXXXXXXXX, date-time stamped to force nonempty commit no matter what
+date_time_stamp=$(date "+%Y-%m-%dT%H:%M:%S")
+id_file_name="iristbx$release_name"
+echo $date_time_stamp > $id_file_name
+cat $id_file_name
+
+# Update Contents.m, include date/time stamp to force 
+find . -name Contents.m -type f -maxdepth 1 -exec rm {} +
+echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
+echo "% Version $release_name $date_time_stamp" >> Contents.m
+cat Contents.m
+
+# Add the new id file to index
+git add "$id_file_name"
+git add Contents.m
+git status
+
