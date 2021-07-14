@@ -553,11 +553,11 @@ classdef Explanatory ...
                 this.ResidualModel = [ ];
                 return
             end
-            if isa(value, "ParameterizedArmani")
+            if isa(value, 'ParameterizedArmani')
                 this.ResidualModel = value;
                 return
             end
-            if isa(value, "Armani")
+            if isa(value, 'Armani')
                 this.ResidualModel = value;
                 return
             end

@@ -68,7 +68,7 @@ for q = 1 : numEquations
     %
     residualName = this__.ResidualName;
     if isfield(runningDb, residualName)
-        if isa(runningDb, "Dictionary")
+        if isa(runningDb, 'Dictionary')
             residualSeries = retrieve(runningDb, residualName);
         else
             residualSeries = runningDb.(residualName);
@@ -182,7 +182,7 @@ for q = 1 : numEquations
     % Update the residual and innovation series in the databank
     %
     residualSeries = setData(residualSeries, startData:range(end), data);
-    if isa(runningDb, "Dictionary")
+    if isa(runningDb, 'Dictionary')
         store(runningDb, residualName, residualSeries);
     else
         runningDb.(residualName) = residualSeries;
@@ -190,7 +190,7 @@ for q = 1 : numEquations
     if opt.IncludeInnovations
         innovationName = this__.InnovationName;
         innovationSeries = Series(startData, innovations);
-        if isa(runningDb, "Dictionary")
+        if isa(runningDb, 'Dictionary')
             store(runningDb, innovationName, innovationSeries);
         else
             runningDb.(innovationName) = innovationSeries;

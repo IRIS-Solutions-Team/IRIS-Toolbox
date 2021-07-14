@@ -445,7 +445,7 @@ classdef DateWrapper ...
                 step = double(varargin{1});
                 to = varargin{2};
             end
-            convertToDateWrapper = isa(from, "DateWrapper") || isa(to, "DateWrapper");
+            convertToDateWrapper = isa(from, 'DateWrapper') || isa(to, 'DateWrapper');
             from = double(from);
             to = double(to);
             if ~isinf(from) && ~isinf(to)

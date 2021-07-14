@@ -272,7 +272,7 @@ classdef (Abstract) Block < handle
             % Prepare analytical Jacobian each time a non-Iris solver is
             % used
             %
-            if ~isa(this.SolverOptions, "solver.Options")
+            if ~isa(this.SolverOptions, 'solver.Options')
                 value = true;
                 return
             end

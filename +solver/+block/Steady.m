@@ -387,7 +387,7 @@ classdef Steady < solver.block.Block
             %
             vecWrtNeeded = find(this.ParentBlazer.Incidence, posEqn, ptrQuantities);
             vecWrtMissing = setdiff(vecWrtNeeded, this.ParentBlazer.Gradients{2, posEqn});
-            if isa(this.ParentBlazer.Gradients{1, posEqn}, "function_handle") && isempty(vecWrtMissing)
+            if isa(this.ParentBlazer.Gradients{1, posEqn}, 'function_handle') && isempty(vecWrtMissing)
                 %
                 % vecWrtNeeded is a subset of vecWrt currently available,
                 % use it here

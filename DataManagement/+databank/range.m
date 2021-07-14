@@ -35,7 +35,7 @@ if isempty(pp)
     pp = extend.InputParser('databank.range');
     addRequired(pp, 'inputDb', @validate.databank);
 
-    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, "Rxp"));
+    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'Rxp'));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
@@ -118,7 +118,7 @@ return
                         listNames = regexp(listNames, '\w+', 'match');
                     end
                 end
-            elseif isa(listNames, "rexp") || isa(listNames, "Rxp")
+            elseif isa(listNames, 'rexp') || isa(listNames, 'Rxp')
                 inxMatched = ~cellfun(@isempty, regexp(allInputEntries, string(listNames), 'once'));
                 listNames = allInputEntries(inxMatched);
             elseif isequal(listNames, @all)

@@ -129,7 +129,7 @@ end%
 
 function locallyValidateNewComment(value)
     %(
-    if isequal(value, @get) || validate.text(value) || isa(value, "TimeSubscriptable")
+    if isequal(value, @get) || validate.text(value) || isa(value, 'TimeSubscriptable')
         return
     end
     error("Input argument must be a string, another time series, or @get.");

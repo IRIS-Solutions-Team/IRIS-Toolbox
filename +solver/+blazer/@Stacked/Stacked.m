@@ -32,7 +32,7 @@ classdef Stacked ...
             inc = across(this.Incidence, 'Shift');
 
             if ~this.IsBlocks ...
-                || isempty(varargin) || ~isa(varargin{1}, "simulate.Data") || ~varargin{1}.HasExogenizedYX
+                || isempty(varargin) || ~isa(varargin{1}, 'simulate.Data') || ~varargin{1}.HasExogenizedYX
                 inc = inc(this.InxEquations, this.InxEndogenous);
                 ptrEquations = PTR( find(this.InxEquations) ); %#ok<FNDSB>
                 ptrQuantities = PTR( find(this.InxEndogenous) ); %#ok<FNDSB>

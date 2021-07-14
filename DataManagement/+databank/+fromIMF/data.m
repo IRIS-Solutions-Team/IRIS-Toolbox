@@ -34,6 +34,7 @@ end
 [areas, areaMap, areasString] = locallyCreateNameMap(areas);
 
 if iscell(items)
+    items(cellfun(@isempty, items)) = {""};
     itemsString = cellfun(@(x) join(x, "+"), items);
     itemMap = [];
 else
@@ -88,7 +89,7 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
         ], request);
     end
 
-    isDictionary = isa(outputDb, "Dictionary");
+    isDictionary = isa(outputDb, 'Dictionary');
     for i = 1 : numel(allResponseData)
         responseData = hereGetIthReponse( );
         name = hereCreateName( );
@@ -159,7 +160,7 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
 
             name = join([area, item, counter], nameOptions.Separator); 
 
-            if isa(nameOptions.NameFunc, "function_handle")
+            if isa(nameOptions.NameFunc, 'function_handle')
                 name = nameOptions.NameFunc(name);
             end
         end%

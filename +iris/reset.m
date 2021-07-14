@@ -1,4 +1,4 @@
-% iris.reset  Reset IRIS configuration options to start-up values
+% iris.reset  Reset IrisT configuration options to their default values
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
@@ -25,7 +25,7 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser("iris.reset");
     addParameter(inputParser, "Silent", false, @validate.logicalScalar);
-    addParameter(inputParser, "SeriesConstructor", @Series, @(x) isa(x, "function_handle"));
+    addParameter(inputParser, "SeriesConstructor", @Series, @(x) isa(x, 'function_handle'));
     addParameter(inputParser, "CheckId", true, @validate.logicalScalar);
     addParameter(inputParser, "TeX", false, @validate.logicalScalar);
 end

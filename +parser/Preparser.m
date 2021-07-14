@@ -279,7 +279,7 @@ classdef Preparser ...
 
             import parser.Preparser
 
-            if ~isempty(varargin) && isa(varargin{1}, "parser.Preparser")
+            if ~isempty(varargin) && isa(varargin{1}, 'parser.Preparser')
                 temp = struct( );
                 temp.AngleBrackets = varargin{1}.AngleBrackets;
                 temp.Assigned = varargin{1}.Assigned;

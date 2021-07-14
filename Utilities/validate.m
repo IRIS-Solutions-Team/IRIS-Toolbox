@@ -218,7 +218,7 @@ classdef validate
 
 
         function flag = date(input)
-            if isa(input, "DateWrapper")
+            if isa(input, 'DateWrapper')
                 flag = true;
                 return
             end
@@ -366,7 +366,7 @@ classdef validate
 
 
         function mustBeSolveModel(x)
-            if isa(x, "Model") && all(beenSolved(x))
+            if isa(x, 'Model') && all(beenSolved(x))
                 return
             end
             error("Input value must be a solved Model object.")

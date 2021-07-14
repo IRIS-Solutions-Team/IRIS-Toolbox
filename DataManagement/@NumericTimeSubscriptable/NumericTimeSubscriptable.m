@@ -168,7 +168,7 @@ NumericTimeSubscriptable ...
 
 
         function this = resetMissingValue(this, values)
-            if isa(values, "single")
+            if isa(values, 'single')
                 this.MissingValue = single(NaN);
             elseif islogical(values)
                 this.MissingValue = false;

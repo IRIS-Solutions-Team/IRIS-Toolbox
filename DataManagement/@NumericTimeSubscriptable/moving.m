@@ -69,7 +69,7 @@ end%
 
 function locallyValidateWindow(input)
     %(
-    if isa(input, "function_handle")
+    if isa(input, 'function_handle')
         return
     end
     isInteger = isnumeric(input) && all(input==round(input));
