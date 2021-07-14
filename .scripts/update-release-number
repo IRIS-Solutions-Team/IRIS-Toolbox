@@ -25,4 +25,5 @@ cat Contents.m
 # Add the new id file to index
 git add "$id_file_name"
 git add Contents.m
+git status
 
