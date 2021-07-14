@@ -3,7 +3,7 @@
 # current date
 release_name="$1"
 if [[ "_$release_name" == "_" ]]; then
-    release_name=$(date "+%Y-%m-%d")
+    release_name=$(date "+%Y%m%d")
 fi
 echo "$release_name"
 
