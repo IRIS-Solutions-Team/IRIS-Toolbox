@@ -71,7 +71,6 @@ classdef ExcelSheet ...
                 return
             end
 
-            
             %(
             persistent pp
             if isempty(pp)
@@ -82,6 +81,7 @@ classdef ExcelSheet ...
                 addParameter(pp, 'Range', '', @validate.string);
                 addParameter(pp, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
                 addParameter(pp, "ForceString", false, @validate.logicalScalar);
+                addParameter(pp, 'readcellSettings', cell.empty(1, 0), @validate.nestedOptions);
             end
             %)
             opt = parse(pp, fileName, varargin{:});
@@ -90,7 +90,7 @@ classdef ExcelSheet ...
             this.SheetIdentification = opt.Sheet;
             this.SheetRange = opt.Range;
             this.InsertEmpty = opt.InsertEmpty;
-            read(this);
+            read(this, opt.readcellSettings{:});
             if opt.ForceString
                 this = forceString(this);
             end
@@ -133,7 +133,7 @@ classdef ExcelSheet ...
         end%
 
 
-        function read(this)
+        function read(this, varargin)
             options = cell.empty(1, 0);
             if ~isempty(this.SheetIdentification)
                 options = [options, {'Sheet', this.SheetIdentification}];
@@ -141,7 +141,7 @@ classdef ExcelSheet ...
             if ~isempty(this.SheetRange)
                 options = [options, {'Range', this.SheetRange}];
             end
-            this.Buffer = readcell(this.FileName, options{:});
+            this.Buffer = readcell(this.FileName, options{:}, varargin{:})
             insertRows = this.InsertEmpty(1);
             insertColumns = this.InsertEmpty(2);
             if insertRows>0

@@ -53,11 +53,11 @@ switch plotFuncString
 end
 
 % Modify how dates are displayed in data tips
-if isTimeAxis && isa(xData, 'datetime')
-    try % Works in R2019a+
-        hereModifyDataTip(plotHandle, xData);
-    end
-end
+% if isTimeAxis && isa(xData, 'datetime')
+%     try % Works in R2019a+
+%         hereModifyDataTip(plotHandle, xData);
+%     end
+% end
 
 return
 

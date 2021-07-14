@@ -26,7 +26,7 @@ end
 persistent pp
 if isempty(pp)
     pp = extend.InputParser("NumericTimeSubscriptable/fillMissing");
-    addRequired(pp, "inputSeries", @(x) isa(x, "NumericTimeSubscriptable"));
+    addRequired(pp, "inputSeries", @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, "range", @validate.range);
     addRequired(pp, "method", @mustBeNonempty);
 end
@@ -67,7 +67,7 @@ if nnz(inxMissing)==0
     return
 end
 
-if numel(method)==1 && isa(method{1}, "NumericTimeSubscriptable")
+if numel(method)==1 && isa(method{1}, 'NumericTimeSubscriptable')
     data = locallyReplaceData(data, startDate, endDate, inxMissing, method{1});
 else
     data = series.fillMissing(data, inxMissing, method{:});

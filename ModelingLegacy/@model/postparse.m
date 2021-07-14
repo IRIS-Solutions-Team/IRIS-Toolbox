@@ -19,7 +19,7 @@ for processor = ["Preprocessor", "Postprocessor"]
         mf.Code = collector.(processor);
         mf.Preparsed = true;
         this.(processor) = Explanatory.fromFile(mf);
-        [this.(processor).Context] = deal("Preprocessor");
+        [this.(processor).Context] = deal(processor);
         this.(processor) = initializeLogStatus(this.(processor), log);
         removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [])]; %#ok<AGROW>
     end
@@ -66,7 +66,6 @@ end
 % __Presence of loss function__
 % Search transition equations for loss function; if found move it down to
 % last position among transition equations
-
 try
     [eqn, euc, isOptimal] = findLossFunc(eqn, euc);
 catch exc
@@ -80,10 +79,9 @@ minSh = min([ euc.MinShDynamic(inxMT), euc.MinShSteady(inxMT) ]);
 if isOptimal
     % Anticipate that multipliers will have leads as far as the greatest
     % lag, and lags as far as the greatest lead.
-    maxSh = maxSh - minSh;
-    minSh = minSh - maxSh;
+    maxSh = max([maxSh, -minSh]);
+    minSh = min([minSh, -maxSh]);
 end
-
 
 % __Read measurement and transition equations__
 try
@@ -227,31 +225,36 @@ if isOptimal
     % Lagrangian wrt to the original transition variables. These `naddeqtn` new
     % equation will be put in place of the loss function and the `naddeqtn-1`
     % empty placeholders.
-    new = optimalPolicy( this, qty, eqn, ...
-                         posLossEqtn, lossDisc, ...
-                         posFloorVariable, posFloorMultiplier, posFloorParameter, ...
-                         optimalOpt.Type ); 
+    new = optimalPolicy( ...
+        this, qty, eqn ...
+        , posLossEqtn, lossDisc ...
+        , posFloorVariable, posFloorMultiplier, posFloorParameter ...
+        , optimalOpt.Type ...
+    ); 
 
-    % Update the placeholders for optimal policy equations in the model object, and parse them.
+    % Update the placeholders for optimal policy equations in the model
+    % object, and parse them.
     last = find(eqn.Type==2, 1, 'last');
-    eqn.Input(posLossEqtn:last) = new.Input(posLossEqtn:last);
-    eqn.Dynamic(posLossEqtn:last) = new.Dynamic(posLossEqtn:last);
+    loss2last = posLossEqtn : last;
+    eqn.Input(loss2last) = new.Input(loss2last);
+    eqn.Dynamic(loss2last) = new.Dynamic(loss2last);
 
     % Add steady equations. Note that we must at least replace the old equation
     % in `lossPos` position (which was the objective function) with the new
     % equation (which is a derivative wrt to the first variables).
-    eqn.Steady(posLossEqtn:last) = new.Steady(posLossEqtn:last);
+    eqn.Steady(loss2last) = new.Steady(loss2last);
+
     % Update the nonlinear equation flags.
-    eqn.IxHash(posLossEqtn:last) = new.IxHash(posLossEqtn:last);
+    eqn.IxHash(loss2last) = new.IxHash(loss2last);
 
     % Update incidence matrices to include the new equations.
-    indexUpdateIncidence = false(size(eqn.Input));
-    indexUpdateIncidence(posLossEqtn:last) = true;
+    inxUpdateIncidence = false(size(eqn.Input));
+    inxUpdateIncidence(loss2last) = true;
     this.Incidence.Dynamic = fill( ...
-        this.Incidence.Dynamic, qty, eqn.Dynamic, indexUpdateIncidence ...
+        this.Incidence.Dynamic, qty, eqn.Dynamic, inxUpdateIncidence ...
     );
     this.Incidence.Steady = fill( ...
-        this.Incidence.Steady, qty, eqn.Steady, indexUpdateIncidence ...
+        this.Incidence.Steady, qty, eqn.Steady, inxUpdateIncidence ...
     );
 end
 
@@ -329,9 +332,9 @@ return
 
         % The default name is 'Mu_Eq%g' but can be changed through the
         % option MultiplierPrefix=
-        newName = cell(1, numQuantitiesToAdd);
+        newNames = cell(1, numQuantitiesToAdd);
         for ii = 1 : numQuantitiesToAdd
-            newName{ii} = [optimalOpt.MultiplierPrefix, sprintf('Eq%g', ii)];
+            newNames{ii} = [optimalOpt.MultiplierPrefix, sprintf('Eq%g', ii)];
         end
 
         hasFloors = ~isempty(optimalOpt.Floor);
@@ -339,19 +342,15 @@ return
             numEquationsToAdd = numEquationsToAdd + 1;
             numQuantitiesToAdd = numQuantitiesToAdd + 1;
             floorVariableName = string(optimalOpt.MultiplierPrefix) + string(optimalOpt.Floor);
-            newName{end+1} = char(floorVariableName);
+            newNames{end+1} = char(floorVariableName);
         end
 
+        %
         % Insert the new names between at the beginning of the block of existing
         % transition variables.
-        add = model.component.Quantity( );
-        add.Name = newName;
-        add.Label = repmat({char.empty(1, 0)}, 1, numQuantitiesToAdd);
-        add.Alias = repmat({char.empty(1, 0)}, 1, numQuantitiesToAdd);
-        add.IxLog = false(1, numQuantitiesToAdd);
-        add.IxLagrange = true(1, numQuantitiesToAdd);
-        add.IxObserved = false(1, numQuantitiesToAdd);
-        add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, numQuantitiesToAdd);
+        %
+        add = model.component.Quantity.fromNames(newNames);
+        add.IxLagrange(:) = true;
         qty = insert(qty, add, 2, 'first');
 
         if hasFloors
@@ -366,6 +365,7 @@ return
                 add.Name = {char(floorParameterName)};
                 add.Label = {['Floor for ', optimalOpt.Floor]};
                 add.Alias = {char.empty(1, 0)};
+                add.Attributes = {string.empty(1, 0)};
                 add.IxLog = false(1, 1);
                 add.IxLagrange = false(1, 1);
                 add.IxObserved = false(1, 1);
@@ -392,18 +392,21 @@ return
             posFloorMultiplier = find(strcmp(qty.Name, floorVariableName));
         end
 
+        %
         % Add a total of `numEquationsToAdd` new transition equations, i.e. the
         % derivatives of the Lagrangian wrt the existing transition
         % variables. At the same time, remove the loss function so
         % a total of `numEquationsToAdd-1` placeholders need to be created.
+        %
         add = model.component.Equation( );
         add.Input = repmat({''}, 1, numEquationsToAdd);
         add.Label = repmat({''}, 1, numEquationsToAdd);
         add.Alias = repmat({''}, 1, numEquationsToAdd);
+        add.Attributes = repmat({string.empty(1, 0)}, 1, numEquationsToAdd);
         add.Dynamic = repmat({''}, 1, numEquationsToAdd);
         add.Steady = repmat({''}, 1, numEquationsToAdd);
         add.IxHash = false(1, numEquationsToAdd);
-        [eqn, ixPre, ixPost] = insert(eqn, add, 2, 'last');
+        [eqn, ~, ~, posLoss] = insert(eqn, add, 2, 'last');
 
         add = parser.EquationUnderConstruction( );
         add.LhsDynamic = repmat({''}, 1, numEquationsToAdd);
@@ -416,10 +419,8 @@ return
         add.MaxShSteady = zeros(1, numEquationsToAdd);
         add.MinShDynamic = zeros(1, numEquationsToAdd);
         add.MinShSteady = zeros(1, numEquationsToAdd);
-        insert(euc, add, ixPre, ixPost);
+        euc = insert(euc, add, [], posLoss);
     end%
-
-
 
 
     function hereCheckEmptyEqtn( )

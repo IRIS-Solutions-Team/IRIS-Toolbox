@@ -29,10 +29,14 @@ subtitleHandles = cell(1, 0);
 plotHandles = cell(1, 0);
 
 countChartsInWindow = 0;
+currentFigure = gobjects(0);
 for x = this.Charts
     if countChartsInWindow==0
+        if ~isempty(currentFigure)
+            runFigureExtras(this, currentFigure);
+        end
         currentFigure = figure(this.FigureSettings{:});
-        figureHandles(end+1) = currentFigure; 
+        figureHandles(end+1) = currentFigure;
         axesHandles{end+1} = gobjects(1, 0);
         titleHandles{end+1} = gobjects(1, 0);
         subtitleHandles{end+1} = gobjects(1, 0);
@@ -44,19 +48,28 @@ for x = this.Charts
     if this.Round<Inf
         x.Data = round(x.Data, this.Round);
     end
-    plotHandles{end}{end+1} = this.PlotFunc(range, x.Data, this.PlotSettings{:});    
+    plotHandles__ = this.PlotFunc(range, x.Data); %, this.PlotSettings{:});
+    if ~isempty(this.PlotSettings)
+        set(plotHandles__, this.PlotSettings{:});
+    end
+    plotHandles{end}{end+1} = plotHandles__;
 
     [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
         = locallyCreateTitle(x, currentAxes);
-    
+
     locallyHighlight(x, currentAxes);
-    
+
     runAxesExtras(x, currentAxes);
 
     if countChartsInWindow==numTilesPerWindow
         countChartsInWindow = 0;
     end
 end
+
+if ~isempty(currentFigure)
+    runFigureExtras(this, currentFigure);
+end
+
 
 info = struct();
 info.FigureHandles = figureHandles;
@@ -65,20 +78,34 @@ info.TitleHandles = titleHandles;
 info.SubtitleHandles = subtitleHandles;
 info.PlotHandles = plotHandles;
 
+if ~isempty(figureHandles)
+    showFigure = this.ShowFigure;
+    if isequal(showFigure, Inf)
+        showFigure = numel(figureHandles);
+    end
+    figure(figureHandles(showFigure));
+end
+
 end%
 
 %
 % Local Functions
 %
 
-function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes) 
+function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes)
     %(
+    PLACEHOLDER = gobjects(1);
     parent = x.ParentChartpack;
     caption = resolveCaption(x);
     if ~ismissing(caption)
-        [titleHandle, subtitleHandle] = title(currentAxes, caption(1), caption(2:end));
+        try
+            [titleHandle, subtitleHandle] = title(currentAxes, caption(1), caption(2:end));
+        catch
+            titleHandle = title(currentAxes, caption);
+            subtitleHandle = PLACEHOLDER;
+        end
         set(titleHandle, "interpreter", parent.Interpreter, parent.TitleSettings{:});
-        if numel(caption)>1
+        if numel(caption)>1 && ~isempty(subtitleHandle) && ~isequal(subtitleHandle, PLACEHOLDER)
             set(subtitleHandle, "interpreter", parent.Interpreter, parent.SubtitleSettings{:});
         end
     else

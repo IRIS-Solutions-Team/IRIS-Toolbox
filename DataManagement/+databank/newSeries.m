@@ -56,7 +56,7 @@ if isempty(list)
     return
 end
 
-isDictionary = isa(runningDb, "Dictionary");
+isDictionary = isa(runningDb, 'Dictionary');
 template = Series( );
 for n = reshape(list, 1, [ ])
     if isDictionary

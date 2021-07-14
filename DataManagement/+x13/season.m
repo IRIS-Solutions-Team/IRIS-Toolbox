@@ -292,7 +292,7 @@ function specs = locallyResolveDataAttributes(specs)
     for n = specsNames(inxData)
         prefix = extractBefore(n, "_");
         series = specs.(n);
-        if ~isa(series, "Series")
+        if ~isa(series, 'Series')
             invalidDataSpecs(end+1) = n; %#ok<AGROW>
             continue
         end

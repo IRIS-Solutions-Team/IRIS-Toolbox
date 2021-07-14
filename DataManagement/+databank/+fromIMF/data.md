@@ -3,19 +3,19 @@
 {== Download databank of time series from IMF Data Portal ==}
 
 
-# Syntax for Two-Dimensional Requests
+# Syntax for plain vanilla requests (most datasets)
 
-    [outputDb, info] = databank.fromIMF.data(datasetId, frequency, areas, items, ...)
+    [outputDb, info] = databank.fromIMF.data(dataset, frequency, areas, indicators, ...)
 
 
-# Syntax for Three-Dimensional Requests
+# Syntax for requests that need more dimensions
 
-    outputDb = databank.fromIMF.data(datasetId, frequency, areas, items, counters, ...)
+    [outputDb, info] = databank.fromIMF.data(dataset, frequency, areas, dimensions, ...)
 
 
 # Input Arguments
 
-__`databankId`__ [ string ]
+__`dataset`__ [ string ]
 >
 > IMF dataset ID; only one dataset is allowed in one data request.
 >
@@ -33,9 +33,16 @@ __`areas`__ [ string ]
 > retrieved; an empty string or emtpy array means all reference areas.
 >
 
-__`items`__ [ string ]
+__`indicators`__ [ string ]
 >
 > List of indicators that will be retrieved for each of the `areas`.
+>
+
+__`dimensions`__ [ cell ]
+>
+> Cell array of string arrays; each element of the cell array stands for one
+> particular dimension that needs to be specified in the request (depending
+> on the dataset).
 >
 
 __`counter=empty`__ [ string ]
@@ -145,10 +152,13 @@ before an actual data response is returned.
 
 # Examples
 
-## Two-Dimensional Requests
+## Plain vanilla three-dimensional requests
 
-Most of the IMF data requests need two dimensions to be specified: the
-reference area and the indicator (the concept). 
+Most of the IMF datasets need three dimensions to be specified: 
+
+* date frequency (only one single date frequency can be specified)
+* reference area(s)
+* indicator(s)
 
 From the IMF IFS dataset, retrieve quarterly nominal GDP in localy currency
 for the US:
@@ -173,13 +183,19 @@ time series:
 d = databank.fromIMF.data("IFS", Frequency.QUARTERLY, "US", [], "includeArea", false)
 ```
 
-## Three-Dimensional Requests
+## Multi-dimensional requests
 
-From the IMF DOT databank (Directions of Trade Statistics), retrieve
-yearly exports from US to Euro Area (code "U2"):
+Some IMF datasets require some extra dimensions; for instance, the IMF
+Directions of Trade Statistics dataset (code `DOT`) needs an extra
+dimension for the counterparty following after the indicator dimension; the
+IMF Government Finance Statistics - Main Aggregates and Balances dataset
+(code `GFSMAB`) needs a government sector dimension and a unit of
+measurement dimension, both preceding the indicator dimension.
+
+Retrieve yearly exports from US (code `US`) to Euro Area (code `U2`):
 
 ```matlab
-d = databank.fromIMF.data("DOT", Frequency.YEARLY, "US", "TXG_FOB_USD", "U2");
+d = databank.fromIMF.data("DOT", Frequency.YEARLY, "US", {"TXG_FOB_USD", "U2"});
 ```
 
 From the IMF DOT databank (Directions of Trade Statistics), retrieve

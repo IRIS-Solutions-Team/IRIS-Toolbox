@@ -145,7 +145,6 @@ classdef Preparser ...
                     parser.control.Control.parse(this__);
                 end
 
-
                 % Resolve interpolations *after* controls so that interpolated expressions
                 % can refer to !for control variables. Interpolations between !for and
                 % !do keywords are resolved separately within For.writeFinal( ) in the
@@ -280,7 +279,7 @@ classdef Preparser ...
 
             import parser.Preparser
 
-            if ~isempty(varargin) && isa(varargin{1}, "parser.Preparser")
+            if ~isempty(varargin) && isa(varargin{1}, 'parser.Preparser')
                 temp = struct( );
                 temp.AngleBrackets = varargin{1}.AngleBrackets;
                 temp.Assigned = varargin{1}.Assigned;

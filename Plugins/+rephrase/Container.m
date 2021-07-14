@@ -7,16 +7,18 @@ classdef (Abstract) Container ...
 
 
     methods
-        function this = add(this, child)
-            if ~any(child.Type==this.PossibleChildren)
-                thisError = [
-                    "Rephrase:InvalidChild"
-                    "Rephrase element of type %s cannot be added as a child to %s"
-                ];
-                throw(exception.Base(thisError, 'error'), string(child.Type), string(this.Type));
+        function this = add(this, children)
+            for child = reshape(children, 1, [])
+                if ~any(child.Type==this.PossibleChildren)
+                    thisError = [
+                        "Rephrase:InvalidChild"
+                        "Rephrase element of type %s cannot be added as a child to %s"
+                    ];
+                    throw(exception.Base(thisError, 'error'), string(child.Type), string(this.Type));
+                end
+                child.Parent = this;
+                this.Content{end+1} = child;
             end
-            child.Parent = this;
-            this.Content{end+1} = child;
         end%
 
 

@@ -196,7 +196,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods function this = Configuration(varargin)
-            if ~isempty(varargin) && isa(varargin{1}, "struct") ...
+            if ~isempty(varargin) && isa(varargin{1}, 'struct') ...
                 && (isfield(varargin{1}, "TeX") && isequal(varargin{1}.TeX, true))
                 paths = iris.Configuration.findTexFiles( );
                 [this.PdfLatexPath, this.EpsToPdfPath, this.PsToPdfPath] = paths{:};

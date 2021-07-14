@@ -1,18 +1,11 @@
 % getStdNames  Get names of standard deviations of shocks
 %
-% Backend [IrisToolbox] class
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function listStd = getStdNames(this, request, clonePattern)
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
-inxShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
+inxShocks = this.Type==31 | this.Type==32;
 listShocks = string(this.Name(inxShocks));
 
 if nargin>=3 && any(strlength(clonePattern)>0)

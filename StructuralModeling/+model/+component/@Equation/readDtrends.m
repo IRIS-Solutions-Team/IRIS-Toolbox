@@ -7,8 +7,6 @@ function [eqn, pairing] = readDtrends(eqn, euc, qty)
 
 PTR = @int16;
 
-%--------------------------------------------------------------------------
-
 numEquations = numel(eqn.Input);
 pairing = model.component.Pairing.initDtrends(numEquations);
 inxD = eqn.Type==3;

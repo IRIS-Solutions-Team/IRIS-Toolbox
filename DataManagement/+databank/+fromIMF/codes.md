@@ -1,5 +1,5 @@
-# `databank.fromIMF.codes`
+# `databank.fromIMF.dimensions`
 
-{== Download code lists from IMF Data Portal ==}
+{== Download list of dimensions and codes for an IMF data portal dataset ==}
 
 

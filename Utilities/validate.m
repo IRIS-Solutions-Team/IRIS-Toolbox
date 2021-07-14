@@ -100,6 +100,7 @@ classdef validate
 
 
         function flag = nestedOptions(input)
+            %(
             if ~iscell(input) 
                 flag = false;
                 return
@@ -109,6 +110,17 @@ classdef validate
                 return
             end
             flag = true;
+            %)
+        end%
+
+
+        function mustBeNestedOptions(x)
+            %(
+            if validate.nestedOptions(x)
+                return 
+            end
+            error("Input value must be a cell array with name-value pairs for nested options or settings.");
+            %)
         end%
 
 
@@ -206,7 +218,7 @@ classdef validate
 
 
         function flag = date(input)
-            if isa(input, "DateWrapper")
+            if isa(input, 'DateWrapper')
                 flag = true;
                 return
             end
@@ -354,7 +366,7 @@ classdef validate
 
 
         function mustBeSolveModel(x)
-            if isa(x, "Model") && all(beenSolved(x))
+            if isa(x, 'Model') && all(beenSolved(x))
                 return
             end
             error("Input value must be a solved Model object.")

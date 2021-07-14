@@ -115,7 +115,7 @@ end%
 
 function locallyValidateWeights(x)
     %(
-    if isempty(x) || isa(x, "NumericTimeSubscriptable")
+    if isempty(x) || isa(x, 'NumericTimeSubscriptable')
         return
     end
     error("Input value must be empty or a time series.");

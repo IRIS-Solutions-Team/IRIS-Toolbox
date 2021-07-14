@@ -81,7 +81,7 @@ function moveLegend(legendHandle, location, margin)
     type = get(parentHandle, 'Type');
     while ~strcmpi(type, 'figure')
         parentHandle = get(parentHandle, 'Parent');
-        type = get(parentHandle, 'Type')
+        type = get(parentHandle, 'Type');
     end
     set(parentHandle, 'Units', 'Normalized');
     oldPosition = get(legendHandle, 'Position');
@@ -92,7 +92,6 @@ function moveLegend(legendHandle, location, margin)
     elseif strcmpi(location, 'top')
         newPosition(2) = (1 - margin) - oldPosition(4);
     end
-    drawnow( );
     set(legendHandle, 'Position', newPosition);
 end%
 

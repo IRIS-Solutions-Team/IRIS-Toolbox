@@ -88,9 +88,9 @@ return
 
     function sourceNames = hereResolveSourceNames( )
         sourceNames = opt.SourceNames;
-        if isa(sourceNames, "function_handle")
+        if isa(sourceNames, 'function_handle')
             func = sourceNames;
-            if isa(sourceDb, "Dictionary")
+            if isa(sourceDb, 'Dictionary')
                 sourceNames = keys(sourceDb);
             else
                 sourceNames = reshape(string(fieldnames(sourceDb)), 1, []);
@@ -156,7 +156,7 @@ end%
 %
 
 function locallyValidateNames(input)
-    if isa(input, "function_handle") || validate.list(input)
+    if isa(input, 'function_handle') || validate.list(input)
         return
     end
     error("Validation:Failed", "Input value must be a string array");
@@ -164,7 +164,7 @@ end%
 
 
 function locallyValidateDb(input)
-    if isa(input, "function_handle") || validate.databank(input)
+    if isa(input, 'function_handle') || validate.databank(input)
         return
     end
     error("Validation:Failed", "Input value must be a struct or a Dictionary");
@@ -172,7 +172,7 @@ end%
 
 
 function locallyValidateTransform(input)
-    if isempty(input) || isa(input, "function_handle")
+    if isempty(input) || isa(input, 'function_handle')
         return
     end
     error("Validation:Failed", "Input value must be empty or a function handle");

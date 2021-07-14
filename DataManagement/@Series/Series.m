@@ -107,7 +107,7 @@ classdef ( ...
 
         function this = template(varargin)
             persistent persistentSeries
-            if ~isa(persistentSeries, "Series")
+            if ~isa(persistentSeries, 'Series')
                 persistentSeries = Series( );
             end
             this = persistentSeries;

@@ -483,7 +483,7 @@ function [actualRange, data, isOk] = callPlot( func, funcArgs, aa, ...
             otherwise
                 h = func(inputRange, inputDataCat, varargin{:}, funcArgs{:});
                 data = inputDataCat;
-                actualRange = h(1).XData;
+                actualRange = get(get(get(h(1), 'Parent'), 'XAxis'), 'TickValues');
         end
     else
         if isequal(inputRange, Inf)
@@ -492,7 +492,8 @@ function [actualRange, data, isOk] = callPlot( func, funcArgs, aa, ...
             h = func(inputRange, inputDataCat, varargin{:}, funcArgs{:});
         end
         data = inputDataCat;
-        actualRange = h.XData;
+        % actualRange = h.XData;
+        actualRange = get(get(get(h(1), 'Parent'), 'XAxis'), 'TickValues');
     end
 
     if opt.Tight

@@ -19,50 +19,50 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
     properties (GetAccess=public, SetAccess=protected, Hidden)
         % IsGrowth  True for models with nonzero deterministic growth in steady state
-        IsGrowth = false 
+        IsGrowth = false
 
         % Tolerance  Tolerance levels for different contexts
-        Tolerance = shared.Tolerance 
-        
+        Tolerance = shared.Tolerance
+
         % Reporting  [Legacy] Reporting equations
-        Reporting = rpteq( ) 
+        Reporting = rpteq( )
 
         % D2S  Derivatives to system matrices conversion
-        D2S = model.component.D2S( ) 
+        D2S = model.component.D2S( )
 
         % Quantity  Container for model quantities (variables, shocks, parameters)
         Quantity = model.component.Quantity( )
-        
+
         % Equation  Container for model equations (equations, dtreds, links)
-        Equation = model.component.Equation( ) 
-       
+        Equation = model.component.Equation( )
+
         % Incidence  Incidence matrices for dynamic and steady equations
         Incidence = struct( 'Dynamic', model.component.Incidence( ), ...
-                            'Steady',  model.component.Incidence( ) ) 
+                            'Steady',  model.component.Incidence( ) )
 
         % Link  Dynamic links
         Link = model.component.Link.empty(0)
 
         % Gradient  Symbolic gradients of model equations
-        Gradient = model.component.Gradient(0) 
+        Gradient = model.component.Gradient(0)
 
         % Pairing  Definition of pairs in autoswaps, dtrends, links, and assignment equations
-        Pairing = model.component.Pairing(0, 0) 
-        
+        Pairing = model.component.Pairing(0, 0)
+
         % PreparserControl  Preparser control parameters
-        PreparserControl = struct( ) 
-        
+        PreparserControl = struct( )
+
         % Substitutions  Struct with substitution names and bodies
         Substitutions = struct( )
 
         % Vector  Vectors of variables in rows of system and solution matrices
-        Vector = model.component.Vector( ) 
-        
+        Vector = model.component.Vector( )
+
         % Variant  Parameter variant dependent properties
-        Variant = model.component.Variant( ) 
-        
+        Variant = model.component.Variant( )
+
         % Behavior  Settings to control behavior of model objects
-        Behavior = model.component.Behavior( ) 
+        Behavior = model.component.Behavior( )
 
         % Export  Export files
         Export = shared.Export.empty(1, 0)
@@ -73,7 +73,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         PreallocateFunc
     end
 
-    
+
 
 
     properties (GetAccess=public, SetAccess=protected, Hidden, Transient)
@@ -125,10 +125,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         NumOfAppendables
         %)
     end
-    
 
 
-    
+
+
     methods
         varargout = addToDatabank(varargin)
         varargout = lookupNames(varargin)
@@ -160,7 +160,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = bn(varargin)
         varargout = chkmissing(varargin)
         varargout = chkredundant(varargin)
-        varargout = chkpriors(varargin)                
+        varargout = chkpriors(varargin)
 
 
         varargout = checkSteady(varargin)
@@ -184,7 +184,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = diffloglik(varargin)
         varargout = diffsrf(varargin)
         varargout = eig(varargin)
-        varargout = emptydb(varargin)        
+        varargout = emptydb(varargin)
         varargout = estimate(varargin)
         varargout = expand(varargin)
         varargout = export(varargin)
@@ -203,7 +203,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             flag = this.IsGrowth;
         end%
 
-        varargout = horzcat(varargin)        
+        varargout = horzcat(varargin)
         varargout = icrf(varargin)
         varargout = ifrf(varargin)
         varargout = irf(varargin)
@@ -226,7 +226,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = rename(varargin)
         varargout = reporting(varargin)
         varargout = resample(varargin)
-        varargout = reset(varargin)        
+        varargout = reset(varargin)
         varargout = set(varargin)
         varargout = shockdb(varargin)
         varargout = shockplot(varargin)
@@ -249,7 +249,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         varargout = stdscale(varargin)
         varargout = subsasgn(varargin)
-        varargout = subsref(varargin)        
+        varargout = subsref(varargin)
         varargout = system(varargin)
         varargout = templatedb(varargin)
         varargout = tolerance(varargin)
@@ -267,10 +267,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             [varargout{1:nargout}] = beenSolved(varargin{:});
         end%
     end
-    
-    
+
+
     methods (Hidden)
-        varargout = cat(varargin)        
+        varargout = cat(varargin)
         varargout = checkZeroLog(varargin)
         varargout = checkConsistency(varargin)
         varargout = chkQty(varargin)
@@ -284,7 +284,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
         varargout = createHashEquations(varargin)
-        varargout = createTrendArray(varargin)        
+        varargout = createTrendArray(varargin)
         varargout = evalTrendEquations(varargin)
         varargout = expansionMatrices(varargin)
         varargout = getIthOmega(varargin)
@@ -314,21 +314,22 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = end(varargin)
         varargout = objfunc(varargin)
         varargout = isempty(varargin)
-        
+
 
         varargout = parseSimulateOptions(varargin)
-        varargout = prepareBlazer(varargin)        
+        varargout = prepareBlazer(varargin)
         varargout = prepareCheckSteady(varargin)
         varargout = prepareGrouping(varargin)
         varargout = preparePosteriorAndUpdate(varargin)
-        varargout = prepareSolve(varargin)        
+        varargout = prepareSolve(varargin)
         varargout = prepareSteady(varargin)
         varargout = prepareSystemPriorWrapper(varargin)
+        varargout = prepareZeroSteady(varargin)
         varargout = resolveAutoswap(varargin)
-        
+
 
         %varargout = saveobj(varargin)
-        varargout = size(varargin)        
+        varargout = size(varargin)
         varargout = sizeSolution(varargin)
         varargout = sizeSystem(varargin)
         varargout = sspaceMatrices(varargin)
@@ -351,7 +352,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                          getStdNames(this.Quantity), ...
                          getCorrNames(this.Quantity) ];
         end%
-        
+
 
         function this = setp(this, prop, value)
             this.(prop) = value;
@@ -396,7 +397,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
 
         function varargout = getIthFirstOrderExpansion(this, variantsRequested)
-            [varargout{1:nargout}] = ... 
+            [varargout{1:nargout}] = ...
                 getIthFirstOrderExpansion(this.Variant, variantsRequested);
         end%
 
@@ -410,8 +411,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             x = this.Variant.StdCorr(:, :, variantsRequested);
         end%
     end
-    
-    
+
+
     methods (Access=protected, Hidden)
         function value = getPreallocateFunc(this)
             value = @nan;
@@ -425,8 +426,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = checkSyntax(varargin)
         varargout = createD2S(varargin)
         varargout = createSourceDb(varargin)
-        varargout = diffFirstOrder(varargin)        
-        varargout = file2model(varargin)        
+        varargout = diffFirstOrder(varargin)
+        varargout = file2model(varargin)
         implementDisp(varargin)
         varargout = kalmanFilterRegOutp(varargin)
         varargout = myanchors(varargin)
@@ -454,16 +455,16 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = prepareSimulate1(varargin)
         varargout = prepareSimulate2(varargin)
     end
-    
-    
+
+
     methods (Static)
         varargout = failed(varargin)
     end
-    
-    
+
+
     methods (Static, Hidden)
         varargout = expandFirstOrder(varargin)
-        varargout = myalias(varargin)        
+        varargout = myalias(varargin)
         varargout = fourierData(varargin)
         varargout = myoutoflik(varargin)
         varargout = loadobj(varargin)
@@ -511,52 +512,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-            %( Input parser
-            persistent pp ppOptimal ppParser
-            if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
-                pp = extend.InputParser('@Model');
-                pp.KeepUnmatched = true;
-                pp.PartialMatching = false;
-                % addParameter(pp, 'addlead', false, @validate.logicalScalar);
-                addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
-                addParameter(pp, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
-                addParameter(pp, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
-                addParameter(pp, 'comment', '', @ischar);
-                addParameter(pp, {'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
-                addParameter(pp, 'Growth', false, @(x) isequal(x, true) || isequal(x, false));
-                addParameter(pp, 'epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
-                addParameter(pp, {'removeleads', 'removelead'}, false, @validate.logicalScalar);
-                addParameter(pp, 'Linear', false, @(x) isequal(x, true) || isequal(x, false));
-                addParameter(pp, 'makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
-                addParameter(pp, 'Optimal', cell.empty(1, 0), @iscell);
-                addParameter(pp, 'OrderLinks', true, @validate.logicalScalar);
-                addParameter(pp, {'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
-                % addParameter(pp, ('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
-                addParameter(pp, 'Preparser', cell.empty(1, 0), @validate.nestedOptions);
-                addParameter(pp, 'Refresh', true, @validate.logicalScalar);
-                addParameter(pp, {'SavePreparsed', 'SaveAs'}, '', @validate.stringScalar);
-                addParameter(pp, {'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
-                addParameter(pp, 'stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-                addParameter(pp, 'stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-
-
-                ppParser = extend.InputParser('@Model');
-                ppParser.KeepUnmatched = true;
-                ppParser.PartialMatching = false;
-                addParameter(ppParser, 'AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
-                addParameter(ppParser, 'EquationSwitch', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'Dynamic', 'Steady'));
-                addParameter(ppParser, {'SteadyOnly', 'SstateOnly'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
-                addParameter(ppParser, {'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
-
-
-                ppOptimal = extend.InputParser('@Model');
-                ppOptimal.KeepUnmatched = true;
-                ppOptimal.PartialMatching = false;
-                addParameter(ppOptimal, 'MultiplierPrefix', 'Mu_', @ischar);
-                addParameter(ppOptimal, {'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || (validate.stringScalar(x) && isvarname(x)));
-                addParameter(ppOptimal, 'Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
-            end
-            %)
 
             if nargin==0
                 % Empty model object
@@ -568,65 +523,21 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 % Convert struct (potentially based on old model object
                 % syntax) to model object
                 this = struct2obj(this, varargin{1});
-            elseif nargin>=1
-                if ischar(varargin{1}) || iscellstr(varargin{1}) || isstring(varargin{1}) ...
-                   || isa(varargin{1}, 'model.File')
-                    modelFile = varargin{1};
-                    varargin(1) = [ ];
-                    [opt, parserOpt, optimalOpt] = hereProcessOptions( );
-                    this.IsLinear = opt.Linear;
-                    this.IsGrowth = opt.Growth;
-                    [this, opt] = file2model(this, modelFile, opt, opt.Preparser, parserOpt, optimalOpt);
-                    this = build(this, opt);
-                elseif isa(varargin{1}, 'model')
-                    this = varargin{1};
-                    varargin(1) = [ ];
-                    opt = hereProcessOptions( );
-                    this = build(this, opt);
-                end
+            elseif nargin>=1 && ( ...
+                ischar(varargin{1}) || iscellstr(varargin{1}) || isstring(varargin{1}) ...
+                || isa(varargin{1}, 'model.File') ...
+            )
+                modelFile = varargin{1};
+                varargin(1) = [ ];
+                [this, opt, parserOpt, optimalOpt] = processConstructorOptions(this, varargin{:});
+                [this, opt] = file2model(this, modelFile, opt, opt.Preparser, parserOpt, optimalOpt);
+                this = build(this, opt);
+            else
+                exeption.error([
+                    "Model:InvalidConstructorCall"
+                    "Invalid call to model constructor."
+                ]);
             end
-            
-            return
-            
-            
-                function [opt, parserOpt, optimalOpt] = hereProcessOptions( )
-                    parse(pp, varargin{:});
-                    opt = pp.Options;
-
-                    % Optimal policy options
-                    optimalOpt = parse(ppOptimal, opt.Optimal{:});
-
-                    % Parser options
-                    parse(ppParser, pp.UnmatchedInCell{:});
-                    parserOpt = ppParser.Options;
-                    if isequal(parserOpt.EquationSwitch, @auto) && ~isequal(parserOpt.SteadyOnly, @auto)
-                        % Legacy parser option
-                        if isequal(parserOpt.SteadyOnly, true)
-                            parserOpt.EquationSwitch = 'Steady';
-                        end
-                    end
-
-                    % Control parameters
-                    unmatched = ppParser.UnmatchedInCell;
-                    if ~isstruct(opt.Assign)
-                        if iscell(opt.Assign)
-                            newAssign = struct( );
-                            for i = 1 : 2 : numel(opt.Assign)
-                                name = strip(erase(string(opt.Assign{i}), "="));
-                                value = opt.Assign{i+1};
-                                newAssign.(name) = value;
-                            end
-                            opt.Assign = newAssign;
-                        else
-                            opt.Assign = struct( );
-                        end
-                    end
-
-                    % Legacy options
-                    for i = 1 : 2 : numel(unmatched)
-                        opt.Assign.(unmatched{i}) = unmatched{i+1};
-                    end
-                end%
         end%
     end
 end

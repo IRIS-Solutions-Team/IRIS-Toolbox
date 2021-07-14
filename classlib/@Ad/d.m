@@ -1,14 +1,11 @@
-function df = d(func, k, varargin)
 % d  Compute user-supplied derivatives of non-analytic functions or force numeric derivatives
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+function df = d(func, k, varargin)
 
-%--------------------------------------------------------------------------
-
+%
 % Test if the user function returns derivatives
 %
 %     func(x, y, z, 'diff')
@@ -22,6 +19,7 @@ function df = d(func, k, varargin)
 %
 % expects the first derivative of the function w.r.t. the 3-rd input
 % argument.
+%
 
 try
     test = feval(func, varargin{:}, 'diff');

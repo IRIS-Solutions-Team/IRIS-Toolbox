@@ -49,7 +49,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
         function evaluate(this, inputDb)
             expression = this.Expression;
-            if isempty(this.Data) && ~ismissing(expression) && strlength(expression)>0
+            if ~ismissing(expression) && strlength(expression)>0
                 expression = expand(this, expression);
                 this.Data = databank.eval(inputDb, expression);
                 if this.ApplyTransform
@@ -87,7 +87,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                 if parent.ShowFormulas
                     caption = [caption; hereCreateFormula()];
                 end
-            elseif parent.CaptionFromComment && isa(this.Data, "Series") && strlength(this.Data.Comment(1))>0
+            elseif parent.CaptionFromComment && isa(this.Data, 'Series') && strlength(this.Data.Comment(1))>0
                 caption = hereSplitCaption(string(this.Data.Comment(1)), parent.NewLine);
                 if parent.ShowFormulas
                     caption = [caption; hereCreateFormula()];
@@ -105,23 +105,20 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                     formula(1) = formula(1) + "; " + string(func2str(this.Transform));
                 end
             end%
-            
+
             function caption = hereSplitCaption(caption, newLine)
                 if ~ismissing(newLine) && strlength(newLine)>0
                     caption = strip(split(caption, newLine));
                 end
             end%
         end%
-        
-        
+
+
         function runAxesExtras(this, axesHandle)
             %(
             parent = this.ParentChartpack;
             if ~isempty(parent.AxesSettings)
                 set(axesHandle, parent.AxesSettings{:});
-            end
-            if isempty(parent.AxesExtras)
-                return
             end
             for i = 1 : numel(parent.AxesExtras)
                 parent.AxesExtras{i}(axesHandle);
@@ -146,8 +143,8 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                 temp = databank.chartpack.Chart(varargin{:});
                 temp.InputString = strip(n);
                 [temp.Caption, temp.Expression, temp.ApplyTransform] ...
-                    = databank.chartpack.Chart.parseInputString(temp.InputString); 
-                this(end+1) = temp; 
+                    = databank.chartpack.Chart.parseInputString(temp.InputString);
+                this(end+1) = temp;
             end
             %)
         end%

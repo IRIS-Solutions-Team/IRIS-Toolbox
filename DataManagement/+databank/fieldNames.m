@@ -14,7 +14,7 @@ end
 % >=R2019b
 
 
-if isa(inputDb, "Dictionary")
+if isa(inputDb, 'Dictionary')
     list = keys(inputDb);
 else
     list = reshape(string(fieldnames(inputDb)), 1, [ ]);

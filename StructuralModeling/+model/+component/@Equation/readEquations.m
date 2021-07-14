@@ -1,21 +1,15 @@
-function equation = readEquations(equation, euc)
 % readEqtns  Post-parse measurement and transition equations
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
+function equation = readEquations(equation, euc)
 
 numEquations = numel(equation.Input);
 
-inxM = equation.Type==TYPE(1);
-inxT = equation.Type==TYPE(2);
-inxL = equation.Type==TYPE(4);
+inxM = equation.Type==1;
+inxT = equation.Type==2;
+inxL = equation.Type==4;
 inxMTL = inxM | inxT | inxL;
 if ~any(inxMTL)
     return

@@ -10,7 +10,7 @@ if isempty(pp)
     pp = extend.InputParser('Plan.autoswap');
     addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
     addRequired(pp, 'datesToSwap', @validate.date);
-    addRequired(pp, 'namesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
+    addRequired(pp, 'namesToAutoswap', @(x) ischar(x) || iscellstr(x) || isstring(x) || isequal(x, @all));
     addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
 pp.parse(this, dates, namesToAutoswap, varargin{:});
@@ -28,28 +28,24 @@ return
 
     function inxToAutoswap = hereIndexPairsToSwap( )
         %(
-        namesToAutoswap = cellstr(namesToAutoswap);
-        namesToAutoswap = transpose(namesToAutoswap(:));
-        numNames = numel(namesToAutoswap);
+        namesToAutoswap = reshape(strip(string(namesToAutoswap)), 1, []);
+        inxRemove = startsWith(namesToAutoswap, "^");
+        namesToAutoswap(inxRemove) = [];
         inxToAutoswap = false(size(this.AutoswapPairs, 1), 1);
-        inxValid = true(1, numNames);
-        for i = 1 : numel(namesToAutoswap)
-            name = namesToAutoswap{i};
-            inx = strcmp(name, this.AutoswapPairs(:, 1)) ...
-                | strcmp(name, this.AutoswapPairs(:, 2));
+        namesReport = string.empty(1, 0);
+        for n = namesToAutoswap
+            inx = strcmp(n, this.AutoswapPairs(:, 1)) | strcmp(n, this.AutoswapPairs(:, 2));
             if any(inx)
                 inxToAutoswap = inxToAutoswap | inx;
             else
-                inxValid(i) = false;
+                namesReport(end+1) = n;
             end
         end
-        if any(~inxValid)
-            thisError = [ 
+        if ~isempty(namesReport)
+            exception.error([ 
                 "Plan:CannotAutoswapName"
                 "Cannot autoswap this name: %s " 
-                ];
-            throw( exception.Base(thisError, 'error'), ...
-                namesToAutoswap{~inxValid} );
+            ], namesReport);
         end
         %)
     end%

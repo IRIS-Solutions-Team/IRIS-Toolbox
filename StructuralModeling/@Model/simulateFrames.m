@@ -260,7 +260,7 @@ end%
 
 function blazer = locallyPrepareBlazer(~, runningData, frameFromTo, data)
     %(
-    if isa(runningData.DefaultBlazer, "solver.blazer.FirstOrder")
+    if isa(runningData.DefaultBlazer, 'solver.blazer.FirstOrder')
         blazer = [ ];
         return
     end

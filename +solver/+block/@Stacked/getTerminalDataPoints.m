@@ -2,9 +2,6 @@
 % condition and get terminal data points needed to be evaluated in the
 % block
 % 
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
@@ -48,8 +45,16 @@ incidenceMatrix = this.ParentBlazer.Incidence.Matrix;
 numShifts = numel(this.ParentBlazer.Incidence.Shift);
 numEquations = size(incidenceMatrix, 1);
 numQuantities = size(incidenceMatrix, 2) / numShifts;
+
+%
+% Incidende of only the measurement and transition variables; parameters
+% and exogenous can also have leads but they are not included in the
+% calculation of the terminal condition
+%
 incidenceMatrix = permute(incidenceMatrix, [2, 1]);
 incidenceMatrix = reshape(full(incidenceMatrix), numQuantities, numShifts, [ ]);
+inxYX = this.QuantityTypes==1 | this.QuantityTypes==2;
+incidenceMatrix(~inxYX, :) = false;
 
 if this.NeedsTerminal
     for i = find(this.InxEquationsUsingTerminal)

@@ -5,7 +5,7 @@
 
 %#ok<*GTARG>
 
-function [qty, eqn, euc, puc, collector, log] = parse(this, opt)
+function [qty, eqn, euc, puc, collector, logList] = parse(this, opt)
 
 stringify = @(x) reshape(string(x), 1, []);
 
@@ -15,9 +15,11 @@ exception.ParseTime.storeFileName(this.FName);
 altSyntax(this);
 
 % Read individual blocks, and combine blocks of the same type into one 
-blockCode = readBlockCode(this);
+[blockCode, blockAttributes] = readBlockCode(this);
 
-log = string.empty(1, 0);
+logList = string.empty(1, 0);
+logExcept = logical.empty(1, 0);
+
 qty = model.component.Quantity( );
 eqn = model.component.Equation( );
 euc = parser.EquationUnderConstruction( );
@@ -27,17 +29,42 @@ numBlocks = numel(this.Block);
 collector = struct( );
 for i = 1 : numBlocks
     block__ = this.Block{i};
-    code__ = blockCode{i};
     if block__.Parse
-        if isa(block__, 'parser.theparser.Log')
-            log = parse(block__, code__);
-        else
-            [qty, eqn] = parse(block__, this, code__, qty, eqn, euc, puc, opt);
+        for j = 1 : numel(blockCode{i})
+            code__ = blockCode{i}(j);
+            attributes__ = blockAttributes{i}{j};
+            if isa(block__, 'parser.theparser.Log')
+                [logList, logExcept] = parse(block__, code__, logList, logExcept);
+            else
+                [qty, eqn, euc] = parse(block__, this, code__, attributes__, qty, eqn, euc, puc, opt);
+            end
         end
     else
-        collector.(this.Block{i}.Name) = blockCode{i};
+        code__ = "";
+        if ~isempty(blockCode{i})
+            code__ = join(blockCode{i}, newline);
+            if isempty(code__) || all(strlength(code__)==0)
+                code__ = "";
+            end
+        end
+        blockName = block__.Name;
+        if ~isfield(collector, blockName)
+            collector.(blockName) = '';
+        end
+        collector.(blockName) = [ ...
+            collector.(blockName), ...
+            char(code__) ...
+        ];
     end
 end
+
+
+if ~isempty(logExcept) && all(logExcept) % [^1]
+    logList = Except(logList);
+end
+% [^1]: The consistency of all-but has been already verified in
+% parser.theparser.Log/precheck
+
 
 % Evaluate and assign strings from code
 qty = assign(this, qty);

@@ -548,7 +548,7 @@ function [windowOption, baseRange, plan] = resolveWindowAndBaseRange(windowOptio
     end
     if windowOption>lenBaseRange
         baseRange = dater.colon(baseRange(1), dater.plus(baseRange(1), windowOption-1));
-        if isa(plan, "Plan")
+        if isa(plan, 'Plan')
             plan.End = baseRange(end);
         end
     end
@@ -558,7 +558,7 @@ end%
 
 function solverOption = locallyParseSolverOption(solverOption, methodOption)
     %(
-    if isa(solverOption, "solver.Options") || isa(solverOption, "optim.options.SolverOptions")
+    if isa(solverOption, 'solver.Options') || isa(solverOption, 'optim.options.SolverOptions')
         return
     end
 
@@ -633,7 +633,7 @@ end%
 
 function plan = locallyResolvePlan(this, baseRange, plan, anticipate)
     %(
-    if isa(plan, "Plan")
+    if isa(plan, 'Plan')
         if ~isempty(anticipate)
             hereThrowError();
         end
@@ -675,7 +675,7 @@ end%
 
 function locallyValidatePlanOption(x)
     %(
-    if isempty(x) || isequal(x, true) || isequal(x, false) || isa(x, "Plan")
+    if isempty(x) || isequal(x, true) || isequal(x, false) || isa(x, 'Plan')
         return
     end
     error("Input argument must be true or false.");

@@ -109,7 +109,7 @@ if numel(sizeLevelData)>2
 end
 
 % Update output series
-if isa(this, "NumericTimeSubscriptable")
+if isa(this, 'NumericTimeSubscriptable')
     this = setData(this, dater.colon(startAll, endAll), levelData);
 else
     this = Series(startAll, levelData);
@@ -118,7 +118,7 @@ end
 return
 
     function hereCheckMissingObs( )
-        if isa(this, "NumericTimeSubscriptable")
+        if isa(this, 'NumericTimeSubscriptable')
             missingTest = this.MissingTest;
         else
             missingTest = @isnan;
@@ -142,7 +142,7 @@ end%
 
 function func = locallyChooseFunction(operator, direction)
     %(
-    if isa(operator, "function_handle")
+    if isa(operator, 'function_handle')
         func = operator;
     else
         switch string(operator)
@@ -200,7 +200,7 @@ end%
 %
 
 function locallyValidateLevelInput(input)
-    if isa(input, "NumericTimeSubscriptable") || validate.numericScalar(input)
+    if isa(input, 'NumericTimeSubscriptable') || validate.numericScalar(input)
         return
     end
     error("Validation:Failed", "Input value for the level series must be a time series or a numeric scalar");

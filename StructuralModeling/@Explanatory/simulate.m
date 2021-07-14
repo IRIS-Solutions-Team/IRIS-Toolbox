@@ -526,7 +526,7 @@ function locallyValidateInputData(input)
     if validate.databank(input)
         return
     end
-    if isa(input, "shared.DataBlock")
+    if isa(input, 'shared.DataBlock')
         return
     end
     error("Validation:Failed", "Input value must be a databank");

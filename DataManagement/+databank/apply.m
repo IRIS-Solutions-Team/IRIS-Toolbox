@@ -147,6 +147,8 @@ for i = 1 : numFields
     if iscellstr(opt.TargetNames)
         inxName = strcmp(opt.SourceNames, name__);
         newName__ = opt.TargetNames{inxName};
+    elseif isa(opt.TargetNames, 'function_handle') && ~isequal(opt.TargetNames, @default)
+        newName__ = opt.TargetNames(name__);
     else
         newName__ = name__;
         if opt.RemoveStart

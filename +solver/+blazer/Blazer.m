@@ -144,6 +144,7 @@ classdef (Abstract) Blazer ...
                 blk.PtrEquations = reshape(setdiff(blkEqn{i}, this.EquationsToExclude, 'stable'), 1, [ ]); % [^1]
                 blk.PtrQuantities = reshape(blkQty{i}, 1, [ ]); % [^1]
                 blk.LhsQuantityFormat = this.LHS_QUANTITY_FORMAT;
+                blk.QuantityTypes = this.Model.Quantity.Type;
 
                 prepareBlock(blk, this);
 

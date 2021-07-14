@@ -1,19 +1,18 @@
-function new = optimalPolicy( this, quantity, equation, ...
-                              posLossEqtn, lossDisc, ...
-                              posOfFloorVariable, posOfFloorMultiplier, posOfFloorParameter, ...
-                              type )
 % optimalPolicy  Derive equations for optimal policy
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+function new = optimalPolicy( ...
+    this, quantity, equation, posLossEqtn, lossDisc, ...
+    posOfFloorVariable, posOfFloorMultiplier, posOfFloorParameter, type ...
+)
+
 
 %                      | Original   | With optimal    | With optimal
 %                      |            |                 | and nonneg
 %----------------------+------------+-----------------+---------------------
-%                      |            |                 | 
+%                      |            |                 |
 %                      | Eq1   Var1 | Eq1:=dMu1  Mu1  | Eq1           Mu1
 %                      | Eq2   Var2 | Eq2:=dMu2  Mu2  | Eq2           Mu2
 % PosLossEqtn          | Loss  Var3 | dVar1      Var1 | Slack         MuNneg
@@ -23,18 +22,17 @@ function new = optimalPolicy( this, quantity, equation, ...
 %                      |            | dVar5      Var5 | dVar4         Var4
 %                      |            |                 | dVar5         Var5
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
+stringify = @(x) reshape(string(x), 1, []);
+names = stringify(quantity.Name);
 
 new = struct( );
 
 isFloor = ~isempty(posOfFloorVariable);
-ixy = quantity.Type==TYPE(1);
-ixx = quantity.Type==TYPE(2);
+ixy = quantity.Type==1;
+ixx = quantity.Type==2;
 ixyx = ixy | ixx;
-ixt = equation.Type==TYPE(2);
-nEqtn = length(equation.Input);
+ixt = equation.Type==2;
+nEqtn = numel(equation.Input);
 
 eqtn = cell(1, nEqtn);
 eqtn(:) = {''};
@@ -87,13 +85,13 @@ for eq = first : posLossEqtn
         vecWrt( imag(vecWrt)>0 ) = [ ];
     end
     numWrt = numel(vecWrt);
-    
+
     % Write a cellstr with the symbolic names of variables wrt which we will
     % differentiate.
-    vecNames = real(vecWrt);
+    vecPositions = real(vecWrt);
     vecShifts = imag(vecWrt);
-    unknown = createListOfUnknowns(vecNames, vecShifts);
-        
+    unknown = createListOfUnknowns(vecPositions, vecShifts);
+
     d = Ad.diff(eqtn{eq}, unknown);
     d = strcat('(', d, ')');
 
@@ -102,7 +100,8 @@ for eq = first : posLossEqtn
             continue
         end
 
-        newEq = vecNames(j);
+        wrtName = names(vecPositions(j));
+        newEq = vecPositions(j);
         sh = vecShifts(j);
 
         % Earmark the derivative for non-linear simulation if at least one equation
@@ -121,13 +120,28 @@ for eq = first : posLossEqtn
         else
             d{j} = [d{j}, '*(', lossDisc, ')^', sprintf('%g', -sh)];
         end
-        
-        % If this is not the loss function, multiply the derivative by the
-        % respective multiplier. The appropriate lag or lead of the multiplier will
+
+        %
+        % If this is not the loss function, multiply the derivative by 
+        %
+        % * the respective Lagrange multiplier,
+        %
+        % * the costd if applicable. 
+        % 
+        % The appropriate lag or lead of the multiplier will
         % be introduced together with other variables.
+        %
         if eq<posLossEqtn
-            mult = sprintf('x%g', eq);
-            d{j} = [d{j}, '*', mult];
+            mult = sprintf('*x%g', eq);
+
+            costdName = "costd_" + wrtName;
+            posCostd = find(costdName==names);
+            costd = '';
+            if ~isempty(posCostd)
+                costd = sprintf('*x%g^2', posCostd);
+            end
+
+            d{j} = [d{j}, mult, costd];
         end
 
         % Shift lags and leads of variables and multipliers (but not parameters) in
@@ -135,24 +149,46 @@ for eq = first : posLossEqtn
         if sh~=0
             d{j} = Ad.shiftBy(d{j}, -sh, ixyx);
         end
-        
+
         sign = '+';
+
         if isempty(new.Input{newEq}) ...
-                || strncmp(new.Input{newEq}, '-', 1) ...
-                || strncmp(new.Input{newEq}, '+', 1)
+            || strncmp(new.Input{newEq}, '-', 1) ...
+            || strncmp(new.Input{newEq}, '+', 1)
             sign = '';
         end
         new.Input{newEq} = [d{j}, sign, new.Input{newEq}];
     end
 end
 
+
+%
+% To each derivative of the Lagrangian wrt a regular variable xxx (not a
+% Lagrange multiplier, not a conditioning shock), add the shocks named
+% slack_xxx used to condition the comodel simulations on the variable xxx
+%
+for pos = find(quantity.Type==2 & ~quantity.IxLagrange)
+    condShockName = "slack_" + names(pos);
+    posCondShock = find(condShockName==names);
+    if isempty(posCondShock);
+        continue
+    end
+    new.Input{pos} = [new.Input{pos}, sprintf('+x%g', posCondShock)];
+end
+
+
 % Add nonnegativity multiplier to RHS of derivative wrt nonegative
 % equation, and create complementary slack condition, which is always
 % placed where loss function was.
 if isFloor
-    new.Input{posOfFloorVariable} = [new.Input{posOfFloorVariable}, sprintf('-x%g', posOfFloorMultiplier)];
-    new.Input{posLossEqtn} = sprintf( 'min(x%g-x%g,x%g)', ...
-                                      posOfFloorVariable, posOfFloorParameter, posOfFloorMultiplier );
+    new.Input{posOfFloorVariable} = [ ...
+        new.Input{posOfFloorVariable} ...
+        , sprintf('-x%g', posOfFloorMultiplier) ...
+    ];
+    new.Input{posLossEqtn} = sprintf( ...
+        'min(x%g-x%g,x%g)' ...
+        , posOfFloorVariable, posOfFloorParameter, posOfFloorMultiplier ...
+    );
     new.IxHash(posLossEqtn) = true;
 end
 
@@ -161,33 +197,38 @@ end
 new = simplifyZeroMultipliers(new);
 
 new.Dynamic = model.component.Gradient.symb2array(new.Input);
+
+% Replace steady-state references in steady equations
 new.Steady = model.component.Gradient.symb2array(new.Input);
+new.Steady = replace(new.Steady, 'L', 'x');
+
 new.Input = model.component.Gradient.symb2array(new.Input, 'input', quantity.Name);
 
-% Add semicolons at the end of each new equation.
-pos = posLossEqtn : length(new.Input);
+% Add semicolons at the end of each new equation
+pos = posLossEqtn : numel(new.Input);
 new.Input(pos) = strcat(new.Input(pos), '=0;');
 new.Dynamic(pos) = strcat(new.Dynamic(pos), ';');
 new.Steady(pos) = strcat(new.Steady(pos), ';');
 
 % Replace = with #= in nonlinear human equations.
 new.Input(new.IxHash) = strrep(new.Input(new.IxHash), '=0;', '=#0;');
+
 end%
 
 
-function unknown = createListOfUnknowns(vecNames, vecShifts)
-    numWrt = numel(vecNames);
+function unknown = createListOfUnknowns(vecPositions, vecShifts)
+    numWrt = numel(vecPositions);
     unknown = cell(1, numWrt);
     for j = 1 : numWrt
         if vecShifts(j)==0
             % Time index==0: replace x(1,23,t) with x23.
-            unknown{j} = sprintf('x%g', vecNames(j));
+            unknown{j} = sprintf('x%g', vecPositions(j));
         elseif vecShifts(j)<0
             % Time index<0: replace x(1,23,t-1) with x23m1.
-            unknown{j} = sprintf('x%gm%g', vecNames(j), -vecShifts(j));
+            unknown{j} = sprintf('x%gm%g', vecPositions(j), -vecShifts(j));
         elseif vecShifts(j)>0
             % Time index>0: replace x(1,23,t+1) with x23p1.
-            unknown{j} = sprintf('x%gp%g', vecNames(j), vecShifts(j));
+            unknown{j} = sprintf('x%gp%g', vecPositions(j), vecShifts(j));
         end
     end
 end%

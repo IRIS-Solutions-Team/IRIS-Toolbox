@@ -58,7 +58,7 @@ if isClassFilter
     options.Class = stringify(options.Class);
     shortlistUpdate = string.empty(1, 0);
     for n = shortlist
-        if isa(inputDb, "Dictionary")
+        if isa(inputDb, 'Dictionary')
             value = retrieve(inputDb, n);
         else
             value = inputDb.(n);
@@ -76,7 +76,7 @@ end
 if isValueFilter
     shortlistUpdate = string.empty(1, 0);
     for n = shortlist
-        if isa(inputDb, "Dictionary")
+        if isa(inputDb, 'Dictionary')
             value = retrieve(inputDb, n);
         else
             value = inputDb.(n);
