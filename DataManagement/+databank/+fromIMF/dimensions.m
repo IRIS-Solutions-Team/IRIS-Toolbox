@@ -1,7 +1,7 @@
 function [summaryTable, dimTables, json, info] = dimensions(dataset, options)
 
 % >=R2019b
-%(
+%{
 arguments
     dataset (1, 1) string
 
@@ -9,7 +9,7 @@ arguments
     options.WebOptions = databank.fromIMF.Config.WebOptions
     options.WriteTable (1, 1) string = ""
 end
-%)
+%}
 % >=R2019b
 
 [response, request] = databank.fromIMF.Config.request( ...

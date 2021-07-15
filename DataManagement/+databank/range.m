@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % <=R2019a
-%{
+%(
 function [range, listFreq, namesApplied] = range(inputDb, options)
 
 arguments
@@ -21,12 +21,12 @@ end
 if ~isequal(options.NameList, @all)
     options.SourceNames = options.NameList;
 end
-%}
+%)
 % <=R2019a
 
 
 % <=R2019a
-%{
+%(
 function [range, listFreq, namesApplied] = range(inputDb, varargin)
 
 % Input parser
@@ -42,7 +42,7 @@ if isempty(pp)
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
 options = parse(pp, inputDb, varargin{:});
-%}
+%)
 % <=R2019a
 
 

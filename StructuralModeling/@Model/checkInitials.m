@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [flag, listMissing, listSuspect] = checkInitials(this, inputDb, range, options)
 
 arguments
@@ -11,12 +11,12 @@ arguments
     options.Error (1, 1) logical = true
     options.Warning (1, 1) logical = true
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [flag, listMissing, listSuspect] = checkInitials(this, inputDb, range, varargin)
 
 persistent pp
@@ -29,7 +29,7 @@ if isempty(pp)
     addParameter(pp, 'Warning', true, @validate.logicalScalar);
 end
 parse(pp, this, inputDb, range, varargin{:});
-%}
+%)
 % <=R2019a
 
 

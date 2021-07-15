@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function varargout = fromSnippet(snippetNames, args)
 
 arguments
@@ -14,16 +14,16 @@ end
 arguments (Repeating)
     args
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function varargout = fromSnippet(snippetNames, varargin)
 
 args = varargin;
-%}
+%)
 % <=R2019a
 
 [snippets, snippetNames, callerFileName] = textual.readSnippet(snippetNames);
