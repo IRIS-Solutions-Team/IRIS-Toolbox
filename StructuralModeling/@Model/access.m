@@ -60,14 +60,14 @@
 function [output, beenHandled] = access(this, input, options)
 
 % >=R2019b
-%{
+%(
 arguments
     this (1, :) Model
     input (1, 1) string
 
     options.Error (1, 1) logical = true
 end
-%}
+%)
 % >=R2019b
 
 stringify = @(x) reshape(string(x), 1, []);

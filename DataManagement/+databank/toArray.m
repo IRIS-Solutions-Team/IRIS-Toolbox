@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
+%(
 function [outputArray, names, dates] = toArray(inputDb, names, dates, columns)
 
 arguments
@@ -13,12 +13,12 @@ arguments
     dates {locallyValidateDates} = Inf
     columns (1, :) {mustBeInteger, mustBePositive} = 1
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [outputArray, names, dates] = toArray(inputDb, varargin)
 
 persistent inputParser
@@ -33,7 +33,7 @@ parse(inputParser, inputDb, varargin{:});
 names =  inputParser.Results.names;
 dates = inputParser.Results.dates;
 columns = inputParser.Results.columns;
-%)
+%}
 % <=R2019a
 
 

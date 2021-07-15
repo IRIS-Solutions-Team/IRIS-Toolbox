@@ -3,7 +3,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
+%(
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
 
 arguments
@@ -62,12 +62,12 @@ end
 if ~isequal(opt.TargetDb, @default)
     opt.AddToDatabank = opt.TargetDb;
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, varargin)
 
 persistent pp
@@ -88,7 +88,7 @@ if isempty(pp)
     pp.addParameter({'AddToDatabank', 'TargetDb'}, @default, @(x) isequal(x, @default) || validate.databank(x));
 end
 opt = pp.parse(inputDb, func, varargin{:});
-%)
+%}
 % <=R2019a
 
 

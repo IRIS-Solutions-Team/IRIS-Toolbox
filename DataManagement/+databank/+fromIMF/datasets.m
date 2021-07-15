@@ -1,13 +1,13 @@
 function [summaryTable, json, info] = datasets(options)
 
 % >=R2019b
-%{
+%(
 arguments
     options.URL (1, 1) string = databank.fromIMF.Config.URL + "DataFlow"
     options.WebOptions = databank.fromIMF.Config.WebOptions
     options.WriteTable (1, 1) string = ""
 end
-%}
+%)
 % >=R2019b
 
 [response, request] = databank.fromIMF.Config.request( ...

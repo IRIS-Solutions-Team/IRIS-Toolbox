@@ -1,13 +1,13 @@
 function [output, beenHandled] = access(this, what, quantity)
 
 % >=R2019b
-%{
+%(
 arguments
     this model.component.Pairing
     what (1, 1) string
     quantity model.component.Quantity
 end
-%}
+%)
 % >=R2019b
 
 
