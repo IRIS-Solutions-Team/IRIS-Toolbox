@@ -23,5 +23,14 @@ classdef Grid ...
             this.Settings.NumRows = numRows;
             this.Settings.NumColumns = numColumns;
         end%
+
+
+        function build(this, varargin)
+            build@rephrase.Container(this, varargin{:});
+            if isempty(this.Settings.NumRows)
+                numChildren = numel(this.Content);
+                this.Settings.NumRows = ceil(numChildren / this.Settings.NumColumns);
+            end
+        end%
     end
 end 

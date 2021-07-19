@@ -10,7 +10,7 @@ if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
     addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
     addParameter(pp, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'comment', '', @ischar);
+    addParameter(pp, 'Comment', '', @(x) ischar(x) || isstring(x) || iscellstr(x));
     addParameter(pp, {'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
     addParameter(pp, 'Growth', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
@@ -20,7 +20,6 @@ if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
     addParameter(pp, 'Optimal', cell.empty(1, 0), @iscell);
     addParameter(pp, 'OrderLinks', true, @validate.logicalScalar);
     addParameter(pp, {'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
-    % addParameter(pp, ('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Preparser', cell.empty(1, 0), @validate.nestedOptions);
     addParameter(pp, 'Refresh', true, @validate.logicalScalar);
     addParameter(pp, {'SavePreparsed', 'SaveAs'}, '', @validate.stringScalar);

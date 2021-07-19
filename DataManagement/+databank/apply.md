@@ -97,6 +97,18 @@ __`TargetNames=@default`__ [ `@default` | cellstr | string ]
 > New names for output databank fields.
 > 
 
+__`WhenError="keep"`__ [ `"keep"` | `"remove"` | `"error"` ]
+>
+> What to do when the function `func` fails with an error on a field:
+>
+> * `"keep"` means the field will be kept in the `outputDb` unchanged;
+>
+> * `"remove"` means the field will be removed from the `outputDb`;
+>
+> * `"error"` means the execution of `databank.apply` will stop with an
+>   error.
+>
+
 ## Description
 
 

@@ -33,6 +33,7 @@ arguments
     opt.TargetNames {locallyValidateNames} = @default
     opt.AddToDatabank {locallyValidateDb} = @default
     opt.TargetDb {locallyValidateDb} = @default
+    opt.WhenError (1, 1) string {mustBeMember(opt.WhenError, ["keep", "remove", "error"])} = "keep"
 end
 
 if strlength(opt.HasPrefix)>0
@@ -86,6 +87,7 @@ if isempty(pp)
     pp.addParameter({'SourceNames', 'Names', 'Fields', 'InputNames'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
     pp.addParameter({'TargetNames', 'OutputNames'}, @default, @(x) isequal(x, @default) || validate.list(x));
     pp.addParameter({'AddToDatabank', 'TargetDb'}, @default, @(x) isequal(x, @default) || validate.databank(x));
+    pp.addParameter('WhenError', "keep", @(x) (isstring(x) || ischar(x)) && ismember(string(x), ["keep", "remove", "error"]));
 end
 opt = pp.parse(inputDb, func, varargin{:});
 %}
@@ -168,14 +170,27 @@ for i = 1 : numFields
 
     field__ = inputDb.(name__);
     if ~isempty(func)
-        field__ = func(field__);
+        success = true;
+        try
+            field__ = func(field__);
+        catch exc
+            success = false;
+            if opt.WhenError=="error"
+                exception.warning([
+                    "Databank:ErrorEvaluatingFunction"
+                    "The function failed with an error on this field: %s"
+                ], name__);
+                rethrow(exc);
+            end
+        end
     end
     if isa(outputDb, 'Dictionary')
         store(outputDb, newName__, field__);
     else
         outputDb.(newName__) = field__;
     end
-    inxToRemove(i) = opt.RemoveSource && ~strcmp(name__, newName__);
+    inxToRemove(i) = (opt.RemoveSource && ~strcmp(name__, newName__)) ...
+        || (opt.WhenError=="remove" && ~success);
 end
 
 if any(inxToRemove)

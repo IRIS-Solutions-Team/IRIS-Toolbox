@@ -3,9 +3,9 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% <=R2019a
-%{
-function [range, listFreq, namesApplied] = range(inputDb, options)
+% >=R2019b
+%(
+function [outputRange, listFreq, namesApplied] = range(inputDb, options)
 
 arguments
     inputDb {validate.mustBeDatabank}
@@ -21,13 +21,13 @@ end
 if ~isequal(options.NameList, @all)
     options.SourceNames = options.NameList;
 end
-%}
-% <=R2019a
+%)
+% >=R2019b
 
 
 % <=R2019a
 %{
-function [range, listFreq, namesApplied] = range(inputDb, varargin)
+function [outputRange, listFreq, namesApplied] = range(inputDb, varargin)
 
 % Input parser
 persistent pp
@@ -54,7 +54,7 @@ listFreq = hereFilterFreq( );
 numFreq = numel(listFreq);
 startDates = cell(1, numFreq);
 endDates = cell(1, numFreq);
-range = cell(1, numFreq);
+outputRange = cell(1, numFreq);
 namesApplied = string.empty(1, 0);
 for name = listNames
     if ~isfield(inputDb, name)
@@ -85,18 +85,18 @@ else
 end
 
 for i = find(~cellfun(@isempty, startDates))
-    range{i} = DateWrapper(startDates{i} : endDates{i});
+    outputRange{i} = DateWrapper(startDates{i} : endDates{i});
 end
 
-inxEmpty = cellfun(@isempty, range);
+inxEmpty = cellfun(@isempty, outputRange);
 if sum(~inxEmpty)==0
-    range = [ ];
+    outputRange = [ ];
     listFreq = [ ];
 elseif sum(~inxEmpty)==1
-    range = range{~inxEmpty};
+    outputRange = outputRange{~inxEmpty};
     listFreq = listFreq(~inxEmpty);
 else
-    range = range(~inxEmpty);
+    outputRange = outputRange(~inxEmpty);
     listFreq = listFreq(~inxEmpty);
 end
 

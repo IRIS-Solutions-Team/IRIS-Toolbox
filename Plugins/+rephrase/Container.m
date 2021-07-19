@@ -32,6 +32,11 @@ classdef (Abstract) Container ...
         end%
 
 
+        function flag = isempty(this)
+            flag = isempty(this.Content);
+        end%
+
+
         function build(this, varargin)
             for i = 1 : numel(this.Content)
                 build(this.Content{i}, varargin{:});

@@ -151,7 +151,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                                'WEEKLY', 'uuuu-MM-dd', ...
                                                'DAILY', 'uuuu-MM-dd' )
 
-        DEFAULT_BASE_YEAR = 2000
+        DEFAULT_BASE_YEAR = 2020
 
         DEFAULT_MONTHS = { 'January'
                            'February'

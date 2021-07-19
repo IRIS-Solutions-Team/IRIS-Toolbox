@@ -17,6 +17,7 @@ classdef Report ...
             rephrase.Type.MATRIX
         ]
         EMBED_REPORT_DATA = "// report-data-script-here"
+        EMBED_USER_STYLE = "/* user-defined-css-here */"
     end
 
 
@@ -38,6 +39,7 @@ classdef Report ...
 
                 addParameter(pp, 'SaveJson', false, @validate.logicalScalar);
                 addParameter(pp, 'Source', "Local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["Local", "Bundle", "Web"]))));
+                addParameter(pp, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
             end
             %)
             opt = parse(pp, this, fileName, reportDb, varargin{:});
@@ -61,7 +63,12 @@ classdef Report ...
             outputFileNames = string.empty(1, 0);
             for source = reshape(lower(opt.Source), 1, [ ])
                 template = hereReadTemplate(source);
-                hereEmbedReportData( );
+
+                % FIXME
+                template = replace(template, """Lato""", """Open Sans""");
+
+                template = hereEmbedReportData(template);
+                template = hereEmbedUserStyle(template);
                 outputFileNames(end+1) = hereWriteFinalHtml( ); %#ok<*AGROW>
             end
 
@@ -97,11 +104,22 @@ classdef Report ...
                 end%
 
 
-                function hereEmbedReportData( )
+                function template = hereEmbedReportData(template)
                     %(
                     template = replace( ...
                         template, this.EMBED_REPORT_DATA, script ...
                     );
+                    %)
+                end%
+
+
+                function template = hereEmbedUserStyle(template)
+                    %(
+                    if strlength(opt.UserStyle)==0
+                        return
+                    end
+                    code = fileread(opt.UserStyle);
+                    template = replace(template, this.EMBED_USER_STYLE, code);
                     %)
                 end%
 

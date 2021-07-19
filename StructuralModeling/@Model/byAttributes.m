@@ -1,8 +1,8 @@
-function [quantities, equations] = byAttributes(this, attributes)
+function [quantities, equations] = byAttributes(this, varargin)
 
-quantities = byAttributes(this.Quantity, attributes);
+quantities = byAttributes(this.Quantity, varargin{:});
 if nargout>=2
-    equations = byAttributes(this.Equation, attributes);
+    equations = byAttributes(this.Equation, varargin{:});
 end
 
 end%

@@ -9,8 +9,8 @@ asgn = opt.Assign;
 
 % Assign user comment if it is non-empty, otherwise use what has been
 % found in the model code.
-if ~isempty(opt.comment)
-    this.Comment = opt.comment;
+if ~isempty(opt.Comment) && strlength(opt.Comment)>0
+    this.Comment = opt.Comment;
 end
 
 % Differentiation step size.

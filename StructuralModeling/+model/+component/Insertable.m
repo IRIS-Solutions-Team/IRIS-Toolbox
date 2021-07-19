@@ -92,14 +92,17 @@ classdef Insertable
         end%
 
 
-        function inx = byAttributes(this, attributes)
-            attributes = reshape(string(attributes), 1, []);
-            attributes = strip(attributes);
+        function inx = byAttributes(this, varargin)
+            %(
             num = numel(this);
-            inx = false(1, num);
-            for i = 1 : num
-                inx(i) = any(this.Attributes{i}==attributes);
+            inx = true(1, num);
+            for i = 1 : numel(varargin)
+                attributesToMatch = strip(textual.stringify(varargin{i}));
+                for j = 1 : num
+                    inx(j) = inx(j) && any(matches(this.Attributes{j}, attributesToMatch));
+                end
             end
+            %)
         end%
 
 
