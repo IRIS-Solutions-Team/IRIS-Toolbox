@@ -64,7 +64,7 @@ if isgraphics(varargin{1})
 else
     axesHandle = @gca;
 end
-    
+
 if isempty(axesHandle) || isempty(varargin)
     return
 end
@@ -95,7 +95,7 @@ if isempty(pp)
 
     %
     % Legacy options
-    % 
+    %
     pp.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
     pp.addParameter('VPosition', '');
     pp.addParameter('HPosition', '');
@@ -111,20 +111,20 @@ end
 
 % Handle shortcut syntax for Text=
 if ~iscell(opt.Text) || size(opt.Text, 2)==1
-    opt.Text = {'String=', opt.Text};
+    opt.Text = {'string', opt.Text};
 end
 
 % Handle legacy options VPosition= and HPosition=
 if ~usingDefaults.Caption
-    opt.Text = {'String', opt.Caption};
+    opt.Text = {'string', opt.Caption};
     if ~usingDefaults.VPosition
-        opt.Text = [opt.Text, {'VerticalPosition', opt.VPosition}];
+        opt.Text = [opt.Text, {'verticalPosition', opt.VPosition}];
     end
     if ~usingDefaults.HPosition
-        opt.Text = [opt.Text, {'HorizontalPosition', opt.HPosition}];
+        opt.Text = [opt.Text, {'horizontalPosition', opt.HPosition}];
     end
 end
-        
+
 if isscalar(opt.Color)
     opt.Color = opt.Color*[1, 1, 1];
 end
@@ -132,12 +132,8 @@ end
 BACKGROUND_LEVEL = -4;
 LIM_MULTIPLE = 100;
 
-%--------------------------------------------------------------------------
-
 for a = 1 : numel(axesHandle)
     h = axesHandle(a);
-    % Legacy test for plotyy
-    h = grfun.mychkforpeers(h);
 
     if isnumeric(h)
         % Handle to axes can be a numeric which passes the isgraphics
@@ -160,13 +156,13 @@ for a = 1 : numel(axesHandle)
         end
 
         ithPatchHandle = drawPatch(h, xData, yData, opt, unmatched);
-        
+
         % Add caption to the highlight.
         if ~isempty(opt.Text)
             ithTextHandle = visual.backend.createCaption(h, xData([1, 2]), opt.Text{:});
             textHandles = [textHandles, ithTextHandle];
         end
-        
+
         setappdata(ithPatchHandle, 'IRIS_BackgroundLevel', BACKGROUND_LEVEL);
         patchHandles = [patchHandles, ithPatchHandle];
     end
@@ -198,7 +194,8 @@ end%
 
 
 function xData = getXData(h, range, opt)
-    if ~opt.Dates
+    isTimeSeriesPlot = isequal(getappdata(h, 'IRIS_TimeSeriesPlot'), true);
+    if ~isTimeSeriesPlot || ~opt.Dates
         xData = range([1, end]);
         return
     end
@@ -227,7 +224,7 @@ function xData = getXData(h, range, opt)
 
     if ~isempty(xData)
         around = 0.5;
-        if isequal(getappdata(h, 'IRIS_SERIES'), true)
+        if isequal(isTimeSeriesPlot, true)
             if any(freq==[2, 4, 6, 12])
                 around = around / freq;
             end

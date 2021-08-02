@@ -268,7 +268,7 @@ if isempty(pp)
     pp.addParameter({'EvaluateParamPriors', 'EvalPPrior'}, true, @validate.logicalScalar);
     pp.addParameter({'EvaluateSystemPriors', 'EvalSPrior'}, true, @validate.logicalScalar);
     pp.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
-    pp.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
+    pp.addParameter('Summary', 'table', @(x) any(strcmpi(x, {'struct', 'table'})));
     pp.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
 end
 if isempty(outsideOptimOptions)

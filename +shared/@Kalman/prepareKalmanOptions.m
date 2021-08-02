@@ -7,8 +7,6 @@ function [opt, timeVarying] = prepareKalmanOptions(this, range, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Kalman.prepareKalmanOptions');
@@ -21,7 +19,7 @@ if isempty(pp)
     addParameter(pp, {'ReturnCont', 'Contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper'));
     addParameter(pp, {'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
-    addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'}))));
+    addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'FixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && any(lower(string(x))==lower(["fixedUnknown", "approxDiffuse"]))));
     addParameter(pp, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
     addParameter(pp, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     addParameter(pp, {'ObjFuncContributions', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
@@ -76,7 +74,7 @@ end
 if isempty(opt.Condition) || nz>0
     opt.Condition = [ ];
 else
-    [~, opt.Condition] = userSelection2Index(this.Quantity, opt.Condition, TYPE(1));
+    [~, opt.Condition] = userSelection2Index(this.Quantity, opt.Condition, 1);
 end
 
 
@@ -90,7 +88,7 @@ else
         opt.OutOfLik = regexp(opt.OutOfLik, '\w+', 'match');
     end
     opt.OutOfLik = opt.OutOfLik(:)';
-    ell = lookup(this.Quantity, opt.OutOfLik, TYPE(4));
+    ell = lookup(this.Quantity, opt.OutOfLik, 4);
     pos = ell.PosName;
     inxNaN = isnan(pos);
     if any(inxNaN)

@@ -111,8 +111,8 @@ end
 
 
 % /////////////////////////////////////////////////////////////////////////
-inxOfNaNSolutions = reportNaNSolutions(this);
-for v = find(~inxOfNaNSolutions)
+inxNaSolutions = reportNaNSolutions(this);
+for v = find(~inxNaSolutions)
     update(systemProperty, this, v);
     freqdom.wrapper(this, systemProperty, v);
     SS(:, :, :, v) = systemProperty.Outputs{1};
@@ -120,7 +120,7 @@ for v = find(~inxOfNaNSolutions)
         DD(:, :, :, v) = systemProperty.Outputs{2};
     end
     if opt.Progress
-        update(progress, v, ~inxOfNaNSolutions);
+        update(progress, v, ~inxNaSolutions);
     end
 end
 % /////////////////////////////////////////////////////////////////////////

@@ -1,4 +1,4 @@
-% ExcelSheet  Excel Spreadsheet Data and Time Series Extractor
+% ExcelSheet  Excel spreadsheet data and time series extractor
 
 classdef ExcelSheet ...
     < matlab.mixin.Copyable
@@ -8,7 +8,7 @@ classdef ExcelSheet ...
         FileName (1, 1) string = ""
         SheetIdentification = 1
         SheetRange = ''
-        Orientation (1, 1) string {locallyValidateOrientation} = "Row"
+        Orientation (1, 1) string {locallyValidateOrientation} = "row"
         DataRange = double.empty(1, 0)
         DataStart = NaN
         DataEnd = NaN
@@ -141,7 +141,7 @@ classdef ExcelSheet ...
             if ~isempty(this.SheetRange)
                 options = [options, {'Range', this.SheetRange}];
             end
-            this.Buffer = readcell(this.FileName, options{:}, varargin{:})
+            this.Buffer = readcell(this.FileName, options{:}, varargin{:});
             insertRows = this.InsertEmpty(1);
             insertColumns = this.InsertEmpty(2);
             if insertRows>0
@@ -170,7 +170,7 @@ classdef ExcelSheet ...
                 locationRef = { locationRef };
             end
             location = cell(size(locationRef));
-            if strcmpi(this.Orientation, 'Row')
+            if startsWith(this.Orientation, "row", "ignoreCase", true)
                 location = ExcelReference.decodeRow(locationRef{:});
                 description = cell.empty(0);
                 if ~isnan(this.Description)
@@ -279,7 +279,7 @@ classdef ExcelSheet ...
 
         function value = get.DataEnd(this)
             if isequal(this.DataEnd, Inf)
-                if this.Orientation=="Row"
+                if startsWith(this.Orientation, "row", "ignoreCase", true)
                     value = this.NumColumns;
                 else
                     value = this.NumRows;
@@ -353,7 +353,7 @@ classdef ExcelSheet ...
 
 
         function anchor = setAnchor(this, value)
-            if strcmpi(this.Orientation, "Row")
+            if startsWith(this.Orientation, "row", "ignoreCase", true)
                 anchor = ExcelReference.decodeColumn(value);
             else
                 anchor = ExcelReference.decodeRow(value);
@@ -363,17 +363,15 @@ classdef ExcelSheet ...
 end
 
 %
-% Local Functions
+% Local validators
 %
 
 function flag = locallyValidateOrientation(input)
-    flag = strcmpi(input, "Row") || strcmpi(input, "Column");
-    if flag
+    %(
+    if lower(string(input))==lower("row") || lower(string(input))==lower("column")
         return
     end
-    exception.error([
-        "ExcelReference:InvalidPropertyOrientation" 
-        "Property Orientation must be ""Row"" or ""Column"""
-    ]);
+    error("Input value must be ""row"" or ""column"".");
+    %)
 end%
 

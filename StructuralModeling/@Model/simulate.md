@@ -89,7 +89,7 @@ __`method="firstOrder"`__ [ "firstOrder" | "stacked" | "period" ]
 > 
 > Simulation method:
 > 
-> * `method="firstOrder"` - use a first-order approximate solution; 
+> * `method="firstOrder"` - use a first-order approximate solution;
 >
 > * `method="stacked"` - solve the model numerically as a
 >   stacked-time system of nonlinear-equations using a quasi-Newton method.

@@ -93,7 +93,7 @@ end
 
 outputDb = databank.backend.ensureTypeConsistency(opt.AddToDatabank, opt.OutputType);
 
-if this.Orientation=="Row"
+if startsWith(this.Orientation, "row", "ignoreCase", true)
     if isstring(range) && numel(range)>1
         range = ExcelReference.decodeRow(range);
     elseif ~isnumeric(range)

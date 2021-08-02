@@ -18,6 +18,7 @@ arguments
     options.URL (1, 1) string = databank.fromIMF.Config.URL + "CompactData/"
     options.WebOptions = databank.fromIMF.Config.WebOptions
     options.ApplyMultiplier (1, 1) logical = true
+    options.WhenEmpty (1, 1) string {mustBeMember(options.WhenEmpty, ["error", "warning", "silent"])} = "warning" 
 
     nameOptions.IncludeArea (1, 1) logical = true
     nameOptions.IncludeCounter (1, 1) logical = true
@@ -83,10 +84,18 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
     try
         allResponseData = response.CompactData.DataSet.Series;
     catch
-        exception.error([
+        if lower(options.WhenEmpty)==lower("silent")
+            return
+        elseif lower(options.WhenEmpty)==lower("error")
+            func = @exception.error;
+        else
+            func = @exception.warning;
+        end
+        func([
             "Databank:IMF:Data:NoObservationsReturned"
             "This request did not return any data: %s"
         ], request);
+        return
     end
 
     isDictionary = isa(outputDb, 'Dictionary');
