@@ -508,9 +508,9 @@ return
     function herePreallocOutputData( )
         % TODO Make .Output the primary option, allow for cellstr or string
         % inputs
-        isPred = any(contains(opt.OutputData, "Pred", "IgnoreCase", true));
-        isFilter = any(contains(opt.OutputData, "Filter", "IgnoreCase", true));
-        isSmooth = any(contains(opt.OutputData, "Smooth", "IgnoreCase", true));
+        isPred = any(contains(opt.OutputData, "pred", "ignoreCase", true));
+        isFilter = any(contains(opt.OutputData, "filter", "ignoreCase", true));
+        isSmooth = any(contains(opt.OutputData, "smooth", "ignoreCase", true));
         numRuns = max(numPages, nv);
         numPredictions = max(numRuns, kalmanOpt.Ahead);
         numContributions = max(ny, nz);

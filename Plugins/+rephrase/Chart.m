@@ -37,6 +37,15 @@ classdef Chart ...
             end
         end%
     end
+
+
+    methods (Static)
+        function this = fromSeries(chartInputs, seriesInputs)
+            this = rephrase.Chart(chartInputs{:});
+            series = rephrase.Series.fromMultivariate(seriesInputs{:});
+            add(this, series);
+        end%
+    end
 end 
 
 %

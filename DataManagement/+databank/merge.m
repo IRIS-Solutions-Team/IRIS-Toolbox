@@ -86,7 +86,7 @@ else
 end
 
 for i = 1 : numMergeWith
-    mainDb = mergeNext(mainDb, mergeWith{i}, fieldsToMerge, opt);
+    [mainDb, fieldsToMerge] = mergeNext(mainDb, mergeWith{i}, fieldsToMerge, opt);
 end
 
 end%
@@ -95,7 +95,7 @@ end%
 % Local Functions
 %
 
-function mainDb = concatenateNext(func, mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge] = concatenateNext(func, mainDb, mergeWith, fieldsToMerge, opt)
     %(
     fieldsToRemove = string.empty(1, 0);
     for n = reshape(string(fieldsToMerge), 1, [])
@@ -122,6 +122,7 @@ function mainDb = concatenateNext(func, mainDb, mergeWith, fieldsToMerge, opt)
     end
     if ~isempty(fieldsToRemove);
         mainDb = rmfield(mainDb, fieldsToRemove);
+        fieldsToMerge = setdiff(fieldsToMerge, fieldsToRemove);
     end
     %)
 end%

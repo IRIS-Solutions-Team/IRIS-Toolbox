@@ -61,7 +61,7 @@ if ~iscell(locationRef)
     locationRef = { locationRef };
 end
 location = cell(size(locationRef));
-if strcmpi(this.Orientation, "Row")
+if startsWith(this.Orientation, "row", "ignoreCase", true)
     location = ExcelReference.decodeRow(locationRef{:});
     dataCutout = this.Buffer(location, dataRange);
     dataCutout = transpose(dataCutout);

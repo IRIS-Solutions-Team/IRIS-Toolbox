@@ -89,6 +89,6 @@ jobs:
           fi
           echo "Release number: $release_number"
           
-          git tag "Legacy-Release-$release_number"
+          git tag "Legacy-$release_number"
           git push origin pre-r2019b --tags
           git status

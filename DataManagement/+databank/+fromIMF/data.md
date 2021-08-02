@@ -93,7 +93,18 @@ __`WebOptions=weboptions("Timeout", 9999)`__ [ weboption ]
 > A weboptions object with HTTP settings.
 >
 
-# Options for Output Databank
+__`WhenEmpty="warning"`__ [ `"error"` | `"warning"` ]
+>
+> How to report an empty response from the server:
+>
+> * `"error"` means an error is thrown and the execution of the function
+>   stops;
+>
+> * `"warning"` means a warning is thrown and an empty databank is return
+>   without interrupting the execution of the function.
+>
+
+# Options for output databank
 
 __`AddToDatabank=struct()`__ [ struct | Dictionary ]
 >
@@ -106,7 +117,7 @@ __`ApplyMultiplier=true`__ [ `true` | `false` ]
 > basic units (e.g. from millions).
 >
 
-# Options for Output Time Series Names
+# Options for output time series names
 
 __`NameFunc=[]`__ [ empty | function_handle ]
 >

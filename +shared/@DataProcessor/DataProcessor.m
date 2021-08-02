@@ -90,6 +90,9 @@ classdef DataProcessor
                     x = funcLogTrue(x);
                 else
                     x = funcLogFalse(x);
+                    if imag(x)==0
+                        x = real(x);
+                    end
                 end
                 runningDb.(lhsNames(i)) = reshape(x, 1, [ ]);
             end
