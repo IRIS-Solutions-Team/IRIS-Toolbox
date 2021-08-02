@@ -2,7 +2,7 @@
 
 ## Software dependencies
 
-IrisT runs in Matlab R2019b or newer. There are also legacy releases of IrisT for Matlab R2018a through R2019a (under the `pre-r2019b` branch) but we strongly discourage using the legacy codebase. Keep also in mind that some features are not availabe in legacy releases.
+IrisT runs in [Matlab](https://www.mathworks.com/matlab) R2019b or newer. There are also legacy releases of IrisT for Matlab R2018a through R2019a (under the `pre-r2019b` branch) but we strongly discourage using the legacy codebase. Keep also in mind that some features are not availabe in legacy releases.
 
 If you want to use the estimation functions for structural `@Model` objects (not for `@VAR` objects or `@Explanatory` objects) you also need the Optimization Toolbox installed.
 
