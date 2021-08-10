@@ -424,6 +424,46 @@ var $reportWithoutData = {
         }
       ]
     },
+    {"Type":"CHART","Title":"ZZZ","Settings":{"Class":"","DateFormat": "YYYY:Q","StartDate":"2020-02-15","EndDate":"2022-11-15"},"Content":[{"Type":"SERIES","Title":"aaa","Settings":{"Class":""},"Content":{"Dates":["2020-02-15","2020-05-15","2020-08-15","2020-11-15","2021-02-15","2021-05-15","2021-08-15","2021-11-15","2022-02-15","2022-05-15","2022-08-15","2022-11-15"],"Values":[0.81472368639317894,0.90579193707561922,0.12698681629350606,0.91337585613901939,0.63235924622540951,0.097540404999409525,0.2784982188670484,0.54688151920498385,0.9575068354342976,0.96488853519927653,0.15761308167754828,0.9705927817606157]}}]},
+    {
+      "Type": "CHART",
+      "Title": "Chart 1",
+      "Settings": {
+        "Class": "",
+        "DateFormat": "YYYY:Q",
+        "IsTitlePartOfChart": false,
+        "Highlight": [
+          {
+            "EndDate": "2020-12-31"
+          },
+          {
+            "StartDate": "2022-04-01",
+            "Color": "rgba(100, 0, 200, 0.1)"
+          }
+        ],
+        "StartDate": "2020-01-01",
+        "EndDate": "2024-12-31"
+      },
+      "Content": [
+        {
+          "Type": "SERIES",
+          "Title": "Series 101",
+          "Settings": {
+            "Class": "",
+            "Type": "bar"
+          },
+          "Content": "PtkeOkuClHzhOfpmBevf"
+        },
+        {
+          "Type": "SERIES",
+          "Title": "Series 102",
+          "Settings": {
+            "Class": ""
+          },
+          "Content": "ZinudJuZuGitiNTsJpBR"
+        }
+      ]
+    },
     {
       "Type": "PAGEBREAK",
       "Title": "",

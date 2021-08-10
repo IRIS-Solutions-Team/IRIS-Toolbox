@@ -109,42 +109,6 @@ function createChartSeries(seriesObj, limits, color, chartLib) {
   }
 }
 
-// fetch an object stored in the global $databank variable under the given name
-function getEntry(name) {
-  if ($databank && typeof $databank === "object" && $databank.hasOwnProperty(name)) {
-    return $databank[name];
-  }
-  return {};
-}
-
-// fetch an object stored in the global $databank variable under the given name
-function getEntryName(name) {
-  const dataObj = getEntry(name);
-  return dataObj.Name || "";
-}
-
-// fetch the series from $databank reconstructing all the dates
-function getSeriesContent(name) {
-  const dataObj = getEntry(name);
-  if (dataObj && typeof dataObj === "object" && dataObj.hasOwnProperty("Values")
-    && (dataObj.Values instanceof Array) && dataObj.hasOwnProperty("Dates")) {
-    var dates = [];
-    if (dataObj.Dates instanceof Array) {
-      dates = dataObj.Dates.map(function (d) {
-        return new Date(d);
-      });
-    } else {
-      const freqUnit = $ru.freqToUnit(dataObj.Frequency);
-      const startDate = new Date(dataObj.Dates);
-      for (var i = 0; i < dataObj.Values.length; i++) {
-        dates.push(moment(startDate).add(i, freqUnit).toDate());
-      }
-    }
-    return { Values: dataObj.Values, Dates: dates };
-  }
-  return {};
-}
-
 // add div that would force page break when printing
 function addPageBreak(parent, _breakObj) {
   var pageBreakDiv = document.createElement("div");
