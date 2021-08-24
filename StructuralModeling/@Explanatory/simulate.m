@@ -72,7 +72,8 @@ arguments
     opt.NaNParameters (1, 1) string = "warning"
     opt.NaNSimulation (1, 1) string = "warning"
     opt.OutputType (1, 1) string = "struct"
-    opt.Plan = [ ];
+    opt.Plan = []
+
     opt.SkipWhenData (:, :) logical {mustBeNonempty} = false
     opt.ExogenizeWhenData (:, :) logical {mustBeNonempty} = false
 

@@ -15,8 +15,9 @@ if strcmp(s(1).type, ".")
 end
 
 
-% Linear indexing - convert to double
-if numel(s)==1 && isequal(s(1).type, '()') && numel(s(1).subs)==1
+% Linear indexing by numeric or logical vector/array - convert to double
+if numel(s)==1 && isequal(s(1).type, '()') && numel(s(1).subs)==1 ...
+        && (isnumeric(s(1).subs{1}) || islogical(s(1).subs{1}))
     output = double(this);
     output = builtin("subsref", output, s);
     return
