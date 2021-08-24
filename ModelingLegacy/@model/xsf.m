@@ -65,8 +65,8 @@ if isempty(parser)
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addRequired('Freq', @isnumeric);
     parser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
-    parser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
-    parser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
+    parser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x) || isstring(x)) && ~isempty(x));
+    parser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x) || isstring(x));
     parser.addParameter('Filter', '', @ischar);
     parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
     parser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));

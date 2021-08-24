@@ -6,10 +6,10 @@
 function captions = generateAutocaption(this, inp, template, opt)
 
 if isa(inp, 'poster')
-    inputList = inp.ParamList;
+    inputList = cellstr(inp.ParameterNames);
 elseif isstruct(inp)
     inputList = fieldnames(inp);
-elseif iscellstr(inp) || isa(inp, 'string')
+elseif iscellstr(inp) || isstring(inp)
     inp = cellstr(inp);
     inputList = parser.Helper.parseLabelExprn(inp);
 else

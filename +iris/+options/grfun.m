@@ -49,20 +49,20 @@ def.plotneigh = {
 };
 
 def.plotpp = { 
-    'Axes', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
+    'Axes', { }, @iscell
     'Caption', [ ], @(x) isempty(x) || iscellstr(x)
     'Describe, DescribePrior', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false)
     'KsDensity', [ ], @(x) isempty(x) || isintscalar(x)
-    'Figure', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
-    'PlotInit', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
-    'PlotMode', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
-    'PlotPrior', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
-    'PlotPoster', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
-    'PlotBounds', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto) || iscellstr(x(1:2:end))
+    'Figure', { }, @iscell
+    'PlotInit', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotMode', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotPrior', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotPoster', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotBounds', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto) || iscell(x)
     'Sigma', 3, @(x) isnumeric(x) && isscalar(x) && x>0
     'Subplot', @auto, validFn.subplot
     'Tight', true, @(x) isequal(x, true) || isequal(x, false)
-    'Title', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
+    'Title', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
     'XLim, XLims', [ ], @(x) isempty(x) || isstruct( )
 };
 

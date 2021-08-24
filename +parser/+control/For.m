@@ -8,10 +8,10 @@ classdef For < parser.control.Control
 
 
     properties (Constant)
-        CONTROL_NAME_PATTERN = '\?[^\s=!\.:;]*'
-
-        FOR_PATTERN = [ '^(', parser.control.For.CONTROL_NAME_PATTERN, ')', ...
-                        '\s*=(.*)' ]
+        CONTROL_NAME_PATTERN = "\?[^\s=!\.:;]*"
+        FOR_PATTERN = "^(" + parser.control.For.CONTROL_NAME_PATTERN + ")\s*=(.*)"
+        UPPER_CONTROL_PREFIX = "?:"
+        LOWER_CONTROL_PREFIX = "?."
     end
 
 
@@ -105,25 +105,25 @@ classdef For < parser.control.Control
     methods (Static)
         function c = substitute(c, p)
             % Substitute for control variable in a code segment (called from within
-            % other classes).
+            % other classes)
             if ~contains(c, "?")
                 return
             end
             for i = 1 : size(p.StoreForCtrl, 1)
                 ctrlName = p.StoreForCtrl(i, 1);
                 tkn = p.StoreForCtrl(i, 2);
-                %{
                 if strlength(ctrlName)>1
-                    % Substitute for ?:name
-                    upperCtrlName = "?:" + extractAfter(ctrlName, 1);
-                    upperToken = upper(tkn);
-                    c = replace(c, upperCtrlName, upperToken);
-                    % Substitute for ?.name
-                    lowerCtrlName = "?." + extractAfter(ctrlName, 1);
-                    lowerToken = lower(tkn);
-                    c = replace(c, lowerCtrlName, lowerToken);
+                    % Substitute uppercase for ?:name
+                    upperCtrlName = parser.control.For.UPPER_CONTROL_PREFIX + string(extractAfter(ctrlName, 1));
+                    if contains(c, upperCtrlName)
+                        c = replace(c, upperCtrlName, upper(tkn));
+                    end
+                    % Substitute lowercase for ?.name
+                    lowerCtrlName = parser.control.For.LOWER_CONTROL_PREFIX + string(extractAfter(ctrlName, 1));
+                    if contains(c, lowerCtrlName)
+                        c = replace(c, lowerCtrlName, lower(tkn));
+                    end
                 end
-                %}
                 % Substitute for ?name
                 c = replace(c, ctrlName, tkn);
             end

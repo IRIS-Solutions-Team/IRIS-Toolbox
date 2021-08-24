@@ -164,7 +164,7 @@ if isempty(pp)
     addParameter(pp, 'MatrixFormat', 'NamedMatrix', @namedmat.validateMatrixFormat);
     addParameter(pp, 'Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x) || isa(x, 'string')) && ~isempty(x));
     addParameter(pp, 'ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x) || isa(x, 'string'));
-    addParameter(pp, 'Filter', '', @ischar);
+    addParameter(pp, 'Filter', '', @(x) ischar(x) || isstring(x));
     addParameter(pp, 'SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
     addParameter(pp, 'Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end

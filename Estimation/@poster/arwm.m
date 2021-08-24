@@ -146,7 +146,7 @@ if isempty(pp)
     addParameter(pp, 'lastadapt', Inf, @(x) validate.nummericScalar(x, 0, 1) || validate.roundScalar(x, 1, Inf));
     addParameter(pp, 'progress', false, @validate.logicalScalar);
     addParameter(pp, 'saveevery', Inf, @(x) validate.roundScalar(x, 1, Inf));
-    addParameter(pp, 'saveas', '', @ischar);
+    addParameter(pp, 'saveas', '', @(x) ischar(x) || isstring(x));
     addParameter(pp, 'targetar', 0.234, @(x) validate.numericScalar(x, 0+eps, 0.5));
 	addParameter(pp, {'nstep', 'nsteps'}, 1, @(x) validate.roundScalar(x, 1, Inf));
 end
@@ -163,7 +163,7 @@ finalCov = [ ]; %#ok<NASGU>
 realSmall = getrealsmall( );
 
 % Number of estimated parameters.
-nPar = length(this.ParamList);
+nPar = numel(this.ParameterNames);
 
 % Adaptive random walk Metropolis simulator.
 nAlloc = min(numDraws, opt.saveevery);
@@ -432,15 +432,14 @@ return
 
     
     function prepareSave( )
-        if isempty(opt.saveas)
+        if strlength(opt.saveas)==0
             utils.error('poster', ...
                 'The option ''saveas='' must be a valid file name.');
         end
         % Create an HDF5.
         h5create(opt.saveas, '/theta', [nPar, numDraws], 'fillValue', NaN);
         h5create(opt.saveas, '/logPost', [1, numDraws], 'fillValue', NaN);
-        h5writeatt(opt.saveas, '/', ...
-            'paramList', sprintf('%s ', this.ParamList{:}));
+        h5writeatt(opt.saveas, '/', 'paramList', char(join(this.ParameterNames, " ")));
         h5writeatt(opt.saveas, '/', 'nDraw', numDraws);
         h5writeatt(opt.saveas, '/', 'saveEvery', opt.saveevery');
     end%

@@ -485,11 +485,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
 
-        function flag = validateFilter(input)
-            flag = isempty(input) || (iscell(input) && iscellstr(input(1:2:end)));
-        end%
-
-
         function flag = validateSolve(input)
             flag = isequal(input, true) || isequal(input, false) ...
                    || (iscell(input) && iscellstr(input(1:2:end)));

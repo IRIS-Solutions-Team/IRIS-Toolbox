@@ -14,6 +14,15 @@ if strcmp(s(1).type, ".")
     return
 end
 
+
+% Linear indexing - convert to double
+if numel(s)==1 && isequal(s(1).type, '()') && numel(s(1).subs)==1
+    output = double(this);
+    output = builtin("subsref", output, s);
+    return
+end
+
+
 isPreserved = strcmp(s(1).type, '()');
 
 if strcmp(s(1).type, '()')

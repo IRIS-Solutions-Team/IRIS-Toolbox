@@ -14,7 +14,6 @@ xlim = get(ax, 'XLim');
 plotOpt = { };
 if iscell(opt)
     plotOpt = opt;
-    plotOpt(1:2:end) = strrep(plotOpt(1:2:end), '=', '');
 elseif isequal(opt, 'auto') || isequal(opt, @auto)
     % Plot bounds only if they fall within the current x-lims.
     if low<xlim(1) || low>xlim(2)

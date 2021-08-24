@@ -1,4 +1,4 @@
-function [Obj, L, PP, SP] = eval(This, varargin)
+function [obj, L, PP, SP] = eval(this, varargin)
 % eval  Evaluate posterior density at specified points.
 %
 %
@@ -54,7 +54,7 @@ function [Obj, L, PP, SP] = eval(This, varargin)
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 if isempty(varargin)
-    p = This.InitParam;
+    p = this.InitParam;
 elseif length(varargin)==1
     p = varargin{1};
 else
@@ -65,7 +65,7 @@ end
 
 if nargin==1 && nargout<=1
     % Return log posterior at optimum.
-    Obj = This.InitLogPost;
+    obj = this.InitLogPost;
     return
 end
 
@@ -74,10 +74,10 @@ end
 % as multiple input arguments.
 if isstruct(p)
     p0 = p;
-    nPar = length(This.ParamList);
+    nPar = numel(this.ParameterNames);
     p = nan(1,nPar);
     for i = 1 : nPar
-        p(i) = p0.(This.ParamList{i});
+        p(i) = p0.(this.ParameterNames(i));
     end
 end
 
@@ -87,7 +87,7 @@ end
 np = numel(p);
 
 % Minus log posterior.
-Obj = nan(size(p));
+obj = nan(size(p));
 % Minus log likelihood.
 L = nan(size(p));
 % Minus log parameter priors.
@@ -98,7 +98,8 @@ SP = nan(size(p));
 % TODO: parfor
 for i = 1 : np
     theta = p{i}(:);
-    [Obj(i), L(i), PP(i), SP(i)] = mylogpost(This, theta);
+    [obj(i), L(i), PP(i), SP(i)] = mylogpost(this, theta);
 end
 
-end
+end%
+

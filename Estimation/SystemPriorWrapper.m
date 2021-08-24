@@ -40,6 +40,7 @@ classdef SystemPriorWrapper < handle
     properties (Dependent)
         FunctionHeader
         OutputNames
+        NumSystemPriors
     end
 
 
@@ -149,7 +150,7 @@ classdef SystemPriorWrapper < handle
         end%
 
 
-        function [minusLogDensity, minusLogDensityContributions, priorEval] = eval(this, model)
+        function [mld, mldBreakdown, priorEval] = eval(this, model)
             if ~this.BeenSealed
                 seal(this);
             end
@@ -157,7 +158,7 @@ classdef SystemPriorWrapper < handle
             nv = length(model);
             numProperties = numel(this.SystemProperties);
             numPriors = numel(this.SystemPriors);
-            logDensityContributions = nan(1, numPriors, nv);
+            logDensityBreakdown = nan(1, numPriors, nv);
             priorEval = nan(1, numPriors, nv);
             outputNames = this.OutputNames;
             numOfOutputs = length(outputNames);
@@ -184,11 +185,11 @@ classdef SystemPriorWrapper < handle
                         c = this.LogDensityOutOfBounds;
                     end
                     priorEval(1, i, v) = x;
-                    logDensityContributions(1, i, v) = c;
+                    logDensityBreakdown(1, i, v) = c;
                 end
             end
-            minusLogDensityContributions = -logDensityContributions;
-            minusLogDensity = sum(minusLogDensityContributions, 2);
+            mldBreakdown = -logDensityBreakdown;
+            mld = sum(mldBreakdown, 2);
         end%
 
 
@@ -208,6 +209,11 @@ classdef SystemPriorWrapper < handle
                 return
             end
             list = [ this.SystemProperties.OutputNames ];
+        end%
+
+
+        function n = get.NumSystemPriors(this)
+            n = numel(this.SystemPriors);
         end%
     end
 

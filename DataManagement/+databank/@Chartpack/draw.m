@@ -16,7 +16,11 @@ end
 
 tiles = resolveTiles(this);
 numTilesPerWindow = prod(tiles);
+
 range = this.Range;
+if ~iscell(range)
+    range = {range};
+end
 
 for x = this.Charts
     evaluate(x, inputDb);
@@ -48,7 +52,7 @@ for x = this.Charts
     if this.Round<Inf
         x.Data = round(x.Data, this.Round);
     end
-    plotHandles__ = this.PlotFunc(range, x.Data); %, this.PlotSettings{:});
+    plotHandles__ = this.PlotFunc(range{:}, x.Data);
     if ~isempty(this.PlotSettings)
         set(plotHandles__, this.PlotSettings{:});
     end

@@ -39,16 +39,15 @@ function this = addgroup(this, groupName, lsContents)
 
 pp = inputParser( );
 pp.addRequired('g', @(x) isa(x, 'grouping'));
-pp.addRequired('groupName', @(x) ~isempty(x) && ischar(x));
-pp.addRequired('groupContents', @(x) ~isempty(x) ...
-    && (iscell(x) || ischar(x)) || isequal(x, Inf) );
+pp.addRequired('groupName', @(x) (ischar(x) || isstring(x)) && strlength(x)>0);
+pp.addRequired('groupContents', @(x) ~isempty(x) && (iscell(x) || ischar(x)) || isstring(x) || isequal(x, Inf) );
 pp.parse(this, groupName, lsContents);
 
-if ischar(lsContents)
-    lsContents = regexp(lsContents, '[^ ,;]+', 'match');
+if ischar(lsContents) || isstring(lsContents)
+    lsContents = cellstr(lsContents);
 end
 
-%--------------------------------------------------------------------------
+groupName = char(groupName);
 
 nList = length(this.List);
 ixValid = true(size(lsContents));

@@ -23,7 +23,7 @@ matrixFormat = {
 
 applyFilter = { 
     'ApplyTo', @all, @(x) isnumeric(x) || islogical(x) || isequal(x, @all) || iscellstr(x)
-    'Filter', '', @ischar
+    'Filter', '', @(x) ischar(x) || isstring(x)
 };
 
 

@@ -3,7 +3,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
     properties
         Charts (1, :) databank.chartpack.Chart = databank.chartpack.Chart.empty(1, 0)
 
-        Range {validate.mustBeRange} = Inf
+        Range = Inf
         PlotFunc {validate.mustBeFunc} = @plot
         Highlight {locallyValidateHighlight} = double.empty(1, 0)
         Extra = []

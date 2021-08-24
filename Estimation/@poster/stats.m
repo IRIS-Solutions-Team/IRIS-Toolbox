@@ -1,4 +1,4 @@
-function Stat = stats(This, Theta, varargin)
+function outputStats = stats(this, theta, varargin)
 % stats  Evaluate selected statistics of ARWM chain.
 %
 % __Syntax__
@@ -100,7 +100,7 @@ opt = passvalopt('poster.stats', varargin{:});
 doOutpOpt( );
 
 % Simulated chain has been saved in a collection of mat files.
-isFile = ischar(Theta);
+isFile = ischar(theta) || isstring(theta);
 
 if opt.mdd && isempty(LogPost) && ~isFile
     utils.error('poster', ...
@@ -110,18 +110,18 @@ end
 
 %--------------------------------------------------------------------------
 
-Stat = struct( );
-nPar = length(This.ParamList);
+outputStats = struct( );
+nPar = numel(this.ParameterNames);
 
 if isFile
-    inpFile = Theta;
+    inpFile = theta;
     nDraw = NaN;
     saveEvery = NaN;
     doChkPosterFile( );
     getThetaFunc = @(I) h5read(inpFile, '/theta', [I, 1], [1, Inf]);
     getLogPostFunc = @( ) h5read(inpFile, '/logPost', [1, 1], [1, Inf]);
 else
-    [nPar, nDraw] = size(Theta);
+    [nPar, nDraw] = size(theta);
 end
 
 if opt.mean || opt.cov || opt.std || opt.mdd
@@ -134,12 +134,12 @@ if opt.progress
 end
 
 for i = 1 : nPar
-    name = This.ParamList{i};
+    name = this.ParameterNames(i);
     
     if isFile
         iTheta = getThetaFunc(i);
     else
-        iTheta = Theta(i, :);
+        iTheta = theta(i, :);
     end
     
     if opt.mode || opt.hist
@@ -147,13 +147,13 @@ for i = 1 : nPar
     end
     
     if opt.chain
-        Stat.chain.(name) = iTheta;
+        outputStats.chain.(name) = iTheta;
     end
     if opt.mean
-        Stat.mean.(name) = thetaMean(i);
+        outputStats.mean.(name) = thetaMean(i);
     end
     if opt.median
-        Stat.median.(name) = median(iTheta);
+        outputStats.median.(name) = median(iTheta);
     end
     if opt.mode
         pos = find(histCount == max(histCount));
@@ -162,30 +162,30 @@ for i = 1 : nPar
         if npos > 1
             pos = pos(ceil((npos+1)/2));
         end
-        Stat.mode.(name) = histBins(pos);
+        outputStats.mode.(name) = histBins(pos);
     end
     if opt.std
-        Stat.std.(name) = ...
+        outputStats.std.(name) = ...
             sqrt(sum((iTheta - thetaMean(i)).^2) / (nDraw-1));
     end
     if isnumeric(opt.hpdi) && ~isempty(opt.hpdi)
         [low, high] = tseries.myhpdi(iTheta, opt.hpdicover, 2);
-        Stat.hpdi.(name) = [low, high];
+        outputStats.hpdi.(name) = [low, high];
     end
     if isnumeric(opt.hist) && ~isempty(opt.hist)
-        Stat.hist.(name) = {histBins, histCount};
+        outputStats.hist.(name) = {histBins, histCount};
     end
     if isnumeric(opt.prctile) && ~isempty(opt.prctile)
-        Stat.prctile.(name) = prctile(iTheta, opt.prctile, 2);
+        outputStats.prctile.(name) = prctile(iTheta, opt.prctile, 2);
     end
     if opt.bounds
-        Stat.bounds.(name) = [This.Lower(i), This.Upper(i)];
+        outputStats.bounds.(name) = [this.Lower(i), this.Upper(i)];
     end
     if ~isequal(opt.ksdensity, false)
-        low = This.Lower(i);
-        high = This.Upper(i);
+        low = this.Lower(i);
+        high = this.Upper(i);
         [x, y] = poster.myksdensity(iTheta, low, high, opt.ksdensity);
-        Stat.ksdensity.(name) = [x, y];
+        outputStats.ksdensity.(name) = [x, y];
     end
     
     if opt.progress
@@ -201,13 +201,13 @@ if opt.cov || opt.mdd
 end
 
 if opt.cov
-    Stat.cov = Sgm;
+    outputStats.cov = Sgm;
 end
 
 if opt.mdd
     uuu = nan(1, nDraw);
     doUuu( );
-    Stat.mdd = doMdd( );
+    outputStats.mdd = doMdd( );
 end
 
 return
@@ -220,7 +220,7 @@ return
                 thetaMean(ii) = sum(iTheta) / nDraw;
             end
         else
-            thetaMean = sum(Theta, 2) / nDraw;
+            thetaMean = sum(theta, 2) / nDraw;
         end
     end % doMean( )
 
@@ -238,9 +238,9 @@ return
             end
         else
             for ii = 1 : nPar
-                Theta(ii, :) = Theta(ii, :) - thetaMean(ii);
+                theta(ii, :) = theta(ii, :) - thetaMean(ii);
             end
-            Sgm = Theta * Theta.' / nDraw;
+            Sgm = theta * theta.' / nDraw;
         end
     end % doCov( )
 
@@ -297,7 +297,7 @@ return
         else
             % `Theta` is already demeaned at this point.
             for jj = 1 : nDraw
-                uuu(jj) = Theta(:, jj).' * invSgm * Theta(:, jj); %#ok<MINV>
+                uuu(jj) = theta(:, jj).' * invSgm * theta(:, jj); %#ok<MINV>
             end
         end
     end % doUuu( )
@@ -309,7 +309,7 @@ return
             % Parameter list.
             paramList = h5readatt(inpFile, '/', 'paramList');
             paramList = regexp(paramList, '\w+', 'match');
-            valid = valid && isequal(paramList, This.ParamList);
+            valid = valid && isequal(textual.stringify(paramList), this.ParameterNames);
             % Number of draws.
             nDraw = h5readatt(inpFile, '/', 'nDraw');
             % Save every.

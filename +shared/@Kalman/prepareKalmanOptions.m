@@ -88,7 +88,7 @@ else
         opt.OutOfLik = regexp(opt.OutOfLik, '\w+', 'match');
     end
     opt.OutOfLik = opt.OutOfLik(:)';
-    ell = lookup(this.Quantity, opt.OutOfLik, 4);
+    ell = lookup(this.Quantity, cellstr(opt.OutOfLik), 4);
     pos = ell.PosName;
     inxNaN = isnan(pos);
     if any(inxNaN)

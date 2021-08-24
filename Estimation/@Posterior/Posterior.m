@@ -2,17 +2,18 @@ classdef Posterior < handle
     properties
         ParameterNames = cell.empty(1, 0)
         ObjectiveFunction
-        Initial = double.empty(1, 0)
-        LowerBounds = double.empty(1, 0)
-        UpperBounds = double.empty(1, 0)
-        PriorDistributions = cell.empty(1, 0)
-        IndexPriors = logical.empty(1, 0)
+        Initial (1, :) double = double.empty(1, 0)
+        LowerBounds (1, :) double = double.empty(1, 0)
+        UpperBounds (1, :) double = double.empty(1, 0)
+        PriorDistributions (1, :) cell = cell.empty(1, 0)
+        IndexPriors (1, :) logical = logical.empty(1, 0)
         SystemPriors = SystemPriorWrapper.empty(1, 0)
 
-        HonorBounds = false
-        EvaluateData = false
-        EvaluateParamPriors = false
-        EvaluateSystemPriors = false
+        HonorBounds (1, 1) logical = false
+
+        EvalDataLik (1, 1) double = 0
+        EvalIndiePriors (1, 1) double = 0
+        EvalSystemPriors (1, 1) double = 0
     end
 
 
@@ -26,10 +27,12 @@ classdef Posterior < handle
         IndexUpperBoundsHit = logical.empty(1, 0)
         ExitFlag = NaN
         IndexValidDiff = logical.empty(1, 0)
+
         LineInfo = double.empty(1, 0)
         LineInfoFromData = double.empty(1, 0)
-        LineInfoFromOwnPrior = double.empty(1, 0)
+        LineInfoFromIndividualPrior = double.empty(1, 0)
         LineInfoFromSystemPriors = double.empty(1, 0)
+        LineInfoFromSystemPriorsBreakdown = cell.empty(1, 0)
     end
 
 
@@ -49,7 +52,7 @@ classdef Posterior < handle
         IS_OPTIM_TBX = ~isempty(ver('optim'))
     end
 
-    
+
 
 
     methods
@@ -85,11 +88,12 @@ classdef Posterior < handle
             this.IndexValidDiff = true(1, numParameters);
             this.LineInfo = zeros(1, numParameters);
             this.LineInfoFromData = zeros(1, numParameters);
-            this.LineInfoFromOwnPrior = zeros(1, numParameters);
+            this.LineInfoFromIndividualPrior = zeros(1, numParameters);
             this.LineInfoFromSystemPriors = zeros(1, numParameters);
+            this.LineInfoFromSystemPriorsBreakdown = cell(1, numParameters);
         %)
         end%
-            
+
 
 
 
@@ -117,11 +121,11 @@ classdef Posterior < handle
             diffObjectiveAtOptimum(this);
         %)
         end%
-            
 
 
 
-        function [mldParamPriors, p] = evalParamPriors(this, x)
+
+        function [mldIndiePriors, p] = evalIndiePriors(this, x)
         %(
             p = zeros(1, numel(x));
             for i = find(this.IndexPriors)
@@ -134,11 +138,11 @@ classdef Posterior < handle
                     p(i) = NaN;
                 end
                 if (~isfinite(p(i)) || imag(p(i))~=0) && nargout<2
-                    mldParamPriors = Inf;
+                    mldIndiePriors = Inf;
                     return
                 end
             end
-            mldParamPriors = -sum(p); % Minus log density
+            mldIndiePriors = -sum(p); % Minus log density
         %)
         end%
 
@@ -160,6 +164,10 @@ classdef Posterior < handle
             end
         %)
         end%
+
+
+        varargout = eval(varargin);
+        varargout = table(varargin)
     end
 
 
@@ -185,7 +193,7 @@ classdef Posterior < handle
 
 
 
-        
+
         function checkInitial(this)
         %(
             [~, ~, namesBelow, namesAbove] = checkBounds(this, this.Initial);
@@ -199,8 +207,8 @@ classdef Posterior < handle
                 exception.Base('Posterior:InitialAboveUpperBound', 'error'), ...
                 namesAbove{:} ...
             );
-            [~, ldParamPriors] = evalParamPriors(this, this.Initial);
-            indexValidPriors = isfinite(ldParamPriors) & imag(ldParamPriors)==0;
+            [~, ldIndiePriors] = evalIndiePriors(this, this.Initial);
+            indexValidPriors = isfinite(ldIndiePriors) & imag(ldIndiePriors)==0;
             assert( ...
                 all(indexValidPriors), ...
                 exception.Base('Posterior:InvalidPriorAtInitial', 'error'), ...
@@ -262,7 +270,7 @@ classdef Posterior < handle
         function diffObjectiveAtOptimum(this)
         %(
             numParameters = this.NumParameters;
-            indexDiagonal = logical(eye(numParameters)); % Index of diagonal elements
+            inxDiag = logical(eye(numParameters)); % Index of diagonal elements
             h = eps( )^(1/4) * max(abs(this.Optimum), 1); % Differentiation step
             for i = 1 : numParameters
                 x0 = this.Optimum;
@@ -277,11 +285,11 @@ classdef Posterior < handle
                 xm = x0;
                 xp(i) = x0(i) + h(i);
                 xm(i) = x0(i) - h(i);
-                [obj0, l0, p0, s0] = this.ObjectiveFunction(x0);
-                [objp, lp, pp, sp] = this.ObjectiveFunction(xm);
-                [objm, lm, pm, sm] = this.ObjectiveFunction(xp);
+                [obj0, l0, p0, s0, s0Breakdown] = this.ObjectiveFunction(x0);
+                [objp, lp, pp, sp, spBreakdown] = this.ObjectiveFunction(xp);
+                [objm, lm, pm, sm, smBreakDown] = this.ObjectiveFunction(xm);
                 h2 = h(i)^2;
-                
+
                 % Diff total objective function.
                 ithDiffObj = (objp - 2*obj0 + objm) / h2;
                 if ithDiffObj<=0 || ~isfinite(ithDiffObj)
@@ -290,36 +298,37 @@ classdef Posterior < handle
                     this.IndexValidDiff(i) = false;
                 end
                 this.LineInfo(i) = ithDiffObj;
-                
+
                 % Diff data likelihood
-                if this.EvaluateData
-                    this.LineInfoFromData(i) = (lp - 2*l0 + lm) / h2;
+                if this.EvalDataLik>0
+                    this.LineInfoFromData(i) = this.EvalDataLik * (lp - 2*l0 + lm) / h2;
                 end
 
                 % Diff parameter priors
-                if this.EvaluateParamPriors
-                    this.LineInfoFromOwnPrior(i) = (pp - 2*p0 + pm) / h2;
+                if this.EvalIndiePriors>0
+                    this.LineInfoFromIndividualPrior(i) = this.EvalIndiePriors * (pp - 2*p0 + pm) / h2;
                 end
-                
+
                 % Diff system priors
-                if this.EvaluateSystemPriors
-                    this.LineInfoFromSystemPriors(i) = (sp - 2*s0 + sm) / h2;
+                if this.EvalSystemPriors>0
+                    this.LineInfoFromSystemPriors(i) = this.EvalSystemPriors * (sp - 2*s0 + sm) / h2;
+                    this.LineInfoFromSystemPriorsBreakdown{i} = this.EvalSystemPriors * (spBreakdown - 2*s0Breakdown + smBreakDown) / h2;
                 end
             end
 
             if all(isnan(this.Hessian{1}(:)))
-                this.Hessian{1}(indexDiagonal) = this.LineInfo;
+                this.Hessian{1}(inxDiag) = this.LineInfo;
             end
 
-            if this.EvaluateParamPriors
-                this.Hessian{2} = diag(this.LineInfoFromOwnPrior);
+            if this.EvalIndiePriors
+                this.Hessian{2} = diag(this.LineInfoFromIndividualPrior);
             else
                 this.Hessian{2} = zeros(numParameters);
             end
 
-            if this.EvaluateSystemPriors
+            if this.EvalSystemPriors
                 this.Hessian{3} = nan(numParameters);
-                this.Hessian{3}(indexDiagonal) = this.LineInfoFromSystemPriors;
+                this.Hessian{3}(inxDiag) = this.LineInfoFromSystemPriors;
             else
                 this.Hessian{3} = zeros(numParameters);
             end

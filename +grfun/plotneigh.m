@@ -1,10 +1,9 @@
-function varargout = plotneigh(d,varargin)
 % plotneigh  Plot local behaviour of objective function after estimation.
 %
 % Syntax
 % =======
 %
-%     H = grfun.plotneigh(D,...)
+%     H = grfun.plotneigh(D, ...)
 %
 % Input arguments
 % ================
@@ -47,7 +46,7 @@ function varargout = plotneigh(d,varargin)
 % * `'subplot='` [ *`'auto'`* | numeric ] - Subplot division of the figure
 % when plotting the results.
 %
-% * `'title='` [ `{'interpreter=','none'}` | cell ] - Display graph titles,
+% * `'title='` [ `{'interpreter=', 'none'}` | cell ] - Display graph titles, 
 % and specify graphics options for the titles.
 %
 % * `'linkAxes='` [ `true` | *`false`* ] - Make the vertical axes identical
@@ -66,13 +65,15 @@ function varargout = plotneigh(d,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-opt = passvalopt('grfun.plotneigh',varargin{:});
+function varargout = plotneigh(d, varargin)
 
-isPlotObj = ~isequal(opt.plotobj,false);
-isPlotLik = ~isequal(~opt.plotlik,false);
-isPlotEst = ~isequal(opt.plotest,false);
-isPlotBounds = ~isequal(opt.plotbounds,false);
-isTitle = ~isequal(opt.title,false);
+opt = passvalopt('grfun.plotneigh', varargin{:});
+
+isPlotObj = ~isequal(opt.plotobj, false);
+isPlotLik = ~isequal(~opt.plotlik, false);
+isPlotEst = ~isequal(opt.plotest, false);
+isPlotBounds = ~isequal(opt.plotbounds, false);
+isTitle = ~isequal(opt.title, false);
 
 isPlot = isPlotObj || isPlotLik || isPlotEst;
 
@@ -91,10 +92,10 @@ end
 
 plist = fieldnames(d);
 np = numel(plist);
-sub = grfun.nsubplot(opt.subplot,np);
+sub = grfun.nsubplot(opt.subplot, np);
 
 n = prod(sub);
-yLim = nan(np,2);
+yLim = nan(np, 2);
 
 % Force a new figure window.
 count = n + 1;
@@ -108,7 +109,7 @@ doGraphicsOpt( );
 
 % Graph titles.
 if isTitle
-    cp = cell(1,np);
+    cp = cell(1, np);
     doCaptions( );
 end
 
@@ -118,68 +119,68 @@ for i = 1 : np
         count = 1;
         figh(end+1) = figure( ); %#ok<AGROW>
     end
-    axh(end+1) = subplot(sub(1),sub(2),count); %#ok<AGROW>
+    axh(end+1) = subplot(sub(1), sub(2), count); %#ok<AGROW>
     x = d.(plist{i}){1};
     xMin = min(x);
     xMax = max(x);
     % Objective func (minus posterior density).
-    y1 = d.(plist{i}){2}(:,1);
+    y1 = d.(plist{i}){2}(:, 1);
     % Objective func at optimum.
     x3 = d.(plist{i}){3}(1);
     y3 = d.(plist{i}){3}(2);
     hold('all');
     % Minus log lik of data.
-    y2 = d.(plist{i}){2}(:,2);
-    [~,inx] = min(abs(x - x3));
+    y2 = d.(plist{i}){2}(:, 2);
+    [~, inx] = min(abs(x - x3));
     z = y1(inx) - y2(inx);
     y2 = y2 + z;
     if isPlotObj
-        objh(end+1) = plot(x,y1,plotObjOpt{:}); %#ok<AGROW>
+        objh(end+1) = plot(x, y1, plotObjOpt{:}); %#ok<AGROW>
     end
     if isPlotLik
-        likh(end+1) = plot(x,y2,plotLikOpt{:}); %#ok<AGROW>
+        likh(end+1) = plot(x, y2, plotLikOpt{:}); %#ok<AGROW>
     end
     if isPlotEst
-        esth(end+1) = plot(x3,y3,plotEstOpt{:}); %#ok<AGROW>
+        esth(end+1) = plot(x3, y3, plotEstOpt{:}); %#ok<AGROW>
     end
     if isPlotBounds
         lo = d.(plist{i}){3}(3);
         hi = d.(plist{i}){3}(4);
         if lo >= xMin && lo <= xMax
-            bh(end+1) = grfun.vline(lo,'marker','>', ...
+            bh(end+1) = grfun.vline(lo, 'marker', '>', ...
                 plotBoundsOpt{:}); %#ok<AGROW>
         end
         if hi >= xMin && hi <= xMax
-            bh(end+1) = grfun.vline(hi,'marker','<', ...
+            bh(end+1) = grfun.vline(hi, 'marker', '<', ...
                 plotBoundsOpt{:}); %#ok<AGROW>
         end
     end
     grid('on');
     if isTitle
-        title(cp{i},titleOpt{:});
+        title(cp{i}, titleOpt{:});
     end
     axis('tight');
-    yLim(i,:) = get(axh(end),'yLim');
+    yLim(i, :) = get(axh(end), 'yLim');
     try %#ok<TRYNC>
-        set(axh(end),'xLim',[xMin,xMax]);
+        set(axh(end), 'xLim', [xMin, xMax]);
     end
 end
 
 if opt.linkaxes
     % Sort ylims by the total coverage.
-    [~,inx] = sort(yLim*[-1;1]); %#ok<*NOANS,*ASGLU>
-    yLim = yLim(inx,:);
-    linkaxes(axh,'y');
+    [~, inx] = sort(yLim*[-1;1]); %#ok<*NOANS, *ASGLU>
+    yLim = yLim(inx, :);
+    linkaxes(axh, 'y');
     % Set ylims to the median coverage.
-    set(axh(end),'yLim',yLim(ceil(np/2),:));
+    set(axh(end), 'yLim', yLim(ceil(np/2), :));
 end
 
 if nargout > 1
     % Bkw compatibiliy.
-    varargout = {figh,axh,objh,likh,esth,bh};
+    varargout = {figh, axh, objh, likh, esth, bh};
 else
     % Create struct with graphics handles.
-    varargout = cell(1,1);
+    varargout = cell(1, 1);
     varargout{1} = struct( );
     varargout{1}.figure = figh;
     varargout{1}.axes = axh;
@@ -189,33 +190,32 @@ else
     varargout{1}.bounds = bh;
 end
 
-% Nested functions.
+return
 
-%**************************************************************************
     function doGraphicsOpt( )
         if iscell(opt.plotobj) && iscellstr(opt.plotobj(1:2:end))
             plotObjOpt = opt.plotobj;
-            plotObjOpt(1:2:end) = strrep(plotObjOpt(1:2:end),'=','');
+            plotObjOpt(1:2:end) = strrep(plotObjOpt(1:2:end), '=', '');
         end
         if iscell(opt.plotest) && iscellstr(opt.plotest(1:2:end))
             plotEstOpt = opt.plotest;
-            plotEstOpt(1:2:end) = strrep(plotEstOpt(1:2:end),'=','');
+            plotEstOpt(1:2:end) = strrep(plotEstOpt(1:2:end), '=', '');
         end
         if iscell(opt.plotlik)  && iscellstr(opt.plotlik(1:2:end))
             plotLikOpt = opt.plotlik;
-            plotLikOpt(1:2:end) = strrep(plotLikOpt(1:2:end),'=','');
+            plotLikOpt(1:2:end) = strrep(plotLikOpt(1:2:end), '=', '');
         end
         if iscell(opt.plotbounds) && iscellstr(opt.plotbounds(1:2:end))
             plotBoundsOpt = opt.plotbounds;
-            plotBoundsOpt(1:2:end) = strrep(plotBoundsOpt(1:2:end),'=','');
+            plotBoundsOpt(1:2:end) = strrep(plotBoundsOpt(1:2:end), '=', '');
         end
         if iscell(opt.title) && iscellstr(opt.title(1:2:end))
             titleOpt = opt.title;
-            titleOpt(1:2:end) = strrep(titleOpt(1:2:end),'=','');
+            titleOpt(1:2:end) = strrep(titleOpt(1:2:end), '=', '');
         end
-    end % doGraphicsOpt( ).
+    end%
 
-%**************************************************************************
+
     function doCaptions( )
         if ~isempty(opt.Caption) && iscellstr(opt.Caption)
             cp = opt.Caption;
@@ -228,5 +228,6 @@ end
         else
             cp = plist;
         end
-    end % doCaptions( ).
-end 
+    end%
+end%
+

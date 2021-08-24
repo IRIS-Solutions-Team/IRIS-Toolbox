@@ -9,57 +9,67 @@ end
 %)
 % >=R2019b
 
+what = lower(what);
+
 beenHandled = true;
 output = [ ];
-stringify = @(x) reshape(string(x), 1, [ ]);
-allNames = stringify(this.Name);
+allNames = textual.stringify(this.Name);
 numQuantities = numel(allNames);
-ttrendName = stringify(this.RESERVED_NAME_TTREND);
+ttrendName = textual.stringify(this.RESERVED_NAME_TTREND);
 
-if lower(what)==lower("names")
+if endsWith(what, "descriptions")
+    allNames = textual.stringify(this.Label);
+    what = erase(what, "descriptions");
+end
+
+if what==lower("names")
     output = allNames;
     output(output==ttrendName) = [];
 
-elseif lower(what)==lower("measurementVariables")
+elseif what==lower("measurementVariables")
     output = allNames(this.Type==1);
 
-elseif lower(what)==lower("transitionVariables")
+elseif what==lower("transitionVariables")
     output = allNames(this.Type==2);
 
-elseif lower(what)==lower("shocks")
+elseif what==lower("allShocks")
     output = allNames(this.Type==31 | this.Type==32);
 
-elseif lower(what)==lower("transitionShocks")
+elseif what==lower("transitionShocks")
     output = allNames(this.Type==32);
 
-elseif lower(what)==lower("measurementShocks")
+elseif what==lower("measurementShocks")
     output = allNames(this.Type==31);
 
-elseif lower(what)==lower("parameters")
+elseif what==lower("parameters")
     output = allNames(this.Type==4);
 
-elseif lower(what)==lower("exogenousVariables")
+elseif what==lower("exogenousVariables")
     output = allNames(this.Type==5);
     output = setdiff(output, ttrendName, "stable");
 
-elseif lower(what)==lower("logVariables")
+elseif what==lower("logVariables")
     inxType = this.Type==1 | this.Type==2; output = stringify(this.Name(this.InxLog & inxType));
 
-elseif any(lower(what)==lower(["^logVariables", "nonLogVariables"]))
+
+elseif any(what==lower(["^logVariables", "nonLogVariables"]))
     inxType = this.Type==1 | this.Type==2;
     output = stringify(this.Name(~this.InxLog & inxType));
 
-elseif lower(what)==lower("logStatus")
+
+elseif any(what==lower(["logStatus", "isLog"]))
     inxType = getIndexByType(this, 1, 2, 5);
     inxType(allNames==ttrendName) = false;
     status = num2cell(reshape(this.InxLog(inxType), 1, []));
     output = cell2struct(status, allNames(inxType), 2);
 
-elseif any(lower(what)==lower(["nameDescription", "nameLabel"]))
+
+elseif any(what==lower(["nameDescription", "nameLabel", "namesDescriptions"]))
     labels = arrayfun(@(x) string(x), this.Label, "uniformOutput", false);
     output = cell2struct(labels, this.Name, 2);
 
-elseif lower(what)==lower("positions")
+
+elseif what==lower("positions")
     positions = num2cell(1 : numQuantities);
     output= cell2struct(positions, allNames, 2);
 

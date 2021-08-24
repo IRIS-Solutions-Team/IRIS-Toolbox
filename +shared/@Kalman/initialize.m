@@ -157,7 +157,8 @@ return
 
         if any(~inxStable)
             if strcmpi(initUnit, 'ApproxDiffuse')
-                scale = max(diag(PaReg));
+                %scale = max(diag(PaReg));
+                scale = mean(diag(PaReg));
                 if isempty(scale) || scale==0
                     if ~isempty(s.Omg)
                         diagOmg = diag(s.Omg(:, :, 1));
@@ -166,6 +167,7 @@ return
                         scale = 1;
                     end
                 end
+                % scale = 1;
                 PaInf = zeros(numXiB);
                 PaInf(~inxStable, ~inxStable) = eye(numUnitRoots) * scale;
             end
