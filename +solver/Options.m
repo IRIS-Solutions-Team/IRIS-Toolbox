@@ -155,7 +155,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.Algorithm = 'Newton';
                 this.DEFAULT_MAX_LAMBDA = 0;
             else
-                % Quasi Newton-steepest descend
+                % Quasi Newton-steepest descent
                 this.Algorithm = 'Qnsd';
                 this.DEFAULT_PSEUDOINV_WHEN_SINGULAR = true;
             end

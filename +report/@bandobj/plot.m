@@ -14,7 +14,7 @@ if any(strcmpi(this.options.plottype, {'patch', 'line'}))
     range = double(range);
     lData = getDataFromTo(this.Low{1}, range);
     hData = getDataFromTo(this.High{1}, range);
-    this.myband(Ax, h, cData, xCoor, lData, hData, this.options);
+    series.bands(Ax, h, cData, xCoor, lData, hData, this.options);
 else
     [~, ~, ~, data] = errorbar(Ax, double(this.options.range), ...
         this.data{1}, this.Low{1}, this.High{1}, ...

@@ -7,59 +7,55 @@ classdef bandobj < report.seriesobj
     
     methods
         
-        function This = bandobj(varargin)
-            This = This@report.seriesobj(varargin{:});
-            This.default = [This.default,{ ...
+        function this = bandobj(varargin)
+            this = this@report.seriesobj(varargin{:});
+            this.default = [this.default,{ ...
                 'bandformat',[ ],@(x) isempty(x) || ischar(x),false, ...
                 'bandtypeface','\footnotesize',@ischar,true, ...
-                'excludefromlegend',true,@islogicalscalar,true, ...
+                'ExcludeFromLegend',true,@islogicalscalar,true, ...
                 'high','High',@ischar,true, ...
                 'low','Low',@ischar,true, ...
                 'plottype','patch', ...
                 @(x) any(strcmpi(x,{'errorbar','line','patch'})), ...
                 true, ...
-                'relative',true,@islogicalscalar,true, ...
-                'white',0.85, ...
+                'Relative',true,@islogicalscalar,true, ...
+                'White',0.85, ...
                 @(x) isnumeric(x) && all(x >= 0) && all(x <= 1), ...
                 true, ...
-                }];
+            }];
         end
         
-        function [This,varargin] = specargin(This,varargin)
-            [This,varargin] = specargin@report.seriesobj(This,varargin{:});
+        function [this,varargin] = specargin(this,varargin)
+            [this,varargin] = specargin@report.seriesobj(this,varargin{:});
             if ~isempty(varargin)
-                This.Low = varargin{1};
-                if isa(This.Low,'tseries')
-                    This.Low = { This.Low };
+                this.Low = varargin{1};
+                if isa(this.Low,'tseries')
+                    this.Low = { this.Low };
                 end
                 varargin(1) = [ ];
             end
             if ~isempty(varargin)
-                This.High = varargin{1};
-                if isa(This.High,'tseries')
-                    This.High = { This.High };
+                this.High = varargin{1};
+                if isa(this.High,'tseries')
+                    this.High = { this.High };
                 end
                 varargin(1) = [ ];
             end
         end
         
-        function This = setoptions(This,varargin)
-            This = setoptions@report.seriesobj(This,varargin{:});
-            if ischar(This.options.bandformat)
+        function this = setoptions(this,varargin)
+            this = setoptions@report.seriesobj(this,varargin{:});
+            if ischar(this.options.bandformat)
                 utils.warning('report', ...
                     ['The option ''bandformat'' in report/band is obsolete ', ...
                     'and will be removed from future IRIS versions. ', ...
                     'Use ''bandtypeface'' instead.']);
-                This.options.bandtypeface = This.options.bandformat;
+                this.options.bandtypeface = this.options.bandformat;
             end
-            % Check consistency of `Low` and `High` relative to `X`. This function
-            % needs to be finished.
-            chkconsistency(This);
         end
         
         varargout = latexonerow(varargin)
         varargout = plot(varargin)
-        varargout = chkconsistency(varargin)
         
     end
     

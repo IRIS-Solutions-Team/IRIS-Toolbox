@@ -7,24 +7,20 @@ function [exc, args] = chkStructureBefore(this, quantity, equation)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 exc = [ ];
 args = { };
 
-ixy = quantity.Type==TYPE(1);
-ixx = quantity.Type==TYPE(2);
-ixey = quantity.Type==TYPE(31);
-ixex = quantity.Type==TYPE(32);
+ixy = quantity.Type==(1);
+ixx = quantity.Type==(2);
+ixey = quantity.Type==(31);
+ixex = quantity.Type==(32);
 ixe = ixey | ixex;
-ixp = quantity.Type==TYPE(4);
-ixg = quantity.Type==TYPE(5);
+ixp = quantity.Type==(4);
+ixg = quantity.Type==(5);
 
-ixm = equation.Type==TYPE(1);
-ixt = equation.Type==TYPE(2);
-ixd = equation.Type==TYPE(3);
+ixm = equation.Type==(1);
+ixt = equation.Type==(2);
+ixd = equation.Type==(3);
 
 % __No Transition Variable__
 if ~any(ixx)
@@ -71,7 +67,7 @@ test = any(indxs(ixt, ixy), 2) | any(insxs(ixt, ixy), 2);
 if any(test)
     eqtn = equation.Input(ixt);
     exc = exception.ParseTime('Model:Postparser:MEASUREMENT_VARIABLE_IN_TRANSITION', 'error');
-	args = eqtn(test);
+    args = eqtn(test);
     return
 end
 
@@ -122,13 +118,13 @@ if any(test)
 end
 
 % Exogenous variables in equations other than dtrends.
-test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
-if any(test)
-    eqtn = equation.Input(~ixd);
-    exc = exception.ParseTime('Model:Postparser:ExogenousInOtherThanDtrend', 'error');
-    args = eqtn(test);
-    return
-end
+% test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
+% if any(test)
+    % eqtn = equation.Input(~ixd);
+    % exc = exception.ParseTime('Model:Postparser:ExogenousInOtherThanDtrend', 'error');
+    % args = eqtn(test);
+    % return
+% end
 
 end%
 

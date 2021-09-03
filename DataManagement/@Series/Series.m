@@ -38,6 +38,7 @@ classdef ( ...
 
     methods % Plotting
         %(
+        varargout = bands(varargin)
         varargout = plot(varargin)
 
 
@@ -53,11 +54,6 @@ classdef ( ...
 
         function varargout = area(varargin)
             [varargout{1:nargout}] = Series.implementPlot(@area, varargin{:});
-        end%
-
-
-        function varargout = bands(varargin)
-            [varargout{1:nargout}] = Series.implementPlot(@bands, varargin{:});
         end%
 
 
