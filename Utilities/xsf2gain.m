@@ -37,7 +37,6 @@ s = size(S);
 n = prod(s(3:end));
 G = zeros(size(S));
 
-% TODO: parfor
 for i = 1 : n
     Si = S(:,:,i);
     a = abs(Si);

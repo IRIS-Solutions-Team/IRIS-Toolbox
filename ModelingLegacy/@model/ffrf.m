@@ -85,25 +85,22 @@ function varargout = ffrf(this, freq, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.ffrf');
     parser.addRequired('model', @(x) isa(x, 'model'));
     parser.addRequired('freq', @isnumeric);
     parser.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
-    parser.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+    parser.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isstring(x) || iscellstr(x));
     parser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
     parser.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
     parser.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
     parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
 end
-parse(parser, this, freq, varargin{:});
-opt = parser.Options;
+opt = parse(parser, this, freq, varargin{:});
 usingDefaults = parser.UsingDefaultsInStruct;
 
-isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
+needsNamedMatrix = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
 
@@ -114,19 +111,19 @@ assert( usingDefaults.Include || usingDefaults.Exclude, ...
         'model:ffrf:CannotCombineSelectExclude', ...
         'Options Select= and Exclude= cannot be combined.' );
 
-ixy = this.Quantity.Type==TYPE(1);
-selectedNames = this.Quantity.Name(ixy);
+inxY = this.Quantity.Type==1;
+selectedNames = this.Quantity.Name(inxY);
 if usingDefaults.Include && usingDefaults.Exclude
     % Neither Exclude= nor Select= (Include=)
     inxToInclude = true(1, ny);
 else
     % Exclude= option
     if usingDefaults.Include 
-        inxToExclude = ismember(selectedNames, opt.Exclude);
+        inxToExclude = ismember(string(selectedNames), string(opt.Exclude));
         inxToInclude = ~inxToExclude;
     else
         % Select= (or Include=) option
-        inxToInclude = ismember(selectedNames, opt.Include);
+        inxToInclude = ismember(string(selectedNames), string(opt.Include));
     end
 end
 solutionVectorX = printSolutionVector(this, 'x', @Behavior);
@@ -143,20 +140,20 @@ numFreq = numel(systemProperty.CallerData.Frequencies);
 F = complex(nan(nxi, ny, numFreq, nv), nan(nxi, ny, numFreq, nv));
 
 
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 if ny>0 && any(inxToInclude)
-    indexOfNaNSolutions = reportNaNSolutions(this);
-    for v = find(~indexOfNaNSolutions)
+    inxNaSolutions = reportNaNSolutions(this);
+    for v = find(~inxNaSolutions)
         update(systemProperty, this, v);
-        freqdom.ffrf3(this, systemProperty, v);
+        systemProperty.Function(this, systemProperty, v);
         F(:, :, :, v) = systemProperty.Outputs{1};
     end
 end
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 
 
 % Convert output matrix to namedmat object if requested
-if isNamedMat
+if needsNamedMatrix
     F = namedmat(F, solutionVectorX, solutionVectorY);
 end
 varargout = cell(1, 3);
