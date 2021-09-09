@@ -61,8 +61,8 @@ end
 % Process likelihood function options and create a likstruct.
 if opt.EvalDataLik>0
     if strncmpi(opt.Domain, 't', 1)
-        likOpt = prepareKalmanOptions(this, range, opt.Filter{:});
-        likOpt.minusLogLikFunc = @kalmanFilter;
+        likOpt = prepareKalmanOptions(this, range, "version", 1, opt.Filter{:});
+        likOpt.minusLogLikFunc = @implementKalmanFilter;
     else
         likOpt = prepareFreqlOptions(this, range, opt.Filter{:});
         likOpt.minusLogLikFunc = @freql;

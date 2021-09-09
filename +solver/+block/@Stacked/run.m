@@ -1,6 +1,6 @@
 % run  Run simulation of a stacked-time block
 
-function [exitFlag, error] = run(this, data, exitFlagHeader)
+function [exitFlag, error, lastJacob, dimension] = run(this, data, exitFlagHeader)
 
 exitFlag = solver.ExitFlag.IN_PROGRESS;
 error = struct( );
@@ -68,13 +68,16 @@ if this.Type==solver.block.Type.SOLVE
         return
     end
 
-    [z, exitFlag] = solve(this, @objective, z0, exitFlagHeader);
+    [z, f, exitFlag, lastJacob] = solve(this, @objective, z0, exitFlagHeader);
     locallyWriteEndogenousToData(data, z, linxZ, inxLogZ);
+    dimension = [numRowsJacob, numColumnsJacob];
 else
     %
     % Assign LHS variable
     % 
     [z, exitFlag] = assign(this, data, exitFlagHeader);
+    lastJacob = NaN;
+    dimension = NaN;
 end
 
 exitFlag = this.checkFiniteSolution(z, exitFlag);

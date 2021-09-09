@@ -1,13 +1,9 @@
-function s = initialize(s, init, initUnit)
 % initialize  Initialize Kalman filter
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function s = initialize(s, init, initUnit)
 
 numUnitRoots = s.NumUnitRoots;
 numXiB = size(s.Ta, 2);
@@ -55,7 +51,7 @@ return
             % User-supplied initial condition
             % Convert Mean[XiB] to Mean[Alpha]
             %
-            xb0 = reshape(init{1}, [ ], 1);
+            xb0 = reshape(double(init{1}), [ ], 1);
             inxZero = isnan(xb0) & ~inxInit;
             xb0(inxZero) = 0;
             if needsTransform
@@ -115,12 +111,12 @@ return
             if ~isempty(init{2})
                 %
                 % User-supplied initial condition including MSE
-                % Convert MSE[XiB] to MSE[Alp]
+                % Convert MSE[xiB] to MSE[alpha]
                 %
-                PaReg(:, :) = init{2};
+                PaReg(:, :) = double(init{2});
                 if numel(init)>=3 && ~isempty(init{3})
                     PaInf = zeros(numXiB);
-                    PaInf(:, :) = init{3};
+                    PaInf(:, :) = double(init{3});
                 end
                 if needsTransform
                     U = s.U(:, :, 1);
@@ -162,14 +158,16 @@ return
                 if isempty(scale) || scale==0
                     if ~isempty(s.Omg)
                         diagOmg = diag(s.Omg(:, :, 1));
-                        scale = max(diagOmg(:));
+                        % scale = max(diagOmg(:));
+                        scale = mean(diagOmg(:));
                     else
                         scale = 1;
                     end
                 end
                 % scale = 1;
                 PaInf = zeros(numXiB);
-                PaInf(~inxStable, ~inxStable) = eye(numUnitRoots) * scale;
+                PaInf(~inxStable, ~inxStable) ...
+                    = scale * s.DIFFUSE_SCALE * eye(numUnitRoots);
             end
         end
     end%

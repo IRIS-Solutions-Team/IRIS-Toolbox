@@ -8,6 +8,7 @@ classdef json
             arguments
                 input
                 fileName (1, 1) string
+
                 options.Beautify (1, 1) logical = true
             end
             textual.write(string(jsonencode(input)), fileName);
@@ -20,7 +21,9 @@ classdef json
             fileName = string(fileName);
             tempFileName = fileName + ".temp";
             [status, output] = system("jq --indent 4 . " + fileName + " > " + tempFileName);
-            movefile(tempFileName, fileName);
+            if exist(tempFileName, "file")
+                movefile(tempFileName, fileName);
+            end
         end%
     end
 end

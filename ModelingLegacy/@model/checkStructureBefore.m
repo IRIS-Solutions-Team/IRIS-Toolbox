@@ -1,11 +1,9 @@
-function [exc, args] = chkStructureBefore(this, quantity, equation)
-% chkStructureBefore  Check model structure before loss function.
+% checkStructureBefore  Check model structure before loss function.
 %
-% Backend IRIS function.
-% No help provided.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+function [exc, args] = checkStructureBefore(this, quantity, equation, options)
 
 exc = [ ];
 args = { };
@@ -117,14 +115,17 @@ if any(test)
     return
 end
 
-% Exogenous variables in equations other than dtrends.
-% test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
-% if any(test)
-    % eqtn = equation.Input(~ixd);
-    % exc = exception.ParseTime('Model:Postparser:ExogenousInOtherThanDtrend', 'error');
-    % args = eqtn(test);
-    % return
-% end
+% Exogenous variables in equations other than dtrends - the user may allow
+% exogenous variables, they only work in nonlinear simulations
+if ~options.AllowExogenous
+    test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
+    if any(test)
+        eqtn = equation.Input(~ixd);
+        exc = exception.ParseTime('Model:Postparser:ExogenousInOtherThanDtrend', 'error');
+        args = eqtn(test);
+        return
+    end
+end
 
 end%
 

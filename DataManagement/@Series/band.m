@@ -1,5 +1,5 @@
-function [plotHandle, bandsHandles, dates, midData, xCoor] ...
-    = bands(mid, lower, upper, options, bandsOptions)
+function [plotHandle, bandHandles, dates, midData, xCoor] ...
+    = band(mid, lower, upper, options, bandOptions)
 
 arguments
     mid Series
@@ -11,9 +11,9 @@ arguments
     options.PlotSettings (1, :) cell = cell.empty(1, 0)
     options.Layer = 'top'
 
-    bandsOptions.White (1, 1) double {mustBeInRange(bandsOptions.White, 0, 1)} = 0.85
-    bandsOptions.Relative (1, 1) logical = true
-    bandsOptions.ExcludeFromLegend (1, 1) logical = true
+    bandOptions.White (1, 1) double {mustBeInRange(bandOptions.White, 0, 1)} = 0.85
+    bandOptions.Relative (1, 1) logical = true
+    bandOptions.ExcludeFromLegend (1, 1) logical = true
 end
 
 
@@ -27,7 +27,7 @@ end
 
 lowerData = getData(lower, dates);
 upperData = getData(upper, dates);
-bandsHandles = series.bands(axesHandle, plotHandle, midData, xCoor, lowerData, upperData, bandsOptions);
+bandHandles = series.band(axesHandle, plotHandle, midData, xCoor, lowerData, upperData, bandOptions);
 
 set(axesHandle, 'layer', options.Layer);
 

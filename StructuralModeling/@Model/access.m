@@ -1,59 +1,5 @@
-% access  Access properties of Model objects
+% Type `web Model/access.md` for help on this function
 %
-%{ Syntax
-%--------------------------------------------------------------------------
-%
-%     output = access(model, what)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-% __`model`__ [ Model ]
-%>
-%>    Model objects that will be queried about `what`.
-%
-%
-% __`what`__ [ string ]
-%>
-%>    One of the valid queries listed in the below.
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __`output`__ [ * ]
-%>
-%>    Response to the query about `what`.
-%
-%
-% Valid Queries
-%--------------------------------------------------------------------------
-%
-% __`"measurement-variables"`__
-%
-% __`"transition-variables"`__
-%
-% __`"all-shocks"`__
-%
-% __`"parameters"`__
-%
-% __`"exogenous-variables"`__
-%
-%> Names of all measurement variables, or transition variables, or shocks,
-%> or parameters, or exogenous variables in order of their apperance in the
-%> declaration sections of the source model file(s).
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
@@ -186,6 +132,10 @@ elseif any(lower(what)==lower("maxLead"))
 
 elseif any(lower(what)==lower(["stationaryStatus", "isStationary"]))
     output = implementGet(this, "stationary");
+
+
+elseif any(lower(what)==lower(["stationaryList", "nonstationaryList"]))
+    output = textual.stringify(implementGet(this, lower(what)));
 
 
 elseif lower(what)==lower("transitionVector")

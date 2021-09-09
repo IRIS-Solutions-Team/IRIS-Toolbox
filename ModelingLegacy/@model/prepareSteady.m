@@ -5,20 +5,20 @@
 
 function output = prepareSteady(this, varargin)
 % function output = prepareSteady(this, options)
-% 
+%
 % arguments
     % this
-% 
+%
     % options.Warning (1, 1) logical = true
     % options.Silent (1, 1) logical = false
     % options.Run (1, 1) logical = true
-% 
+%
     % options.Growth (1, :) logical {validate.mustBeScalarOrEmpty} = []
     % options.Solve (1, :) {validate.mustBeLogicalOrSuboptions} = {"run", false}
-% 
+%
     % options.LevelWithin (1, 1) struct = struct()
     % options.ChangeWithin (1, 1) struct = struct()
-    % 
+    %
 % end
 
 %( Input parser
@@ -30,7 +30,7 @@ if isempty(parserLinear) || isempty(parserNonlinear)
     parserLinear.addRequired('model', @(x) isa(x, 'model'));
     parserLinear.addParameter('Growth', [], @(x) isempty(x) || isequal(x, true) || isequal(x, false));
     parserLinear.addParameter('Solve', {"run", false});
-    parserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
+    parserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
     parserLinear.addParameter("Silent", false);
     parserLinear.addParameter("Run", true);
 
@@ -44,7 +44,7 @@ if isempty(parserLinear) || isempty(parserNonlinear)
     parserNonlinear.addParameter('OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x));
     parserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
     parserNonlinear.addParameter('ResetInit', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x)));
-    parserNonlinear.addParameter('Reuse', false, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter({'PreviousVariant', 'Reuse'}, false, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter({'SolverOptions', 'Solver'}, @auto, @(x) isequal(x, @auto) || isa(x, 'solver.Options') || isa(x, 'optim.options.SolverOptions') || isstring(x) || ischar(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@(y) isstring(y) ||  ischar(y), x(2:2:end))) && (isstring(x{1}) || ischar(x{1}) || isa(x{1}, 'function_handle'))));
     parserNonlinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
@@ -53,7 +53,7 @@ if isempty(parserLinear) || isempty(parserNonlinear)
 
 
     % Blazer related options
-    parserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter({'Blocks', 'Block'}, @auto, @locallyValidateBlocks);
     parserNonlinear.addParameter("SuccessOnly", false, @validate.logicalScalar);
     parserNonlinear.addParameter('Growth', [], @(x) isempty(x) || validate.logicalScalar(x));
     parserNonlinear.addParameter('Log', string.empty(1, 0), @(x) isequal(x, @all) || validate.list(x));
@@ -69,7 +69,7 @@ if this.IsLinear
 
     parse(parserLinear, this, varargin{:});
     output = parserLinear.Options;
-    
+
     if islogical(output.Solve)
         output.Solve = {"run", output.Solve};
     end
@@ -83,15 +83,13 @@ else
     % sstate options and not as suboptions through SolverOptions=; these are only used
     % if SolverOptions= is a string
 
-    parse(parserNonlinear, this, varargin{:});
+    options = parse(parserNonlinear, this, varargin{:});
 
-    options = parserNonlinear.Options;
-    
     if ~options.Run
         output = options;
         return
     end
-    
+
     if isempty(options.Growth)
         options.Growth = this.IsGrowth;
     end
@@ -111,9 +109,9 @@ else
     blazer = locallyRunBlazer(this, options);
     blazer = locallyPrepareBounds(this, blazer, options);
     blazer.NanInit = options.NanInit;
-    blazer.Reuse = options.Reuse;
+    blazer.PreviousVariant = options.PreviousVariant;
     blazer.Warning = options.Warning;
-    
+
     output = blazer;
 end
 
@@ -175,8 +173,8 @@ end%
 
 
 function blazer = locallyPrepareBounds(this, blazer, opt)
-    numQuants = length(this.Quantity.Name);
-    numBlocks = length(blazer.Blocks);
+    numQuants = numel(this.Quantity.Name);
+    numBlocks = numel(blazer.Blocks);
     inxValidLevels = true(1, numQuants);
     inxValidChanges = true(1, numQuants);
     for i = 1 : numBlocks
@@ -184,7 +182,7 @@ function blazer = locallyPrepareBounds(this, blazer, opt)
         if block__.Type~=solver.block.Type.SOLVE
             continue
         end
-        
+
         % Steady level bounds
         [ptrLevel, ptrChange] = iris.utils.splitRealImag(block__.PtrQuantities);
 
@@ -192,17 +190,17 @@ function blazer = locallyPrepareBounds(this, blazer, opt)
         [lbl, ubl, inxValidLevels] = hereSetBounds( ...
             listLevel, ptrLevel, opt.LevelWithin, inxValidLevels ...
         );
-        
+
         % Steady change bounds
         listChange = this.Quantity.Name(ptrChange);
         [lbg, ubg, inxValidChanges] = hereSetBounds( ...
             listChange, ptrChange, opt.ChangeWithin, inxValidChanges ...
         );
-        
+
         % Combine level and growth bounds
         block__.Lower = [lbl, lbg];
         block__.Upper = [ubl, ubg];
-        
+
         if isa(block__.SolverOptions, 'optim.options.SolverOptions')
             % Make sure @lsqnonlin is used when there are some lower/upper bounds.
             isBnd = any(~isinf(block__.Lower)) || any(~isinf(block__.Upper));
@@ -269,5 +267,18 @@ function blazer = locallyPrepareBounds(this, blazer, opt)
             end
             %)
         end%
+end%
+
+%
+% Local validators
+%
+
+function locallyValidateBlocks(x)
+    %(
+    if isequal(x, true) || isequal(x, false) || isequal(x, @auto)
+        return
+    end
+    error("Input value must be true, false, or @auto.");
+    %)
 end%
 

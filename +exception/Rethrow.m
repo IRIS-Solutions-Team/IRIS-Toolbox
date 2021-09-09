@@ -15,9 +15,14 @@ classdef Rethrow < exception.ParseTime
 
 
         function throw(this)
+            raise(this);
+        end%
+
+
+        function raise(this)
             msg = this.Cause.message;
             msg = regexprep(msg, '^[^\n]*\n', '', 'once');
-            throw@exception.ParseTime(this, msg);
+            raise@exception.ParseTime(this, msg);
         end%
     end
 end

@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 %
-function [opt, timeVarying] = prepareKalmanOptions(this, range, varargin)
+function [opt, timeVarying] = prepareKalmanOptions2(this, range, varargin)
 
 persistent pp
 if isempty(pp)
@@ -23,8 +23,8 @@ if isempty(pp)
     addParameter(pp, 'FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
     addParameter(pp, {'ReturnCont', 'Contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper'));
-    addParameter(pp, {'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
-    addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'fixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
+    addParameter(pp, {'Initials', 'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
+    addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'approxDiffuse', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
     addParameter(pp, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
     addParameter(pp, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     addParameter(pp, {'ObjFuncContributions', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
@@ -32,13 +32,14 @@ if isempty(pp)
     addParameter(pp, {'ObjFuncRange', 'ObjectiveSample'}, @all, @(x) isnumeric(x) || isequal(x, @all));
     addParameter(pp, {'Plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
     addParameter(pp, 'Progress', false, @validate.logicalScalar);
-    addParameter(pp, 'Relative', true, @validate.logicalScalar);
+    addParameter(pp, 'Relative', false, @validate.logicalScalar);
     addParameter(pp, {'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || validate.databank(x));
     addParameter(pp, 'Multiply', [ ], @(x) isempty(x) || isstruct(x));
     addParameter(pp, 'Simulate', false, @(x) isequal(x, false) || validate.nestedOptions(x));
     addParameter(pp, 'Weighting', [ ], @isnumeric);
     addParameter(pp, 'MeanOnly', false, @validate.logicalScalar);
     addParameter(pp, 'ReturnStd', true, @validate.logicalScalar);
+    addParameter(pp, 'ReturnMedian', true, @validate.logicalScalar);
     addParameter(pp, 'ReturnMSE', true, @validate.logicalScalar);
     addDeviationOptions(pp, false);
 end  
@@ -186,16 +187,14 @@ end
 %
 % Initial condition
 %
-if iscell(opt.Init)
-    % Do nothing
-elseif isstruct(opt.Init)
+if validate.databank(opt.Initials)
     [xbInitMean, listMissingMeanInit, xbInitMse, listMissingMSEInit] = ...
-        datarequest('xbInit', this, opt.Init, range);
+        datarequest('xbInit', this, opt.Initials, range);
     if isempty(xbInitMse)
         xbInitMse = zeros(numel(xbInitMean));
     end
     hereCheckNaNInit( );
-    opt.Init = {xbInitMean, xbInitMse};
+    opt.Initials = {xbInitMean, xbInitMse};
 end
 
 
@@ -257,7 +256,7 @@ return
         if ~isempty(timeVarying)
             opt.Override = [ ];
             opt.Multiply = [ ];
-            opt.Init = initCond;
+            opt.Initials = initCond;
         end
     end%
 

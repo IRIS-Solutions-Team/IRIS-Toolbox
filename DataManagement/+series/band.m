@@ -1,4 +1,4 @@
-function outputHandles = bands(axesHandle, midLineHandle, midData, xCoor, lowerData, upperData, options)
+function outputHandles = band(axesHandle, midLineHandle, midData, xCoor, lowerData, upperData, options)
 
 BACKGROUND_LEVEL = -1;
 

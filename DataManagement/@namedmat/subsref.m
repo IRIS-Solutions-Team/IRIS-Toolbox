@@ -74,18 +74,15 @@ end%
 
 function subs = locallyPositionsFromNames(subs, this, dimensionName)
     inputNames = subs;
-    if validate.stringScalar(inputNames)
-        inputNames = regexp(inputNames, '\w+', 'match');
-    end
     inputNames = reshape(string(inputNames), 1, [ ]);
     numInputNames = numel(inputNames);
     subs = textual.locate(inputNames, this.(dimensionName+"Names"));
-    inxNaN = isnan(subs);
-    if any(inxNaN)
+    inxNa = isnan(subs);
+    if any(inxNa)
         exception.error([
             "NamedMatrix:InvalidRowReference"
             "This is not a valid reference to %1 in NamedMatrix object: %s"
-        ], dimensionName+"Names", inputNames(inxNaN));
+        ], dimensionName+"Names", inputNames(inxNa));
     end
 end%
 

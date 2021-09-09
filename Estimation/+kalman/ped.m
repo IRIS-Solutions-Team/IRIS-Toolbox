@@ -67,7 +67,7 @@ PReg = s.InitMseReg;
 PInf = s.InitMseInf;
 P = PReg;
 if ~isempty(PInf) && any(diag(PInf)>0)
-    P = P + PInf * s.DIFFUSE_SCALE;
+    P = P + PInf;
 end
 
 
@@ -130,7 +130,7 @@ numObs = zeros(1, numExtPeriods);
 
 status = 'ok';
 
-if s.IsSimulate
+if s.NeedsSimulate
     [simulateFunc, simulateFirstOrderFunc, rect, data, blazer] = s.Simulate{:};
     rect.SimulateY = false;
     rect.UpdateEntireXib = true;
@@ -164,7 +164,7 @@ for t = 2 : numExtPeriods
     %--------------------------------------------
     %
     % Mean prediction `a(t|t-1)`.
-    if ~s.IsSimulate
+    if ~s.NeedsSimulate
         % Prediction `a(t|t-1)` based on `a(t-1|t-2)`, prediction error `pe(t-1)`, 
         % the transition matrix `Ta(t-1)`, and the Kalman gain `K0(t-1)`.
         %

@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
+function [x, f, exitFlag, info, lastJacob] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
 
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s %9s';
 MIN_STEP = 1e-8;
@@ -28,7 +28,8 @@ ITER_STRUCT.Step = NaN;
 ITER_STRUCT.Reverse = false;
 ITER_STRUCT.BoundsReport = "None";
 
-%--------------------------------------------------------------------------
+info = struct();
+lastJacob = [];
 
 if nargin>=4
     exitFlagHeader = string(exitFlagHeader);
@@ -355,6 +356,8 @@ print(exitFlag, exitFlagHeader, displayLevel);
 
 x = reshape(current.X, sizeX);
 f = reshape(current.F, sizeF);
+
+lastJacob = last.J;
 
 return
 

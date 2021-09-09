@@ -61,24 +61,24 @@ for iEq = find(inxMT)
     % calling the function will be a single vector of derivatives
     vecWrt = reshape(find(this.Incidence.Dynamic, iEq, inxYXE), 1, [ ]);
     d = [ ];
-    idsWithin = [ ];
+    idsWithinGradient = [ ];
     if ~isequal(symbolic, false)
         d = model.component.Gradient.diff(this.Equation.Dynamic{iEq}, vecWrt);    
-        idsWithin = model.component.Gradient.lookupIdsWithinEquation(d);
+        idsWithinGradient = model.component.Gradient.lookupIdsWithinGradient(d);
         d = model.component.Gradient.repmatGradient(d);
     end
-    this.Gradient.Dynamic(:, iEq) = {d; vecWrt; idsWithin};
+    this.Gradient.Dynamic(:, iEq) = {d; vecWrt; idsWithinGradient};
 
     if ~isempty(this.Equation.Steady{iEq})
         vecWrt = reshape(find(this.Incidence.Steady, iEq, inxYXE), 1, [ ]);
         d = [ ];
-        idsWithin = [ ];
+        idsWithinGradient = [ ];
         if ~isequal(symbolic, false)
             d = model.component.Gradient.diff(this.Equation.Steady{iEq}, vecWrt);
-            idsWithin = model.component.Gradient.lookupIdsWithinEquation(d);
+            idsWithinGradient = model.component.Gradient.lookupIdsWithinGradient(d);
             d = model.component.Gradient.repmatGradient(d);
         end
-        this.Gradient.Steady(:, iEq) = {d; vecWrt; idsWithin};
+        this.Gradient.Steady(:, iEq) = {d; vecWrt; idsWithinGradient};
     end
 end
 

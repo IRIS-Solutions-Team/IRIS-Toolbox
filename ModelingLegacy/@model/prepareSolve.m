@@ -11,11 +11,13 @@ arguments
     this %#ok<INUSA>
 
     options.Run (1, 1) logical = true
+
     options.Silent (1, 1) logical = false
     options.Equations = ""
     options.Normalize (1, 1) logical = true
     options.PreferredSchur (1, 1) string {mustBeMember(options.PreferredSchur, ["schur", "qz"])} = "schur"
-    options.Select (1, 1) logical = true
+    options.ForceDiff (1, 1) logical = false
+    options.MatrixFormat = "plain"
     options.Symbolic (1, 1) logical = true
     options.Error (1, 1) logical = false
     options.Progress (1, 1) logical = false
@@ -29,21 +31,22 @@ end
 %{
 function options = prepareSolve(this, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser("Model/prepareSolve");
-    addParameter(inputParser, "Run", true, @validate.logicalScalar);
-    addParameter(inputParser, "Silent", false, @validate.logicalScalar);
-    addParameter(inputParser, "Equations", "");
-    addParameter(inputParser, "Normalize", true, @validate.logicalScalar);
-    addParameter(inputParser, "PreferredSchur", "schur", @(x) mustBeMember(x, ["schur", "qz"]));
-    addParameter(inputParser, "Select", true, @validate.logicalScalar);
-    addParameter(inputParser, "Symbolic", true, @validate.logicalScalar);
-    addParameter(inputParser, "Error", false, @validate.logicalScalar);
-    addParameter(inputParser, "Progress", false, @validate.logicalScalar);
-    addParameter(inputParser, "Warning", true, @validate.logicalScalar);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser("Model/prepareSolve");
+    addParameter(pp, "Run", true, @validate.logicalScalar);
+    addParameter(pp, "Silent", false, @validate.logicalScalar);
+    addParameter(pp, "Equations", "");
+    addParameter(pp, "Normalize", true, @validate.logicalScalar);
+    addParameter(pp, "PreferredSchur", "schur", @(x) mustBeMember(x, ["schur", "qz"]));
+    addParameter(pp, "ForceDiff", false, @validate.logicalScalar);
+    addParameter(pp, "MatrixFormat", "plain");
+    addParameter(pp, "Symbolic", true, @validate.logicalScalar);
+    addParameter(pp, "Error", false, @validate.logicalScalar);
+    addParameter(pp, "Progress", false, @validate.logicalScalar);
+    addParameter(pp, "Warning", true, @validate.logicalScalar);
 end
-options = parse(inputParser, varargin{:});
+options = parse(pp, varargin{:});
 %}
 % <=R2019a
 

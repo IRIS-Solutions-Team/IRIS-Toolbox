@@ -1,11 +1,10 @@
-function processFixOptions(this, model, opt)
+function anyFixedByUser = processFixOptions(this, model, opt)
 
 % Process Fix, FixLevel, FixChange, possible with Except
-TYPE = @int8;
 
 quantities = this.Model.Quantity;
 numQuantities = numel(quantities.Name);
-inxP = quantities.Type==TYPE(4);
+inxP = quantities.Type==4;
 inxCanBeFixed = this.InxEndogenous;
 namesCanBeFixed = quantities.Name(inxCanBeFixed);
 
@@ -34,7 +33,7 @@ for fixOption = ["Fix", "FixLevel", "FixChange"]
         continue
     end
     
-    ell = lookup(quantities, temp, TYPE(1), TYPE(2), TYPE(4));
+    ell = lookup(quantities, temp, 1, 2, 4);
     posToFix = ell.PosName;
     inxValid = ~isnan(posToFix);
     if any(~inxValid)
@@ -48,29 +47,34 @@ for fixOption = ["Fix", "FixLevel", "FixChange"]
 end
 
 
-fixLevel = false(1, numQuantities);
-fixLevel(opt.Fix) = true;
-fixLevel(opt.FixLevel) = true;
+inxFixLevel = false(1, numQuantities);
+inxFixLevel(opt.Fix) = true;
+inxFixLevel(opt.FixLevel) = true;
 
-fixChange = false(1, numQuantities);
-
-% Fix steady change of all endogenized parameters to zero
-fixChange(inxP) = true;
-if opt.Growth
-    fixChange(opt.Fix) = true;
-    fixChange(opt.FixChange) = true;
+inxFixChange = false(1, numQuantities);
+if this.IsGrowth
+    inxFixChange(opt.Fix) = true;
+    inxFixChange(opt.FixChange) = true;
+    anyFixedByUser = any(inxFixLevel) || any(inxFixChange);
 else
-    fixChange(:) = true;
+    inxFixChange(:) = true;
+    anyFixedByUser = any(inxFixLevel);
 end
+
+%
+% Fix steady change of all endogenized parameters to zero
+%
+inxFixChange(inxP) = true;
+
 
 % Fix optimal policy multipliers; the level and change of
 % multipliers will be set to zero in the main loop
 if isfield(opt, 'ZeroMultipliers') && opt.ZeroMultipliers
-    fixLevel = fixLevel | quantities.IxLagrange;
-    fixChange = fixChange | quantities.IxLagrange;
+    inxFixLevel = inxFixLevel | quantities.IxLagrange;
+    inxFixChange = inxFixChange | quantities.IxLagrange;
 end
 
-this.QuantitiesToFix = [find(fixLevel), 1i*find(fixChange)];
+this.QuantitiesToFix = [find(inxFixLevel), 1i*find(inxFixChange)];
 this.QuantitiesToExclude = [this.QuantitiesToExclude, this.QuantitiesToFix];
 
 end%

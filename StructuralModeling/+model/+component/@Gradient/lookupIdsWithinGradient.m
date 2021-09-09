@@ -1,8 +1,8 @@
-function idsWithin = lookupIdsWithinEquation(equation)
+function idsWithin = lookupIdsWithinGradient(gradient)
 
-finds = regexp(string(equation), "\<x\(\d+,t[^\)]*\)", "match");
+finds = regexp(string(gradient), "\<x\(\d+,t[^\)]*\)", "match");
 if isempty(finds)
-    idsWithin = [ ];
+    idsWithin = double.empty(1, 0);
     return
 end
 finds = replace(finds, "t)", "t+0)");

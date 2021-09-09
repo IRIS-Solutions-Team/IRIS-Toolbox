@@ -17,34 +17,36 @@ classdef Steady < solver.block.Block
         end%
 
 
-        function s = printListUknowns(this, names)
+        function s = printListUnknowns(this, names)
         %(
             [ptrLevel, ptrChange] = iris.utils.splitRealImag(this.PtrQuantities);
 
             if ~isempty(ptrLevel)
-                listLevel = strjoin(names(ptrLevel), ", ");
+                listLevel = hereCreateMarkdownList(names(ptrLevel));
             else
                 listLevel = " ";
             end
-            level = "% " + solver.block.Block.SAVEAS_INDENT ...
-                + "Level(" + listLevel + ")" ...
-                + sprintf("\n");
+            level = "* level of {" + listLevel + "}" + sprintf("\n");
 
             if ~isempty(ptrChange)
-                listChange = strjoin(names(ptrChange), ", ");
+                listChange = hereCreateMarkdownList(names(ptrChange));
             else
                 listChange = " ";
             end
-            change = "% " + solver.block.Block.SAVEAS_INDENT ...
-                + "Change(" + listChange + ")" ...
-                + sprintf("\n");
+            change = "* change in {" + listChange + "}" + sprintf("\n");
 
             s = level + change;
+
+            return
+
+                function list = hereCreateMarkdownList(list)
+                    list = strjoin("`"+string(list)+"`", ", ");
+                end%
         %)
         end%
 
 
-        function [lx, gx, exitFlag, error] = run(this, link, lx, gx, addStdCorr, exitFlagHeader)
+        function [lx, gx, exitFlag, error, lastJacob, dimension] = run(this, link, lx, gx, addStdCorr, exitFlagHeader)
             %(
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct('EvaluatesToNan', [], 'LogAssignedNonpositive', []);
@@ -64,11 +66,11 @@ classdef Steady < solver.block.Block
             t0 = this.PositionOfZeroShift;
             numLevels = numel(ptrLevel);
             inxLogZ = [ inxLogWithinModel(ptrLevel), inxLogWithinModel(ptrChange) ];
-            numRows = length(this.PtrEquations);
-            numColumns = length(ptrLevel) + length(ptrChange);
+            numRows = numel(this.PtrEquations);
+            numColumns = numel(ptrLevel) + numel(ptrChange);
 
             if this.Type==solver.block.Type.SOLVE
-                % 
+                %
                 % Solve
                 %
                 % Initialize endogenous level and growth unknowns.
@@ -87,13 +89,16 @@ classdef Steady < solver.block.Block
                     return
                 end
 
-                [z, exitFlag] = solve(this, @objective, z0, exitFlagHeader);
-                z(inxLogZ) = exp( z(inxLogZ) );
+                [z, f, exitFlag, lastJacob] = solve(this, @objective, z0, exitFlagHeader);
+                z(inxLogZ) = exp(z(inxLogZ));
+                dimension = [numel(f), numColumns];
             else
                 %
                 % Assign
                 %
-                [z, exitFlag] = hereAssign( );
+                [z, exitFlag] = hereAssign();
+                lastJacob = [ ];
+                dimension = [0, 0];
             end
 
             lx(ptrLevel) = z(1:numLevels);
@@ -239,14 +244,14 @@ classdef Steady < solver.block.Block
                     if ~isempty(ptrChange)
                         % Some growth rates need to be calculated. Evaluate the model equations at
                         % time t and t+STEADY_SHIFT if at least one growth rate is needed.
-                        XXk = hereCreateTimeArray(this.STEADY_SHIFT); 
+                        XXk = hereCreateTimeArray(this.STEADY_SHIFT);
 
                         if isFunctionRequested
                             yk = this.EquationsFunc(XXk, t0);
                             y = [ y ; yk ];
                         end
 
-                        if isJacobRequested 
+                        if isJacobRequested
                             XXk(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
                             jk = cellfun( ...
                                 @(Gradients, XX2L, DLevel, DChangeK) ...
@@ -276,7 +281,7 @@ classdef Steady < solver.block.Block
     end
 
 
-    methods       
+    methods
         function prepareBlock(this, blazer)
             prepareBlock@solver.block.Block(this, blazer);
 

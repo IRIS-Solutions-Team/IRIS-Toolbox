@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [deriv, inxNaDeriv] = diffFirstOrder(this, eqSelect, variantRequested, opt)
+function [deriv, inxNaDeriv] = diffFirstOrder(this, inxToDiff, variantRequested, opt)
 
 isNaDeriv = nargout>2;
 
@@ -24,11 +24,11 @@ nsh = this.Incidence.Dynamic.NumShifts;
 inxM = this.Equation.Type==1;
 inxT = this.Equation.Type==2;
 inxMT = inxM | inxT;
-eqSelect(~inxMT) = false;
+inxToDiff(~inxMT) = false;
 
 inxNaDeriv = false(1, numEquations);
 
-if any(eqSelect)
+if any(inxToDiff)
     numYXE = sum(inxYXE);
     sh0 = this.Incidence.Dynamic.PosZeroShift;
     if opt.Symbolic
@@ -36,8 +36,8 @@ if any(eqSelect)
     else
         inxSymbolic = false(1, numEquations);
     end
-    inxSymbolic = inxSymbolic & eqSelect;
-    inxNumeric = ~inxSymbolic & eqSelect;
+    inxSymbolic = inxSymbolic & inxToDiff;
+    inxNumeric = ~inxSymbolic & inxToDiff;
 
     % Symbolic differentiation
     if any(inxSymbolic)
@@ -57,11 +57,11 @@ if any(eqSelect)
 
     % Reset the add-factors in nonlinear equations to 1
     eyeAddf = -eye(sum(this.Equation.Type<=2));
-    deriv.n(eqSelect, :) = eyeAddf(eqSelect, this.Equation.IxHash);
+    deriv.n(inxToDiff, :) = eyeAddf(inxToDiff, this.Equation.IxHash);
 
     % Normalize derivatives by largest number in nonlinear models
     if ~this.IsLinear && opt.Normalize
-        for iEq = find(eqSelect)
+        for iEq = find(inxToDiff)
             inx = deriv.f(iEq, :)~=0;
             if any(inx)
                 norm = max(abs(deriv.f(iEq, inx)));

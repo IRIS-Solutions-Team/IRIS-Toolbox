@@ -1,28 +1,41 @@
-function [obj, regOutp, outputData] = kalmanFilter(this, argin)
-% kalmanFilter  Kalman filter
+% implementKalmanFilter  Kalman filter
 %
-% Backend IRIS function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
 
 % This Kalman filter handles the following special cases:
-% * non-stationary initial conditions (treated as fixed numbers);
+%
+% * non-stationary initial conditions
+%
 % * measurement parameters concentrated out of likelihood;
+%
 % * time-varying std deviations;
+%
 % * conditioning of likelihood upon some measurement variables;
+%
 % * exclusion of some of the periods from likelihood;
+%
 % * k-step-ahead predictions;
+%
 % * tunes on the mean of shocks, combined anticipated and unanticipated;
+%
 % * missing observations entered as NaNs;
+%
 % * infinite std devs of measurement shocks equivalent to missing obs.
+%
 % * contributions of measurement variables to transition variables.
+%
 
 inputData = argin.InputData;
 outputData = argin.OutputData;
 outputDataAssignFunc = argin.OutputDataAssignFunc;
 opt = argin.Options;
+
+if ~isfield(opt, 'Initials') && isfield(opt, 'Init')
+    opt.Initials = opt.Init;
+end
 
 [ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);
 nv = countVariants(this);
@@ -39,7 +52,7 @@ numExtendedPeriods = size(inputData, 2);
 
 %--------------------------------------------------------------------------
 
-s = struct( );
+s = struct();
 
 s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
 s.DIFFUSE_SCALE = this.DIFFUSE_SCALE;
@@ -55,7 +68,7 @@ s.NumF  = nf;
 s.NumE  = ne;
 s.NumG  = ng;
 
-s.IsSimulate = ~isequal(opt.Simulate, false);
+s.NeedsSimulate = ~isequal(opt.Simulate, false);
 
 % Out-of-lik params cannot be used with ~opt.DTrends
 numPouts = length(opt.OutOfLik);
@@ -119,6 +132,7 @@ if ~s.IsObjOnly
     regOutp.SampleCov = nan(ne, ne, numRuns);
     regOutp.NLoop = numRuns;
     regOutp.Init = { nan(nb, 1, numRuns), nan(nb, nb, numRuns), zeros(nb, nb, numRuns) };
+    regOutp.U = cell(1, nv);
 end
 
 %
@@ -126,16 +140,17 @@ end
 %
 
 if ~s.IsObjOnly && opt.Progress
-    progress = ProgressBar(sprintf('[IrisToolbox] %s.kalmanFilter Progress', class(this)));
+    progress = ProgressBar('[IrisToolbox] Kalman.implementKalmanFilter');
 end
 
 inxSolutionAvailable = true(1, nv);
 inxValidFactor = true(1, numRuns);
 
 
-%//////////////////////////////////////////////////////////////////////////
+
+%=========================================================================
 for run = 1 : numRuns
-    if s.IsSimulate
+    if s.NeedsSimulate
         prepareOnly = true;
         s.Simulate = simulateFrames(this, opt.Simulate, run, prepareOnly);
     end
@@ -147,7 +162,7 @@ for run = 1 : numRuns
     %
     s.y1 = inputData(1:ny, :, min(run, end));
     s.g  = inputData(ny+(1:ng), :, min(run, end));
-    
+
     s.IsOverrideMean = false;
     if mayberOverrideMean
         s.OverrideMean = overrideMean(:, :, min(run, end));
@@ -203,10 +218,10 @@ for run = 1 : numRuns
             s.ka = k(nf+1:end, :);
             s.d  = d(:, :);
         end
-        
+
         s = hereGetReducedFormCovariance(this, v, s, opt);
     end
-    
+
     % Stop immediately if solution is not available; report NaN solutions
     % post mortem
     inxSolutionAvailable(run) = all(isfinite(T(:)));
@@ -214,7 +229,7 @@ for run = 1 : numRuns
         continue
     end
 
-    
+
     % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
     if nz==0 && (numPouts>0 || opt.DTrends)
@@ -237,7 +252,7 @@ for run = 1 : numRuns
     % The std dev of the tuned shocks remain unchanged and hence the
     % filtered shocks can differ from its tunes (unless the user specifies zero
     % std dev).
-    if s.IsOverrideMean 
+    if s.IsOverrideMean
         [s.d, s.ka, s.kf] = hereOverrideMean(s, R, opt);
     end
 
@@ -245,19 +260,22 @@ for run = 1 : numRuns
     s.yindex = ~isnan(s.y1);
     s.LastObs = max([ 0, find( any(s.yindex, 1), 1, 'last' ) ]);
     s.jyeq = [false, all(s.yindex(:, 2:end)==s.yindex(:, 1:end-1), 1) ];
-    
+
 
     %
     % Initialize mean and MSE
     % Determine number of init cond estimated as fixed unknowns
-    % 
-    if iscell(opt.Init)
-        init__ = cellfun(@(x) x(:, :, min(end, run)), opt.Init, 'UniformOutput', false);
+    %
+    if iscell(opt.Initials)
+        init__ = cell(size(opt.Initials));
+        for i = 1 : numel(init__)
+            init__{i} = double(opt.Initials{i}(:, :, min(end, run)));
+        end
     else
-        init__ = opt.Init;
+        init__ = opt.Initials;
     end
     if isnumeric(opt.InitUnitRoot)
-        initUnit__ = opt.InitUnitRoot(:, :, min(end, run));
+        initUnit__ = double(opt.InitUnitRoot(:, :, min(end, run)));
     else
         initUnit__ = opt.InitUnitRoot;
     end
@@ -277,13 +295,13 @@ for run = 1 : numRuns
     if s.IsObjOnly
         continue
     end
-    
+
     % Prediction errors unadjusted (uncorrected) for estimated init cond
     % and DTrends; these are needed for contributions.
     if s.retCont
         s.peUnc = s.pe;
     end
-    
+
     % Correct prediction errors for estimated initial conditions and DTrends
     % parameters.
     if s.NumEstimInit>0 || numPouts>0
@@ -295,7 +313,7 @@ for run = 1 : numRuns
             s.pe = kalman.correct(s, s.pe, [ ], [ ], est, [ ]);
         end
     end
-    
+
 
     % Prediction step for fwl variables
     if s.retPredMse || s.retPredStd || s.retFilter || s.retSmooth
@@ -304,12 +322,12 @@ for run = 1 : numRuns
     if s.retPred || s.retSmooth
         % Predictions for forward-looking transtion variables have been already
         % filled in in non-linear predictions
-        if ~s.IsSimulate
+        if ~s.NeedsSimulate
             s = hereGetPredXfMean(s);
         end
     end
 
-    
+
     % Add k-step-ahead predictions
     if s.Ahead>1 && s.storePredict
         s = hereAhead(s);
@@ -325,30 +343,30 @@ for run = 1 : numRuns
         end
         s = hereGetFilterMean(s);
     end
-    
-    
+
+
     %
     % Smoother
-    % 
+    %
     if s.retSmooth
         if s.retSmoothStd || s.retSmoothMse
             s = hereGetSmoothMse(s);
         end
         s = hereGetSmoothMean(s);
     end
-    
+
 
     %
     % Contributions of Measurement Variables
-    % 
+    %
     if s.retCont
         s = kalman.cont(s);
     end
-    
+
     %
     % Return Requested Data
     % Columns in `pe` to be filled.
-    % 
+    %
     if s.Ahead>1
         predCols = 1 : s.Ahead;
     else
@@ -357,7 +375,7 @@ for run = 1 : numRuns
 
     %
     % Populate hdata output arguments
-    % 
+    %
     if s.retPred
         returnPred( );
     end
@@ -368,7 +386,7 @@ for run = 1 : numRuns
     if s.retSmooth
         returnSmooth( );
     end
-    
+
     %
     % Populate regular (non-hdata) output arguments
     %
@@ -380,10 +398,11 @@ for run = 1 : numRuns
     regOutp.SampleCov(:, :, run) = s.SampleCov;
     regOutp.Init{1}(:, :, run) = s.InitMean;
     regOutp.Init{2}(:, :, run) = s.InitMseReg;
+    regOutp.U{run} = s.U;
     if ~isempty(s.InitMseInf)
         regOutp.Init{3}(:, :, run) = s.InitMseInf;
     end
-    
+
 
     %
     % Update progress bar
@@ -391,8 +410,9 @@ for run = 1 : numRuns
     if opt.Progress
         update(progress, run/numRuns);
     end
-end 
-%//////////////////////////////////////////////////////////////////////////
+end
+%=========================================================================
+
 
 
 if ~all(inxSolutionAvailable)
@@ -406,7 +426,7 @@ if any(~inxValidFactor)
     thisWarning = { 'Kalman:ZeroVarianceFactors'
                     'Variance-covariance scale factor is ill-determined in %s '};
     throw( exception.Base(thisWarning, 'warning'), ...
-           exception.Base.alt2str(~inxValidFactor) ); %#ok<GTARG>        
+           exception.Base.alt2str(~inxValidFactor) ); %#ok<GTARG>
 end
 
 return
@@ -436,7 +456,7 @@ return
 
 
 
-    
+
     function returnPred( )
         % Return pred mean.
         % Note that s.y0, s.f0 and s.a0 include k-sted-ahead predictions if
@@ -482,7 +502,7 @@ return
             % Do not use lags in the prediction output data.
             outputData.M0 = outputDataAssignFunc(outputData.M0, predCols, {yy, xx, ee, [ ], [ ]});
         end
-        
+
         % Return pred std
         if s.retPredStd
             if nz>0
@@ -492,7 +512,7 @@ return
             outputData.S0 = outputDataAssignFunc( outputData.S0, run, ...
                                                   {s.Dy0*s.V, [s.Df0; s.Db0]*s.V, s.De0*s.V, [ ], [ ]} );
         end
-        
+
         % Return prediction MSE for xb.
         if s.retPredMse
             outputData.Mse0.Data(:, :, :, run) = s.Pb0*s.V;
@@ -518,7 +538,7 @@ return
 
 
 
-    function returnFilter( )        
+    function returnFilter( )
         if s.retFilterMean
             if nz>0
                 s.y1 = s.y1([ ], :);
@@ -537,7 +557,7 @@ return
             % Do not use lags in the filter output data.
             outputData.M1 = outputDataAssignFunc(outputData.M1, run, {yy, xx, ee, [ ], s.g});
         end
-        
+
         % Return PE contributions to filter step.
         if s.retFilterCont
             if nz>0
@@ -552,7 +572,7 @@ return
             gg = [nan(ng, 1), zeros(ng, numExtendedPeriods-1)];
             outputData.filtercont = outputDataAssignFunc(outputData.filtercont, ':', {yy, xx, ee, [ ], gg});
         end
-        
+
         % Return filter std.
         if s.retFilterStd
             if nz>0
@@ -561,7 +581,7 @@ return
             outputData.S1 = outputDataAssignFunc( outputData.S1, run, ...
                                                   {s.Dy1*s.V, [s.Df1;s.Db1]*s.V, [ ], [ ], s.Dg1*s.V} );
         end
-        
+
         % Return filtered MSE for `xb`.
         if s.retFilterMse
             %s.Pb1(:, :, 1) = NaN;
@@ -600,7 +620,7 @@ return
             ee(:, 1:s.LastSmooth) = preNaN;
             outputData.M2 = outputDataAssignFunc(outputData.M2, run, {yy, xx, ee, [ ], s.g});
         end
-        
+
         % Return smooth std
         if s.retSmoothStd
             if nz>0
@@ -612,7 +632,7 @@ return
             outputData.S2 = outputDataAssignFunc( outputData.S2, run, ...
                                                   {s.Dy2*s.V, [s.Df2; s.Db2]*s.V, [ ], [ ], s.Dg2*s.V} );
         end
-        
+
         % Return PE contributions to smooth step
         if s.retSmoothCont
             if nz>0
@@ -629,10 +649,10 @@ return
             gg = [nan(ng, 1, size3, size4), zeros(ng, numExtendedPeriods-1, size3, size4)];
             outputData.C2 = outputDataAssignFunc(outputData.C2, ':', {yy, xx, ee, [ ], gg});
         end
-        
+
         inxObjFunc = s.InxObjFunc & any(s.yindex, 1);
         s.SampleCov = ee(:, inxObjFunc)*ee(:, inxObjFunc).'/nnz(inxObjFunc);
-        
+
         % Return smooth MSE for `xb`.
         if s.retSmoothMse
             s.Pb2(:, :, 1:s.LastSmooth-1) = NaN;
@@ -650,7 +670,7 @@ function s = hereAhead(s)
     % diffuse initial conditions and/or out-of-lik params has been made.
 
     % TODO: Make Ahead= work with time-varying state space matrices
-    
+
     numExtendedPeriods = s.NumExtendedPeriods;
     a0 = permute(s.a0, [1, 3, 4, 2]);
     pe = permute(s.pe, [1, 3, 4, 2]);

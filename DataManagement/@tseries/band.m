@@ -137,7 +137,7 @@ end
 
 loData = getData(Lo, range);
 hiData = getData(Hi, range);
-pt = series.bands(ax, h, cData, xCoor, loData, hiData, bandOpt);
+pt = series.band(ax, h, cData, xCoor, loData, hiData, bandOpt);
 
 set(ax, 'layer', bandOpt.Grid);
 

@@ -215,7 +215,7 @@ if opt.CheckSyntax
 end
 
 % Check the model structure before the loss function is processed.
-[exc, args] = chkStructureBefore(this, qty, eqn);
+[exc, args] = checkStructureBefore(this, qty, eqn, opt);
 if ~isempty(exc)
     throw(exc, args{:});
 end
@@ -259,7 +259,7 @@ if isOptimal
 end
 
 % Check the model structure after the loss function is processed.
-[exc, args] = chkStructureAfter(this, qty, eqn);
+[exc, args] = checkStructureAfter(this, qty, eqn, opt);
 if ~isempty(exc)
     throw(exc, args{:});
 end

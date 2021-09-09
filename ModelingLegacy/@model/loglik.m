@@ -158,7 +158,7 @@ else
     [OPT, varargin] = passvalopt('model.loglik', varargin{:});
 
     if strncmpi(OPT.domain, 't', 1)
-        LIKOPT = prepareKalmanOptions(this, RANGE, varargin{:});
+        LIKOPT = prepareKalmanOptions(this, RANGE, "version", 1, varargin{:});
         req = 'tyg*';
     else
         LIKOPT = prepareFreqlOptions(this, RANGE, varargin{:});
@@ -178,7 +178,7 @@ argin = struct( ...
 );
 
 if strncmpi(OPT.domain, 't', 1)
-    loglikFunc = @kalmanFilter;
+    loglikFunc = @implementKalmanFilter;
 else
     loglikFunc = @freql;
 end

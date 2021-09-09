@@ -9,7 +9,7 @@ inxP = this.Quantity.Type==4;
 numEquations = length(this.Equation.Input);
 
 inxEquationsAffected = true(1, numEquations);
-if ~opt.Select
+if opt.ForceDiff
     return
 end
 

@@ -1,90 +1,67 @@
-function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
-% system  System matrices for unsolved model
-%
-% ## Syntax ##
-%
-%     [A, B, C, D, F, G, H, J, List, Nf] = system(Model)
-%
-%
-% ## Input Arguments ##
-%
-% * `Model` [ model ] - Model object whose system matrices will be
-% returned.
-%
-%
-% ## Output Arguments ##
-%
-% * `A`, `B`, `C`, `D`, `F`, `G`, `H` , `J`  [ numeric ] - Matrices
-% of the unsolved system, see Description.
-%
-% * `List` [ cell ] - Lists of measurement variables, transition variables
-% includint their auxiliary lags and leads, and shocks as they appear in
-% the rows and columns of the system matrices.
-%
-% * `Nf` [ numeric ] - Number of non-predetermined (forward-looking)
-% transition variables (multiplied by the first `Nf` columns of matrices
-% `A` and `B`).
-%
-%
-% ## Options ##
-%
-% * `Select=true` [ `true` | `false` ] - Automatically detect which
-% equations need to be re-differentiated based on parameter changes from
-% the last time the system matrices were calculated.
-%
-% * `Sparse=false` [ `true` | `false` ] - Return matrices `A`, `B`, `D`,
-% `F`, `G`, and `J` as sparse matrices; can be set to `true` only in models
-% with one parameterization.
-%
-%
-% ## Description ##
-%
-% The system before the model is solved has the following form:
-%
-%     A E[xf;xb] + B [xf(-1);xb(-1)] + C + D e = 0
-%
-%     F y + G xb + H + J e = 0
-%
-% where `E` is a conditional expectations operator, `xf` is a vector of
-% non-predetermined (forward-looking) transition variables, `xb` is a
-% vector of predetermined (backward-looking) transition variables, `y` is a
-% vector of measurement variables, and `e` is a vector of transition and
-% measurement shocks.
-%
-%
-% ## Example ##
-%
+% >=R2019b
+%(
+function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, options, legacy)
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+arguments
+    this
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.system');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addParameter({'Eqtn', 'Equations'}, @all, @(x) isequal(x, @all) || ischar(x));
-    inputParser.addParameter({'Normalize', 'Normalise'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Select', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Sparse', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Symbolic', true, @(x) isequal(x, true) || isequal(x, false));
+    options.Eqtn = @all
+    options.ForceDiff (1, 1) logical = false
+    options.Normalize (1, 1) logical = true
+    options.MatrixFormat (1, 1) string = "NamedMatrix"
+    options.Sparse (1, 1) logical = true
+    options.Symbolic (1, 1) logical = true
+
+    legacy.Select (1, 1) logical = true 
 end
-inputParser.parse(this, varargin{:});
-opt = inputParser.Options;
 
-%--------------------------------------------------------------------------
+if ~legacy.Select && ~options.ForceDiff
+    options.ForceDiff = true;
+end
+%)
+% >=R2019b
 
-nv = length(this);
+% <=R2019a
+%{
+function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, varargin)
 
-if opt.Sparse && nv>1
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.system');
+    pp.addRequired('Model', @(x) isa(x, 'model'));
+    pp.addParameter({'Eqtn', 'Equations'}, @all, @(x) isequal(x, @all) || ischar(x));
+    pp.addParameter({'Normalize', 'Normalise'}, true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Select', true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('ForceDiff', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('MatrixFormat', 'NamedMatrix');
+    pp.addParameter('Sparse', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Symbolic', true, @(x) isequal(x, true) || isequal(x, false));
+end
+pp.parse(this, varargin{:});
+options = pp.Options;
+
+if ~options.Select && ~options.ForceDiff
+    options.ForceDiff = true;
+end
+%}
+% <=R2019a
+
+CONSTANT_COLUMN = "Constant";
+
+numVariants = countVariants(this);
+numM = nnz(this.Equation.Type==1);
+numT = nnz(this.Equation.Type==2);
+
+if options.Sparse && numVariants>1
     utils.warning('model:system', ...
         ['Cannot return system matrices as sparse matrices in models ', ...
         'with multiple parameterizations. Returning full matrices instead.']);
-    opt.Sparse = false;
+    options.Sparse = false;
 end
 
 % System matrices.
-if opt.Sparse && nv==1
-    [syst, ~, deriv] = systemFirstOrder(this, 1, opt);
+if options.Sparse && numVariants==1
+    [syst, ~, deriv] = systemFirstOrder(this, 1, options);
     F = syst.A{1}; %#ok<*AGROW>
     G = syst.B{1};
     H = syst.K{1};
@@ -94,8 +71,8 @@ if opt.Sparse && nv==1
     C = syst.K{2};
     D = syst.E{2};
 else
-    for v = 1 : nv
-        [syst, ~, deriv] = systemFirstOrder(this, v, opt);
+    for v = 1 : numVariants
+        [syst, ~, deriv] = systemFirstOrder(this, v, options);
         F(:, :, v) = full(syst.A{1}); %#ok<*AGROW>
         G(:, :, v) = full(syst.B{1});
         H(:, 1, v) = full(syst.K{1});
@@ -107,15 +84,28 @@ else
     end
 end
 
-% Lists of measurement variables, backward-looking transition variables, and
-% forward-looking transition variables.
-list = { ...
-    printSolutionVector(this, 'y'), ...
-    printSolutionVector(this, this.Vector.System{2} + 1i), ...
-    printSolutionVector(this, 'e'), ...
-    };
+logPrefix = model.component.Quantity.LOG_PREFIX;
+yVector = string(printSolutionVector(this, "y", logPrefix));
+xVector0 = string(printSolutionVector(this, this.Vector.System{2}, logPrefix));
+xVector1 = string(printSolutionVector(this, this.Vector.System{2}+1i, logPrefix));
+eVector = string(printSolutionVector(this, "e", logPrefix));
+mEquations = string(model.component.Equation.extractInput(this.Equation.Input(1:numM), "dynamic"));
+tEquations = string(model.component.Equation.extractInput(this.Equation.Input(numM+(1:numT)), "dynamic"));
+list = {yVector, xVector1, eVector, mEquations, tEquations};
 
 % Number of forward-looking variables.
-nf = sum( imag(this.Vector.System{2})>=0 );
+numF = sum( imag(this.Vector.System{2})>=0 );
 
+if startsWith(string(options.MatrixFormat), "named", "ignoreCase", true)
+    A = namedmat(A, tEquations, xVector1);
+    B = namedmat(B, tEquations, xVector0);
+    C = namedmat(C, tEquations, CONSTANT_COLUMN);
+    D = namedmat(D, tEquations, eVector);
+    F = namedmat(F, mEquations, yVector);
+    G = namedmat(G, mEquations, xVector1(numF+1:end));
+    H = namedmat(H, mEquations, CONSTANT_COLUMN);
+    J = namedmat(J, mEquations, eVector);
 end
+
+end%
+

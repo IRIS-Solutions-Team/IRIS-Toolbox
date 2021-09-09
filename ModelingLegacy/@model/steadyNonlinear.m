@@ -6,24 +6,23 @@
 function  [this, success, outputInfo] = steadyNonlinear(this, blazer, variantsRequested)
 
 nv = countVariants(this);
+success = true(1, nv);
+outputInfo = struct();
+if isequal(blazer, false)
+    return
+end
+
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = 1 : nv;
 else
     variantsRequested = variantsRequested(:).';
 end
-success = true(1, nv);
-outputInfo = struct( ...
-    'ExitFlags', solver.ExitFlag.empty(0), ...
-    'Blazer', blazer ...
-);
 
-if isequal(blazer, false)
-    return
-end
+outputInfo.ExitFlags = cell(1, nv);
+outputInfo.LastJacob = cell(1, nv);
+outputInfo.Dimension = cell(1, nv);
 
 inxZero = blazer.InxZero;
-
-%--------------------------------------------------------------------------
 
 numQuantities = numel(this.Quantity);
 numBlocks = numel(blazer.Blocks);
@@ -32,7 +31,7 @@ inxP = getIndexByType(this.Quantity, 4);
 inxLogInBlazer = blazer.Model.Quantity.InxLog;
 
 % Index of endogenous level and change quantities
-[inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( );
+[inxEndgLevel, inxEndgChange] = hereGetInxEndogenous();
 
 
 if needsRefresh
@@ -58,18 +57,20 @@ steadyLevel = real(this.Variant.Values(:, :, variantsRequested));
 steadyChange = imag(this.Variant.Values(:, :, variantsRequested));
 steadyLevel(1, inxZero.Level, :) = 0;
 steadyChange(1, inxZero.Change, :) = 0;
-hereCheckFixedToNaN( );
-hereCheckExogenizedToNaN( );
+hereCheckFixedToNaN();
+hereCheckExogenizedToNaN();
 
 levelX0 = [ ];
 changeX0 = [ ];
 firstRun = true;
 
 
-% /////////////////////////////////////////////////////////////////////////
-outputInfo.ExitFlags = cell(1, nv);
+%=========================================================================
 for v = variantsRequested
-    [levelX, changeX] = hereInitialize( );
+    %
+    % Initialize steady levels and changes
+    % 
+    [levelX, changeX] = hereInitialize();
 
     %
     % Add a minimum necessary subvector of StdCorr
@@ -84,13 +85,17 @@ for v = variantsRequested
     % Cycle over individual blocks
     %
     outputInfo.ExitFlags{v} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numBlocks);
+    outputInfo.LastJacob{v} = cell(1, numBlocks);
+    outputInfo.Dimension{v} = cell(1, numBlocks);
     for i = 1 : numBlocks
         blk = blazer.Blocks{i};
         header = sprintf("[Variant:%g][Block:%g]", v, i);
-        [levelX, changeX, exitFlag, error] = run( ...
+        [levelX, changeX, exitFlag, error, lastJacob, dimension] = run( ...
             blk, this.Link, levelX, changeX, addStdCorr, header ...
         );
         outputInfo.ExitFlags{v}(i) = exitFlag;
+        outputInfo.LastJacob{v}{i} = lastJacob;
+        outputInfo.Dimension{v}{i} = dimension;
         hereHandleErrors();
     end
 
@@ -112,7 +117,7 @@ for v = variantsRequested
     %
     [flagLog, ~, inxInvalidLevel, inxInvalidChange] = checkZeroLog(this, v);
     if ~flagLog
-        hereInvalidSteady( );
+        hereInvalidSteady();
     end
 
 
@@ -124,7 +129,7 @@ for v = variantsRequested
 
     % TODO: Report more details on failed equations and variables
     if blazer.Warning && ~success(v)
-        throw(exception.Base('Model:SteadyInaccurate', 'warning'));
+        raise(exception.Base('Model:SteadyInaccurate', 'warning'));
     end
 
     % Store current values to initialize next parameterisation
@@ -132,7 +137,7 @@ for v = variantsRequested
     changeX0 = changeX(1:numQuantities);
     firstRun = false;
 end
-% /////////////////////////////////////////////////////////////////////////
+%=========================================================================
 
 
 if needsRefresh
@@ -144,7 +149,7 @@ success = success(variantsRequested);
 
 return
 
-    function [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( )
+    function [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous()
         %(
         inxEndgLevel = false(1, numQuantities);
         inxEndgChange = false(1, numQuantities);
@@ -157,16 +162,21 @@ return
     end%
 
 
-    function [levelX, changeX] = hereInitialize( )
+    function [levelX, changeX] = hereInitialize()
         %(
-        % __Initialize levels of endogenous quantities__
+        %
+        % Initialize levels of endogenous quantities
+        %
         levelX = real(this.Variant.Values(:, :, v));
+
         % Level variables that are set to zero (all shocks)
         levelX(inxZero.Level) = 0;
+
         % Assign NaN level initial conditions. First, assign values from the
-        % previous iteration, if they exist and option 'reuse=' is `true`
+        % previous iteration, if they exist and option
+        % PreviousVariant=true
         inx = isnan(levelX) & inxEndgLevel;
-        if ~firstRun && blazer.Reuse && any(inx) && ~isempty(levelX0)
+        if ~firstRun && blazer.PreviousVariant && any(inx) && ~isempty(levelX0)
             levelX(inx) = levelX0(inx);
             inx = isnan(levelX) & inxEndgLevel;
         end
@@ -180,7 +190,9 @@ return
         % levelX(inx & inxLogInBlazer) = real(blazer.NanInit);
         % levelX(inx & ~inxLogInBlazer) = log(real(blazer.NanInit));
 
-        % __Initialize growth rates of endogenous quantities__
+        %
+        % Initialize growth rates of endogenous quantities
+        %
         changeX = imag(this.Variant.Values(:, :, v));
         % Variables with zero growth (all variables if 'growth=' false).
         changeX(inxZero.Change) = 0;
@@ -188,7 +200,7 @@ return
             % Assign NaN growth initial conditions. First, assign values from
             % the previous iteration if they exist and `reuse=true`
             inx = isnan(changeX) & inxEndgChange;
-            if ~firstRun && blazer.Reuse && any(inx) && ~isempty(changeX0)
+            if ~firstRun && blazer.PreviousVariant && any(inx) && ~isempty(changeX0)
                 changeX(inx) = changeX0(inx);
                 inx = isnan(changeX) & inxEndgChange;
             end
@@ -201,7 +213,7 @@ return
     end%
 
 
-    function hereCheckFixedToNaN( )
+    function hereCheckFixedToNaN()
         %(
         [levelsToFix, changesToFix] = iris.utils.splitRealImag(blazer.QuantitiesToFix);
 
@@ -230,7 +242,7 @@ return
     end%
 
 
-    function hereCheckExogenizedToNaN( )
+    function hereCheckExogenizedToNaN()
         %(
         inxNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
         inxNeeded = full(inxNeeded);
@@ -242,13 +254,13 @@ return
         inxLevelToReport = inxLevelNeeded & inxLevelNaN;
         inxChangeToReport = inxChangeNeeded & inxChangeNaN;
         if any(inxLevelToReport)
-            throw( ...
+            raise( ...
                 exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
                 this.Quantity.Name{inxLevelToReport} ...
             );
         end
         if any(inxChangeToReport)
-            throw( ...
+            raise( ...
                 exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
                 this.Quantity.Name{inxChangeToReport} ...
             );
@@ -257,7 +269,7 @@ return
     end%
 
 
-    function hereInvalidSteady( )
+    function hereInvalidSteady()
         %(
         realValues__ = real(this.Variant.Values(:, :, v));
         imagValues__ = imag(this.Variant.Values(:, :, v));
@@ -275,7 +287,7 @@ return
     function hereHandleErrors()
         %(
         if ~isempty(error.EvaluatesToNan)
-            throw( ...
+            raise( ...
                 exception.Base('Steady:EvaluatesToNan', 'error'), ...
                 this.Equation.Input{error.EvaluatesToNan} ...
             );
