@@ -1,5 +1,5 @@
 % >=R2019b
-%(
+%{
 function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, options, legacy)
 
 arguments
@@ -18,11 +18,11 @@ end
 if ~legacy.Select && ~options.ForceDiff
     options.ForceDiff = true;
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, varargin)
 
 persistent pp
@@ -43,7 +43,7 @@ options = pp.Options;
 if ~options.Select && ~options.ForceDiff
     options.ForceDiff = true;
 end
-%}
+%)
 % <=R2019a
 
 CONSTANT_COLUMN = "Constant";

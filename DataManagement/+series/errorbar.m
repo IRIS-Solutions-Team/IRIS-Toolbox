@@ -1,5 +1,5 @@
 % >=R2019b
-%(
+%{
 function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, options)
 
 arguments
@@ -11,11 +11,11 @@ arguments
     options.PlotSettings (1, :) cell = cell.empty(1, 0)
     options.LinkColor = true
 end
-%)
+%}
 % >=R2019b
 
 % <=R2019a
-%{
+%(
 function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, varargin)
 
 persistent pp
@@ -31,7 +31,7 @@ if isempty(pp)
     pp.addParameter('LinkColor', true);
 end
 options = pp.parse(axesHandle, time, data, varargin{:});
-%}
+%)
 % <=R2019a
 
 DEFAULT_ERRORBAR_SETTINGS = {

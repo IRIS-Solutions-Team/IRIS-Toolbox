@@ -47,7 +47,7 @@ if isempty(pp)
     addParameter(pp, "Warning", true, @validate.logicalScalar);
 end
 options = parse(pp, varargin{:});
-%}
+%)
 % <=R2019a
 
 

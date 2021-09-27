@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputArray, names, dates] = toArray(inputDb, names, dates, column)
 
 arguments
@@ -42,7 +42,7 @@ parse(inputParser, inputDb, varargin{:});
 names =  inputParser.Results.names;
 dates = inputParser.Results.dates;
 column = inputParser.Results.column;
-%}
+%)
 % <=R2019a
 
 

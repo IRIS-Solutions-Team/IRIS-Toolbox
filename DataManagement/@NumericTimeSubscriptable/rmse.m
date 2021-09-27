@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [rmse, error] = rmse(actual, prediction, options)
 
 arguments
@@ -13,12 +13,12 @@ arguments
     
     options.Range (1, :) double {validate.range} = Inf
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [rmse, error] = rmse(actual, prediction, varargin)
 
 persistent pp
@@ -37,7 +37,7 @@ if ~skip
         options.Range = pp.Results.legacyRange;
     end
 end
-%}
+%)
 % <=R2019a
 
 [from, to] = resolveRange(actual, options.Range);
