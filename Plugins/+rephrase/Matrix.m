@@ -3,7 +3,7 @@ classdef Matrix ...
     & rephrase.Terminus ...
     & rephrase.Data
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.MATRIX
     end
 

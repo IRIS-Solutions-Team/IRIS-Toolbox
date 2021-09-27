@@ -120,8 +120,12 @@ function [mainDb, fieldsToMerge] = concatenateNext(func, mainDb, mergeWith, fiel
         mainDatabankField = func(mainDatabankField, mergeWithField);
         mainDb.(n) = mainDatabankField;
     end
-    if ~isempty(fieldsToRemove);
-        mainDb = rmfield(mainDb, fieldsToRemove);
+    if ~isempty(fieldsToRemove)
+        for n = textual.stringify(fieldsToRemove)
+            if isfield(mainDb, n)
+                mainDb = rmfield(mainDb, n);
+            end
+        end
         fieldsToMerge = setdiff(fieldsToMerge, fieldsToRemove);
     end
     %)

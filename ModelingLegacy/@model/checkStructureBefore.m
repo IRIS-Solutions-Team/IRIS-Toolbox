@@ -106,7 +106,7 @@ if any(ixe)
     end
 end
 
-% __Names Other Than Parameters and Exogenous Variables in DTrend Equations__
+% Names other than parameters and exogenous variables in dtrend equations
 test = any(indxs(ixd, ~ixp & ~ixg), 2) | any(insxs(ixd, ~ixp & ~ixg), 2);
 if any(test)
     eqtn = equation.Input(ixd);
@@ -115,8 +115,8 @@ if any(test)
     return
 end
 
-% Exogenous variables in equations other than dtrends - the user may allow
-% exogenous variables, they only work in nonlinear simulations
+% Exogenous variables in equations other than measurement trends - the user
+% may allow exogenous variables, they only work in nonlinear simulations
 if ~options.AllowExogenous
     test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
     if any(test)

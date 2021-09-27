@@ -7,12 +7,8 @@ function steady = fillSteady(equation)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
-ixm = equation.Type==TYPE(1);
-ixt = equation.Type==TYPE(2);
+ixm = equation.Type==1;
+ixt = equation.Type==2;
 ixmt = ixm | ixt;
 
 ixEmpty = cellfun(@isempty, equation.Steady);

@@ -7,7 +7,6 @@ function [YA, XA, Ea, Eu, YC, XC, wReal, wImag] = myanchors(this, p, rng, isAnt)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
 
 % Check date frequencies
 rng = double(rng);
@@ -24,7 +23,7 @@ end
 
 %--------------------------------------------------------------------------
 
-ixx = this.Quantity.Type==TYPE(2);
+ixx = this.Quantity.Type==2;
 [ny, nxx] = sizeSolution(this.Vector);
 nPer = round(rng(end) - rng(1) + 1);
 

@@ -18,6 +18,7 @@ Function | Description
 Function | Description 
 ---|---
 [`reset`](reset.md) | {{ model._reset }}
+[`rescaleStd`](rescaleStd.md) | {{ model._rescaleStd }}
 
 
 ### Solving and simulating models 
@@ -33,5 +34,6 @@ Function | Description
 
 Function | Description 
 ---|---
+[`analyticGradients`](analyticGradients.md) | {{ model._analyticGradients }}
 [`table`](table.md) | {{ model._table }}
 

@@ -3,7 +3,7 @@ classdef DiffSeries ...
     & rephrase.Terminus ...
     & rephrase.Data
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.DIFFSERIES
     end
 

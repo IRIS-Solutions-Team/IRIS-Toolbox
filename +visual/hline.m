@@ -45,6 +45,14 @@ function lineHandles = hline(varargin)
 
 %--------------------------------------------------------------------------
 
+exception.warning([
+    "Obsolete"
+    "Function visual.hline has become obsolete and "
+    "is scheduled for removal from the IrisToolbox."
+    "Use the new Matlab function yline() instead."
+]);
+
+
 lineHandles = visual.backend.plotInfiniteLine('hline', varargin{:});
 
 end

@@ -89,7 +89,7 @@ dataBlock = getDataBlock(this, inputDb, fittedRange, lhsRequired, context);
 controls = assignControls(this, inputDb);
 
 
-numExtdPeriods = dataBlock.NumExtendedPeriods;
+numExtdPeriods = dataBlock.NumExtdPeriods;
 numPages = dataBlock.NumPages;
 fitted = nan(numEquations, numExtdPeriods, numPages);
 lhsTransform = nan(numEquations, numExtdPeriods, numPages);

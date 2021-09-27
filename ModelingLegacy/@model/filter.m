@@ -371,17 +371,6 @@ nv = countVariants(this);
 
 
 %
-% Temporarily rename quantities
-%
-if ~isempty(opt.Rename)
-    if ~iscellstr(opt.Rename)
-        opt.Rename = cellstr(opt.Rename);
-    end
-    this.Quantity = rename(this.Quantity, opt.Rename{:});
-end
-
-
-%
 % Get measurement and exogenous variables
 %
 if ~isempty(inputDb)
@@ -458,10 +447,6 @@ init = regOutp.Init;
 % Post-process hdata output arguments
 %
 outp = hdataobj.hdatafinal(outputData);
-
-if ~isempty(opt.Rename)
-    this.Quantity = resetNames(this.Quantity);
-end
 
 return
 

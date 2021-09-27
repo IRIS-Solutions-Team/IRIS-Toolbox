@@ -3,17 +3,38 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 %
+
+% >=R2019b
+%{
+function [opt, timeVarying] = prepareKalmanOptions2(this, range, options)
+
+arguments
+    this
+    range 
+
+    options.FlattenOutput (1, 1) logical = true
+    options.MatrixFormat (1, 1) string {validate.mustBeMatrixFormat} = "namedMatrix"
+    options.OutputData (1, :) string = "smooth"
+    options.OutputDataAssignFunc = @hdataassign
+
+    options.Anticipate (1, 1) logical = false
+    options.Ahead (1, 1) double = 1
+    options.CheckFMSE (1, 1) logical = false
+    ...
+end
+%}
+% >=R2019b
+
+
 function [opt, timeVarying] = prepareKalmanOptions2(this, range, varargin)
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Kalman.prepareKalmanOptions');
 
-    addParameter(pp, 'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    addParameter(pp, 'MatrixFormat', 'namedmat', @validate.matrixFormat);
     addParameter(pp, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
-    addParameter(pp, 'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
-
-    addParameter(pp, "Version", 1, @(x) mustBeMember(x, [1, 2]));
+    addParameter(pp, 'FlattenOutput', true, @validate.logicalScalar);
 
     addParameter(pp, 'Anticipate', false, @validate.logicalScalar);
     addParameter(pp, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
@@ -21,7 +42,7 @@ if isempty(pp)
     addParameter(pp, {'CheckFmse', 'ChkFmse'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
     addParameter(pp, 'FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
-    addParameter(pp, {'ReturnCont', 'Contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, {'ReturnBreakdown', 'Contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper'));
     addParameter(pp, {'Initials', 'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
     addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'approxDiffuse', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
@@ -39,19 +60,21 @@ if isempty(pp)
     addParameter(pp, 'Weighting', [ ], @isnumeric);
     addParameter(pp, 'MeanOnly', false, @validate.logicalScalar);
     addParameter(pp, 'ReturnStd', true, @validate.logicalScalar);
-    addParameter(pp, 'ReturnMedian', true, @validate.logicalScalar);
+    addParameter(pp, 'ReturnMedian', logical.empty(1, 0));
     addParameter(pp, 'ReturnMSE', true, @validate.logicalScalar);
     addDeviationOptions(pp, false);
-end  
-parse(pp, varargin{:});
-opt = pp.Options;
+end
+opt = parse(pp, varargin{:});
 
 range = double(range);
 startRange = range(1);
 endRange = range(end);
 range = dater.colon(startRange, endRange);
 numPeriods = round(endRange - startRange + 1);
-[ny, ~, nb, ~, ~, ~, nz] = sizeSolution(this);
+[ny, ~, numXb, ~, ~, ~, nz] = sizeSolution(this);
+
+
+opt.ReturnMedian = locallyResolveMedianOption(this, opt.ReturnMedian);
 
 
 %
@@ -103,7 +126,7 @@ else
 end
 opt.OutOfLik = reshape(opt.OutOfLik, 1, [ ]);
 if numel(opt.OutOfLik)>0 && ~opt.DTrends
-    thisError  = [ 
+    thisError  = [
         "Model:CannotEstimateOutOfLik"
         "Cannot estimate out-of-likelihood parameters with the option DTrends=false"
     ];
@@ -117,9 +140,12 @@ end
 %
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
+optionsHere = struct("Clip", true, "Presample", true);
 if ~isempty(opt.Override) || ~isempty(opt.Multiply)
-    [opt.OverrideStdcorr, ~, opt.MultiplyStd] = ...
-        varyStdCorr(this, range, opt.Override, opt.Multiply, '--clip', '--presample');
+    [opt.OverrideStdcorr, ~, opt.MultiplyStd] = varyStdCorr( ...
+        this, range, opt.Override, opt.Multiply ...
+        , optionsHere ...
+    );
 end
 
 
@@ -136,7 +162,7 @@ end
 opt.OverrideMean = temp;
 
 
-% 
+%
 % Select the objective function
 %
 switch lower(opt.ObjFunc)
@@ -187,14 +213,48 @@ end
 %
 % Initial condition
 %
-if validate.databank(opt.Initials)
-    [xbInitMean, listMissingMeanInit, xbInitMse, listMissingMSEInit] = ...
-        datarequest('xbInit', this, opt.Initials, range);
-    if isempty(xbInitMse)
-        xbInitMse = zeros(numel(xbInitMean));
+% User-supplied initials is a 1-by-2 cell array with a mean vector and an MSE
+% matrix.
+%
+if iscell(opt.Initials)
+    xbVector = getBackwardSolutionVector(this.Vector);
+    maxLag = min([imag(xbVector), 0]) - 1;
+    presampleDates = dater.plus(range(1), maxLag:-1);
+    if validate.databank(opt.Initials{1})
+        if numXb>0
+            names = textual.stringify(this.Quantity.Name);
+            numQuantities = numel(names);
+            inxXb = false(1, numQuantities);
+            inxXb(real(xbVector)) = true;
+            xbNames = textual.stringify(names(inxXb));
+            xbLogNames = textual.stringify(names(inxXb & this.Quantity.InxLog));
+            context = "";
+            dbInfo = checkInputDatabank( ...
+                this, opt.Initials{1}, range ...
+                , string.empty(1, 0), xbNames ...
+                , string.empty(1, 0), xbLogNames ...
+                , context ...
+            );
+
+            names(~inxXb) = missing;
+            array = requestData(this, dbInfo, opt.Initials{1}, names, presampleDates);
+            linx = sub2ind(size(array), real(xbVector), imag(xbVector)-maxLag);
+            opt.Initials{1} = reshape(double(array(linx)), numXb, 1);
+        else
+            opt.Initials{1} = double.empty(0, 1);
+        end
+    elseif ~isempty(opt.Initials{1})
+        opt.Initials{1} = reshape(double(opt.Initials{1}), numXb, 1);
     end
-    hereCheckNaNInit( );
-    opt.Initials = {xbInitMean, xbInitMse};
+
+    if isa(opt.Initials{2}, 'Series') && iscell(opt.Initials{2}.Data)
+        x = getData(opt.Initials{2}, presampleDates(end));
+        opt.Initials{2} = reshape(x{1}, numXb, numXb);
+    elseif isequal(opt.Initials{2}, 0)
+        opt.Initials{2} = zeros(numXb, numXb);
+    elseif ~isempty(opt.Initials{2})
+        opt.Initials{2} = reshape(opt.Initials{2}, numXb, numXb);
+    end
 end
 
 
@@ -211,7 +271,7 @@ end
 
 % Last backward smoothing period. The option  lastsmooth will not be
 % adjusted after we add one pre-sample init condition in `kalman`. This
-% way, one extra period before user-requested lastsmooth will smoothed, 
+% way, one extra period before user-requested lastsmooth will smoothed,
 % which can be then used in `simulate` or `jforecast`.
 if isempty(opt.LastSmooth) || isequal(opt.LastSmooth, Inf)
     opt.LastSmooth = 1;
@@ -236,13 +296,12 @@ end
 
 return
 
-
     function timeVarying = hereResolveTimeVarying( )
         timeVarying = [ ];
         if ~isa(this, 'Model')
             return
         end
-        if isempty(opt.Override) || ~isstruct(opt.Override) || isempty(fieldnames(opt.Override))
+        if isempty(opt.Override) || ~validate.databank(opt.Override) || isempty(fieldnames(opt.Override))
             return
         end
         argin = struct( ...
@@ -275,10 +334,8 @@ return
                           'The value for this MSE initial condition is missing from input databank: %s ' };
             throw( exception.Base(thisError, 'error'), ...
                    listMissingMSEInit{:} );
-        end        
+        end
     end%
-
-
 
 
     function hereCheckRollingColumns( )
@@ -289,14 +346,25 @@ return
     end%
 
 
-
-
     function herePrepareSimulateSystemProperty( )
         opt.Simulate = simulate( ...
             this, "asynchronous", @auto, ...
-            opt.Simulate{:}, "SystemProperty=", "S" ...
+            opt.Simulate{:}, "SystemProperty", "S" ...
         );
     end%
+end%
+
+%
+% Local functions
+%
+
+function flag = locallyResolveMedianOption(this, flag)
+    %(
+    if ~isempty(flag)
+        return
+    end
+    flag = hasLogVariables(this);
+    %)
 end%
 
 %
@@ -304,12 +372,7 @@ end%
 %
 
 function flag = locallyValidateInitCond(x)
-    if validate.databank(x)
-        flag = true;
-        return
-    end
-    if iscell(x) && numel(x)>=1 && numel(x)<=3 && all(cellfun(@isnumeric, x))
-        flag = true;
+    if iscell(x) && any(numel(x)==[2, 3])
         return
     end
     if validate.anyString(x, 'Asymptotic', 'Stochastic', 'Steady', 'Fixed', 'FixedUnknown')

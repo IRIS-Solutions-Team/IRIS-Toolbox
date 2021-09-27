@@ -7,15 +7,11 @@ function [Omg, stdcorr] = getIthOmega(this, variantsRequested, overrideStdcorr, 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 if nargin<=1
     variantsRequested = 1 : countVariants(this);
 end
 
-%--------------------------------------------------------------------------
-
-inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+inxE = getIndexByType(this.Quantity, 31, 32);
 ne = nnz(inxE);
 
 stdcorr = getIthStdcorr(this, variantsRequested);

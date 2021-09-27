@@ -23,7 +23,7 @@ else
     inputArray = inputData;
 end
 
-kalmanOpt = prepareKalmanOptions(this, range, "version", 1, varargin{:});
+kalmanOpt = prepareKalmanOptions(this, range, varargin{:});
 
 
 

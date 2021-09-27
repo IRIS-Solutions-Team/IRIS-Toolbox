@@ -8,10 +8,8 @@
 
 function [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL)
 
-TYPE = @int8;
-
 nv = countVariants(this);
-inxP = getIndexByType(this.Quantity, TYPE(4));
+inxP = getIndexByType(this.Quantity, 4);
 numExtendedPeriods = size(YXEPG, 2);
 numDataSets = size(YXEPG, 3);
 
@@ -22,7 +20,7 @@ numVariantsRequested = numel(variantsRequested);
 
 if nargout>1
     needsDelog = true;
-    inxYX = getIndexByType(this.Quantity, TYPE(1), TYPE(2));
+    inxYX = getIndexByType(this.Quantity, 1, 2);
     posYX = find(inxYX);
     if isequal(howToCreateL, Inf)
         % Take steady trends from data matrix

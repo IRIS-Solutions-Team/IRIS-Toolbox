@@ -206,7 +206,6 @@ return
 
     function hereGetHashIncidence( )
     %(
-        TYPE = @int8;
         inc = across(rect.HashIncidence, 'Equations');
         inc = inc(inxYX, :);
         shifts = rect.HashIncidence.Shift;

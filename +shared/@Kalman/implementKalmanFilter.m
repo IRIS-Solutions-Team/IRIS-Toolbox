@@ -53,14 +53,13 @@ numExtendedPeriods = size(inputData, 2);
 %--------------------------------------------------------------------------
 
 s = struct();
-
 s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
 s.DIFFUSE_SCALE = this.DIFFUSE_SCALE;
 s.OBJ_FUNC_PENALTY = this.OBJ_FUNC_PENALTY;
 
 s.Ahead = opt.Ahead;
 s.IsObjOnly = nargout<=1;
-s.NumExtendedPeriods = numExtendedPeriods;
+s.NumExtdPeriods = numExtendedPeriods;
 s.NumY  = ny;
 s.NumXi = nxi;
 s.NumB  = nb;
@@ -71,7 +70,7 @@ s.NumG  = ng;
 s.NeedsSimulate = ~isequal(opt.Simulate, false);
 
 % Out-of-lik params cannot be used with ~opt.DTrends
-numPouts = length(opt.OutOfLik);
+numOutlik = length(opt.OutOfLik);
 
 % Struct with currently processed information. Initialise the invariant
 % fields
@@ -79,7 +78,7 @@ s.ny = ny;
 s.nb = nb;
 s.nf = nf;
 s.ne = ne;
-s.NumPouts = numPouts;
+s.NumOutlik = numOutlik;
 
 % Add pre-sample to objective function range and deterministic time trend
 s.InxObjFunc = [false, opt.ObjFuncRange];
@@ -127,8 +126,8 @@ if ~s.IsObjOnly
     regOutp.F = nan(ny, ny, numExtendedPeriods, numRuns);
     regOutp.Pe = nan(ny, numExtendedPeriods, s.nPred);
     regOutp.V = nan(1, numRuns);
-    regOutp.Delta = nan(numPouts, numRuns);
-    regOutp.PDelta = nan(numPouts, numPouts, numRuns);
+    regOutp.Delta = nan(numOutlik, numRuns);
+    regOutp.PDelta = nan(numOutlik, numOutlik, numRuns);
     regOutp.SampleCov = nan(ne, ne, numRuns);
     regOutp.NLoop = numRuns;
     regOutp.Init = { nan(nb, 1, numRuns), nan(nb, nb, numRuns), zeros(nb, nb, numRuns) };
@@ -232,7 +231,7 @@ for run = 1 : numRuns
 
     % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
-    if nz==0 && (numPouts>0 || opt.DTrends)
+    if nz==0 && (numOutlik>0 || opt.DTrends)
         [s.D, s.X] = evalTrendEquations(this, opt.OutOfLik, s.g, run);
     else
         s.D = [ ];
@@ -287,7 +286,7 @@ for run = 1 : numRuns
 
     % Run prediction error decomposition and evaluate user-requested
     % objective function.
-    [obj(:, run), s] = kalman.ped(s, opt);
+    [obj(:, run), s] = shared.Kalman.predictErrorDecomposition(s, opt);
     inxValidFactor(run) = abs(s.V)>this.VARIANCE_FACTOR_TOLERANCE;
 
     % Return immediately if only the value of the objective function is
@@ -304,7 +303,7 @@ for run = 1 : numRuns
 
     % Correct prediction errors for estimated initial conditions and DTrends
     % parameters.
-    if s.NumEstimInit>0 || numPouts>0
+    if s.NumEstimInit>0 || numOutlik>0
         est = [s.delta; s.init];
         if s.storePredict
             [s.pe, s.a0, s.y0, s.ydelta] = ...
@@ -335,7 +334,7 @@ for run = 1 : numRuns
 
 
     %
-    % Filter
+    % Update
     %
     if s.retFilter
         if s.retFilterStd || s.retFilterMse
@@ -380,7 +379,7 @@ for run = 1 : numRuns
         returnPred( );
     end
     if s.retFilter
-        returnFilter( );
+        returnUpdate( );
     end
     s.SampleCov = NaN;
     if s.retSmooth
@@ -479,7 +478,7 @@ return
                         bb(:, :, ii) = s.U*bb(:, :, ii);
                     end
                 else
-                    for tt = 2 : s.NumExtendedPeriods
+                    for tt = 2 : s.NumExtdPeriods
                         U = s.U(:, :, min(tt, end));
                         for ii = 1 : size(bb, 3)
                             bb(:, tt, ii) = U*bb(:, tt, ii);
@@ -492,8 +491,8 @@ return
             % Shock predictions are always zeros.
             ee = zeros(ne, numExtendedPeriods, s.Ahead);
             % Set predictions for the pre-sample period to `NaN`.
-            xx(:, 1, :) = NaN;
-            ee(:, 1, :) = NaN;
+            %=== xx(:, 1, :) = NaN;
+            %=== ee(:, 1, :) = NaN;
             % Add fixed deterministic trends back to measurement vars.
             % Add shock tunes to shocks.
             if s.IsOverrideMean
@@ -509,8 +508,10 @@ return
                 s.Dy0 = s.Dy0([ ], :);
             end
             % Do not use lags in the prediction output data
-            outputData.S0 = outputDataAssignFunc( outputData.S0, run, ...
-                                                  {s.Dy0*s.V, [s.Df0; s.Db0]*s.V, s.De0*s.V, [ ], [ ]} );
+            outputData.S0 = outputDataAssignFunc( ...
+                outputData.S0, run, ...
+                {s.Dy0*s.V, [s.Df0; s.Db0]*s.V, s.De0*s.V, [ ], [ ]} ...
+            );
         end
 
         % Return prediction MSE for xb.
@@ -538,7 +539,7 @@ return
 
 
 
-    function returnFilter( )
+    function returnUpdate( )
         if s.retFilterMean
             if nz>0
                 s.y1 = s.y1([ ], :);
@@ -671,7 +672,7 @@ function s = hereAhead(s)
 
     % TODO: Make Ahead= work with time-varying state space matrices
 
-    numExtendedPeriods = s.NumExtendedPeriods;
+    numExtendedPeriods = s.NumExtdPeriods;
     a0 = permute(s.a0, [1, 3, 4, 2]);
     pe = permute(s.pe, [1, 3, 4, 2]);
     y0 = permute(s.y0, [1, 3, 4, 2]);
@@ -720,7 +721,7 @@ function s = hereAhead(s)
             end
         end
     end
-    if s.NumPouts>0
+    if s.NumOutlik>0
         y0(:, :, 2:end) = y0(:, :, 2:end) + ydelta(:, :, ones(1, s.Ahead-1));
     end
     pe(:, :, 2:end) = s.y1(:, :, ones(1, s.Ahead-1)) - y0(:, :, 2:end);
@@ -740,12 +741,12 @@ end%
 function s= hereGetPredXfMse(s)
     nf = s.NumF;
     nb = s.NumB;
-    numExtendedPeriods = s.NumExtendedPeriods;
+    numExtendedPeriods = s.NumExtdPeriods;
 
     s.Pf0 = nan(nf, nf, numExtendedPeriods);
     s.Pfa0 = nan(nf, nb, numExtendedPeriods);
     s.Df0 = nan(nf, numExtendedPeriods);
-    for t = 2 : s.NumExtendedPeriods
+    for t = 2 : s.NumExtdPeriods
         Ta = s.Ta(:, :, min(t, end));
         Tf = s.Tf(:, :, min(t, end));
         Sf = s.Sf(:, :, min(t, end));
@@ -769,7 +770,7 @@ function s = hereGetPredXfMean(s)
     if s.NumF==0
         return
     end
-    for t = 2 : s.NumExtendedPeriods
+    for t = 2 : s.NumExtdPeriods
         % Prediction step
         Tf = s.Tf(:, :, min(t, end));
         jy1 = s.yindex(:, t-1);
@@ -787,12 +788,10 @@ function s = hereGetFilterMean(s)
     nf = s.NumF;
     nb = s.NumB;
     ne = s.NumE;
-    nxp = s.NumExtendedPeriods;
+    nxp = s.NumExtdPeriods;
     yInx = s.yindex;
     lastObs = s.LastObs;
 
-    % Pre-allocation. Re-use first page of prediction data. Prediction data
-    % can have multiple pages if `ahead`>1.
     s.b1 = nan(nb, nxp);
     s.f1 = nan(nf, nxp);
     s.e1 = nan(ne, nxp);
@@ -815,7 +814,7 @@ function s = hereGetFilterMean(s)
         s.y1(:, lastObs+1:end) = ipermute(s.y0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
     end
 
-    for t = lastObs : -1 : 2
+    for t = lastObs : -1 : 1
         j = yInx(:, t);
         d = [ ];
         if ~isempty(s.d)
@@ -841,7 +840,7 @@ function s = hereGetFilterMse(s)
     nf = s.NumF;
     nb = s.NumB;
     ng = s.NumG;
-    numExtendedPeriods = s.NumExtendedPeriods;
+    numExtendedPeriods = s.NumExtdPeriods;
     lastObs = s.LastObs;
 
     % Pre-allocation.
@@ -884,7 +883,7 @@ function s = hereGetSmoothMse(s)
     nf = s.NumF;
     nb = s.NumB;
     ng = s.NumG;
-    nxp = s.NumExtendedPeriods;
+    nxp = s.NumExtdPeriods;
     lastSmooth = s.LastSmooth;
     lastObs = s.LastObs;
 
@@ -927,7 +926,7 @@ function s = hereGetSmoothMean(s)
     nb = s.NumB;
     nf = s.NumF;
     ne = s.NumE;
-    nxp = s.NumExtendedPeriods;
+    nxp = s.NumExtdPeriods;
     lastObs = s.LastObs;
     lastSmooth = s.LastSmooth;
     % Pre-allocation. Re-use first page of prediction data. Prediction data
@@ -975,7 +974,7 @@ function [D, Ka, Kf] = hereOverrideMean(s, R, opt)
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
-    nxp = s.NumExtendedPeriods;
+    nxp = s.NumExtdPeriods;
     if opt.Deviation
         D = zeros(ny, nxp);
         Ka = zeros(nb, nxp);
@@ -1012,7 +1011,7 @@ function s = hereGetReducedFormCovariance(this, v, s, opt)
     % Override and Multiply including one presample period used to
     % initialize the filter
     %
-    s.Omg = getIthOmega(this, v, opt.OverrideStdcorr, opt.MultiplyStd, s.NumExtendedPeriods);
+    s.Omg = getIthOmega(this, v, opt.OverrideStdcorr, opt.MultiplyStd, s.NumExtdPeriods);
     lastOmg = size(s.Omg, 3);
 
     %

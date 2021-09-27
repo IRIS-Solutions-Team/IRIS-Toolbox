@@ -81,8 +81,6 @@ function outputDb = resample(this, inputDb, range, numDraws, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.resample');
@@ -130,7 +128,7 @@ range = double(range);
 numPeriods = numel(range);
 extendedRange = range(1)-1 : range(end);
 
-ixd = this.Equation.Type==TYPE(3);
+ixd = this.Equation.Type==3;
 isTrendEquations = opt.DTrends && any(ixd);
 [ny, nxx, nb, nf, ne, ng] = sizeSolution(this.Vector);
 [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, 1, false);
@@ -158,8 +156,9 @@ Ra = R(nf+1:end, :);
 Ta2 = Ta(numUnitRoots+1:end, numUnitRoots+1:end);
 Ra2 = Ra(numUnitRoots+1:end, :);
 
-% Combine user-supplied stdcorr with model stdcorr.
-overrideStdCorr = varyStdCorr(this, range, opt.Override, opt.Multiply);
+% Combine user-supplied stdcorr with model std/corr
+optionsHere = struct("Clip", false, "Presample", false);
+overrideStdCorr = varyStdCorr(this, range, opt.Override, opt.Multiply, optionsHere);
 usrStdcorrInx = ~isnan(overrideStdCorr);
 
 % Get variation in the location of shocks
@@ -300,7 +299,7 @@ for iDraw = 1 : numDraws
     if ~opt.Deviation
         y = y + D(:, ones(1, numPeriods));
     end
-    % Add dtrends to simulated data.
+    % Add measurement trends to simulated data.
     if isTrendEquations
         if iDraw==1 || ~isequal(G(:, :, min(iDraw, end)), g)
             g = G(:, :, min(iDraw, end));

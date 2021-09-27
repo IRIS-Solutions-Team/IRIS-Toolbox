@@ -17,7 +17,7 @@ outputFmt = {
 
 
 matrixFormat = {
-    'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
 };
 
 

@@ -23,10 +23,12 @@ if isempty(pp)
                          || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
     pp.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     pp.addParameter('Smooth', false, @validate.logicalScalar);
+    pp.addParameter('Highlight', [], @validate.properRange);
 end
 opt = pp.parse(varargin{:});
-%)
 unmatchedOptions = pp.UnmatchedInCell;
+%)
+
 
 dates = reshape(double(dates), 1, []);
 enforceXLimHere = true;
@@ -85,6 +87,9 @@ if isTimeAxis && ~isempty(xData)
     setappdata(axesHandle, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
     setappdata(axesHandle, 'IRIS_TimeSeriesPlot', true);
 end
+
+locallyAfter(axesHandle, opt);
+
 
 return
 
@@ -208,6 +213,18 @@ return
         end
         %)
     end%
+end%
+
+%
+% Local functions
+%
+
+function locallyAfter(axesHandle, opt);
+    %(
+    if ~isempty(opt.Highlight)
+        visual.highlight(axesHandle, opt.Highlight);
+    end
+    %)
 end%
 
 %

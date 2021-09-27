@@ -64,7 +64,7 @@ if isempty(parser)
     parser = extend.InputParser('model.xsf');
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addRequired('Freq', @isnumeric);
-    parser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
+    parser.addParameter('MatrixFormat', 'NamedMat', @validate.matrixFormat);
     parser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x) || isstring(x)) && ~isempty(x));
     parser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x) || isstring(x));
     parser.addParameter('Filter', '', @ischar);

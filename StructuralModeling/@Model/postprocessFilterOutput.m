@@ -3,8 +3,8 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [F, Pe, V, delta, PDelta, initials, this] ...
-    = postprocessFilterOutput(this, regOutp, xRange, opt)
+function [F, predictError, V, delta, PDelta, initials, this] ...
+    = postprocessFilterOutput(this, regOutp, extdRange, opt)
 
 try
     isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
@@ -18,7 +18,7 @@ inxY = this.Quantity.Type==1;
 inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
 nv = countVariants(this);
 
-startDate = xRange(1);
+startDate = extdRange(1);
 
 F = [ ];
 if isfield(regOutp, 'F')
@@ -26,17 +26,17 @@ if isfield(regOutp, 'F')
     F = replace(F, permute(regOutp.F, [3, 1, 2, 4]), startDate);
 end
 
-Pe = [ ];
+predictError = [ ];
 if isfield(regOutp, 'Pe')
-    Pe = struct( );
-    for iName = find(inxY)
-        name = this.Quantity.Name{iName};
-        data = permute(regOutp.Pe(iName, :, :), [2, 3, 1]);
-        if this.Quantity.IxLog(iName)
-            data = real(exp(data));
+    predictError = struct( );
+    for i = find(inxY)
+        name = this.Quantity.Name{i};
+        data = permute(regOutp.Pe(i, :, :), [2, 3, 1]);
+        if this.Quantity.IxLog(i)
+            name = logPrefix + name;
         end
-        Pe.(name) = TIME_SERIES_TEMPLATE;
-        Pe.(name) = replace(Pe.(name), data, startDate, name);
+        predictError.(name) = TIME_SERIES_TEMPLATE;
+        predictError.(name) = fill(predictError.(name), data, startDate, "Prediction error");
     end
 end
 

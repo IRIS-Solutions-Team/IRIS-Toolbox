@@ -88,7 +88,7 @@ classdef ( ...
 
 
         function varargout = errorbar(varargin)
-            [varargout{1:nargout}] = Series.implementPlot(@numeric.errorbar, varargin{:});
+            [varargout{1:nargout}] = Series.implementPlot(@series.errorbar, varargin{:});
         end%
         %)
     end

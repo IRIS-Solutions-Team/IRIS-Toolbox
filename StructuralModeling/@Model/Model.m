@@ -255,6 +255,7 @@ classdef Model ...
     methods % Public Interface
         %(
         varargout = access(varargin)
+        varargout = analyticGradients(varargin)
         varargout = byAttributes(varargin)
         varargout = changeLogStatus(varargin)
         varargout = checkInitials(varargin)
@@ -264,6 +265,7 @@ classdef Model ...
         varargout = isLinear(varargin)
         varargout = printWithValues(varargin)
         varargout = replaceNames(varargin)
+        varargout = rescaleStd(varargin)
         varargout = resetBounds(varargin)
         varargout = setBounds(varargin)
         varargout = simulate(varargin)

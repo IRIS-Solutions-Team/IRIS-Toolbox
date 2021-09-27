@@ -23,50 +23,6 @@ classdef ExcelSheet ...
 
     methods % Constructor
         function this = ExcelSheet(fileName, varargin)
-% ExcelSheet  Construct a new ExcelSheet object
-%{
-% Syntax
-%--------------------------------------------------------------------------
-%
-%     output = function(input, ...)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-% __``__ [ ]
-%
-%>    Description
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __``__ [ ]
-%
-%>    Description
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-%
-% __`=`__ [ | ]
-%
-%>    Description
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
             if nargin==0
                 return
             end
@@ -358,6 +314,18 @@ classdef ExcelSheet ...
             else
                 anchor = ExcelReference.decodeRow(value);
             end
+        end%
+    end
+
+
+    methods (Static) % Static constructors
+        function this = fromFile(fileName, varargin)
+            % Type `web ExcelSheet/fromFile.md` for help on this function
+            %
+            % -[IrisToolbox] for Macroeconomic Modeling
+            % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+            this = ExcelSheet(fileName, varargin{:});
         end%
     end
 end

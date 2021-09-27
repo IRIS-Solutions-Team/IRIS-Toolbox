@@ -49,8 +49,6 @@
 
 function this = changeLogStatus(this, newStatus, varargin)
 
-TYPE = @int8;
-
 % Parse input arguments
 %(
 persistent pp
@@ -63,7 +61,7 @@ end
 %)
 parse(pp, this, newStatus, varargin);
 
-typesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
+typesAllowed = {1, 2, 5};
 
 %--------------------------------------------------------------------------
 

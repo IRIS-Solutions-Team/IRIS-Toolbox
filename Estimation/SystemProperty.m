@@ -149,8 +149,7 @@ classdef SystemProperty < handle
 
 
         function numUnitRoots = get.NumUnitRoots(this)
-            TYPE = @int8;
-            numUnitRoots = nnz(this.EigenStability==TYPE(1));
+            numUnitRoots = nnz(this.EigenStability==1);
         end%
     end
 end

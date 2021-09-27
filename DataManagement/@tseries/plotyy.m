@@ -109,15 +109,6 @@ end
 parser.parse(rangeLhs, rangeRhs, XLhs, XRhs, varargin{:});
 opt = parser.Options;
 
-if ischar(rangeLhs)
-    rangeLhs = textinp2dat(rangeLhs);
-end
-if ischar(rangeRhs)
-    rangeRhs = textinp2dat(rangeRhs);
-end
-
-%--------------------------------------------------------------------------
-
 % Check consistency of ranges and time series.
 % LHS.
 if ~all(isinf(rangeLhs)) && ~isempty(rangeLhs) && ~isempty(XLhs) ...

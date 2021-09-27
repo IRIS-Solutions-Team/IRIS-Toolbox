@@ -9,8 +9,8 @@ function [Pe0, A0, Y0, YDelta] = correct(s, Pe0, A0, Y0, est, D)
 
 %--------------------------------------------------------------------------
 
-delta = est(1:s.NumPouts, :);
-numExtendedPeriods = s.NumExtendedPeriods;
+delta = est(1:s.NumOutlik, :);
+numExtendedPeriods = s.NumExtdPeriods;
 
 for t = 2 : numExtendedPeriods
     j = s.yindex(:, t);

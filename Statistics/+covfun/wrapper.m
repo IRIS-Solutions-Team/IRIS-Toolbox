@@ -7,10 +7,6 @@ function wrapper(this, systemProperty, ~)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 ny = systemProperty.NumObserved;
 nxi = systemProperty.NumStates;
 nb = systemProperty.NumBackward;
@@ -32,7 +28,7 @@ if isFilter
     applyFilterTo = systemProperty.CallerData.ApplyFilterTo;
     freq = systemProperty.CallerData.Frequencies;
 end
-inxOfUnitRoots = systemProperty.EigenStability==TYPE(1);
+inxOfUnitRoots = systemProperty.EigenStability==1;
 
 % Preallocate CC, RR
 [CC, RR] = herePreallocateOutputArrays( );

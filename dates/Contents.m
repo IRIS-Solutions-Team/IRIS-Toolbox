@@ -45,7 +45,6 @@
 % * [`dat2ypf`](dates/dat2ypf) - Convert IRIS serial date number to year, period and frequency.
 % * [`dec2dat`](dates/dec2dat) - Convert decimal representation of date to IRIS serial date number.
 % * [`str2dat`](dates/str2dat) - Convert strings to IRIS serial date numbers.
-% * [`textinp2dat`](dates/textinp2dat) - Convert text input to IRIS serial date numbers.
 %
 %
 % Date comparison

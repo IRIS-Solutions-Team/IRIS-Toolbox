@@ -92,7 +92,7 @@ if isempty(parser)
     parser.addRequired('freq', @isnumeric);
     parser.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
     parser.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isstring(x) || iscellstr(x));
-    parser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    parser.addParameter('MatrixFormat', 'namedmat', @validate.matrixFormat);
     parser.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
     parser.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
     parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));

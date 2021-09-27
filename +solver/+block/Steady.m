@@ -52,6 +52,8 @@ classdef Steady < solver.block.Block
             error = struct('EvaluatesToNan', [], 'LogAssignedNonpositive', []);
             inxLogWithinModel = this.ParentBlazer.Model.Quantity.InxLog;
 
+            lastJacob = [ ];
+            dimension = [0, 0];
             if isEmptyBlock(this.Type) || isempty(this.PtrQuantities)
                 exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
                 return
@@ -97,8 +99,6 @@ classdef Steady < solver.block.Block
                 % Assign
                 %
                 [z, exitFlag] = hereAssign();
-                lastJacob = [ ];
-                dimension = [0, 0];
             end
 
             lx(ptrLevel) = z(1:numLevels);
@@ -402,7 +402,7 @@ classdef Steady < solver.block.Block
                 %
                 % Redifferentiate this equation wrt the quantities needed only
                 %
-                d = model.component.Gradient.diff(this.ParentBlazer.Equations{posEqn}, vecWrtNeeded);
+                d = model.component.Gradient.diff(this.ParentBlazer.Equations{posEqn}, vecWrtNeeded, "array");
                 d = str2func(this.PREAMBLE + string(d));
                 gr = {d; vecWrtNeeded; [ ]};
             end

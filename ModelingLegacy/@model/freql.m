@@ -10,8 +10,6 @@ function [obj, regOutp] = freql(this, argin)
 % TODO: Non-stationary measurement variables
 
 STEADY_TOLERANCE = this.Tolerance.Steady;
-TYPE = @int8;
-
 opt = argin.Options;
 
 %--------------------------------------------------------------------------
@@ -21,8 +19,8 @@ s.NumOutOfLik = numel(argin.Options.OutOfLik);
 s.isObjOnly = nargout==1;
 
 nv = countVariants(this);
-inxY = this.Quantity.Type==TYPE(1);
-inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxY = this.Quantity.Type==1;
+inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
 numY = sum(inxY);
 numE = sum(inxE);
 
@@ -123,7 +121,7 @@ for i = 1 : numRuns
         
     % Fourier transform of deterministic trends
     isTrendEquations = false;
-    numPouts = 0;
+    numOutlik = 0;
     if argin.Options.DTrends
         [W, M] = evalTrendEquations(this, argin.Options.OutOfLik, g, i);
         isTrendEquations = any(W(:)~=0);
@@ -136,7 +134,7 @@ for i = 1 : numRuns
             M = fft(M);
             M = ipermute(M, [3, 1, 2]);
         end
-        numPouts = size(M, 2);
+        numOutlik = size(M, 2);
     end
         
     % Subtract sstate trends from observations; note that fft(y-s)
@@ -160,8 +158,8 @@ for i = 1 : numRuns
     
     L0 = zeros(1, numFreq+1);
     L1 = zeros(1, numFreq+1);
-    L2 = zeros(numPouts, numPouts, numFreq+1);
-    L3 = zeros(numPouts, numFreq+1);
+    L2 = zeros(numOutlik, numOutlik, numFreq+1);
+    L3 = zeros(numOutlik, numFreq+1);
     numObs = zeros(1, numFreq+1);
     
     pos = 0;

@@ -60,7 +60,7 @@ serialRangeEnd = dater.getSerial(endRange);
 previousSerialXStart = [ ];
 previousXStart = [ ];
 
-for name__ = reshape(string(nameAppendables(this)), 1, [])
+for name__ = textual.stringify(nameAppendables(this))
     if ~isfield(outputDb, name__)
         continue
     end

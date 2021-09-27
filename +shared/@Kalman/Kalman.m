@@ -25,13 +25,15 @@ classdef (Abstract) Kalman
 
 
     methods (Abstract, Hidden)
+        varargout = hasLogVariables(varargin)
         varargout = countVariants(varargin)
     end
 
 
-    methods (Static, Hidden)
+    methods (Static)
         varargout = initialize(varargin)
         varargout = combineStdcorr(varargin)
+        varargout = predictErrorDecomposition(varargin)
         varargout = smootherForVAR(varargin)
     end
 end

@@ -64,16 +64,14 @@ if isempty(inputParser)
     inputParser = extend.InputParser('model/fevd');
     inputParser.addRequired('Model', @(x) isa(x, 'model'));
     inputParser.addRequired('Time', @validate.date);
-    inputParser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    inputParser.addParameter('MatrixFormat', 'namedmat', @validate.matrixFormat);
     inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
 end
 inputParser.parse(this, time, varargin{:});
 opt = inputParser.Options;
 
 % Tell whether time is numPeriods or Range.
-if ischar(time)
-    time = textinp2dat(time);
-elseif length(time)==1 && round(time)==time && time>0
+if isscalar(time) && round(time)==time && time>0
     time = 1 : time;
 end
 range = time(1) : time(end);

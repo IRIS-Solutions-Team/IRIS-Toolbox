@@ -2,7 +2,7 @@ classdef Heading ...
     < rephrase.Element ...
     & rephrase.Terminus
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.HEADING
     end
 

@@ -1,6 +1,5 @@
 function [this, isValidRequest, isValidValue] = implementSet(this, query, value, varargin)
 
-TYPE = @int8;
 isValidRequest = true;
 isValidValue = true;
 numQuantities = length(this.Name);
@@ -34,15 +33,15 @@ elseif compare(query, ...
     end
     switch lower(query(1))
         case 'y'
-            ixType = this.Type==TYPE(1);
+            ixType = this.Type==1;
         case 'x'
-            ixType = this.Type==TYPE(2);
+            ixType = this.Type==2;
         case 'e'
-            ixType = this.Type==TYPE(31) | this.Type==TYPE(32);
+            ixType = this.Type==31 | this.Type==32;
         case 'p'
-            ixType = this.Type==TYPE(4);
+            ixType = this.Type==4;
         case 'g'
-            ixType = this.Type==TYPE(5);
+            ixType = this.Type==5;
     end
     if iscellstr(value) && length(value)==sum(ixType)
         this.(prop)(ixType) = value;

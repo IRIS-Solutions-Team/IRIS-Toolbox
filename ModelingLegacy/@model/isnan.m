@@ -34,8 +34,6 @@ function [flag, list] = isnan(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 if ~isempty(varargin) ...
     && (validate.stringScalar(varargin{1}) && string(varargin{1})~=":")
     request = lower(strtrim(string(varargin{1})));
@@ -79,7 +77,7 @@ switch request
     case "parameters"
         x = this.Variant.Values(:, :, variantsRequested);
         inxNaN = any(isnan(x), 3);
-        inxNaN = inxNaN & this.Quantity.Type==TYPE(4);
+        inxNaN = inxNaN & this.Quantity.Type==4;
         if nargout>1
             list = this.Quantity.Name(inxNaN);
         end
@@ -90,8 +88,8 @@ switch request
         x = this.Variant.Values(:, :, variantsRequested);
         inxNaN = any(isnan(x), 3);
         inxNaN = inxNaN & ...
-            (this.Quantity.Type==TYPE(1) ...
-            | this.Quantity.Type==TYPE(2));
+            (this.Quantity.Type==1 ...
+            | this.Quantity.Type==2);
         if nargout>1
             list = this.Quantity.Name(inxNaN);
         end

@@ -1,4 +1,5 @@
 % Type `web +databank/apply.md` for help on this function
+%
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 

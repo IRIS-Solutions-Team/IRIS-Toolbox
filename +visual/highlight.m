@@ -50,8 +50,8 @@ function [patchHandles, textHandles] = highlight(varargin)
 
 %#ok<*AGROW>
 
-patchHandles = gobjects(1, 0); % Handles to patch objects.
-textHandles = gobjects(1, 0); % Handles to caption objects.
+patchHandles = gobjects(1, 0); % Handles to patch objects
+textHandles = gobjects(1, 0); % Handles to caption objects
 
 if isempty(varargin)
     return
@@ -155,7 +155,7 @@ for a = 1 : numel(axesHandle)
             continue
         end
 
-        ithPatchHandle = drawPatch(h, xData, yData, opt, unmatched);
+        ithPatchHandle = locallyDrawPatch(h, xData, yData, opt, unmatched);
 
         % Add caption to the highlight.
         if ~isempty(opt.Text)
@@ -241,16 +241,18 @@ function yData = getYData(h, LIM_MULTIPLE)
 end%
 
 
-function handlePatch = drawPatch(handleAxes, xData, yData, opt, unmatched)
+function handlePatch = locallyDrawPatch(handleAxes, xData, yData, opt, unmatched)
     xData = xData([1, 2, 2, 1]);
     yData = yData([1, 1, 2, 2]);
     nextPlot = get(handleAxes, 'NextPlot');
     set(handleAxes, 'NextPlot', 'Add');
-    handlePatch = fill( xData, yData, opt.Color, ...
-                        'Parent', handleAxes, ...
-                        'YLimInclude', 'off', 'XLimInclude', 'off', ...
-                        'EdgeColor', 'none', 'FaceAlpha', opt.Alpha, ...
-                        unmatched{:} );
+    handlePatch = fill( ...
+        xData, yData, opt.Color ...
+        , 'Parent', handleAxes ...
+        , 'YLimInclude', 'off', 'XLimInclude', 'off' ...
+        , 'EdgeColor', 'none', 'FaceAlpha', opt.Alpha ...
+        , unmatched{:} ...
+    );
     set(handleAxes, 'NextPlot', nextPlot);
 end%
 

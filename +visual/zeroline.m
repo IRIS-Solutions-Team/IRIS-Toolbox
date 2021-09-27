@@ -42,6 +42,13 @@ function lineHandles = zeroline(varargin)
 
 %--------------------------------------------------------------------------
 
+exception.warning([
+    "Obsolete"
+    "Function visual.zeroline has become obsolete and "
+    "is scheduled for removal from the IrisToolbox."
+    "Use the new Matlab function yline() instead."
+]);
+
 lineHandles = visual.backend.plotInfiniteLine('zeroline', varargin{:});
 
 end%

@@ -77,7 +77,7 @@ elseif startsWith(dates, ["balanced", "shortRange"], "ignoreCase", true)
     to = min(endDate); 
 else
     exception.error([
-        "Series:NonhomogeneousFrequency"
+        "Series"
         "Invalid date range specification; it needs to be "
         "one of { dater, ""longRange"", ""shortRange"" }. "
     ]);

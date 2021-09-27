@@ -7,11 +7,7 @@ function this = selectType(this, type)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
-ix = this.Type==TYPE(type);
+ix = this.Type==type;
 this.Input = this.Input(ix);
 this.Type = this.Type(ix);
 this.Label = this.Label(ix);

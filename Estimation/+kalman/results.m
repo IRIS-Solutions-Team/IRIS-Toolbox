@@ -1,12 +1,11 @@
 function f = results(outp, quantity, solution)
 
-TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
 [ny, ~, nb, nf, ne] = sizeSolution(solution);
-ixy = quantity.Type==TYPE(1);
-ixe = quantity.Type==TYPE(31) | quantity.Type==TYPE(32);
+ixy = quantity.Type==1;
+ixe = quantity.Type==31 | quantity.Type==32;
 posy = find(ixy);
 pose = find(ixe);
 start = outp.Range(1);

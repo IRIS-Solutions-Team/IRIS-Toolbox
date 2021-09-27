@@ -5,7 +5,7 @@
 
 function [x, f, exitFlag, info, lastJacob] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
 
-FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s %9s';
+FORMAT_ITER = '%6g %8g %13g %6g %13g %13g %13g %13g %13s %9s';
 MIN_STEP = 1e-8;
 MAX_STEP = 2;
 MAX_ITER_IMPROVE_PROGRESS = 40;

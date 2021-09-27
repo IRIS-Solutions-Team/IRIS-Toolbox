@@ -29,13 +29,6 @@ else
     end
     location = varargin{1};
     varargin(1) = [ ];
-    if ischar(location) || isa(location, 'str') || iscellstr(location)
-        location = cellstr(location);
-        for i = 1 : numel(location)
-            location{i} = textinp2dat(location{i});
-        end
-        location = [ location{:} ];
-    end
     if isempty(location)
         return
     end

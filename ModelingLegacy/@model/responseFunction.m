@@ -9,7 +9,6 @@ function [s, range, namesOfResponses] = responseFunction(this, time, func, names
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
-TYPE = @int8;
 
 persistent parser
 if isempty(parser)
@@ -20,9 +19,7 @@ end
 parse(parser, this, time);
 
 % Tell whether time is numOfPeriods or range
-if ischar(time)
-    time = textinp2dat(time);
-elseif length(time)==1 && round(time)==time && time>0
+if isscalar(time) && round(time)==time && time>0
     time = 1 : time;
 end
 range = time(1) : time(end);
@@ -30,10 +27,10 @@ numOfPeriods = length(range);
 
 %--------------------------------------------------------------------------
 
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixg = this.Quantity.Type==TYPE(5);
+ixy = this.Quantity.Type==1;
+ixx = this.Quantity.Type==2;
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
+ixg = this.Quantity.Type==5;
 nx = sum(ixx);
 [ny, nxx] = sizeSolution(this.Vector);
 posx = find(ixx);

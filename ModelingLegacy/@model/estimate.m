@@ -21,7 +21,7 @@ if isempty(pp)
     pp.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
     pp.addParameter({'Filter', 'FilterOpt'}, cell.empty(1, 0), @validate.nestedOptions);
     pp.addParameter('NoSolution', 'Error', @(x) validate.numericScalar(x, 1e10, Inf) || validate.anyString(x, 'Error', 'Penalty'));
-    pp.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
+    pp.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @validate.matrixFormat);
     pp.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
     pp.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSteady);
     pp.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
@@ -107,12 +107,12 @@ estimationWrapper.IsConstrained = posterior.IsConstrained;
 chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions.Options);
 
 
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 %
-% Run Optimizer
+% Run optimizer
 %
 maximizePosteriorMode(posterior, estimationWrapper);
-% /////////////////////////////////////////////////////////////////////////
+%==========================================================================
 
 
 % Assign estimated parameters, refresh dynamic links, and re-compute steady

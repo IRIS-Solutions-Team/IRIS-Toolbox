@@ -25,11 +25,7 @@ function this = stdscale(this, factor)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
-ne = nnz(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
+ne = nnz(this.Quantity.Type==31 | this.Quantity.Type==32);
 
 factor = factor(:);
 if all(factor==1)

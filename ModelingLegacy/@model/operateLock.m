@@ -7,7 +7,6 @@ function varargout = operateLock(this, type, action, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
 PTR = @int16;
 
 if isempty(varargin)

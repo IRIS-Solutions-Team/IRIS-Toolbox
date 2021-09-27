@@ -3,69 +3,69 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function dbInfo = checkInputDatabank( ...
-    this, inputDb, range ...
-    , requiredNames, optionalNames, context ...
-    , allowedNumeric ...
+function info = checkInputDatabank( ...
+    this, inputDb, dates ...
+    , requiredNames, optionalNames ...
+    , allowedNumeric, logNames ...
+    , context ...
 )
 
-try
-    if ~isempty(optionalNames)
-        optionalNames = reshape(string(optionalNames), 1, [ ]);
-    else
-        optionalNames = string.empty(1, 0);
-    end
-catch
+if ~isempty(requiredNames)
+    requiredNames = textual.stringify(requiredNames);
+else
+    requiredNames = string.empty(1, 0);
+end
+
+if ~isempty(optionalNames)
+    optionalNames = textual.stringify(optionalNames);
+else
     optionalNames = string.empty(1, 0);
 end
 
-try
-    context;
-catch
-    context = "";
-end
-
-try
-    if ~isequal(allowedNumeric, @all)
-        allowedNumeric = reshape(string(allowedNumeric), 1, [ ]);
+if ~isequal(allowedNumeric, @all)
+    if ~isempty(allowedNumeric)
+        allowedNumeric = textual.stringify(allowedNumeric);
+    else
+        allowedNumeric = string.empty(1, 0);
     end
-
-catch
-    allowedNumeric = string.empty(1, 0);
 end
 
-%--------------------------------------------------------------------------
-    
-dbInfo = struct( );
-dbInfo.NumPages = NaN;
-dbInfo.NamesAvailable = string.empty(1, 0);
+if ~isempty(logNames)
+    logNames = textual.stringify(logNames);
+else
+    logNames = string.empty(1, 0);
+end
+
+allNames = [requiredNames, optionalNames];
+
+info = struct();
+info.AllNames = allNames;
+info.Dates = double(dates);
+info.NumPages = NaN;
+info.NamesAvailable = string.empty(1, 0);
+info.LogNames = logNames;
+
 if isequal(inputDb, "asynchronous")
     return
 end
 
+
 nv = countVariants(this);
 
-if isempty(requiredNames)
-    requiredNames = string.empty(1, 0);
-elseif ~iscellstr(requiredNames)
-    requiredNames = reshape(string(requiredNames), 1, [ ]);
-end
-
-freq = dater.getFrequency(range);
+freq = dater.getFrequency(dates);
 Frequency.checkMixedFrequency(freq);
 requiredFreq = freq(1);
 
-allNames = [requiredNames, optionalNames];
 inxOptionalNames = [false(size(requiredNames)), true(size(optionalNames))];
 inxRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
 
 
-checkIncluded = true(size(allNames)); % ^[1]
-checkFrequency = true(size(allNames)); % ^[2]
-checkType = true(size(allNames)); % ^[3]
-% [1]: Check that all required names are available
-% [2]: Check that all time series have the correct date frequency
-% [3]: Check that there is no invalid type of input data
+checkIncluded = true(size(allNames)); % [^1]
+checkFrequency = true(size(allNames)); % [^2]
+checkType = true(size(allNames)); % [^3]
+% [^1]: Check that all required names are available
+% [^2]: Check that all time series have the correct date frequency
+% [^3]: Check that there is no invalid type of input data
 
 numAllNames = numel(allNames);
 
@@ -77,23 +77,38 @@ else
     inxAllowedNumeric = ismember(allNames, allowedNumeric);
 end
 
-if isstruct(inputDb)
-    allDbNames = fieldnames(inputDb);
-else
-    allDbNames = keys(inputDb);
+dbNames = databank.fieldNames(inputDb);
+inxFound = ismember(allNames, dbNames);
+inxLogInput = false(1, numAllNames);
+
+
+% Find the index of names that are not in the databank, are allowed to be
+% log_ names and the corresponding log_name is in the databank
+logPrefix = model.component.Quantity.LOG_PREFIX;
+if any(~inxFound) && ~isempty(logNames)
+    inxAllowedLog = ismember(allNames, logNames);
+    inxFoundLog = ismember(logPrefix + allNames, dbNames);
+    inxLogInput = ~inxFound & inxAllowedLog & inxFoundLog;
+    inxFound = inxFound | inxLogInput;
 end
-inxFound = ismember(allNames, allDbNames);
+
+
 checkIncluded(~inxFound) = ~inxRequiredNames(~inxFound);
 inxNamesAvailable = false(1, numAllNames);
 numPages = nan(1, numAllNames);
 
 for i = find(inxFound)
     name__ = allNames(i);
+    if inxLogInput(i)
+        name__ = logPrefix + name__;
+    end
+
     if isstruct(inputDb)
         field__ = inputDb.(name__);
     else
         field__ = retrieve(inputDb, name__);
     end
+
     if isa(field__, 'NumericTimeSubscriptable')
         freq__ = getFrequencyAsNumeric(field__);
         checkFrequency(i) = isnan(freq__) || freq__==requiredFreq;
@@ -138,8 +153,9 @@ if ~all(checkNumPagesAndVariants)
     hereReportColumns( );
 end
 
-dbInfo.NumPages = max(max(numPages), 1);
-dbInfo.NamesAvailable = namesAvailable;
+info.NumPages = max(max(numPages), 1);
+info.NamesAvailable = namesAvailable;
+info.NamesWithLogInputData = allNames(inxLogInput);
 
 return
 

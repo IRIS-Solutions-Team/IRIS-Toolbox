@@ -10,7 +10,7 @@ function def = model( )
 %--------------------------------------------------------------------------
 
 matrixFormat = {
-    'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
     };
 
 select = {

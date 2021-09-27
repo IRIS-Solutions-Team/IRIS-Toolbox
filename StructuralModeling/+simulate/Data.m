@@ -354,8 +354,6 @@ classdef Data ...
 
     methods (Static)
         function this = fromModelAndPlan(model, run, plan, runningData)
-            TYPE = @int8;
-
             modelVariant = run;
             if countVariants(model)==1
                 modelVariant = 1;
@@ -380,9 +378,9 @@ classdef Data ...
 
             [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, runningData.YXEPG(:, :, dataPage), modelVariant, [ ]);
             quantity = getp(model, 'Quantity');
-            this.InxY = getIndexByType(quantity, TYPE(1));
-            this.InxX = getIndexByType(quantity, TYPE(2));
-            this.InxE = getIndexByType(quantity, TYPE(31), TYPE(32));
+            this.InxY = getIndexByType(quantity, 1);
+            this.InxX = getIndexByType(quantity, 2);
+            this.InxE = getIndexByType(quantity, 31, 32);
             this.InxLog = quantity.InxLog;
 
             this.InxExogenizedYX = logical(this.EmptySparse);

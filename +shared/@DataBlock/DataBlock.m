@@ -22,7 +22,7 @@ classdef DataBlock ...
     properties (Dependent)
         BaseRange
         InxBaseRange
-        NumExtendedPeriods
+        NumExtdPeriods
         NumBasePeriods
         NumQuantities
         NumColumns
@@ -39,12 +39,12 @@ classdef DataBlock ...
 
 
         function value = get.InxBaseRange(this)
-            value = false(1, this.NumExtendedPeriods);
+            value = false(1, this.NumExtdPeriods);
             value(this.BaseRangeColumns) = true;
         end%
 
 
-        function value = get.NumExtendedPeriods(this)
+        function value = get.NumExtdPeriods(this)
             value = size(this.YXEPG, 2);
         end%
 

@@ -16,7 +16,7 @@ numE = size(s.Ra, 2);
 numExtPeriods = size(s.y1, 2);
 
 numContribs = numY;
-numToEstim = s.NumPouts + s.NumEstimInit;
+numToEstim = s.NumOutlik + s.NumEstimInit;
 needsEstimate = numToEstim>0;
 
 Ta = s.Ta;

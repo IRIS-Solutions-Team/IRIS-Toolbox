@@ -5,7 +5,7 @@
 
 ## Syntax
 
-    [outputData, outputModel, info] = kalmanFilter(inputModel, inputData, filterRange, ...)
+    [outputDb, outputModel, info] = kalmanFilter(inputModel, inputData, filterRange, ...)
 
 
 ## Input arguments
@@ -30,7 +30,7 @@ __`filterRange`__ [ numeric | char ]
 ## Output arguments
 
 
-__`outputData`__ [ struct | Dictionary ]
+__`outputDb`__ [ struct | Dictionary ]
 >
 > Output databank (possibly a nested databank) with the requested data; the
 > type of output data are requested through the option `Output=`.
@@ -64,8 +64,79 @@ options is true; otherwise `V` is 1.
 > variables, `init{2}` is the MSE matrix.
 > 
 
-## Options
+## Options to control output data returned
 
+__`"FlattenOutput=true`"__ [ `true` | `false` ]
+>
+> Make the `outputDb` as flat as possible by removing nested levels if they
+> are empty or squeezing them if they only contain one field.
+>
+
+
+__`MatrixFormat="namedMatrix"`__ [ `"namedMatrix"` | `"numeric"` ]
+>
+> Format (class) output matrices included in the output `info` struct:
+>
+> * `"namedMatrix"` - return NamedMatrix objects where the individual rows
+>   and columns have variable names attached
+>
+> * `"numeric"` - return plain numeric arrays
+>
+
+
+__`MeanOnly=false`__ [ `true` | `false` ]
+>
+> Return the mean data (point estimates) only in the `outputDb`.
+>
+>
+
+
+__`OutputData="smooth"`__ [ string | `"predict"` | `"filter"` | `"smooth"` ]
+>
+> Choose which Kalman filter steps will be included in the `outputDb`:
+>
+> * `"smooth"` - include data from the backward smoother (two-sided
+>   filtering)
+>
+> * `"update"` - include data from the updating steep (one-sided filtering)
+>
+> * `"predict"` - include data from the prediction step
+> 
+
+
+__`ReturnMedian=true`__ [ `true` | `false` ]
+>
+> Return a databank with the median estimates of the model variables; the
+> meians are calculated by delogarithmizing the log-variables; the medianss
+> for other variables is identical to the means. This option only works
+> when `MeanOnly=false`.
+> 
+
+
+__`ReturnBreakdown=false`__ [ `true` | `false` ]
+>
+> Return contributions of prediction errors in measurement variables to the
+> estimates of all variables and shocks. This option only works when
+> `MeanOnly=false`.
+> 
+
+
+__`ReturnMse=true`__ [ `true` | `false` ]
+>
+> Return MSE matrices for predetermined state variables; these can be used
+> for settin up initial condition in subsequent call to another
+> `kalmanFilter()`. This option only works when `MeanOnly=false`.
+> 
+
+
+__`ReturnStd=true`__ [ `true` | `false` ]
+>
+> Return databank with std devs of model variables. This option only works
+> when `MeanOnly=false`.
+> 
+
+
+## Options to control the calculation within the Kalman filter
 
 __`Ahead=1`__ [ numeric ]
 >
@@ -99,12 +170,6 @@ __`Dtrends=@auto`__ [ `@auto` | `true` | `false` ]
 > will be set consistently with `Deviation=`.
 > 
 
-__`Output='Smooth'`__ [ `'Predict'` | `'Filter'` | `'Smooth'` ]
->
-> Return smoother data or filtered data or prediction data or any
-> combination of them.
-> 
-
 __`FmseCondTol=eps( )`__ [ numeric ]
 > 
 > Tolerance for the FMSE condition number test; not used unless
@@ -122,18 +187,12 @@ __`InitCond='Stochastic'`__ [ `'fixed'` | `'optimal'` | `'stochastic'` | struct 
 __`InitUnit='FixedUnknown'`__ [ `'ApproxDiffuse'` | `'FixedUknown'` ]
 >
 > Method of initializing unit root variables; see Description.
->qpjjjjLj
+>
 
 __`LastSmooth=Inf`__ [ numeric ]
 >
 > Last date up to which to smooth data backward from the end of the
 > filterRange; `Inf` means the smoother will run on the entire filterRange.
-> 
-
-__`MeanOnly=false`__ [ `true` | `false` ]
-> 
-> Return a plain databank with mean data only; this option overrides
-> options `ReturnCont=`, `ReturnMse=`, `ReturnStd=`.
 > 
 
 __`OutOfLik={ }`__ [ cellstr | empty ]
@@ -161,28 +220,12 @@ __`Relative=true`__ [ `true` | `false` ]
 > relative std devs, and a common variance scale factor will be estimated.
 > 
 
-__`ReturnCont=false`__ [ `true` | `false` ]
->
-> Return contributions of prediction errors in measurement variables to the
-> estimates of all variables and shocks.
-> 
-
-__`ReturnMse=true`__ [ `true` | `false` ]
->
-> Return MSE matrices for predetermined state variables; these can be used for settin up initial condition in subsequent call to another `filter( )`
-> or `jforecast( )`.
-> 
-
-__`ReturnStd=true`__ [ `true` | `false` ]
->
-> Return databank with std devs of model variables.
-> 
-
 __`Weighting=[ ]`__ [ numeric | empty ]
 >
 > Weighting vector or matrix for prediction errors when
 > `ObjFunc='PredErr'`; empty means prediction errors are weighted equally.
 > 
+
 
 ## Options for time-varying std deviations, correlations and means of shocks
 
@@ -204,6 +247,7 @@ __`Override=[ ]`__ [ struct | empty ]
 > assigned in the model object. See Description.
 > 
 
+
 ## Options for models with nonlinear equations simulated in prediction step
 
 
@@ -213,6 +257,7 @@ __`Simulate=false`__ [ `false` | cell ]
 > to run nonlinear simulation for each prediction step; specify options
 > that will be passed into `simulate` when running a prediction step.
 > 
+
 
 ## Description
 

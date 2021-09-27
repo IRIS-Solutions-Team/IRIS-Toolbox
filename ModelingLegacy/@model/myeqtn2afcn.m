@@ -1,9 +1,9 @@
-% myeqtn2afcn  Convert equation strings to anonymous functions
+% functionsFromEquations  Convert equation strings to anonymous functions
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function this = myeqtn2afcn(this)
+function this = functionFromEquations(this)
 
 inxM = this.Equation.Type==1;
 inxT = this.Equation.Type==2;
@@ -16,7 +16,7 @@ preamble = this.Equation.PREAMBLE;
 % execution considerably. This is a Matlab issue.
 
 %
-% Dtrend Equations
+% Measurement trend equations
 %
 eqtn = this.Equation.Dynamic;
 for i = find(inxD)
@@ -27,7 +27,7 @@ this.Equation.Dynamic = eqtn;
 
 
 %
-% RHS Expressions in Links
+% RHS expressions in links
 %
 for i = 1 : numel(this.Link)
     this.Link.RhsExpn{i} = vectorize(this.Link.RhsExpn{i});
@@ -54,11 +54,9 @@ this.Gradient.Steady(1, :) = gs;
 
 end%
 
-
 %
 % Local Functions
 %
-
 
 function eqtn = convert(eqtn, header, whenEmpty)
     REMOVE_HEADER = @(x) regexprep(x, '^@\(.*?\)\s*', '', 'once');

@@ -11,8 +11,6 @@ function varargout = datarequest(req, this, data, range, whichSet, expandMethod)
 %#ok<*CTCH>
 %#ok<*VUNUS>
 
-TYPE = @int8;
-
 try, whichSet; catch, whichSet = ':'; end %#ok<NOCOM>
 try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 
@@ -145,8 +143,8 @@ if ~isequal(whichSet, ':') && ~isequal(whichSet, Inf)
 end
 
 return
-    
-    
+
+
     function [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] ...
             = assembleXbInit( )
         xbInitMean = nan(nb, 1, nv);
@@ -194,7 +192,7 @@ return
             id = this.Vector.Solution{2}(nf+1:end);
             lsNanInitMse = printSolutionVector(this, id(ixNanInitMse)-1i);
         end
-    end 
+    end
 
 
 % Get initial conditions for xb and alpha.
@@ -247,7 +245,7 @@ return
     function Y = assembleYData( )
         % Measurement variables.
         if ~isempty(dMean)
-            ixy = this.Quantity.Type==TYPE(1);
+            ixy = this.Quantity.Type==1;
             sw = struct( );
             sw.LagOrLead = [ ];
             sw.IxLog = this.Quantity.IxLog(ixy);
@@ -258,7 +256,7 @@ return
         end
     end
 
-    
+
     function z = assembleZData( )
         % Transition variables marked for measurement
         if ~isempty(dMean)
@@ -273,11 +271,11 @@ return
         end
     end%
 
-    
+
     function E = assembleEData( )
         if ~isempty(dMean)
-            ixe = this.Quantity.Type==TYPE(31) ...
-                | this.Quantity.Type==TYPE(32);
+            ixe = this.Quantity.Type==31 ...
+                | this.Quantity.Type==32;
             sw = struct( );
             sw.LagOrLead = [ ];
             sw.IxLog = [ ];
@@ -296,7 +294,7 @@ return
 
     function g = assembleGData( )
         % Here we assume exogenous names are a continous block in Quantity.Name.
-        ixg = this.Quantity.Type==TYPE(5);
+        ixg = this.Quantity.Type==5;
         ng = sum(ixg);
         posg = find(ixg);
         ixq = strcmp(this.Quantity.Name, model.component.Quantity.RESERVED_NAME_TTREND);
@@ -318,7 +316,7 @@ return
             else
                 gxq = nan(ngxq, numPeriods);
             end
-            size3d = size(gxq, 3); 
+            size3d = size(gxq, 3);
             g = nan(ng, numPeriods, size3d);
             g(posgxq, :, :) = gxq;
             g(posq, :, :) = repmat(ttrend, 1, 1, size3d);
@@ -349,7 +347,7 @@ return
         end
     end
 
-    
+
     function A = assembleAlphaData( )
         if ~isempty(dMean)
             realId = real(this.Vector.Solution{2});

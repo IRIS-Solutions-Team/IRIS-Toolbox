@@ -14,10 +14,15 @@ catch
     numE = s.ne;
 end
 inxStable = [false(1, numUnitRoots), true(1, numStable)];
+
 needsTransform = isfield(s, 'U') && ~isempty(s.U);
+U = [];
+if needsTransform
+    U = s.U(:, :, 1);
+end
 
 %
-% Fixed Unknown
+% Fixed unknown
 %
 if strcmpi(init, 'FixedUnknown')
     s.InitMean = zeros(numXiB, 1);
@@ -31,6 +36,7 @@ end
 % Initialize mean
 %
 s.InitMean = hereInitializeMean( );
+
 
 %
 % Intialize MSE
@@ -46,22 +52,6 @@ return
 
         a0 = zeros(numXiB, 1);
 
-        if iscell(init) && ~isempty(init) && ~isempty(init{1})
-            %
-            % User-supplied initial condition
-            % Convert Mean[XiB] to Mean[Alpha]
-            %
-            xb0 = reshape(double(init{1}), [ ], 1);
-            inxZero = isnan(xb0) & ~inxInit;
-            xb0(inxZero) = 0;
-            if needsTransform
-                a0 = s.U(:, :, 1) \ xb0;
-            else
-                a0 = xb0;
-            end
-            return
-        end
-
         if ~isempty(s.ka) && any(s.ka(:)~=0) && numStable>0
             %
             % Asymptotic initial condition for the stable part of Alpha;
@@ -73,6 +63,36 @@ return
             a0 = [a1; a2];
         end
 
+        if iscell(init) && ~isempty(init) && ~isempty(init{1})
+            %
+            % User-supplied initial condition
+            % Convert Mean[XiB] to Mean[Alpha]
+            %
+            xb0 = reshape(double(init{1}), [ ], 1);
+
+            inxNa = isnan(xb0);
+            if any(inxNa)
+                xb0(inxNa) = U(inxNa, :) * a0;
+            end
+
+            % inxZero = isnan(xb0) & ~inxInit;
+            % xb0(inxZero) = 0;
+            % if any(isnan(xb0))
+                % exception.error([
+                    % "Kalman"
+                    % "Mean of initial condition contaminated with NaNs."
+                % ]);
+            % end
+
+            if needsTransform
+                a0 = U \ xb0;
+            else
+                a0 = xb0;
+            end
+
+            return
+        end
+
         if numUnitRoots>0 && isnumeric(initUnit)
             %
             % User supplied data to initialize mean for unit root processes
@@ -81,8 +101,9 @@ return
             xb00 = initUnit;
             inxZero = isnan(xb00) & ~inxInit;
             xb00(inxZero) = 0;
+
             if needsTransform
-                a00 = s.U(:, :, 1) \ xb00;
+                a00 = U \ xb00;
             else
                 a00 = xb00;
             end
@@ -95,7 +116,7 @@ return
 
     function [PaReg, PaInf] = hereInitializeMse( )
         PaReg = zeros(numXiB);
-        PaInf = [ ];
+        PaInf = [];
 
         %
         % Fixed initial condition with zero MSE
@@ -107,23 +128,19 @@ return
         %
         % Numerical initial condition supplied by user
         %
-        if iscell(init) && numel(init)>=2
-            if ~isempty(init{2})
-                %
-                % User-supplied initial condition including MSE
-                % Convert MSE[xiB] to MSE[alpha]
-                %
-                PaReg(:, :) = double(init{2});
-                if numel(init)>=3 && ~isempty(init{3})
-                    PaInf = zeros(numXiB);
-                    PaInf(:, :) = double(init{3});
-                end
-                if needsTransform
-                    U = s.U(:, :, 1);
-                    PaReg = (U \ PaReg) / U';
-                    if ~isempty(PaInf)
-                        PaInf = (U \ PaInf) / U';
-                    end
+        if iscell(init) && numel(init)>=2 && ~isempty(init{2})
+            %
+            % User-supplied initial condition including MSE
+            % Convert MSE[xiB] to MSE[alpha]
+            %
+            PaReg(:, :) = double(init{2});
+            if numel(init)>=3 && ~isempty(init{3})
+                PaInf = reshape(double(init{3}), numXiB, numXiB);
+            end
+            if needsTransform
+                PaReg = (U \ PaReg) / U';
+                if ~isempty(PaInf)
+                    PaInf = (U \ PaInf) / U';
                 end
             end
             return
@@ -140,7 +157,8 @@ return
             % Reduced form covariance corresponding to stable alpha. Use the structural
             % shock covariance sub-matrix corresponding to transition shocks only in
             % the pre-sample period
-            Sa22 = Ra2 * s.Omg(s.InxV, s.InxV, 1) * Ra2';
+            Omg = s.Omg(s.InxV, s.InxV, 1);
+            Sa22 = Ra2 * Omg * Ra2';
             % Compute asymptotic initial condition
             if sum(inxStable)==1
                 Pa22 = Sa22 / (1 - s.Ta(inxStable, inxStable, 1).^2);

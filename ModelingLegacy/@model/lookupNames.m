@@ -64,8 +64,7 @@ if any(ell.IxName)
 end
 
 if any(ell.IxStdCorr)
-    TYPE = @int8;
-    inxShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+    inxShocks = this.Quantity.Type==31 | this.Quantity.Type==32;
     numShocks = nnz(inxShocks);
     if any(ell.IxStdCorr(1:numShocks))
         % Add names of std deviations

@@ -34,5 +34,6 @@ Function | Description
 
 Function | Description 
 ---|---
+[`rmse`](rmse.md) | {{ series._rmse }}
 [`regress`](regress.md) | {{ series._regress }} 
 

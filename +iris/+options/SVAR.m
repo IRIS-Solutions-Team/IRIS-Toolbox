@@ -36,7 +36,7 @@ Def.SVAR = [ ...
 
 
 Def.fevd = { 
-    'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
 }; %#ok<CCAT1>
 
 end

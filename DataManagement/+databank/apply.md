@@ -97,6 +97,12 @@ __`TargetNames=@default`__ [ `@default` | cellstr | string ]
 > New names for output databank fields.
 > 
 
+__`TargetDb=@default`__ [ `@default` | struct | Dictionary ] 
+> 
+> Databank to which the transformed fields will be added;
+> `TargetDb=@default` means they will be kept in the `inputDb`.
+> 
+
 __`WhenError="keep"`__ [ `"keep"` | `"remove"` | `"error"` ]
 >
 > What to do when the function `func` fails with an error on a field:

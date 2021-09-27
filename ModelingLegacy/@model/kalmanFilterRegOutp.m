@@ -16,12 +16,11 @@ end
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
-TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-ixy = this.Quantity.Type==TYPE(1);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+ixy = this.Quantity.Type==1;
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
 
 startDate = xRange(1);
 

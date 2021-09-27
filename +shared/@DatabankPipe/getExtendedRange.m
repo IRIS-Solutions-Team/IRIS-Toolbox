@@ -38,4 +38,3 @@ inxBaseRange(end-maxShift+1:end) = false;
 
 end%
 
-

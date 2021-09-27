@@ -3,38 +3,49 @@ classdef Vector
         System = repmat({double.empty(1, 0)}, 1, 5)
         Solution = repmat({double.empty(1, 0)}, 1, 5)
     end
-    
-    
+
+
     methods
         function [ny, nxi, nb, nf, ne, ng] = sizeSolution(this)
-            ny = length(this.Solution{1});
-            nxi = length(this.Solution{2});
+            ny = numel(this.Solution{1});
+            nxi = numel(this.Solution{2});
             nb = sum(imag(this.System{2})<0); % Needs to be Vector.System{2}
             nf = nxi - nb;
-            ne = length(this.Solution{3});
-            ng = length(this.Solution{5});
-        end
-        
-        
+            ne = numel(this.Solution{3});
+            ng = numel(this.Solution{5});
+        end%
+
+
+        function xbVector = getBackwardSolutionVector(this)
+            [~, ~, ~, nf] = sizeSolution(this);
+            xbVector = this.Solution{2}(nf+1:end);
+        end%
+
+
+        function xbVector = getForwardSolutionVector(this)
+            [~, ~, ~, nf] = sizeSolution(this);
+            xbVector = this.Solution{2}(1:nf);
+        end%
+
+
         function [ky, kxi, kb, kf, ke, kg] = sizeSystem(this)
-            ky = length(this.System{1});
-            kxi = length(this.System{2});
-            kb = sum( imag(this.System{2})<0 );
+            ky = numel(this.System{1});
+            kxi = numel(this.System{2});
+            kb = sum(imag(this.System{2})<0);
             kf = kxi - kb;
-            ke = length(this.System{3});
-            kg = length(this.System{5});
-        end
-        
-        
+            ke = numel(this.System{3});
+            kg = numel(this.System{5});
+        end%
+
+
         function flag = testCompatible(this, obj)
             flag = isa(this, 'model.component.Vector') && isa(obj, 'model.component.Vector') ...
                 && isequal(this.System, obj.System) ...
                 && isequal(this.Solution, obj.Solution);
-        end
+        end%
 
 
         function [answ, isValid, query] = implementGet(this, query, varargin)
-            TYPE = @int8;
             answ = [ ];
             isValid = true;
             compare = @(x, y) any(strcmpi(x, y));
@@ -46,6 +57,6 @@ classdef Vector
             else
                 isValid = false;
             end
-        end
+        end%
     end
 end

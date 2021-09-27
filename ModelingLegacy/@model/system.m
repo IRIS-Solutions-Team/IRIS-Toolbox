@@ -9,7 +9,7 @@ arguments
     options.ForceDiff (1, 1) logical = false
     options.Normalize (1, 1) logical = true
     options.MatrixFormat (1, 1) string = "NamedMatrix"
-    options.Sparse (1, 1) logical = true
+    options.Sparse (1, 1) logical = false
     options.Symbolic (1, 1) logical = true
 
     legacy.Select (1, 1) logical = true 

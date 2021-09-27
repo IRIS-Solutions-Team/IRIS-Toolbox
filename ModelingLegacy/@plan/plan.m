@@ -283,9 +283,6 @@ classdef plan < shared.UserDataContainer ...
 
 
         function this = set.Range(this, value)
-           if ischar(value) || isa(value, 'string')
-               value = textinp2dat(value);
-           end
            value = double(value);
            this.Start = value(1);
            this.End = value(end);

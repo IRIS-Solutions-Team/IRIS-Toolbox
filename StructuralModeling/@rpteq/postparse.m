@@ -4,11 +4,7 @@ function this = postparse(this, equation, euc)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
-ixr = equation.Type==TYPE(6);
+ixr = equation.Type==6;
 if ~any(ixr)
     return
 end

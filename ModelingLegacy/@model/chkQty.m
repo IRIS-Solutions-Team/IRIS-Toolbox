@@ -7,10 +7,6 @@ function flag = chkQty(this, variantsRequested, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 if isequal(variantsRequested, Inf)
     variantsRequested = ':';
 end
@@ -31,7 +27,7 @@ for i = 1 : length(varargin)
             % Throw warning if some parameters are not assigned but occur
             % in dynamic equations.
             levels = real( this.Variant.Values(:, :, variantsRequested) );
-            ixp = this.Quantity.Type==TYPE(4);
+            ixp = this.Quantity.Type==4;
             ixNeeded = across(this.Incidence.Dynamic, 'Eqtn');
             ixNeeded = any(ixNeeded, 2).';
             ixNan = any(isnan(levels), 3);
@@ -45,7 +41,7 @@ for i = 1 : length(varargin)
             % Throw warning if some parameters are not assigned but occur
             % in steady equations.
             levels = real( this.Variant.Values(:, :, variantsRequested) );
-            ixp = this.Quantity.Type==TYPE(4);
+            ixp = this.Quantity.Type==4;
             ixNeeded = across(this.Incidence.Steady, 'Eqtn');
             ixNeeded = any(ixNeeded, 2).'; 
             ixNan = any(isnan(levels), 3);

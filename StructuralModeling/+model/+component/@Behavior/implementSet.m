@@ -1,6 +1,5 @@
 function [this, isValidRequest, isValidValue] = implementSet(this, request, value, varargin)
 
-% TYPE = @int8;
 isValidRequest = true;
 isValidValue = true;
 

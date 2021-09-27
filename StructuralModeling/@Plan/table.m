@@ -56,7 +56,7 @@ for id = getUniqueIds(this)
     %
     % Collect info on exogenized variables
     %
-    marksExogenized = repmat({this.EMPTY_MARK}, this.NumOfEndogenous, this.NumExtendedPeriods);
+    marksExogenized = repmat({this.EMPTY_MARK}, this.NumOfEndogenous, this.NumExtdPeriods);
     inxAnticipated = this.IdAnticipatedExogenized==id;
     inxUnanticipated = this.IdUnanticipatedExogenized==id;
     inxWhenData = this.InxToKeepEndogenousNaN;
@@ -88,7 +88,7 @@ for id = getUniqueIds(this)
     inxUnanticipated = this.IdUnanticipatedEndogenized==id;
     anyEndogenized = any(inxAnticipated(:)) || any(inxUnanticipated(:));
     if anyEndogenized
-        marksEndogenized = repmat({this.EMPTY_MARK}, this.NumOfExogenous, this.NumExtendedPeriods);
+        marksEndogenized = repmat({this.EMPTY_MARK}, this.NumOfExogenous, this.NumExtdPeriods);
         marksEndogenized(inxAnticipated) = {this.ANTICIPATED_MARK};
         marksEndogenized(inxUnanticipated) =  {this.UNANTICIPATED_MARK};
         keep = any(inxAnticipated | inxUnanticipated, 2);

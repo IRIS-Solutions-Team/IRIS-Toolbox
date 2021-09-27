@@ -1,10 +1,7 @@
 % Ad  Automatic/symbolic differentiator
 %
-% Backend IRIS class
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 classdef Ad
     properties

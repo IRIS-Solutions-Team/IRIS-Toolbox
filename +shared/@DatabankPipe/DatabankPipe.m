@@ -3,6 +3,7 @@ classdef DatabankPipe
         varargout = appendData(varargin)
         varargout = checkInputDatabank(varargin)
         varargout = requestData(varargin)
+        varargout = ensureLog(varargin)
     end
 
 

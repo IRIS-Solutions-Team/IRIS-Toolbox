@@ -161,7 +161,7 @@ if isempty(pp)
     addParameter(pp, 'NFreq', 256, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
     addParameter(pp, {'Contributions', 'Contribution'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    addParameter(pp, 'MatrixFormat', 'NamedMatrix', @namedmat.validateMatrixFormat);
+    addParameter(pp, 'MatrixFormat', 'NamedMatrix', @validate.matrixFormat);
     addParameter(pp, 'Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x) || isa(x, 'string')) && ~isempty(x));
     addParameter(pp, 'ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x) || isa(x, 'string'));
     addParameter(pp, 'Filter', '', @(x) ischar(x) || isstring(x));

@@ -1,7 +1,7 @@
 classdef Element ...
     < matlab.mixin.Copyable
 
-    properties (Abstract, Constant)
+    properties (Abstract)
         Type
     end
 
@@ -28,6 +28,9 @@ classdef Element ...
 
     methods
         function this = Element(varargin)
+            % Fix bug in earlier versions of Matlab
+            this.Type = string(this.Type);
+
             if nargin==0
                 return
             end
@@ -38,6 +41,10 @@ classdef Element ...
                 name = replaceBetween(name, 1, 1, upper(extractBetween(name, 1, 1)));
                 this.Settings.(name) = varargin{i+1};
             end
+        end%
+
+
+        function this = convertTypeToString(this)
         end%
 
 

@@ -2,7 +2,7 @@ classdef Grid ...
     < rephrase.Element ...
     & rephrase.Container
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.GRID
     end
 

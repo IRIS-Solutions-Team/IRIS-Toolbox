@@ -9,11 +9,8 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Kalman.prepareKalmanOptions');
 
-    addParameter(pp, 'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    addParameter(pp, 'MatrixFormat', 'namedmat', @validate.matrixFormat);
     addParameter(pp, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
-    addParameter(pp, 'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
-
-    addParameter(pp, "Version", 1, @(x) mustBeMember(x, [1, 2]));
 
     addParameter(pp, 'Anticipate', false, @validate.logicalScalar);
     addParameter(pp, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
@@ -117,8 +114,9 @@ end
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
 if ~isempty(opt.Override) || ~isempty(opt.Multiply)
+    optionsHere = struct("Clip", true, "Presample", true);
     [opt.OverrideStdcorr, ~, opt.MultiplyStd] = ...
-        varyStdCorr(this, range, opt.Override, opt.Multiply, '--clip', '--presample');
+        varyStdCorr(this, range, opt.Override, opt.Multiply, optionsHere);
 end
 
 
@@ -295,7 +293,7 @@ return
     function herePrepareSimulateSystemProperty( )
         opt.Simulate = simulate( ...
             this, "asynchronous", @auto, ...
-            opt.Simulate{:}, "SystemProperty=", "S" ...
+            opt.Simulate{:}, "systemProperty", "S" ...
         );
     end%
 end%

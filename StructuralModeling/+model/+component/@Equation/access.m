@@ -30,7 +30,7 @@ elseif lower(what)==lower("measurementEquations")
 elseif lower(what)==lower("transitionEquations")
     output = stringify(this.Input(this.Type==2));
 
-elseif lower(what)==lower("dtrends")
+elseif any(lower(what)==lower(["measurement-trends", "dtrends"]))
     output = stringify(this.Input(this.Type==3));
 
 elseif lower(what)==lower("links")

@@ -1,7 +1,7 @@
 % namedmat  Matrices with Named Rows and Columns (namedmat Objects).
 %
 % Matrices with named rows and columns are returned as output arguments
-% from several IRIS functions, such as [model/acf](model/acf), 
+% from several IRIS functions, such as [model/acf](model/acf),
 % [model/xsf](model/xsf), or [model/fmse](model/fmse), to facilitate easy
 % selection of submatrices by referrring to variable names in rows and
 % columns.
@@ -28,7 +28,7 @@
 %
 % __Sample Characteristics__
 %
-% * [`cutoff`](namedmat/cutoff] - 
+% * [`cutoff`](namedmat/cutoff] -
 %
 % All operators and functions available for standard Matlab matrices
 % and arrays (i.e. double objects) are also available for namedmat
@@ -38,7 +38,7 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-classdef namedmat < double 
+classdef namedmat < double
     properties (SetAccess = protected)
         RowNames (1, :) string = string.empty(1, 0)
         ColNames (1, :) string = string.empty(1, 0)
@@ -48,7 +48,7 @@ classdef namedmat < double
     properties (Dependent)
         ColumnNames
     end
-    
+
 
     methods
         function this = namedmat(X, varargin)
@@ -84,8 +84,8 @@ classdef namedmat < double
 % preserve the names of variables that relate to individual
 % rows and columns, such as in
 %
-% * `acf( )`, the autocovariance and autocorrelation functions, 
-% * `xsf( )`, the power spectrum and spectral density functions, 
+% * `acf( )`, the autocovariance and autocorrelation functions,
+% * `xsf( )`, the power spectrum and spectral density functions,
 % * `fmse( )`, the forecast mean square error fuctions, etc.
 %
 % You can use the function [`select`](namedmat/select) to
@@ -103,7 +103,7 @@ classdef namedmat < double
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 %--------------------------------------------------------------
-            
+
             if nargin==0
                 X = double.empty(0, 0);
             end
@@ -119,11 +119,11 @@ classdef namedmat < double
                 this.ColNames = this.RowNames;
             end
         end%
-        
-        
 
 
-        
+
+
+
         varargout = colnames(varargin)
         varargout = ctranspose(varargin)
         varargout = cutoff(varargin);
@@ -135,7 +135,7 @@ classdef namedmat < double
         varargout = subsref(varargin)
         varargout = table(varargin)
         varargout = transpose(varargin)
-        varargout = vertcat(varargin)    
+        varargout = vertcat(varargin)
 
 
         function names = setNames(this, dimension, names)
@@ -189,8 +189,8 @@ classdef namedmat < double
             this.ColNames = value;
         end%
     end
-    
-    
+
+
     methods
         function this = abs(this)
             rowNames = this.RowNames;
@@ -205,13 +205,8 @@ classdef namedmat < double
         varargout = disp(varargin)
     end
 
-            
+
     methods (Static, Hidden)
         varargout = myselect(varargin)
-
-        % TODO: Move to @Valid
-        function flag = validateMatrixFormat(format)
-            flag = any(strcmpi(format, {'Plain', 'Numeric', 'NamedMatrix', 'NamedMat'}));
-        end%
     end
 end

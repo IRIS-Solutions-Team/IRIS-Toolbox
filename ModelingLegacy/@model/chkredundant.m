@@ -47,14 +47,12 @@ function [lsRedShock, lsRedParam] = chkredundant(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
 opt = passvalopt('model.chkredundant', varargin{:});
 
 %--------------------------------------------------------------------------
 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixp = this.Quantity.Type==TYPE(4);
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
+ixp = this.Quantity.Type==4;
 
 % Incidence of shocks and parameters at shift=0.
 ind0 = across(this.Incidence.Dynamic, 'Zero');

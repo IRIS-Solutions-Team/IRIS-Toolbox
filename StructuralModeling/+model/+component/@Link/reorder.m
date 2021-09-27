@@ -7,10 +7,7 @@ function this = reorder(this, opt)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
 PTR = @int16;
-
-%--------------------------------------------------------------------------
 
 numLinks = numel(this.Input);
 

@@ -29,6 +29,7 @@ classdef Posterior < handle
         IndexValidDiff = logical.empty(1, 0)
 
         LineInfo = double.empty(1, 0)
+        LineInfoCorrected = double.empty(1, 0)
         LineInfoFromData = double.empty(1, 0)
         LineInfoFromIndividualPrior = double.empty(1, 0)
         LineInfoFromSystemPriors = double.empty(1, 0)
@@ -41,7 +42,6 @@ classdef Posterior < handle
     properties (Dependent)
         NumParameters
         IsConstrained
-        PropOfLineInfoFromData
         ProposalCov
     end
 
@@ -87,6 +87,7 @@ classdef Posterior < handle
             this.IndexUpperBoundsHit = false(1, numParameters);
             this.IndexValidDiff = true(1, numParameters);
             this.LineInfo = zeros(1, numParameters);
+            this.LineInfoCorrected = zeros(1, numParameters);
             this.LineInfoFromData = zeros(1, numParameters);
             this.LineInfoFromIndividualPrior = zeros(1, numParameters);
             this.LineInfoFromSystemPriors = zeros(1, numParameters);
@@ -272,6 +273,8 @@ classdef Posterior < handle
             numParameters = this.NumParameters;
             inxDiag = logical(eye(numParameters)); % Index of diagonal elements
             h = eps( )^(1/4) * max(abs(this.Optimum), 1); % Differentiation step
+
+            correction = nan(1, numParameters);
             for i = 1 : numParameters
                 x0 = this.Optimum;
                 if this.IndexLowerBoundsHit(i)
@@ -290,34 +293,41 @@ classdef Posterior < handle
                 [objm, lm, pm, sm, smBreakDown] = this.ObjectiveFunction(xm);
                 h2 = h(i)^2;
 
-                % Diff total objective function.
-                ithDiffObj = (objp - 2*obj0 + objm) / h2;
-                if ithDiffObj<=0 || ~isfinite(ithDiffObj)
+                % Diff total objective function
+                diffTotal = (objp - 2*obj0 + objm) / h2;
+                this.LineInfo(i) = diffTotal;
+                this.LineInfoCorrected(i) = diffTotal;
+                if diffTotal<=0 || ~isfinite(diffTotal)
                     sgm = 4*max(abs(x0(i)), 1);
-                    ithDiffObj = 1/sgm^2;
-                    this.IndexValidDiff(i) = false;
+                    this.LineInfoCorrected(i) = 1 / sgm^2;
                 end
-                this.LineInfo(i) = ithDiffObj;
 
                 % Diff data likelihood
+                diffData = 0;
                 if this.EvalDataLik>0
-                    this.LineInfoFromData(i) = this.EvalDataLik * (lp - 2*l0 + lm) / h2;
+                    diffData = this.EvalDataLik * (lp - 2*l0 + lm) / h2;
+                    this.LineInfoFromData(i) = diffData;
                 end
 
                 % Diff parameter priors
+                diffIndies = 0;
                 if this.EvalIndiePriors>0
-                    this.LineInfoFromIndividualPrior(i) = this.EvalIndiePriors * (pp - 2*p0 + pm) / h2;
+                    diffIndies = this.EvalIndiePriors * (pp - 2*p0 + pm) / h2;
+                    this.LineInfoFromIndividualPrior(i) = diffIndies;
                 end
 
                 % Diff system priors
+                diffSystem = 0;
                 if this.EvalSystemPriors>0
-                    this.LineInfoFromSystemPriors(i) = this.EvalSystemPriors * (sp - 2*s0 + sm) / h2;
+                    diffSystem = this.EvalSystemPriors * (sp - 2*s0 + sm) / h2;
+                    this.LineInfoFromSystemPriors(i) = diffSystem;
                     this.LineInfoFromSystemPriorsBreakdown{i} = this.EvalSystemPriors * (spBreakdown - 2*s0Breakdown + smBreakDown) / h2;
                 end
             end
+            this.IndexValidDiff = isnan(correction);
 
             if all(isnan(this.Hessian{1}(:)))
-                this.Hessian{1}(inxDiag) = this.LineInfo;
+                this.Hessian{1}(inxDiag) = this.LineInfoCorrected;
             end
 
             if this.EvalIndiePriors
@@ -346,20 +356,12 @@ classdef Posterior < handle
 
 
         function n = get.NumParameters(this)
-            n = length(this.Initial);
-        end%
-
-
-        function p = get.PropOfLineInfoFromData(this)
-            p = nan(1, this.NumParameters);
-            inxPositiveLineInfo = this.LineInfo>0;
-            p = this.LineInfoFromData(inxPositiveLineInfo) ./ this.LineInfo(inxPositiveLineInfo);
-            p(p<0 | ~isfinite(p)) = NaN;
+            n = numel(this.Initial);
         end%
 
 
         function c = get.ProposalCov(this)
-            c = diag(1 ./ this.LineInfo);
+            c = diag(1 ./ this.LineInfoCorrected);
         end%
     end
 end

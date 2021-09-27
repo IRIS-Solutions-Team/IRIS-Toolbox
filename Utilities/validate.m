@@ -9,6 +9,14 @@
 
 classdef validate
     methods (Static)
+        function flag = matrixFormat(x)
+            flag = startsWith( ...
+                x, ["plain", "numeric", "namedMat"] ...
+                , "ignoreCase", true ....
+            );
+        end%
+
+
         function flag = databankType(input)
             flag = validate.anyString(input, ["struct", "Dictionary"]);
         end%
@@ -111,6 +119,14 @@ classdef validate
             end
             flag = true;
             %)
+        end%
+
+
+        function mustBeMatrixFormat(x)
+            if validate.matrixFormat(x)
+                return
+            end
+            error("Input value must be one of valid matrix formats ""numeric"" or ""namedMatrix");
         end%
 
 
