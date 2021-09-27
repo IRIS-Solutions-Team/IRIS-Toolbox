@@ -40,10 +40,8 @@ end
 %}
 % <=R2019a
 
-rmseFunc = @(error, from, to) 
 [from, to] = resolveRange(actual, options.Range);
 error = clip(actual - prediction, from, to);
-rmse = rmseFunc(error, from, to);
 rmse = sqrt(mean(getDataFromTo(error, from, to).^2, 1, 'omitNaN'));
 
 end%

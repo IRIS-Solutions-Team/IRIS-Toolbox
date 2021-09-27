@@ -82,7 +82,7 @@ unmatched = pp.UnmatchedInCell;
 % Process Kalman filter options; `loglikopt` also expands solution forward
 % if anticipated shifts in shocks are included
 %
-lik = prepareKalmanOptions(this, range, "version", 1, unmatched{:});
+lik = prepareKalmanOptions(this, range, unmatched{:});
 
 
 %
