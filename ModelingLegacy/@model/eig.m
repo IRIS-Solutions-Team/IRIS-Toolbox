@@ -40,8 +40,6 @@ function varargout = eig(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Model/eig');
@@ -49,7 +47,7 @@ if isempty(pp)
     addOptional(pp, 'variants', Inf, @(x) isequal(x, @all) || isequal(x, Inf) || strcmp(x, ':') || isnumeric(x) || islogical(x));
 
     addParameter(pp, 'SystemProperty', false, @(x) isequal(x, false) || validate.list(x));
-    addParameter(pp, 'Stability', [TYPE(0), TYPE(1), TYPE(2)], @(x) isnumeric(x) && all(ismember(x, [TYPE(0), TYPE(1), TYPE(2)])));
+    addParameter(pp, 'Stability', [0, 1, 2], @(x) isnumeric(x) && all(ismember(x, [0, 1, 2])));
 end
 parse(pp, this, varargin{:});
 variantsRequested = pp.Results.variants;

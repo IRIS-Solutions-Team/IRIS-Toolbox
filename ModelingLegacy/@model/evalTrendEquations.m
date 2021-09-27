@@ -7,16 +7,12 @@ function [W, dW] = evalTrendEquations(this, posParamsOut, inputData, variantsReq
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 numPeriods = size(inputData, 2);
 numPages = size(inputData, 3);
 numParamsOut = numel(posParamsOut);
-ixy = this.Quantity.Type==TYPE(1); 
+ixy = this.Quantity.Type==1; 
 ny = nnz(ixy);
-inxTrendEquations = this.Equation.Type==TYPE(3);
+inxTrendEquations = this.Equation.Type==3;
 if nargin<4 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = 1 : length(this);
 end
@@ -30,8 +26,8 @@ end
 
 returnDerivatives = nargout>1;
 numQuantities = numel(this.Quantity.Name);
-ixp = this.Quantity.Type==TYPE(4); 
-ixg = this.Quantity.Type==TYPE(5); 
+ixp = this.Quantity.Type==4; 
+ixg = this.Quantity.Type==5; 
 posy = find(ixy);
 eqtn = this.Equation.Dynamic;
 

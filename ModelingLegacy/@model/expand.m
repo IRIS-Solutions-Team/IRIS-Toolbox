@@ -28,8 +28,6 @@ function this = expand(this, k)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('model/expand');
@@ -40,7 +38,7 @@ INPUT_PARSER.parse(this, k);
 
 %--------------------------------------------------------------------------
 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
 ne = nnz(ixe);
 nh = nnz(this.Equation.IxHash);
 nv = length(this);

@@ -5,17 +5,15 @@
 
 function this = createD2S(this, opt)
 
-TYPE = @int8;
-
 numQuantities = numel(this.Quantity);
-inxY = this.Quantity.Type==TYPE(1);
-inxX = this.Quantity.Type==TYPE(2);
-inxP = this.Quantity.Type==TYPE(4);
-inxG = this.Quantity.Type==TYPE(5);
-inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxY = this.Quantity.Type==1;
+inxX = this.Quantity.Type==2;
+inxP = this.Quantity.Type==4;
+inxG = this.Quantity.Type==5;
+inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
 
-inxM = this.Equation.Type==TYPE(1);
-inxT = this.Equation.Type==TYPE(2);
+inxM = this.Equation.Type==1;
+inxT = this.Equation.Type==2;
 
 posY = find(inxY);
 posX = find(inxX);

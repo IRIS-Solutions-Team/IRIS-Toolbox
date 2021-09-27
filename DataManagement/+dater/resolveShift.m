@@ -64,10 +64,14 @@ function shift = locallyResolveShift(dates, inputFreq, shift)
         end
         if startsWith(shift, "YoY", "ignoreCase", true)
             shift = -inputFreq;
-        elseif startsWith(shift, "EoPY", "ignoreCase", true)
+        elseif startsWith(shift, "eopy", "ignoreCase", true)
             shift = locallyResolveShifts(dates, 0);
-        elseif startsWith(shift, "BoY", "ignoreCase", true)
+        elseif startsWith(shift, "boy", "ignoreCase", true)
             shift = locallyResolveShifts(dates, -1);
+        elseif startsWith(shift, "tty", "ignoreCase", true)
+            [~, periods] = dat2ypf(dates);
+            shift = repmat(-1, size(periods));
+            shift(periods==1) = 0;
         end
     end
     %)
@@ -77,7 +81,7 @@ end%
 function shift = locallyResolveShifts(dates, offset)
     %(
     [~, periods] = dat2ypf(dates);
-    shift = -( reshape(periods, 1, [ ]) + offset );
+    shift = -(reshape(periods, 1, [ ]) + offset);
     %)
 end%
 
@@ -103,9 +107,9 @@ end%
 %
 
 function locallyValidateShift(input)
-    if validate.roundScalar(input) || startsWith(input, ["YoY", "EoPY", "BoY"], "ignoreCase", true)
+    if validate.roundScalar(input) || ((ischar(input) || isstring(input)) && startsWith(input, ["yoy", "eopy", "boy", "tty"], "ignoreCase", true))
         return
     end
-    error("Validation:Failed", "Input value must be a negative integer or one of {""YoY"", ""EoPY"", ""BoY""}");
+    error("Input value must be an integer or one of {""yoy"", ""eopy"", ""boy"", ""tty""}");
 end%
 

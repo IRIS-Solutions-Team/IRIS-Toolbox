@@ -2,7 +2,7 @@ classdef Selective ...
     < rephrase.Element ...
     & rephrase.Terminus
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.SELECTIVE
     end
 end

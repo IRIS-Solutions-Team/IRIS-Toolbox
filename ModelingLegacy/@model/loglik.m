@@ -149,9 +149,6 @@ else
     pp.addRequired('range', @validate.date);
     pp.parse(this, inputData, range);
     
-    if ischar(range)
-        range = textinp2dat(range);
-    end
     RANGE = reshape(double(range), 1, [ ]);
     EXTENDED_RANGE = [dater.plus(RANGE(1), -1), RANGE];
     
@@ -178,7 +175,7 @@ argin = struct( ...
 );
 
 if strncmpi(OPT.domain, 't', 1)
-    loglikFunc = @kalmanFilter;
+    loglikFunc = @implementKalmanFilter;
 else
     loglikFunc = @freql;
 end

@@ -7,15 +7,11 @@ function this = createAffected(this)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 numEquations = length(this.Equation);
 numQuantities = length(this.Quantity);
 minShift = this.Incidence.Dynamic.Shift(1) + 1;
 maxShift = this.Incidence.Dynamic.Shift(end) - 1;
-indexMT = this.Equation.Type==TYPE(1) | this.Equation.Type==TYPE(2);
+indexMT = this.Equation.Type==1 | this.Equation.Type==2;
 
 steadyRef = model.component.Incidence(numEquations, numQuantities, minShift, maxShift);
 steadyRef = fill(steadyRef, this.Quantity, this.Equation.Dynamic, indexMT, 'L');

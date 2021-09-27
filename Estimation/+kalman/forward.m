@@ -1,17 +1,17 @@
 function forward(s, inp, outp)
 
 y = inp.y;
-numOfAnt = size(y, 3)-1;
+numAnt = size(y, 3)-1;
 
-numOfPeriods = size(y, 2);
+numPeriods = size(y, 2);
 [ny, ne] = size(s.H);
 [nx, nb] = size(s.T);
 nf = nx - nb;
 
 Omg = covfun.stdcorr2cov(s.StdCorr, ne);
-if numOfAnt==0
+if numAnt==0
     TT = [zeros(nx, nf), s.T];
-    RR = s.R(:, 1:ne*(1+numOfAnt));
+    RR = s.R(:, 1:ne*(1+numAnt));
     kk = s.k;
     ZZ = [zeros(ny, nf), s.Z];
     HH = s.H;
@@ -39,8 +39,8 @@ end
 a1 = outp.aInit;
 Pa1 = outp.PaInit;
 
-w1 = zeros(nx*(1+numOfAnt), 1);
-Pw1 = zeros(nx*(1+numOfAnt));
+w1 = zeros(nx*(1+numAnt), 1);
+Pw1 = zeros(nx*(1+numAnt));
 w1(nf+(1:nb)) = a1;
 Pw1(nf+(1:nb), nf+(1:nb)) = Pa1;
 
@@ -48,7 +48,7 @@ e1 = [ ];
 logDet = 0;
 peFpe = 0;
 
-for t = 1 : numOfPeriods
+for t = 1 : numPeriods
     w0 = TT(:, ixa)*w1(ixa) + kk;
     Pw0 = TT(:, ixa)*Pw1(ixa, ixa)*TT(:, ixa).' + SgmWW;
     Pw0 = (Pw0 + Pw0')/2;
@@ -63,7 +63,7 @@ for t = 1 : numOfPeriods
     
     if ~any(ixyy)
         % No observations at the time, updated=predicted.
-        n = 1 + numOfAnt;
+        n = 1 + numAnt;
         y0j = zeros(0, 1);
         w1 = w0;
         Pw1 = Pw0;
@@ -154,27 +154,25 @@ return
 
     function [TT, RR, kk, ZZ, HH, dd, OOmg, ixa] = stackTime( )
         T = [zeros(nx, nf), s.T];
-        R = s.R(:, 1:(1+numOfAnt)*ne);
+        R = s.R(:, 1:(1+numAnt)*ne);
         TT = T;
         RR = R;
         kk = s.k;
-        for i = 1 : numOfAnt
+        for i = 1 : numAnt
             TT = [ TT; T*TT(end-nx+1:end, :) ]; %#ok<AGROW>
             kk = [ kk; T*kk(end-nx+1:end)+s.k ]; %#ok<AGROW>
             R = [ zeros(nx, ne), R(:, 1:end-ne) ];
             RR = [ RR; T*RR(end-nx+1:end, :) + R ]; %#ok<AGROW>
         end
-        TT = [TT, zeros(nx*(1+numOfAnt), nx*numOfAnt)];
+        TT = [TT, zeros(nx*(1+numAnt), nx*numAnt)];
         Z = [zeros(ny, nf), s.Z];
-        ZZ = kron(eye(1+numOfAnt), Z);
-        dd = repmat(s.d, 1+numOfAnt, 1);
-        HH = kron(eye(1+numOfAnt), s.H);
-        OOmg = kron(eye(1+numOfAnt), Omg);
+        ZZ = kron(eye(1+numAnt), Z);
+        dd = repmat(s.d, 1+numAnt, 1);
+        HH = kron(eye(1+numAnt), s.H);
+        OOmg = kron(eye(1+numAnt), Omg);
         ixa = [ false(nf, 1); true(nb, 1) ];
-        ixa = repmat(ixa, 1+numOfAnt, 1);
+        ixa = repmat(ixa, 1+numAnt, 1);
     end
-
-
 
 
     function storeAhead( )
@@ -182,15 +180,13 @@ return
         outp.ww1(:,t,:) = reshape(w1(1:n*nx), nx, 1, n);
 %         outp.yy1(:,t,:) = reshape(y1(1:n*ny), ny, 1, n);
         outp.ee1(:,t,:) = reshape(e1(1:n*ne), ne, 1, n);
-%         if outp.Ahead<numOfAnt
+%         if outp.Ahead<numAnt
 %             outp.ee1(:,t,:) = reshape(e1(1:n*ne), ne, 1, n);
 %         else
 %             outp.ee1(:,t,:) = 0;
-%             outp.ee1(:,t,1:1+numOfAnt) = reshape(e1, ne, 1, 1+numOfAnt);
+%             outp.ee1(:,t,1:1+numAnt) = reshape(e1, ne, 1, 1+numAnt);
 %         end
     end
-
-
 
 
     function storePredict( )

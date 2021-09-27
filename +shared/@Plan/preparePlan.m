@@ -9,7 +9,7 @@ plan.SlackPairs = getSlackPairsForPlan(this);
 
 sigmas = getSigmasForPlan(this);
 numVariants = size(sigmas, 3);
-numExtPeriods = plan.NumExtendedPeriods;
+numExtPeriods = plan.NumExtdPeriods;
 plan.DefaultSigmasExogenous = sigmas;
 sigmas = repmat(sigmas, 1, numExtPeriods, 1);
 sigmas(:, ~inxBaseRange, :) = NaN;

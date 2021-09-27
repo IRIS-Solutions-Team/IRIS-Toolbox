@@ -129,7 +129,7 @@ for j = 1 : numel(inputString)
     % Legacy syntax =# -> ===
     %
     inputString__ = replace(inputString__, "=#", "===");
-    
+
 
     this__.InputString = inputString__;
 
@@ -138,6 +138,7 @@ for j = 1 : numel(inputString)
     % Extract ResidualModel if present; this will remain in the InputString
     % of the Explanatory object
     %
+
     if contains(inputString__, "#")
         residualModelString__ = "#" + extractAfter(inputString__, "#");
         inputString__ = extractBefore(inputString__, "#");
@@ -150,15 +151,21 @@ for j = 1 : numel(inputString)
     % Collect all variables names from the input string, enforcing lower or
     % upper case if requested
     %
+
     this__.VariableNames = hereCollectAllVariableNames( );
 
 
     %
-    % Split the input equation string into LHS and RHS using the first
-    % equal sign found; there may be more than one equal sign such as == in
-    % if( )
+    % * Split the input equation string into LHS and RHS using the first
+    % equal sign found
     %
-    [split__, sign__] = split(inputString__, ["=#", "===", "="]);
+    % * Permit := as these are allowed in !substitutions in Model source
+    % files
+    %
+    % * There may be more than one equal sign such as == in if( )
+    %
+
+    [split__, sign__] = split(inputString__, ["=#", "===", "=", ":="]);
     if isempty(sign__)
         hereThrowInvalidInputString( );
     end
@@ -242,15 +249,15 @@ return
                 c = enforceCaseFunc(c);
                 variableNames(end+1) = c;
             end%
-    end% 
+    end%
 
 
 
 
     function hereThrowInvalidInputString( )
-        thisError = [ 
+        thisError = [
             "Explanatory:InvalidInputString"
-            "Invalid input string to define ExplanatoryTerm: %s" 
+            "Invalid input string to define ExplanatoryTerm: %s"
         ];
         throw(exception.Base(thisError, 'error'), this__.InputString);
     end%
@@ -259,9 +266,9 @@ return
 
 
     function hereThrowEmptyLhs( )
-        thisError = [ 
+        thisError = [
             "Explanatory:EmptyLhs"
-            "This Explanatory object specification has an empty LHS: %s " 
+            "This Explanatory object specification has an empty LHS: %s "
         ];
         throw(exception.Base(thisError, 'error'), this__.InputString);
     end%
@@ -270,9 +277,9 @@ return
 
 
     function hereThrowEmptyRhs( )
-        thisError = [ 
+        thisError = [
             "Explanatory:EmptyRhs"
-            "This Explanatory object specification has an empty RHS: %s" 
+            "This Explanatory object specification has an empty RHS: %s"
         ];
         throw(exception.Base(thisError, 'error'), this__.InputString);
     end%
@@ -281,7 +288,7 @@ return
 
 
     function hereWarnEmptyEquations( )
-        thisWarning = [ 
+        thisWarning = [
             "Explanatory:EmptyEquations"
             "Excluded a total number of %g empty equation(s) from the input string."
         ];
@@ -294,7 +301,7 @@ end%
 
 
 %
-% Unit Tests 
+% Unit Tests
 %{
 ##### SOURCE BEGIN #####
 % saveAs=Explanatory/fromStringUnitTest.m
@@ -465,7 +472,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     assertEqual(testCase, simDb.y(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
     temp = inputDb.x{yy(0)};
     for t = yy(1:10)
-        if inputDb.w(t)<0 
+        if inputDb.w(t)<0
             temp(t) = temp(t-1) + inputDb.dummy1(t);
         else
             temp(t) = temp(t-1) + inputDb.dummy0(t);

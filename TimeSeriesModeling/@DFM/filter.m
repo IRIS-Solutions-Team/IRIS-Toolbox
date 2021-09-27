@@ -71,7 +71,6 @@ function [this, d, cc, ff, uu, ee] = filter(this, inp, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
@@ -108,7 +107,7 @@ numPeriods = size(y, 2);
 % Initialise Kalman filter.
 x0 = zeros(p*nx, 1);
 R = this.U(1:nx, :)'*this.B;
-indexUnitRoots = this.EigenStability==TYPE(1);
+indexUnitRoots = this.EigenStability==1;
 P0 = covfun.acovf(this.T, R, [ ], [ ], [ ], [ ], this.U, 1, indexUnitRoots, 0);
 
 Sgm = this.Sigma;

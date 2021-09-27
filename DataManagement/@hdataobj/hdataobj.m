@@ -7,16 +7,17 @@
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 classdef hdataobj<handle
-    
+
     properties
         Data = struct( )
         Range = double.empty(1, 0)
         Id = cell.empty(1, 0)
         IxLog = logical.empty(1, 0)
-        
+
         Name = cell.empty(1, 0)
         Label = cell.empty(1, 0)
-        
+        XbVector (1, :) string = string.empty(1, 0)
+
         Precision = 'double'
         IncludeLag = true % Include lags of variables in output time series
         IncludeParam = true % Include parameter database
@@ -24,19 +25,21 @@ classdef hdataobj<handle
         Contributions = [ ] % If non-empty, contains labels for contributions
         ParamDb = struct( )
     end
-    
-    
+
+
     methods
         varargout = hdataassign(varargin)
         varargout = hdata2tseries(varargin)
+        varargout = seriesFromData(varargin)
     end
-    
-    
+
+
     methods (Static)
         varargout = hdatafinal(varargin)
+        varargout = finalize(varargin)
     end
-    
-    
+
+
     methods
         function this = hdataobj(varargin)
             if nargin==0
@@ -57,17 +60,17 @@ classdef hdataobj<handle
                     utils.error('hdataobj:hdataobj', ...
                         'Size in second dimension not supplied.');
                 end
-                
+
                 for i = 1 : 2 : length(varargin)
                     name = strrep(varargin{i}, '=', '');
                     this.(name) = varargin{i+1};
                 end
-                    
+
                 hdatainit(callerObj, this);
-                
+
                 % Initialize all variables in each block with NaN arrays. Max lag is
                 % computed for each block.
-                for i = 1 : length(this.Id) 
+                for i = 1 : length(this.Id)
                     if isempty(this.Id{i})
                         continue
                     end
@@ -82,8 +85,8 @@ classdef hdataobj<handle
                         name = this.Name{j};
                         this.Data.(name) = nan(numRows, Size, this.Precision);
                     end
-                end 
-                
+                end
+
                 if this.IncludeParam
                     this.ParamDb = addToDatabank('Default', callerObj);
                 end
@@ -91,3 +94,4 @@ classdef hdataobj<handle
         end
     end
 end
+

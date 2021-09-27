@@ -5,6 +5,10 @@
 
 function this = fromFile(modelFile, varargin)
 
+if (isstring(modelFile) || iscellstr(modelFile)) && numel(modelFile)>1
+    modelFile = string(modelFile);
+end
+
 this = Model(modelFile, varargin{:});
 
 end%

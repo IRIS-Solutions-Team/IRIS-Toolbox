@@ -7,7 +7,6 @@ function [MLL, score, info, se2] = mydiffloglik(this, data, likOpt, opt)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
 EPSILON = eps( )^(1/3);
 
 vecv = @(x) reshape(x, [ ], 1);
@@ -108,7 +107,7 @@ return
 
         % Call the Kalman filter
         kalmanFilterInput.InputData = data(:, :, iData);
-        [MLL(iData), Y] = kalmanFilter(getVariant(this, 1), kalmanFilterInput);
+        [MLL(iData), Y] = implementKalmanFilter(getVariant(this, 1), kalmanFilterInput);
         se2(iData) = Y.V;
         F = Y.F(:, :, 2:end);
         pe = Y.Pe(:, 2:end);
@@ -120,12 +119,12 @@ return
         
         for ii = 1 : numParams
             pm = getVariant(this, 1+2*(ii-1)+1);
-            [~, Y] = kalmanFilter(pm, kalmanFilterInput);
+            [~, Y] = implementKalmanFilter(pm, kalmanFilterInput);
             pF =  Y.F(:, :, 2:end);
             ppe = Y.Pe(:, 2:end);
             
             mm = getVariant(this, 1+2*(ii-1)+2);
-            [~, Y] = kalmanFilter(mm, kalmanFilterInput);
+            [~, Y] = implementKalmanFilter(mm, kalmanFilterInput);
             mF =  Y.F(:, :, 2:end);
             mpe = Y.Pe(:, 2:end);
             

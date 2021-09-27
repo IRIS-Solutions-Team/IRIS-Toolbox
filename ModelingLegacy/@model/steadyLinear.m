@@ -7,7 +7,6 @@ function  [this, success, outputInfo] = steadyLinear(this, options, variantsRequ
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 STEADY_TOLERANCE = this.Tolerance.Steady;
-TYPE = @int8;
 PTR = @int16;
 
 try
@@ -33,9 +32,9 @@ if options.Solve.Run
     hereSolveModel( );
 end
 
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+ixy = this.Quantity.Type==1;
+ixx = this.Quantity.Type==2;
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
 ixyx = ixy | ixx;
 ny = sum(ixy);
 ixLog = this.Quantity.IxLog;

@@ -5,11 +5,7 @@
 
 function idInit = getIdInitialConditions(this)
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
-inxX = getIndexByType(this.Quantity, TYPE(2));
+inxX = getIndexByType(this.Quantity, 2);
 
 % Get numQuants-by-numShifts incidence matrix
 incidence = across(this.Incidence.Dynamic, 'Equations');

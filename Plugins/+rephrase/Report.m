@@ -2,7 +2,7 @@ classdef Report ...
     < rephrase.Element ...
     & rephrase.Container
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.REPORT
     end
 
@@ -46,8 +46,9 @@ classdef Report ...
 
             fileNameBase = hereResolveFileNameBase(fileName);
 
-            build@rephrase.Container(this);
-            reportJson = string(jsonencode(this));
+            %
+            % Create data json
+            %
             if isempty(this.DataRequests) || isempty(keys(reportDb))
                 dataJson = string(jsonencode(cell.empty(1, 0)));
             else
@@ -55,6 +56,14 @@ classdef Report ...
                 serial = series.Serialize( );
                 dataJson = string(jsonencode(serial.jsonFromDatabank(requestDb)));
             end
+
+            %
+            % Create report json
+            %
+
+            build@rephrase.Container(this);
+            reportJson = string(jsonencode(this));
+
             script = ...
                 "var $report=" + reportJson + ";" + string(newline( )) ...
                 + "var $databank=" + dataJson + ";" ...
@@ -155,7 +164,18 @@ end%
 function locallyWriteTextFile(fileName, content)
     %(
     fid = fopen(fileName, "wt+", "native", "UTF-8");
-    fwrite(fid, content, "*char");
+    if fid<0
+        exception.error([
+            "Rephrase"
+            "Cannot open this file for writing: %s"
+        ], fileName);
+    end
+    try
+        fwrite(fid, content, "*char");
+    catch mexp
+        fclose(fid);
+        rethrow(mexp)
+    end
     fclose(fid);
     %)
 end%

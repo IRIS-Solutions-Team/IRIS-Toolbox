@@ -53,9 +53,6 @@ if isempty(pp)
 end
 parse(pp, this, beta, varargin{:});
 range = double(pp.Results.Range);
-if ischar(range) || isa(range, 'string')
-    range = textinp2dat(range);
-end
 opt = pp.Options;
 
 %--------------------------------------------------------------------------

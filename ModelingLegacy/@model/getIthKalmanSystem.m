@@ -8,8 +8,6 @@ function [T, R, K, Z, H, D, U, Zb, inxV, inxW, numUnit, inxInit] = ...
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 if nargin<3
     requiredForward = 0;
 end
@@ -41,9 +39,9 @@ if isempty(D)
     D = zeros(0, 1);
 end
 
-inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
-inxW = this.Quantity.Type(inxE)==TYPE(31);
-inxV = this.Quantity.Type(inxE)==TYPE(32);
+inxE = getIndexByType(this.Quantity, 31, 32);
+inxW = this.Quantity.Type(inxE)==31;
+inxV = this.Quantity.Type(inxE)==32;
 numUnit = getNumOfUnitRoots(this.Variant, variantRequested);
 inxInit = this.Variant.InxInit(:, :, variantRequested);
 

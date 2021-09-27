@@ -46,7 +46,9 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         % Gradient  Symbolic gradients of model equations
         Gradient = model.component.Gradient(0)
 
-        % Pairing  Definition of pairs in autoswaps, dtrends, links, and assignment equations
+
+        % Pairing  Definition of pairs in autoswaps, measurement trends,
+        % links, and assignment equations
         Pairing = model.component.Pairing(0, 0)
 
         % PreparserControl  Preparser control parameters
@@ -292,12 +294,15 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
 
         function names = nameAppendables(this)
-            TYPE = @int8;
-            names = getNamesByType(this.Quantity, TYPE(1), TYPE(2), TYPE(31), TYPE(32), TYPE(5));
+            names = getNamesByType(this.Quantity, 1, 2, 31, 32, 5);
         end%
 
-
         varargout = getVariant(varargin)
+
+        function flag = hasLogVariables(this)
+            flag = hasLogVariables(this.Quantity);
+        end%
+
         varargout = hdatainit(varargin)
         varargout = freql(varargin)
         varargout = myfindsspacepos(varargin)
@@ -421,8 +426,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = assignNameValue(varargin)
         varargout = affected(varargin)
         varargout = build(varargin)
-        varargout = chkStructureAfter(varargin)
-        varargout = chkStructureBefore(varargin)
+        varargout = checkStructureAfter(varargin)
+        varargout = checkStructureBefore(varargin)
         varargout = checkSyntax(varargin)
         varargout = createD2S(varargin)
         varargout = createSourceDb(varargin)
@@ -432,7 +437,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = kalmanFilterRegOutp(varargin)
         varargout = myanchors(varargin)
         varargout = mydiffloglik(varargin)
-        varargout = myeqtn2afcn(varargin)
+        varargout = functionsFromEquations(varargin)
         varargout = myfind(varargin)
         varargout = myforecastswap(varargin)
         varargout = swapForecast(varargin)
@@ -482,11 +487,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         function flag = validateChksstate(input)
             flag = isequal(input, true) || isequal(input, false) ...
                 || (iscell(input) && iscellstr(input(1:2:end)));
-        end%
-
-
-        function flag = validateFilter(input)
-            flag = isempty(input) || (iscell(input) && iscellstr(input(1:2:end)));
         end%
 
 

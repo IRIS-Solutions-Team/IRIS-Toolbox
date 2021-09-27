@@ -7,12 +7,8 @@ function this = enforceLogStatus(this)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 % Enforce false log status of shocks
-inxEnforced = this.Type==TYPE(31) | this.Type==TYPE(32);
+inxEnforced = this.Type==31 | this.Type==32;
 this.IxLog(inxEnforced) = false;
 
 % Enforce false log status of time trend

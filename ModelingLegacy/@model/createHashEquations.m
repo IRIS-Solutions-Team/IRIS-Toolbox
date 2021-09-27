@@ -1,7 +1,5 @@
 function eqtn = createHashEquations(this, indexEquations)
 
-TYPE = @int8;
-
 persistent FORMAT
 if isempty(FORMAT)
     FORMAT = containers.Map('KeyType', 'int32', 'ValueType', 'char');
@@ -30,7 +28,7 @@ end
 % allowed.
 for type = [1, 31, 32, 5]
     format = FORMAT(type);
-    id = find(this.Quantity.Type==TYPE(type));
+    id = find(this.Quantity.Type==type);
     for pos = 1 : numel(id)
         ithId = id(pos);
         findString = sprintf('x(%g,t)', ithId);
@@ -44,7 +42,7 @@ end
 % to current dates
 type = 4;
 format = FORMAT(type);
-id = find(this.Quantity.Type==TYPE(type));
+id = find(this.Quantity.Type==type);
 for pos = 1 : numel(id)
     ithId = id(pos);
     findPattern = '\<x\(%g,t([\+\-]\d+)?\)';

@@ -61,8 +61,6 @@ function d = addToDatabank(what, this, d, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 if nargin<3
     d = struct( );
 end
@@ -112,7 +110,7 @@ return
 
 
     function addParameters( )
-        ixp = this.Quantity.Type==TYPE(4);
+        ixp = this.Quantity.Type==4;
         for ii = find(ixp)
             name__ = this.Quantity.Name{ii};
             value__ = permute(this.Variant.Values(:, ii, :), [1, 3, 2]);
@@ -134,7 +132,7 @@ return
 
 
     function addCorr(addZeroCorr)
-        ne = nnz(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
+        ne = nnz(this.Quantity.Type==31 | this.Quantity.Type==32);
         namesCorr = getCorrNames(this.Quantity);
         valuesCorr = this.Variant.StdCorr(:, ne+1:end, :);
         inxCorrAllowed = this.Variant.IndexOfStdCorrAllowed(ne+1:end);

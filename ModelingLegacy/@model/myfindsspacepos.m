@@ -8,8 +8,6 @@ function [posSpace, posName, posSpaceLag, ixSpace] ...
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
 throwErr = any(strcmp(varargin,'-error'));
 
 if ischar(lsInp)
@@ -21,8 +19,8 @@ lsInp = regexprep(lsInp,'\s+','');
 
 %--------------------------------------------------------------------------
 
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
+ixy = this.Quantity.Type==1;
+ixx = this.Quantity.Type==2;
 nz = length(lsInp);
 
 % Vector of measurement and transition variables.

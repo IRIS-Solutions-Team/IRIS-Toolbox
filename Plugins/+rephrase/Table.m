@@ -2,7 +2,7 @@ classdef Table ...
     < rephrase.Element ...
     & rephrase.Container
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.TABLE
     end
 

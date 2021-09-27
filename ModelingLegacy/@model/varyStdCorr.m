@@ -1,23 +1,18 @@
-function [overrideReal, overrideImag, multiply] = ...
-    varyStdCorr(this, range, userOverride, userMultiply, varargin)
 % varyStdCorr  Convert time-varying std and corr to stdcorr vector
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+function [overrideReal, overrideImag, multiply] = ...
+    varyStdCorr(this, range, userOverride, userMultiply, options)
 
-clipTrailing = any(strcmpi(varargin, '--clip')); % Clip trailing NaNs
-addPresample = any(strcmpi(varargin, '--presample')); % Include one presample period
+% options.Clip=true  Clip trailing NaNs
+% options.Presample=true  Add one presample period
+
 includeOverrideImag = nargout>1;
 includeMultiply = nargout>2;
 
-%--------------------------------------------------------------------------
-
-inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+inxE = getIndexByType(this.Quantity, 31, 32);
 numE = nnz(inxE);
 numSX = numE + numE*(numE-1)/2;
 
@@ -63,7 +58,7 @@ if includeMultiply
 end
 
 % Remove trailing NaNs if requested
-if clipTrailing 
+if options.Clip 
     overrideReal = hereClip(overrideReal);
     if includeOverrideImag
         overrideImag = hereClip(overrideImag);
@@ -79,7 +74,7 @@ return
         range = reshape(double(range), 1, [ ]);
         startDate = range(1);
         endDate = range(end);
-        if addPresample 
+        if options.Presample 
             % Add one presample period if requested
             startDate = dater.plus(startDate, -1);
         end

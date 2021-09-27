@@ -11,7 +11,7 @@ h.IxLog = this.Quantity.IxLog;
 h.Label = cellstr(getLabelsOrNames(this.Quantity));
 
 if isequal(h.Contributions, @shock)
-    ixe = this.Quantity.Type==int8(31) | this.Quantity.Type==int8(32);
+    ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
     listShocks = this.Quantity.Name(ixe);
     listExtras =  { 
         this.CONTRIBUTION_INIT_CONST_DTREND, ...
@@ -19,7 +19,7 @@ if isequal(h.Contributions, @shock)
     };
     h.Contributions = [listShocks, listExtras];
 elseif isequal(h.Contributions, @measurement)
-    ixy = this.Quantity.Type==int8(1);
+    ixy = this.Quantity.Type==1;
     h.Contributions = this.Quantity.Name(ixy);
 end
 

@@ -26,18 +26,17 @@ end
 kalmanOpt = prepareKalmanOptions(this, range, varargin{:});
 
 
-% /////////////////////////////////////////////////////////////////////////
-%
-% Call Kalman filter
-%
+
+%=========================================================================
 argin = struct( ...
     'InputData', inputArray, ...
     'OutputData', hereCreateOutputDataRequest(this, numExtPeriods, kalmanOpt), ...
     'OutputDataAssignFunc', @hereAssignOutputData, ...
     'Options', kalmanOpt ...
 );
-[~, regOutput, outputData] = kalmanFilter(this, argin);
-% /////////////////////////////////////////////////////////////////////////
+[~, regOutput, outputData] = implementKalmanFilter(this, argin);
+%=========================================================================
+
 
 
 %

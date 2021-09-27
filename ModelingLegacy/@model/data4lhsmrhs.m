@@ -102,8 +102,6 @@ baseRange = double(baseRange);
 baseStart = baseRange(1);
 baseEnd = baseRange(end);
 
-%--------------------------------------------------------------------------
-
 inxE = getIndexByType(this.Quantity, 31, 32);
 inxP = getIndexByType(this.Quantity, 4);
 rowNames = this.Quantity.Name;
@@ -115,12 +113,20 @@ lenExtdRange = round(extdEnd - extdStart + 1);
 extdRange = extdStart:extdEnd;
 
 if isempty(fieldnames(opt.DbInfo))
-    dbInfo = checkInputDatabank(this, inputDb, extdRange, [ ], rowNamesExceptParameters);
+    allowedNumeric = string.empty(1, 0);
+    allowedLog = string.empty(1, 0);
+    context = "";
+    dbInfo = checkInputDatabank( ...
+        this, inputDb, extdRange ...
+        , string.empty(1, 0), rowNamesExceptParameters ...
+        , allowedNumeric, allowedLog ...
+        , context ...
+    );
 else
     dbInfo = opt.DbInfo;
 end
 
-YXEG = requestData(this, dbInfo, inputDb, extdRange, rowNamesExceptParameters);
+YXEG = requestData(this, dbInfo, inputDb, rowNamesExceptParameters, extdRange);
 
 extdTimeTrend = dat2ttrend(extdRange, this);
 numPages = size(YXEG, 3);

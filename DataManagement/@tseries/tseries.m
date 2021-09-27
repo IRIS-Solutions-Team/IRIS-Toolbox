@@ -30,10 +30,10 @@
 % __Properties Directly Accessible__
 %
 %   Data - Numeric array of time series data
-%   Start - Date of first observation available 
-%   End - 
-%   Range - 
-%   Frequency - 
+%   Start - Date of first observation available
+%   End -
+%   Range -
+%   Frequency -
 %   MissingValue - Representation of missing value
 %   MissingTest - Test for missing values
 %
@@ -44,7 +44,7 @@
 %   isequal - True if two time series are identical
 %   length - Length of time series data in time dimension
 %   ndims - Number of dimensions in time series data
-%   resolveRange - 
+%   resolveRange -
 %   size - Size of time series data
 %   tabular - Display time series in tabular view
 %
@@ -129,11 +129,11 @@
 %   cumsumk - Cumulative sum with a k-period leap
 %   destdize - Destandardize time series by multiplying it by std dev and adding mean
 %   diff - First difference
-%   fillMissing - 
+%   fillMissing -
 %   interp - Interpolate missing observations
 %   normalize - Normalise (or rebase) data to particular date
 %   pct - Percent rate of change
-%   removeWeekends - 
+%   removeWeekends -
 %   roc - Gross rate of change
 %   rmse - Compute RMSE for given observations and predictions
 %   stdize - Standardize time series data by subtracting mean and dividing by std deviation
@@ -158,8 +158,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             this = this@NumericTimeSubscriptable(varargin{:});
         end%
     end
-
-
 
 
     methods
@@ -244,26 +242,24 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = trend(varargin)
         varargout = wmean(varargin)
         varargout = x12(varargin)
-        
+
 
         function date = startdate(this)
             date = DateWrapper(this.Start);
         end%
-        
+
 
         function date = enddate(this)
             date = DateWrapper(this.End);
-        end%   
+        end%
 
-        
+
         function varargout = x13(varargin)
             [varargout{1:nargout}] = x12(varargin{:});
         end%
     end
-    
 
 
-    
     methods (Hidden)
         varargout = max(varargin)
         varargout = min(varargin)
@@ -281,8 +277,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = maxabs(varargin)
         varargout = rearrangePred(varargin)
     end
-    
-    
 
 
     methods (Access=protected, Hidden)
@@ -293,11 +287,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     end
 
 
-    
-    
     methods (Static, Hidden)
         varargout = loadobj(varargin)
-        varargout = myband(varargin)
         varargout = mybarcon(varargin)
         varargout = myerrorbar(varargin)
         varargout = mynanmean(varargin)
@@ -305,8 +296,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = mynansum(varargin)
         varargout = mynanvar(varargin)
     end
-    
-    
 
 
 
@@ -318,7 +307,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 index = size(this.Data, k);
             end
         end%
-        
+
 
         function n = numel(~, varargin)
             n = 1;

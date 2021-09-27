@@ -25,6 +25,7 @@ Function | Description
 Function | Description 
 ---|---
 [`arf`](arf.md) | {{ series._arf }} 
+[`hpf`](hpf.md) | {{ series._hpf }} 
 [`moving`](moving.md) | {{ series._moving }} 
 [`chainlink`](chainlink.md) | {{ series._chainlink }}
 
@@ -33,5 +34,6 @@ Function | Description
 
 Function | Description 
 ---|---
+[`rmse`](rmse.md) | {{ series._rmse }}
 [`regress`](regress.md) | {{ series._regress }} 
 

@@ -5,8 +5,6 @@
 
 function output = lookup(this, query, varargin)
 
-TYPE = @int8;
-
 output = struct( );
 
 inxE = this.Type==31 | this.Type==32;

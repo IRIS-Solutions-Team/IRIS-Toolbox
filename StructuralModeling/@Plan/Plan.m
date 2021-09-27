@@ -183,7 +183,7 @@ classdef Plan ...
         function [inxExogenized, inxEndogenized] = getSwapsWithinFrame( ...
             this, firstColumnFrame, lastColumnSimulation ...
         )
-            numColumns = this.NumExtendedPeriods + this.NumDummyPeriods;
+            numColumns = this.NumExtdPeriods + this.NumDummyPeriods;
             inxExogenized = logical(sparse(this.NumOfEndogenous, numColumns));
             inxEndogenized = logical(sparse(this.NumOfExogenous, numColumns));
             if this.NumOfExogenizedPoints>0
@@ -300,14 +300,14 @@ classdef Plan ...
 
         function inxDates = resolveDates(this, dates)
             if isequal(dates, @all)
-                inxDates = false(1, this.NumExtendedPeriods);
+                inxDates = false(1, this.NumExtdPeriods);
                 inxDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
                 return
             end
             posDates = DateWrapper.getRelativePosition( this.ExtendedStart, dates, ...
                                                         [this.PosOfBaseStart, this.PosOfBaseEnd], ...
                                                         'simulation Plan range' );
-            inxDates = false(1, this.NumExtendedPeriods);
+            inxDates = false(1, this.NumExtdPeriods);
             inxDates(posDates) = true;
         end%
 
@@ -436,7 +436,7 @@ classdef Plan ...
         NumOfEndogenous
         NumOfExogenous
         NumBasePeriods
-        NumExtendedPeriods
+        NumExtdPeriods
         NumOfExogenizedPoints
         NumOfAnticipatedExogenizedPoints
         NumOfUnanticipatedExogenizedPoints
@@ -460,7 +460,7 @@ classdef Plan ...
 
     methods % Get Set Methods
         function values = get.InxAllExogenized(this)
-            numColumns = this.NumExtendedPeriods + this.NumDummyPeriods;
+            numColumns = this.NumExtdPeriods + this.NumDummyPeriods;
             inxAllExogenized = logical(sparse(this.NumOfEndogenous, numColumns));
             if this.NumOfExogenizedPoints>0
                 inxExogenized(:, :) = this.InxOfAnticipatedExogenized | this.InxOfUnanticipatedExogenized;
@@ -695,7 +695,7 @@ classdef Plan ...
         end%
 
 
-        function value = get.NumExtendedPeriods(this)
+        function value = get.NumExtdPeriods(this)
             if isempty(this.ExtendedStart) || isempty(this.ExtendedEnd)
                 value = 0;
                 return
@@ -942,7 +942,7 @@ classdef Plan ...
 
 
         function this = resetOutsideBaseRange(this)
-            numExtendedPeriods = this.NumExtendedPeriods;
+            numExtendedPeriods = this.NumExtdPeriods;
             numPresample = round(this.BaseStart-this.ExtendedStart);
             if numPresample==0
                 posPresample = double.empty(1, 0);

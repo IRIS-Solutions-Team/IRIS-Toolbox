@@ -57,32 +57,33 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
-function [outputData, info] = simulate(this, inputData, range, opt)
+%(
+function [outputData, info] = simulate(this, inputData, range, options)
 
 arguments
     this Explanatory
     inputData {locallyValidateInputData}
     range {validate.properRange}
 
-    opt.AddToDatabank = @auto
-    opt.PrependInput (1, 1) logical = false
-    opt.AppendInput (1, 1) logical = false
-    opt.Blazer (1, :) cell = cell.empty(1, 0)
-    opt.NaNParameters (1, 1) string = "warning"
-    opt.NaNSimulation (1, 1) string = "warning"
-    opt.OutputType (1, 1) string = "struct"
-    opt.Plan = [ ];
-    opt.SkipWhenData (:, :) logical {mustBeNonempty} = false
-    opt.ExogenizeWhenData (:, :) logical {mustBeNonempty} = false
+    options.AddToDatabank = @auto
+    options.PrependInput (1, 1) logical = false
+    options.AppendInput (1, 1) logical = false
+    options.Blazer (1, :) cell = cell.empty(1, 0)
+    options.NaNParameters (1, 1) string = "warning"
+    options.NaNSimulation (1, 1) string = "warning"
+    options.OutputType (1, 1) string = "struct"
+    options.Plan = []
 
-    opt.Progress (1, 1) logical = false
-    opt.Journal = false
+    options.SkipWhenData (:, :) logical {mustBeNonempty} = false
+    options.ExogenizeWhenData (:, :) logical {mustBeNonempty} = false
+
+    options.Progress (1, 1) logical = false
+    options.Journal = false
 end
 
-opt.AppendPresample = opt.PrependInput;
-opt.AppendPostsample = opt.AppendInput;
-%}
+options.AppendPresample = options.PrependInput;
+options.AppendPostsample = options.AppendInput;
+%)
 % >=R2019b
 
 % <=R2019a
@@ -110,12 +111,12 @@ if isempty(pp)
     addParameter(pp, "ExogenizeWhenData", false, @islogical);
     addParameter(pp, "Journal", false);
 end
-opt = parse(pp, this, inputData, range, varargin{:});
-%)
+options = parse(pp, this, inputData, range, varargin{:});
+%}
 % <=R2019a
 
 storeToDatabank = nargout>=1 && validate.databank(inputData);
-journal = Journal(opt.Journal, "@Explanatory/simulate");
+journal = Journal(options.Journal, "@Explanatory/simulate");
 
 %--------------------------------------------------------------------------
 
@@ -137,11 +138,11 @@ range = double(range);
 numEquations = numel(this);
 nv = countVariants(this);
 if numEquations>1
-    if isscalar(opt.SkipWhenData)
-        opt.SkipWhenData = repmat(opt.SkipWhenData, 1, numEquations);
+    if isscalar(options.SkipWhenData)
+        options.SkipWhenData = repmat(options.SkipWhenData, 1, numEquations);
     end
-    if isscalar(opt.ExogenizeWhenData)
-        opt.ExogenizeWhenData = repmat(opt.ExogenizeWhenData, 1, numEquations);
+    if isscalar(options.ExogenizeWhenData)
+        options.ExogenizeWhenData = repmat(options.ExogenizeWhenData, 1, numEquations);
     end
 end
 
@@ -155,7 +156,7 @@ lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 outputData = getDataBlock(this, inputData, range, lhsRequired, context);
 extdRange = outputData.ExtendedRange;
-numExtdPeriods = outputData.NumExtendedPeriods;
+numExtdPeriods = outputData.NumExtdPeriods;
 numPages = outputData.NumPages;
 numRuns = max(nv, numPages);
 lhsNames = [this.LhsName];
@@ -193,11 +194,11 @@ this = runtime(this, outputData, "simulate");
 %
 % Run blazer and reorder equations
 % 
-[blocks, ~, humanBlocks, period] = blazer(this, opt.Blazer{:});
+[blocks, ~, humanBlocks, period] = blazer(this, options.Blazer{:});
 numBlocks = numel(blocks);
 
 
-if opt.Progress
+if options.Progress
     progress = ProgressBar("@Explanatory/simulate", numBlocks*numBaseRangeColumns*numRuns);
 end
 
@@ -274,7 +275,10 @@ if storeToDatabank
     % databank; do not include RHS-only variables 
     %
     namesToInclude = [this.LhsName, this.ResidualName];
-    outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], [ ], opt);
+    outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], [ ], options);
+    if validate.databank(inputData) && validate.databank(outputData)
+        outputDb = appendData(this, inputData, outputData, range, options);
+    end
 end
 
 
@@ -288,18 +292,18 @@ return
 
 
     function [anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( )
-        if isempty(opt.Plan) && ~any(opt.ExogenizeWhenData)
+        if isempty(options.Plan) && ~any(options.ExogenizeWhenData)
             inxExogenizedAlways = logical.empty(0);
             inxExogenizedWhenData = logical.empty(0);
-        elseif ~isempty(opt.Plan)
-            checkCompatibilityOfPlan(this, range, opt.Plan);
-            inxExogenized = opt.Plan.InxOfAnticipatedExogenized | opt.Plan.InxOfUnanticipatedExogenized;
-            inxExogenizedWhenData = opt.Plan.InxToKeepEndogenousNaN;
+        elseif ~isempty(options.Plan)
+            checkCompatibilityOfPlan(this, range, options.Plan);
+            inxExogenized = options.Plan.InxOfAnticipatedExogenized | options.Plan.InxOfUnanticipatedExogenized;
+            inxExogenizedWhenData = options.Plan.InxToKeepEndogenousNaN;
             inxExogenizedAlways = inxExogenized & ~inxExogenizedWhenData;
         else
             inxExogenizedWhenData = false(numEquations, numExtdPeriods);
             inxExogenizedAlways = false(numEquations, numExtdPeriods);
-            inxExogenizedWhenData(opt.ExogenizeWhenData, baseRangeColumns, :) = true;
+            inxExogenizedWhenData(options.ExogenizeWhenData, baseRangeColumns, :) = true;
         end
 
         anyExogenized = (nnz(inxExogenizedAlways) + nnz(inxExogenizedWhenData))>0;
@@ -345,7 +349,7 @@ return
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
         end
-        skipWhenData__ = opt.SkipWhenData(eqn);
+        skipWhenData__ = options.SkipWhenData(eqn);
         for vv = 1 : numRuns
             if journal.IsActive && numRuns>1
                 %(
@@ -389,7 +393,7 @@ return
                     end
                 end
 
-                if opt.Progress
+                if options.Progress
                     increment(progress);
                 end
 
@@ -411,7 +415,7 @@ return
         if size(parameters__, 3)==1 && numRuns>1
             parameters__ = repmat(parameters__, 1, 1, numRuns);
         end
-        skipWhenData__ = opt.SkipWhenData(eqn);
+        skipWhenData__ = options.SkipWhenData(eqn);
         for vv = 1 : numRuns
             if journal.IsActive && numRuns>1
                 indent(journal, "Variant|Page " + sprintf("%g", vv));
@@ -463,7 +467,7 @@ return
                     write(journal, "Simulating " + lhsName__ + " " + join(s, " "));
                 end
             end
-            if opt.Progress
+            if options.Progress
                 increment(progress, numBaseRangeColumns);
             end
             if journal.IsActive && numRuns>1
@@ -501,7 +505,7 @@ return
             "Some Parameters are NaN or Inf in the Explanatory object"
             "for this LHS variables: %s" 
         ];
-        throw(exception.Base(thisWarning, opt.NaNParameters), report);
+        throw(exception.Base(thisWarning, options.NaNParameters), report);
     end%
 
 
@@ -514,7 +518,7 @@ return
             "Simulation of an Explanatory object produced "
             "at least one NaN or Inf value in this LHS variable: %s" 
         ];
-        throw(exception.Base(thisWarning, opt.NaNSimulation), report);
+        throw(exception.Base(thisWarning, options.NaNSimulation), report);
     end%
 end%
 

@@ -427,7 +427,7 @@ for i = 1 : nList
     if ~isequal(opt.Title, false)
         tit(i) = title(descript{i}, titleOpt{:});
     end
-    hold on;
+    hold on
     pos = pos + 1;
 end
 grfun.clicktocopy(ax);
@@ -435,20 +435,15 @@ grfun.clicktocopy(ax);
 return
 
 
-
-
     function processGraphicsOptions( )
         if iscell(opt.Figure)
             figureOpt = opt.Figure;
-            figureOpt(1:2:end) = strrep(figureOpt(1:2:end), '=', '');
         end
         if iscell(opt.Axes)
             axesOpt = opt.Axes;
-            axesOpt(1:2:end) = strrep(axesOpt(1:2:end), '=', '');
         end
         if iscell(opt.Title)
             titleOpt = opt.Title;
-            titleOpt(1:2:end) = strrep(titleOpt(1:2:end), '=', '');
         end
     end
 end
@@ -463,7 +458,6 @@ prLin = [ ];
 plotopt = { };
 if iscell(opt.PlotPrior)
     plotopt = opt.PlotPrior;
-    plotopt(1:2:end) = strrep(plotopt(1:2:end), '=', '');
 end
 for i = 1 : nList
     temp = priorPoints.(list{i});
@@ -486,7 +480,6 @@ poLin = [ ];
 plotOpt = { };
 if iscell(opt.PlotPoster)
     plotOpt = opt.PlotPoster;
-    plotOpt(1:2:end) = strrep(plotOpt(1:2:end), '=', '');
 end
 for i = 1 : nList
     temp = posterPoints.(list{i});
@@ -509,7 +502,6 @@ moLin = [ ];
 plotOpt = { };
 if iscell(opt.PlotMode)
     plotOpt = opt.PlotMode;
-    plotOpt(1:2:end) = strrep(plotOpt(1:2:end), '=', '');
 end
 for i = 1 : nList
     temp = modePoints.(list{i});
@@ -548,7 +540,6 @@ inLin = [ ];
 plotOpt = { };
 if iscell(opt.PlotInit)
     plotOpt = opt.PlotInit;
-    plotOpt(1:2:end) = strrep(plotOpt(1:2:end), '=', '');
 end
 for i = 1 : nList
     temp = initPoints.(list{i});

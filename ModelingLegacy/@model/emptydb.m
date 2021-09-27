@@ -53,7 +53,6 @@ function d = emptydb(this, varargin)
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TYPE = @int8;
 
 persistent parser
 if isempty(parser)
@@ -72,24 +71,24 @@ end
 %--------------------------------------------------------------------------
 
 if isequal(opt.Include, @all)
-    typesToInclude = [TYPE(1), TYPE(2), TYPE(31), TYPE(32), TYPE(4)];
+    typesToInclude = [1, 2, 31, 32, 4];
 else
-    typesToInclude = TYPE([ ]);
+    typesToInclude = [];
     if any(strcmpi(opt.Include, 'MeasurementVariables')) ...
        || any(strcmpi(opt.Include, 'Variables'))
-        typesToInclude = [typesToInclude, TYPE(1)];
+        typesToInclude = [typesToInclude, 1];
     end
     if any(strcmpi(opt.Include, 'TransitionVariables')) ...
        || any(strcmpi(opt.Include, 'Variables'))
-        typesToInclude = [typesToInclude, TYPE(2)];
+        typesToInclude = [typesToInclude, 2];
     end
     if any(strcmpi(opt.Include, 'MeasurementShocks')) ...
        || any(strcmpi(opt.Include, 'Shocks'))
-        typesToInclude = [typesToInclude, TYPE(31)];
+        typesToInclude = [typesToInclude, 31];
     end
     if any(strcmpi(opt.Include, 'TransitionShocks')) ...
        || any(strcmpi(opt.Include, 'Shocks'))
-        typesToInclude = [typesToInclude, TYPE(32)];
+        typesToInclude = [typesToInclude, 32];
     end
 end
 
@@ -98,7 +97,7 @@ if isempty(typesToInclude)
     return
 end
 
-inxParameters = this.Quantity.Type==TYPE(4);
+inxParameters = this.Quantity.Type==4;
 emptyTimeSeries = TIME_SERIES_CONSTRUCTOR([ ], zeros(opt.Size));
 
 % Add comment to time series for each variable
@@ -111,7 +110,7 @@ for i = find(~inxParameters)
 end
 
 % Add a value for each parameter
-if ismember(TYPE(4), typesToInclude)
+if ismember(4, typesToInclude)
     d = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, d);
 end
 

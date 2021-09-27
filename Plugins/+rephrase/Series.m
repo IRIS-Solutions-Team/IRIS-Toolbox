@@ -3,7 +3,7 @@ classdef Series ...
     & rephrase.Terminus ...
     & rephrase.Data
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.SERIES
     end
 

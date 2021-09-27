@@ -7,13 +7,9 @@ function setupRpteq(this)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 x = parser.theparser.Equation( );
 x.Keyword = '!reporting';
-x.Type = TYPE(6);
+x.Type = 6;
 this.Block{end+1} = x;
 
 

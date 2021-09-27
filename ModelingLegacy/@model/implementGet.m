@@ -9,7 +9,6 @@
 function [response, flag, query] = implementGet(this, query, varargin)
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
-TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
@@ -76,7 +75,7 @@ elseif any(strcmpi(query, steadyList))
 end
 
 [~, ~, numXiB, numXiF] = sizeSolution(this.Vector);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
 ne = sum(ixe);
 nv = length(this);
 
@@ -140,7 +139,7 @@ else
             
             
         case 'exogenous'
-            ixg = this.Quantity.Type==TYPE(5);
+            ixg = this.Quantity.Type==5;
             response = struct( );
             for i = find(ixg)
                 name = this.Quantity.Name{i};
@@ -172,7 +171,7 @@ else
             
             
         case {'log', 'islog'}
-            ixType = this.Quantity.Type~=TYPE(4);
+            ixType = this.Quantity.Type~=4;
             response = cell2struct( ...
                 num2cell(this.Quantity.IxLog(ixType)), ...
                 this.Quantity.Name(ixType), 2 ...
@@ -245,7 +244,7 @@ else
 
             
         case 'dtgrowth'
-            inxNaNSolutions = this.Quantity.Type==TYPE(1);
+            inxNaNSolutions = this.Quantity.Type==1;
             response = cell2DbaseFunc(dtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
@@ -301,16 +300,16 @@ else
         case {'ylog', 'xlog', 'elog', 'plog', 'glog'}
             switch query(1)
                 case 'y'
-                    ixType = this.Quantity.Type==TYPE(1);
+                    ixType = this.Quantity.Type==1;
                 case 'x'
-                    ixType = this.Quantity.Type==TYPE(2);
+                    ixType = this.Quantity.Type==2;
                 case 'e'
-                    ixType = this.Quantity.Type==TYPE(31) ...
-                        | this.Quantity.Type==TYPE(32);
+                    ixType = this.Quantity.Type==31 ...
+                        | this.Quantity.Type==32;
                 case 'p'
-                    ixType = this.Quantity.Type==TYPE(4);
+                    ixType = this.Quantity.Type==4;
                 case 'g'
-                    ixType = this.Quantity.Type==TYPE(5);
+                    ixType = this.Quantity.Type==5;
                 otherwise
                     ixType = false(1, length(this.Quantity));
             end        
@@ -322,9 +321,9 @@ else
         case {'eylist', 'exlist'}
             switch query(2)
                 case 'y'
-                    ixType = this.Quantity.Type==TYPE(31);
+                    ixType = this.Quantity.Type==31;
                 case 'x'
-                    ixType = this.Quantity.Type==TYPE(32);
+                    ixType = this.Quantity.Type==32;
             end
             response = this.Quantity.Name(ixType);
             
@@ -374,11 +373,11 @@ else
             eigenStability = this.Variant.EigenStability;
             switch query
                 case 'stableroots'
-                    ixSelect = eigenStability==TYPE(0);
+                    ixSelect = eigenStability==0;
                 case 'unstableroots'
-                    ixSelect = eigenStability==TYPE(2);
+                    ixSelect = eigenStability==2;
                 case 'unitroots'
-                    ixSelect = eigenStability==TYPE(1);
+                    ixSelect = eigenStability==1;
             end
             response = nan(size(eigenValues));
             for v = 1 : nv
@@ -432,19 +431,19 @@ else
             
             
         case 'ny'
-            response = sum(this.Quantity.Type==TYPE(1));
+            response = sum(this.Quantity.Type==1);
             
             
             
             
         case 'ng'
-            response = sum(this.Quantity.Type==TYPE(5));
+            response = sum(this.Quantity.Type==5);
             
             
             
             
         case 'ne'
-            response = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
+            response = sum(this.Quantity.Type==31 | this.Quantity.Type==32);
             
 
 
@@ -504,7 +503,7 @@ return
         [~, inxNaNSolutions] = isnan(this, 'solution');
         status = nan([sum(t0), nv]);
         for iiAlt = find(~inxNaNSolutions)
-            inxUnitRoots = this.Variant.EigenStability(:, 1:numXiB, iiAlt)==TYPE(1);
+            inxUnitRoots = this.Variant.EigenStability(:, 1:numXiB, iiAlt)==1;
             dy = any(abs(this.Variant.FirstOrderSolution{4}(:, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
             df = any(abs(this.Variant.FirstOrderSolution{1}(1:numXiF, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
             db = any(abs(this.Variant.FirstOrderSolution{7}(:, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
@@ -544,11 +543,10 @@ end%
 function [ steadyLevel, steadyGrowth, ...
            dtLevel, dtGrowth, ...
            ssDtLevel, ssDtGrowth ] = getSteady(this)
-    TYPE = @int8;
 
     numOfQuantities = length(this.Quantity);
     nv = length(this.Variant);
-    ixy = this.Quantity.Type==TYPE(1);
+    ixy = this.Quantity.Type==1;
     inxLog = this.Quantity.IxLog;
 
     % Steady states.
@@ -572,7 +570,7 @@ function [ steadyLevel, steadyGrowth, ...
     dtLevel(1, inxLog, :) = real(exp(dtLevel(1, inxLog, :)));
     dtGrowth(1, inxLog, :) = exp(dtGrowth(1, inxLog, :));
 
-    % Steady state plus dtrends.
+    % Steady state plus measurement trends
     ssDtLevel = steadyLevel;
     ssDtLevel(1, ~inxLog, :) = ssDtLevel(1, ~inxLog, :) + dtLevel(1, ~inxLog, :);
     ssDtLevel(1, inxLog, :) = ssDtLevel(1, inxLog, :) .* dtLevel(1, inxLog, :);
@@ -586,21 +584,20 @@ end%
 
 
 function [Dl, Dg] = getSteadyDtrends(this)
-    TYPE = @int8;
     x = permute(this.Variant.Values, [2, 1, 3]);
     lx = real(x);
     gx = imag(x);
 
     nv = length(this);
-    ixy = this.Quantity.Type==TYPE(1); 
+    ixy = this.Quantity.Type==1; 
     ny = sum(ixy);
     posy = find(ixy);
-    ixd = this.Equation.Type==TYPE(3);
+    ixd = this.Equation.Type==3;
     eqn = this.Equation;
     qty = this.Quantity;
 
-    % Return matrix of deterministic trends, Dl, and gradient of dtrends wrt
-    % exogenous variables, Dg.
+    % Return matrix of measurement trends, Dl, and gradient of measurement
+    % trends wrt exogenous variables, Dg
     Dl = zeros(ny, 1, nv);
     Dg = zeros(ny, 1, nv);
     for iEqn = find(ixd)
@@ -611,9 +608,9 @@ function [Dl, Dg] = getSteadyDtrends(this)
         % Add up gradientw wrt individual exogenous variables.
         fn = eqn.Dynamic{iEqn};
         Dl(posy==ptr, 1, :) = fn(lx, 1);
-        if ~isempty(wrt) && any(qty.Type(wrt)==TYPE(5))
+        if ~isempty(wrt) && any(qty.Type(wrt)==5)
             for j = 1 : numel(wrt)
-                if qty.Type(wrt(j))~=TYPE(5)
+                if qty.Type(wrt(j))~=5
                     continue
                 end
                 Dg(posy==ptr, 1, :) = ...
@@ -630,8 +627,7 @@ end%
 
 
 function equations = printParameterValues(this, equations, format)
-    TYPE = @int8;
-    posp = find(this.Quantity.Type==TYPE(4));
+    posp = find(this.Quantity.Type==4);
     if isempty(format)
         format = '%.2f';
     end

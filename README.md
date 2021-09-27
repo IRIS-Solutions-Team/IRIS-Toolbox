@@ -1,50 +1,38 @@
 # [IrisToolbox] for Macroeconomic Modeling
 
-## Recent Build Info
-### MS Windows 10
-Matlab R2016b : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Windows_R2016b&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Windows_R2016b),branch:default:true/statusIcon"/>
-</a>
+## Software dependencies
 
-Matlab R2017a : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Windows_R2017a&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Windows_R2017a),branch:default:true/statusIcon"/>
-</a>
-Matlab R2017b : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Windows_R2017b&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Windows_R2017b),branch:default:true/statusIcon"/>
-</a>
+IrisT runs in [Matlab](https://www.mathworks.com/matlab) R2019b or newer. There are also legacy releases of IrisT for Matlab R2018a through R2019a (under the `pre-r2019b` branch) but we strongly discourage using the legacy codebase. Keep also in mind that some features are not availabe in legacy releases.
 
-Matlab R2018a : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Windows_R2018a&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Windows_R2018a),branch:default:true/statusIcon"/>
-</a>
-Matlab R2018b : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Windows_R2018b&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Windows_R2018b),branch:default:true/statusIcon"/>
-</a>
+If you want to use the estimation functions for structural `@Model` objects (not for `@VAR` objects or `@Explanatory` objects) you also need the Optimization Toolbox installed.
 
-Matlab R2019a : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Windows_R2019a&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Windows_R2019a),branch:default:true/statusIcon"/>
-</a>
 
-### Ubuntu 16.04.3 LTS
-Matlab R2016b : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Linux_R2016b&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Linux_R2016b),branch:default:true/statusIcon"/>
-</a>
+## Getting IrisT installed
 
-Matlab R2017a : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Linux_R2017a&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Linux_R2017a),branch:default:true/statusIcon"/>
-</a>
-Matlab R2017b : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Linux_R2017b&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Linux_R2017b),branch:default:true/statusIcon"/>
-</a>
+You have two options of getting IrisT installed on your computer:
 
-Matlab R2018a : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Linux_R2018a&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Linux_R2018a),branch:default:true/statusIcon"/>
-</a>
-Matlab R2018b : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Linux_R2018b&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Linux_R2018b),branch:default:true/statusIcon"/>
-</a>
+1. Use [Git](https://git-scm.com) to clone the master branch in a `irist/folder/of/your/choice` on your computer:
 
-Matlab R2019a : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=IrisToolbox_Linux_R2019a&guest=1">
-  <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Linux_R2019a),branch:default:true/statusIcon"/>
-</a>
+```
+git clone https://github.com/IRIS-Solutions-Team/IRIS-Toolbox.git irist/folder/of/your/choice
+```
 
-### macOS High Sierra
+Note that although only the official release are properly tested for bugs, any pushes to the master branch on this GitHub repository are most of the time safe to update to.
+
+2. Manually download and unzip [the latest official release](https://github.com/IRIS-Solutions-Team/IRIS-Toolbox/releases/tag/Release-20210802) into a `irist/folder/of/your/choice/` on your computer.
+
+Of course, replace `irist/folder/of/your/choice/` with a proper path to the folder where you wish to have IrisT stored locally on your computer. When unzipping a zip archive, make sure that no nested folder is created, and that `irist/folder/of/your/choice/` contains, for instance, a file names `Contents.m`.
+
+
+## Starting up IrisT in Matlab
+
+Every time you want to start using IrisT in Matlab, run the following command in the Matlab command prompt:
+
+```
+>> addpath irist/folder/of/your/choice; iris.startup
+```
+
+where you, of course, need to replace `irist/folder/of/your/choice` with the proper path you chose when getting IrisT installed on your computer.
+
+Although you could use the **Set Path** dialog in Matlab to put `irist/folder/of/your/choice` on the Matlab path, we discourage you from doing that because it may occasionally result in some unwanted side consequences. Simply type up or invoke the above one line every time you wish to start up IrisT.
+

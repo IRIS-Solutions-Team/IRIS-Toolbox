@@ -17,13 +17,13 @@ outputFmt = {
 
 
 matrixFormat = {
-    'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
 };
 
 
 applyFilter = { 
     'ApplyTo', @all, @(x) isnumeric(x) || islogical(x) || isequal(x, @all) || iscellstr(x)
-    'Filter', '', @ischar
+    'Filter', '', @(x) ischar(x) || isstring(x)
 };
 
 

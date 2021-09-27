@@ -7,18 +7,14 @@ function s = prepareSimulate1(this, s, opt, displayMode, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 [ny, nxx] = sizeSolution(this.Vector);
 ixLog = this.Quantity.IxLog;
-ixy = this.Quantity.Type==TYPE(1); 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixp = this.Quantity.Type==TYPE(4);
-ixg = this.Quantity.Type==TYPE(5); 
+ixy = this.Quantity.Type==1; 
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
+ixp = this.Quantity.Type==4;
+ixg = this.Quantity.Type==5; 
 nEqtn = length(this.Equation);
-ixu = any(this.Equation.Type==TYPE(5));
+ixu = any(this.Equation.Type==5);
 ixh = this.Equation.IxHash;
 
 s.Method = opt.Method;
@@ -41,7 +37,7 @@ s.IxParameters = ixp;
 s.IxExogenous = ixg;
 
 if s.IsDeterministicTrends
-    ixd = this.Equation.Type==TYPE(3);
+    ixd = this.Equation.Type==3;
     s.DeterministicTrend = struct( );
     s.DeterministicTrend.Equations = cell(1, nEqtn);
     s.DeterministicTrend.Equations(ixd) = this.Equation.Dynamic(ixd);

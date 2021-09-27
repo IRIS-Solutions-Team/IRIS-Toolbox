@@ -90,10 +90,6 @@ end
 parser.parse(Y1, X2, Range, varargin{:});
 opt = parser.Options;
 
-if ischar(Range)
-    Range = textinp2dat(Range);
-end
-
 %--------------------------------------------------------------------------
 
 f1 = get(Y1, 'freq');

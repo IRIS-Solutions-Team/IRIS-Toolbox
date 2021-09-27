@@ -1,59 +1,5 @@
-% access  Access properties of Model objects
+% Type `web Model/access.md` for help on this function
 %
-%{ Syntax
-%--------------------------------------------------------------------------
-%
-%     output = access(model, what)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-% __`model`__ [ Model ]
-%>
-%>    Model objects that will be queried about `what`.
-%
-%
-% __`what`__ [ string ]
-%>
-%>    One of the valid queries listed in the below.
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __`output`__ [ * ]
-%>
-%>    Response to the query about `what`.
-%
-%
-% Valid Queries
-%--------------------------------------------------------------------------
-%
-% __`"measurement-variables"`__
-%
-% __`"transition-variables"`__
-%
-% __`"shocks"`__
-%
-% __`"parameters"`__
-%
-% __`"exogenous-variables"`__
-%
-%> Names of all measurement variables, or transition variables, or shocks,
-%> or parameters, or exogenous variables in order of their apperance in the
-%> declaration sections of the source model file(s).
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
@@ -93,6 +39,7 @@ if beenHandled, return, end
 
 output = [ ];
 beenHandled = true;
+numVariants = countVariants(this);
 
 
 %==========================================================================
@@ -121,11 +68,19 @@ elseif lower(what)==lower("stdValues")
     output = locallyCreateStruct(namesStd, values);
 
 
+elseif lower(what)==lower("corrValues")
+    output = implementGet(this, "corr");
+
+
+elseif lower(what)==lower("nonzeroCorrValues")
+    output = implementGet(this, "nonzeroCorr");
+
+
 elseif startsWith(what, "steady", "ignoreCase", true)
     values = permute(this.Variant.Values, [2, 3, 1]);
-    if endsWith(what, "level", "ignoreCase", true)
+    if endsWith(what, ["level", "levels"], "ignoreCase", true)
         values = real(values);
-    elseif endsWith(what, ["change", "growth"], "ignoreCase", true)
+    elseif endsWith(what, ["change", "growth", "changes"], "ignoreCase", true)
         values = imag(values);
     end
     output = locallyCreateStruct(this.Quantity.Name, values);
@@ -143,6 +98,60 @@ elseif lower(what)==lower("initCond")
     idInit = getIdInitialConditions(this);
     output = printSolutionVector(this, idInit, logStyle);
     output = reshape(string(output), 1, []);
+
+
+elseif lower(what)==lower("eigenValues")
+    output = this.Variant.EigenValues;
+
+
+elseif any(lower(what)==lower(["stableRoots", "unitRoots", "unstableRoots"]))
+    eigenValues = this.Variant.EigenValues;
+    eigenStability = this.Variant.EigenStability;
+    if startsWith(what, "stable", "ignoreCase", true)
+        inxSelect = eigenStability==0;
+    elseif startsWith(what, "unit", "ignoreCase", true)
+        inxSelect = eigenStability==1;
+    elseif startsWith(what, "unstable", "ignoreCase", true)
+        inxSelect = eigenStability==2;
+    end
+    output = nan(size(eigenValues));
+    for v = 1 : numVariants
+        n = nnz(inxSelect(1, :, v));
+        output(1, 1:n, v) = eigenValues(1, inxSelect(1, :, v), v);
+    end
+    output(:, all(isnan(output), 3), :) = [ ];
+
+
+elseif any(lower(what)==lower("maxLag"))
+    [~, ~, output] = getActualMinMaxShifts(this);
+
+
+elseif any(lower(what)==lower("maxLead"))
+    [~, output] = getActualMinMaxShifts(this);
+
+
+elseif any(lower(what)==lower(["stationaryStatus", "isStationary"]))
+    output = implementGet(this, "stationary");
+
+
+elseif any(lower(what)==lower(["stationaryList", "nonstationaryList"]))
+    output = textual.stringify(implementGet(this, lower(what)));
+
+
+elseif lower(what)==lower("transitionVector")
+    output = textual.stringify(implementGet(this, "xVector"));
+
+
+elseif lower(what)==lower("measurementVector")
+    output = textual.stringify(implementGet(this, "yVector"));
+
+
+elseif lower(what)==lower("shockVector")
+    output = textual.stringify(implementGet(this, "eVector"));
+
+
+elseif lower(what)==lower("forwardHorizon")
+    output = implementGet(this, "forward");
 
 
 else

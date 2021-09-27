@@ -1,6 +1,5 @@
 function [answ, isValid, query] = implementGet(this, query, varargin)
 
-TYPE = @int8;
 answ = [ ];
 isValid = true;
 compare = @(x, y) any(strcmpi(x, y));
@@ -42,11 +41,11 @@ elseif compare(query1, 'Alias')
     return
 
 elseif compare(query1, 'CanBeExogenized:Simulate')
-    answ = this.Type==TYPE(1) | this.Type==TYPE(2);
+    answ = this.Type==1 | this.Type==2;
     return
 
 elseif compare(query1, 'CanBeEndogenized:Simulate')
-    answ = this.Type==TYPE(31) | this.Type==TYPE(32);
+    answ = this.Type==31 | this.Type==32;
     return
 
 elseif compare(query1, 'LogStatus')
@@ -63,19 +62,19 @@ return
 
     function ixType = getType(query)
         if strcmpi(query, 'y')
-            ixType = this.Type==TYPE(1);
+            ixType = this.Type==1;
         elseif strcmpi(query, 'x')
-            ixType = this.Type==TYPE(2);
+            ixType = this.Type==2;
         elseif strcmpi(query, 'e') 
-            ixType = this.Type==TYPE(31) | this.Type==TYPE(32);
+            ixType = this.Type==31 | this.Type==32;
         elseif strcmpi(query, 'w')
             ixType = this.Type==(31);
         elseif strcmpi(query, 'v')
             ixType = this.Type==(32);
         elseif strcmpi(query, 'p')
-            ixType = this.Type==TYPE(4);
+            ixType = this.Type==4;
         elseif strcmpi(query, 'g')
-            ixType = this.Type==TYPE(5);
+            ixType = this.Type==5;
         end
     end%
 

@@ -119,9 +119,7 @@ end
 pp.parse(this, inp, range, varargin{:});
 opt = pp.Options;
 
-if ischar(range)
-    range = textinp2dat(range);
-end
+range = double(range);
 range = range(1) : range(end);
 
 % Conditioning
@@ -681,8 +679,9 @@ return
         % TODO: use `combineStdCorr` here
         % Combine sx from the current parameterisation and
         % sx supplied in Override= or cond
-        [overrideStdCorrReal, overrideStdCorrImag] = ...
-            varyStdCorr(this, range, opt.Override, opt.Multiply);
+        optionsHere = struct("Clip", false, "Presample", false);
+        [overrideStdCorrReal, overrideStdCorrImag] ...
+            = varyStdCorr(this, range, opt.Override, opt.Multiply, optionsHere);
 
         stdCorrReal = this.Variant.StdCorr(:, :, iLoop);
         stdCorrReal = repmat(stdCorrReal(:), 1, nPer);

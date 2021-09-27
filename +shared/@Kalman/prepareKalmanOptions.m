@@ -1,15 +1,17 @@
-function [opt, timeVarying] = prepareKalmanOptions(this, range, varargin)
 % prepareKalmanOptions  Prepare Kalman filter options
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+%
+function [opt, timeVarying] = prepareKalmanOptions(this, range, varargin)
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Kalman.prepareKalmanOptions');
+
+    addParameter(pp, 'MatrixFormat', 'namedmat', @validate.matrixFormat);
+    addParameter(pp, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
+
     addParameter(pp, 'Anticipate', false, @validate.logicalScalar);
     addParameter(pp, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
     addParameter(pp, 'OutputDataAssignFunc', @hdataassign, @(x) isa(x, 'function_handle'));
@@ -19,7 +21,7 @@ if isempty(pp)
     addParameter(pp, {'ReturnCont', 'Contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper'));
     addParameter(pp, {'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
-    addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'FixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && any(lower(string(x))==lower(["fixedUnknown", "approxDiffuse"]))));
+    addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'fixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
     addParameter(pp, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
     addParameter(pp, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     addParameter(pp, {'ObjFuncContributions', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
@@ -39,8 +41,6 @@ if isempty(pp)
 end  
 parse(pp, varargin{:});
 opt = pp.Options;
-
-%--------------------------------------------------------------------------
 
 range = double(range);
 startRange = range(1);
@@ -88,7 +88,7 @@ else
         opt.OutOfLik = regexp(opt.OutOfLik, '\w+', 'match');
     end
     opt.OutOfLik = opt.OutOfLik(:)';
-    ell = lookup(this.Quantity, opt.OutOfLik, 4);
+    ell = lookup(this.Quantity, cellstr(opt.OutOfLik), 4);
     pos = ell.PosName;
     inxNaN = isnan(pos);
     if any(inxNaN)
@@ -114,8 +114,9 @@ end
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
 if ~isempty(opt.Override) || ~isempty(opt.Multiply)
+    optionsHere = struct("Clip", true, "Presample", true);
     [opt.OverrideStdcorr, ~, opt.MultiplyStd] = ...
-        varyStdCorr(this, range, opt.Override, opt.Multiply, '--clip', '--presample');
+        varyStdCorr(this, range, opt.Override, opt.Multiply, optionsHere);
 end
 
 
@@ -292,16 +293,14 @@ return
     function herePrepareSimulateSystemProperty( )
         opt.Simulate = simulate( ...
             this, "asynchronous", @auto, ...
-            opt.Simulate{:}, "SystemProperty=", "S" ...
+            opt.Simulate{:}, "systemProperty", "S" ...
         );
     end%
 end%
 
-
 %
 % Local Validators
 %
-
 
 function flag = locallyValidateInitCond(x)
     if validate.databank(x)
@@ -318,4 +317,6 @@ function flag = locallyValidateInitCond(x)
     end
     flag = false;
 end%
+
+
 

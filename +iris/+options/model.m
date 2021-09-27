@@ -10,7 +10,7 @@ function def = model( )
 %--------------------------------------------------------------------------
 
 matrixFormat = {
-    'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
     };
 
 select = {
@@ -44,14 +44,14 @@ def.fmse = [
 
 def.fisher = {
     'chksgf', false, @(x) isequal(x, true) || isequal(x, false)
-    'ChkSstate', true, @model.validateChksstate
+    'CheckSteady', true, @model.validateChksstate
     'Deviation', true, @(x) isequal(x, true) || isequal(x, false)
     'epspower', 1/3, @isnumericscalar
-    'exclude', { }, @(x) ischar(x) || iscellstr(x)
+    'Exclude', { }, @(x) isstring(x) || ischar(x) || iscellstr(x)
     'percent', false, @(x) isequal(x, true) || isequal(x, false)
     'progress', false, @(x) isequal(x, true) || isequal(x, false)
     'Solve', true, @model.validateSolve
-    'Steady, sstate, sstateopt', false, @model.validateSteady
+    'Steady', false, @model.validateSteady
     'tolerance', eps( )^(2/3), @isnumericscalar
     };
 

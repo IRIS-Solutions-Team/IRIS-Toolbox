@@ -2,7 +2,7 @@ classdef Pagebreak ...
     < rephrase.Element ...
     & rephrase.Terminus
 
-    properties (Constant)
+    properties % (Constant)
         Type = rephrase.Type.PAGEBREAK
     end
 

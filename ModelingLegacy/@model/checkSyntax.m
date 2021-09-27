@@ -7,16 +7,12 @@ function checkSyntax(this, qty, eqn)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 numQuan = length(qty);
 sh0 = this.Incidence.Dynamic.PosZeroShift;
 nsh = this.Incidence.Dynamic.NumShifts;
-ne = sum(qty.Type==TYPE(31) | qty.Type==TYPE(32));
-ixl = eqn.Type==TYPE(4);
-inxYX = getIndexByType(qty, TYPE(1), TYPE(2));
+ne = sum(qty.Type==31 | qty.Type==32);
+ixl = eqn.Type==4;
+inxYX = getIndexByType(qty, 1, 2);
 
 x = rand(numQuan, nsh);
 L = x;
@@ -81,7 +77,7 @@ return
                 fn = ['@(x,t,L)', fn]; %#ok<AGROW>
                 fn = str2func(fn);
                 
-                if eqn.Type(iiEq)~=TYPE(4)
+                if eqn.Type(iiEq)~=4
                     feval(fn, x, sh0, L);
                 else
                     % Evaluate RHS of dynamic links. They can refer to std or corr names, so we

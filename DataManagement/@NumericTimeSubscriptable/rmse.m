@@ -1,67 +1,25 @@
-function [rmse, error] = rmse(actual, prediction, varargin)
-% rmse  Calculate RMSE for given observations and predictions
-%{
-% Syntax
-%--------------------------------------------------------------------------
+% Type `web Series/rmse.md` for help on this function
 %
-%
-%     [rmse, error] = rmse(inputSeries, prediction, ...)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-% 
-% __`actual`__ [ Series ] 
-%
-%     Input time series with actual observations.
-%
-%
-% __`prediction`__ [ Series ]
-%
-%     Input time series with predictions, possibly including multiple
-%     prediction horizons in individual columns; this is typically the
-%     outcome of running a Kalman filter with the option `Ahead=`.
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-%
-% __`Range=Inf`__ [ Dater | `Inf` ]
-%
-%     Date range on which the prediction errors will be calculated; `Inf`
-%     means all observations available will be included in the
-%     calculations.
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __`rootMSE`__ [ numeric ]
-%
-%     Numeric array with root mean squared errors for each column of the
-%     `prediction` time series.
-%
-%
-% __`error`__ [ Series ] -
-%
-%     Time series with prediction errors from which the RMSEs are
-%     calculated; `error` is simply the difference between `actual` and the
-%     individual columns in `prediction`.
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-%}
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+% >=R2019b
+%(
+function [rmse, error] = rmse(actual, prediction, options)
+
+arguments
+    actual Series
+    prediction Series
+    
+    options.Range (1, :) double {validate.range} = Inf
+end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [rmse, error] = rmse(actual, prediction, varargin)
 
 persistent pp
 if isempty(pp)
@@ -72,21 +30,19 @@ if isempty(pp)
 
     addParameter(pp, 'Range', Inf, @validate.range);
 end
-[skip, opt] = maybeSkip(pp, varargin{:});
+[skip, options] = maybeSkip(pp, varargin{:});
 if ~skip
-    opt = parse(pp, actual, prediction, varargin{:});
+    options = parse(pp, actual, prediction, varargin{:});
     if any(strcmp(pp.UsingDefaults, 'Range'))
-        opt.Range = pp.Results.legacyRange;
+        options.Range = pp.Results.legacyRange;
     end
 end
+%}
+% <=R2019a
 
-rmseFunc = @(error, from, to) sqrt(mean(getDataFromTo(error, from, to).^2, 1, 'OmitNaN'));
-
-%--------------------------------------------------------------------------
-
-[from, to] = resolveRange(actual, opt.Range);
+[from, to] = resolveRange(actual, options.Range);
 error = clip(actual - prediction, from, to);
-rmse = rmseFunc(error, from, to);
+rmse = sqrt(mean(getDataFromTo(error, from, to).^2, 1, 'omitNaN'));
 
 end%
 
@@ -105,13 +61,14 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 % Set Up Once
     mf = model.File( );
     mf.Code = '!variables x@ !shocks eps !equations x = 0.8*x{-1} + eps;';
-    m = Model(mf, 'Linear=', true);
+    m = Model(mf, 'Linear', true);
     m = solve(m);
     d = struct( );
     d.eps = Series(1, randn(20, 1));
     d.x = arf(Series(0, 0), [1, -0.8], d.eps, 1:20);
-    [~, p] = filter(m, d, 1:20, 'Output=', 'Pred', 'Ahead=', 7, 'MeanOnly=', true);
+    [~, p] = filter(m, d, 1:20, 'Output', 'Pred', 'Ahead', 7, 'MeanOnly', true);
     d.x = clip(d.x, 1:20);
+    p.x = clip(p.x, 1:20);
 
 
 %% Test Multiple Horizons
@@ -121,18 +78,12 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
    assertEqual(testCase, r0, r1);
 
 
-%% Test Legacy Range
-
-   [r0, e0] = rmse(d.x, p.x, 2:16);
-   r1 = sqrt(mean((d.x.Data(2:16) - p.x.Data(2:16, :)).^2, 1, 'OmitNaN'));
-   assertEqual(testCase, r0, r1);
-
-
 %% Test Range
 
-   [r0, e0] = rmse(d.x, p.x, 'Range=', 3:14);
+   [r0, e0] = rmse(d.x, p.x, 'Range', 3:14);
    r1 = sqrt(mean((d.x.Data(3:14) - p.x.Data(3:14, :)).^2, 1, 'OmitNaN'));
    assertEqual(testCase, r0, r1);
 
 ##### SOURCE END #####
 %}
+

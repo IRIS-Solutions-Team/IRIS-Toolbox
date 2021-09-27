@@ -6,7 +6,7 @@ if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
     pp = extend.InputParser('@Model');
     pp.KeepUnmatched = true;
     pp.PartialMatching = false;
-    % addParameter(pp, 'addlead', false, @validate.logicalScalar);
+    addParameter(pp, 'AllowExogenous', false, @validate.logicalScalar);
     addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
     addParameter(pp, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));

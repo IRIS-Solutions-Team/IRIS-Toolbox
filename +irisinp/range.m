@@ -9,9 +9,6 @@ classdef range < irisinp.generic
 
     methods
         function this = preprocess(this,~)
-            if ischar(this.Value)
-                this.Value = textinp2dat(this.Value);
-            end
             if isequal(this.Value,Inf) || isequal(this.Value,@all)
                 this.Value = Inf;
             elseif ~isinf(this.Value(1)) && ~isinf(this.Value(end))

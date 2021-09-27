@@ -87,20 +87,17 @@ end
 %)
 opt = parse(pp, this, inputDb, range, varargin{:});
 
-if ischar(range)
-    range = textinp2dat(range);
-end
 range = double(range);
 
 %--------------------------------------------------------------------------
 
-ny = this.NumEndogenous;
-ne = this.NumResiduals;
-ng = this.NumExogenous;
+numY = this.NumEndogenous;
+numE = this.NumResiduals;
+numG = this.NumExogenous;
 nv = countVariants(this);
-indexX = [true(ny, 1); false(ng, 1); false(ne, 1)];
-indexG = [false(ny, 1);  true(ng, 1); false(ne, 1)];
-indexE = [false(ny, 1); false(ng, 1);  true(ne, 1)];
+inxX = [true(numY, 1); false(numG, 1); false(numE, 1)];
+inxG = [false(numY, 1);  true(numG, 1); false(numE, 1)];
+inxE = [false(numY, 1); false(numG, 1);  true(numE, 1)];
 order = this.Order;
 
 if isempty(range)
@@ -121,17 +118,22 @@ end
 % Check availability of input data in input databank
 requiredNames = [this.EndogenousNames, this.ExogenousNames];
 optionalNames = this.ResidualNames;
-dbInfo = checkInputDatabank(this, inputDb, range, requiredNames, optionalNames);
+allowedNumeric = string.empty(1, 0);
+allowedLog = string.empty(1, 0);
+context = "";
+dbInfo = checkInputDatabank( ...
+    this, inputDb, extdRange ...
+    , requiredNames, optionalNames ...
+    , allowedNumeric, allowedLog ...
+    , context ...
+);
 
-allNames = [requiredNames, optionalNames];
-YEG = requestData(this, dbInfo, inputDb, extdRange, allNames);
+% Retrieve a YEG data array from the input databank
+YEG = requestData( ...
+    this, dbInfo, inputDb ...
+    , [requiredNames, optionalNames], extdRange ...
+);
 
-%req = datarequest('y* x* e', this, inputDb, extdRange);
-%extdRange = req.Range;
-%y = req.Y;
-%x = req.X;
-%e = req.E;
-%e(isnan(e)) = 0;
 
 if isBackcast
     YEG = flip(YEG, 2);
@@ -154,7 +156,7 @@ if opt.Contributions
             "Cannot simulate shock contributions in VAR with multiple parameter variants"
         ]);
     end
-    numRuns = ny + 2;
+    numRuns = numY + 2;
 end
 
 % Expand Y, E, X data in 3rd dimension to match numRuns.
@@ -168,9 +170,9 @@ end
 %if numDataE<numRuns
 %    e = cat(3, e, repmat(e, 1, 1, numRuns-numDataE));
 %end
-%if ng>0 && numDataX<numRuns
+%if numG>0 && numDataX<numRuns
 %    x = cat(3, x, repmat(x, 1, 1, numRuns-numDataX));
-%elseif ng==0
+%elseif numG==0
 %    x = zeros(0, numExtdPeriods, numRuns);
 %end
 
@@ -192,30 +194,30 @@ for run = 1 : numRuns
         [A, B, K, J] = getIthSystem(this, run);
     end
 
-    Y__ = YEG(indexX, :, run);
-    G__ = YEG(indexG, :, run);
-    E__ = YEG(indexE, :, run);
+    Y__ = YEG(inxX, :, run);
+    G__ = YEG(inxG, :, run);
+    E__ = YEG(inxE, :, run);
     E__(isnan(E__)) = 0;
     E__(:, 1:order-1) = NaN;
 
     includeConstant = ~opt.Deviation;
     if opt.Contributions
-        if run<=ny
+        if run<=numY
             % Contributions of shock i
-            inx = true(1, ny);
+            inx = true(1, numY);
             inx(run) = false;
             %e(inx, :, run) = 0;
             E__(inx, :) = 0;
             Y__(:, :) = 0;
             G__(:, :) = 0;
             includeConstant = false;
-        elseif run==ny+1
+        elseif run==numY+1
             % Contributions of init and const
             %e(:, :, run) = 0;
             E__(:, :) = 0;
             G__(:, :) = 0;
             includeConstant = true;
-        elseif run==ny+2
+        elseif run==numY+2
             % Contributions of exogenous variables
             %e(:, :, run) = 0;
             E__(:, :) = 0;
@@ -235,18 +237,18 @@ for run = 1 : numRuns
     
     %iY = y(:, :, run);
     %iX = [ ];
-    %if ng>0
+    %if numG>0
     %    iX = x(:, :, run);
     %end
 
     % Collect deterministic terms (constant, exogenous inputs).
-    %iKJ = zeros(ny, numExtdPeriods);
-    ithDeterministic = zeros(ny, numExtdPeriods);
+    %iKJ = zeros(numY, numExtdPeriods);
+    ithDeterministic = zeros(numY, numExtdPeriods);
     if includeConstant
         %iKJ = iKJ + K(:, ones(1, numExtdPeriods));
         ithDeterministic = ithDeterministic + K(:, ones(1, numExtdPeriods));
     end
-    if ng>0
+    if numG>0
         %iKJ = iKJ + J*iX;
         ithDeterministic = ithDeterministic + J*G__;
     end
@@ -261,7 +263,7 @@ for run = 1 : numRuns
     %if isBackcast
     %    iY = flip(iY, 2);
     %    iE = flip(iE, 2);
-    %    if ng>0
+    %    if numG>0
     %        iX = flip(iX, 2);
     %    end
     %end
@@ -275,7 +277,7 @@ if isBackcast
 end
 
 % Create output database
-outputDb = returnData(this, YEG, extdRange, allNames);
+outputDb = returnData(this, YEG, extdRange, dbInfo.AllNames);
 outputDb = appendData(this, inputDb, outputDb, range, opt);
 
 end%

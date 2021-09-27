@@ -5,7 +5,7 @@ function [d, figH, axH, objH, likH, estH, bH] ...
 % Syntax
 % =======
 %
-%     [D, FigH, AxH, ObjH, LikH, EstH, BH] = neighbourhood(M, Pos, Neigh,...)
+%     [D, FigH, AxH, ObjH, LikH, EstH, BH] = neighbourhood(M, Pos, Neigh, ...)
 %
 % Input arguments
 % ================
@@ -66,7 +66,7 @@ function [d, figH, axH, objH, likH, estH, bH] ...
 % vectors: the values of the overall minimised objective function (as set
 % up in the [`estimate`](model/estimate) function), and the values of the
 % data likelihood component. The third cell is a vector of four numbers:
-% the parameter estimate, the value of the objective function at optimum,
+% the parameter estimate, the value of the objective function at optimum, 
 % the lower bound and the upper bound.
 %
 % Example
@@ -84,7 +84,7 @@ pp.addRequired('Pct', @isnumeric);
 pp.parse(this, pos, pct);
 
 % Parse options.
-[opt,varargin] = passvalopt('model.neighbourhood',varargin{:});
+[opt, varargin] = passvalopt('model.neighbourhood', varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ estH = [ ];
 bH = [ ];
 
 d = struct( );
-pList = pos.ParamList;
+pList = pos.ParameterNames;
 pStar = pos.InitParam;
 np = numel(pList);
 nPct = numel(pct);
@@ -108,43 +108,44 @@ if opt.progress
 end
 
 for i = 1 : np
-    x = cell(1,3);
+    x = cell(1, 3);
     % `x{1}` is the vector of x-axis points at which the log posterior is
     % evaluated.
-    if isstruct(man) && isfield(man,pList{i})
+    if isstruct(man) && isfield(man, pList{i})
         n = numel(man.(pList{i}));
-        pp = cell(1,n);
+        pp = cell(1, n);
         pp(:) = {pStar};
         for j = 1 : n
             pp{j}(i) = man.(pList{i})(j);
-            x{1}(end+1,1) = pp{j}(i);
+            x{1}(end+1, 1) = pp{j}(i);
         end
     else
         n = nPct;
-        pp = cell(1,n);
+        pp = cell(1, n);
         pp(:) = {pStar};
         for j = 1 : nPct
             pp{j}(i) = pStar(i)*pct(j);
-            x{1}(end+1,1) = pp{j}(i);
+            x{1}(end+1, 1) = pp{j}(i);
         end
     end
     % `x{2}` first column is minus the log posterior, second column is minus
     % the log likelihood.
-    x{2} = zeros(n,2);
+    x{2} = zeros(n, 3);
     % The function `eval` returns log posterior, not minus log posterior.
-    [x{2}(:,1),x{2}(:,2)] = eval(pos,pp{:}); %#ok<EVLC>
+    [x{2}(:, 1), x{2}(:, 2), x{2}(:, 3)] = eval(pos, pp{:}); %#ok<EVLC>
     x{2} = -x{2};
     % `x{3}` is a vector of auxiliary information.
-    x{3} = [pos.InitParam(i),-pos.InitLogPost, ...
-        pos.Lower(i),pos.Upper(i)];
+    x{3} = [pos.InitParam(i), -pos.InitLogPost, ...
+        pos.Lower(i), pos.Upper(i)];
     d.(pList{i}) = x;
     if opt.progress
-        update(progress,i/np);
+        update(progress, i/np);
     end
 end
 
 if opt.plot
-    [figH,axH,objH,likH,estH,bH] = grfun.plotneigh(d,varargin{:});
+    [figH, axH, objH, likH, estH, bH] = grfun.plotneigh(d, varargin{:});
 end
 
-end
+end%
+

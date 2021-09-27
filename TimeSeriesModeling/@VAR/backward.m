@@ -26,10 +26,6 @@ function this = backward(this)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 ny = size(this.A, 1);
 p = size(this.A, 2) / max(ny, 1);
 nv = size(this.A, 3);
@@ -39,7 +35,7 @@ for v = 1 : nv
     if indexStationary(v)
         [T, R, ~, ~, ~, ~, U, Omega] = sspace(this, v);
         eigenStability = this.EigenStability(:, :, v);
-        indexUnitRoots = eigenStability==TYPE(1);
+        indexUnitRoots = eigenStability==1;
         % 0th and 1st order autocovariance matrices of stacked y vector.
         C = covfun.acovf(T, R, [ ], [ ], [ ], [ ], U, Omega, indexUnitRoots, 1);
         oldA = this.A(:, :, v);

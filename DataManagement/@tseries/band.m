@@ -1,4 +1,4 @@
-function varargout = band(varargin)
+function [h, pt, range, cData, xCoor] = band(varargin)
 % band  Line-and-band graph for tseries objects
 %
 % __Syntax__
@@ -112,9 +112,16 @@ function varargout = band(varargin)
 % TODO: Document the use of half-ranges in plot functions [-Inf, date], 
 % [date, Inf].
 
+bandDefaults = { ...
+    'ExcludeFromLegend', true, @islogicalscalar, ...
+    'Grid', 'top', @(x) ischar(x) && any(strcmpi(x, {'top', 'bottom'})), ...
+    'Relative', true, @islogicalscalar, ...
+    'White', 0.85, @(x) isnumeric(x) && all(x>=0) && all(x<=1), ...
+};
+
 [Ax, Rng, X, Lo, Hi, PlotSpec, varargin] = ...
     irisinp.parser.parse('tseries.band', varargin{:});
-[bandOpt, varargin] = passvalopt('tseries.band', varargin{:});
+[bandOpt, varargin] = passvalopt(bandDefaults, varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -130,10 +137,9 @@ end
 
 loData = getData(Lo, range);
 hiData = getData(Hi, range);
-pt = tseries.myband(ax, h, cData, xCoor, loData, hiData, bandOpt);
-set(ax, 'Layer', bandOpt.grid);
+pt = series.band(ax, h, cData, xCoor, loData, hiData, bandOpt);
 
-% Output arguments passed back to user.
-varargout = { h, pt, range, cData, xCoor };
+set(ax, 'layer', bandOpt.Grid);
 
-end
+end%
+

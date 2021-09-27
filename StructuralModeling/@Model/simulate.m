@@ -9,8 +9,8 @@ function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, op
 
 arguments
     this Model {validate.mustBeA(this, "Model")}
-    inputDb (1, 1) {validate.mustBeDatabank}
-    baseRange (1, :) double {validate.mustBeProperRange(baseRange)}
+    inputDb (1, 1) {locallyValidateInputDb}
+    baseRange (1, :) {locallyValidateBaseRange}
 
     options.Anticipate {locallyValidateAnticipateOption} = []
     options.Deviation (1, 1) logical = false
@@ -268,7 +268,15 @@ return
         % missing initial conditions later
         requiredNames = string.empty(1, 0);
         optionalNames = this.Quantity.Name(this.Quantity.Type~=4);
-        dbInfo = checkInputDatabank(this, inputDb, baseRange, requiredNames, optionalNames);
+        allowedNumeric = string.empty(1, 0);
+        allowedLog = string.empty(1, 0);
+        context = "";
+        dbInfo = checkInputDatabank( ...
+            this, inputDb, baseRange ...
+            , requiredNames, optionalNames ...
+            , allowedNumeric, allowedLog ...
+            , context ...
+        );
 
         % Retrieve data from the input databank
         [runningData.YXEPG, ~, extdRange, ~, runningData.MaxShift, runningData.TimeTrend] ...
@@ -491,6 +499,10 @@ function flag = locallyValidateSolverOption(x)
     %(
     flag = isequal(x, @auto) || isa(x, 'solver.Options') || locallyValidateSolverName(x) ...
            || (iscell(x) && locallyValidateSolverName(x{1}) && validate.nestedOptions(x(2:2:end)));
+    if flag
+        return
+    end
+    error("Input value must be valid solver settings.");
     %)
 end%
 
@@ -600,6 +612,7 @@ function outputDb = locallyCreateOutputDb(this, YXEPG, startDate, options)
     else
         comments = getLabelsOrNames(this.Quantity);
     end
+
     inxInclude = ~getIndexByType(this.Quantity, 4);
     timeSeriesConstructor = @default;
     outputDb = databank.backend.fromDoubleArrayNoFrills( ...
@@ -610,6 +623,7 @@ function outputDb = locallyCreateOutputDb(this, YXEPG, startDate, options)
         , inxInclude ...
         , timeSeriesConstructor ...
         , options.OutputType ...
+        , options.AddToDatabank ...
     );
     if options.AddParameters
         outputDb = addToDatabank("default", this, outputDb);
@@ -723,3 +737,24 @@ function locallyValidateWindowOption(x)
     %)
 end%
 
+
+function locallyValidateInputDb(x)
+    if validate.databank(x)
+        return
+    end
+    if isequal(x, "asynchronous")
+        return
+    end
+    error("Input value must be a databank.")
+end%
+
+
+function locallyValidateBaseRange(x)
+    if isequal(x, @auto)
+        return
+    end
+    if validate.properRange(x)
+        return
+    end
+    error("Input value must be a date range.");
+end%

@@ -15,7 +15,6 @@ end
 numEquations = countEquations(model);
 this = solver.blazer.Steady(numEquations);
 this.SuccessOnly = opt.SuccessOnly;
-this.IsBlocks = opt.Blocks;
 this.IsGrowth = opt.Growth;
 if isempty(opt.SaveAs)
     opt.SaveAs = "";
@@ -24,10 +23,13 @@ this.SaveAs = string(opt.SaveAs);
 
 prepareBlazer(model, this);
 
+
+
+
 this = processLogOptions(this, opt);
 
-opt.Exogenize = locallyPreprocessFlips(opt.Exogenize);
-opt.Endogenize = locallyPreprocessFlips(opt.Endogenize);
+opt.Exogenize = locallyPreprocessSwaps(opt.Exogenize);
+opt.Endogenize = locallyPreprocessSwaps(opt.Endogenize);
 
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
     [namesToExogenize, namesToEndogenize] = resolveAutoswap(model, "steady", opt.Exogenize, opt.Endogenize);
@@ -52,10 +54,15 @@ if ~isempty(namesToExogenize)
     exogenize(this, namesToExogenize);
 end
 
+anyFixedByUser = processFixOptions(this, model, opt);
+
 %
-% Process the Fix, FixLevel, FixChange options
+% Resolve opt.BLocks=@auto; fixed are quantities specified by the user
 %
-processFixOptions(this, model, opt);
+if isequal(opt.Blocks, @auto)
+    opt.Blocks = ~anyFixedByUser;
+end
+this.IsBlocks = opt.Blocks;
 
 end%
 
@@ -63,7 +70,7 @@ end%
 % Local functions
 %
 
-function list = locallyPreprocessFlips(list)
+function list = locallyPreprocessSwaps(list)
     %(
     if ~validate.text(list)
         return

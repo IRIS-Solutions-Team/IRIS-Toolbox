@@ -70,7 +70,7 @@ E2 = E2 + RaOmg.'*r;
 % Back out NaN measurement variables
 if any(~inxObs)
     Y2(~inxObs, :) = Z(~inxObs, :)*A2 + H(~inxObs, :)*E2;
-    if s.NumPouts>0
+    if s.NumOutlik>0
         % Correct the estimates of NaN observations for the effect of estimated
         % out-of-lik parameters
         Y2(~inxObs, :) = Y2(~inxObs, :) + YDelta(~inxObs, :);

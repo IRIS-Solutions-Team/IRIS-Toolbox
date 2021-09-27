@@ -82,7 +82,7 @@ this = preparePlan(expy, this);
 
 numEndogenous = this.NumOfEndogenous;
 numExogenous = this.NumOfExogenous;
-numExtendedPeriods = this.NumExtendedPeriods;
+numExtendedPeriods = this.NumExtdPeriods;
 this.IdAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
 this.IdUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
 this.IdAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');

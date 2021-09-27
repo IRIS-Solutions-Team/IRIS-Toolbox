@@ -41,8 +41,6 @@ function [s, this] = diffsrf(this, time, listParams, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
 % Convert char list to cellstr.
 if ischar(listParams)
     listParams = regexp(listParams, '\w+', 'match');
@@ -51,10 +49,10 @@ end
 %--------------------------------------------------------------------------
 
 nv = length(this);
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixg = this.Quantity.Type==TYPE(5);
+ixy = this.Quantity.Type==1;
+ixx = this.Quantity.Type==2;
+ixe = this.Quantity.Type==31 | this.Quantity.Type==32;
+ixg = this.Quantity.Type==5;
 
 if nv>1
     THIS_ERROR = { 'Model:CannotRunMultipleVariants'
@@ -62,7 +60,7 @@ if nv>1
     throw( exception.Base(THIS_ERROR, 'error') );
 end
 
-ell = lookup(this.Quantity, listParams, TYPE(4));
+ell = lookup(this.Quantity, listParams, 4);
 posParams = ell.PosName;
 indexOfValidNames = ~isnan(posParams);
 if any(~indexOfValidNames)

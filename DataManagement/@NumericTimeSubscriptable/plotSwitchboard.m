@@ -129,16 +129,17 @@ return
             parser.addParameter('Whitening', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && all(x>=0) && all(x<=1)));
             parser.addParameter('WhiteningMethod', 'FaceAlpha', @(x) validate.anyString(x, 'FaceAlpha', 'FaceColor'));
             parser.addParameter('WhiteColor', 1, @(x) isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1));
+            parser.addParameter('PlotSettings', cell.empty(1, 0));
+            parser.addParameter('FillSettings', cell.empty(1, 0));
         end
         parse(parser, varargin{:});
         opt = parser.Options;
-        unmatched= parser.UnmatchedInCell;
+        unmatched = parser.UnmatchedInCell;
 
         numPlots = ceil(size(yData, 2)/2);
         extendedXData = [xData(:); flipud(xData(:))];
         plotHandle = gobjects(numPlots, 1);
         holdStatus = ishold(axesHandle);
-        hold(axesHandle, 'on');
         colorOrder = get(axesHandle, 'ColorOrder');
         colorOrderIndex = get(axesHandle, 'ColorOrderIndex');
         if isequal(opt.BaseColor, @auto)
@@ -152,15 +153,28 @@ return
             opt.WhiteColor = opt.WhiteColor*[1, 1, 1];
         end
         for ii = 1 : numPlots
-            ithYData = [yData(:, ii); flipud(yData(:, end+1-ii))];
-            [ithColor, ithFaceAlpha] = getIthColor(ii);
-            plotHandle(ii) = fill( axesHandle, ...
-                                   extendedXData, ...
-                                   ithYData, ...
-                                   ithColor, ...
-                                   'FaceAlpha', ithFaceAlpha, ...
-                                   'LineStyle', 'None', ...
-                                   unmatched{:} );
+            if ii==2
+                hold(axesHandle, 'on');
+            end
+            left = ii;
+            right = size(yData, 2) + 1 - ii;
+            yData__ = [yData(:, left); flipud(yData(:, right))];
+            if left<right
+                [color__, faceAlpha__] = getIthColor(ii, opt.WhiteningMethod);
+                plotHandle(ii) = fill( ...
+                    axesHandle, extendedXData, yData__, color__ ...
+                    , 'faceAlpha', faceAlpha__ ...
+                    , 'lineStyle', 'None' ...
+                    , unmatched{:} ...
+                    , opt.FillSettings{:} ...
+                );
+            else
+                plotHandle(ii) = plot( ...
+                    axesHandle, extendedXData, yData__ ...
+                    , 'color', opt.BaseColor ...
+                    , opt.PlotSettings{:} ...
+                );
+            end
         end
         if holdStatus
             hold(axesHandle, 'on');
@@ -172,7 +186,7 @@ return
 
         return
 
-            function [color, faceAlpha] = getIthColor(i)
+            function [color, faceAlpha] = getIthColor(i, whiteningMethod)
                 whitening = opt.Whitening(i);
                 if ~isempty(plotSpec)
                     color = plotSpec{ min(i, end) };
@@ -181,7 +195,7 @@ return
                     end
                     faceAlpha = 1;
                 else
-                    if strcmpi(opt.WhiteningMethod, 'FaceAlpha')
+                    if strcmpi(whiteningMethod, 'FaceAlpha')
                         color = opt.BaseColor;
                         faceAlpha = 1 - whitening;
                     else

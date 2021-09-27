@@ -84,8 +84,8 @@ if isempty(data.ForceInit)
     inxBeforeActual = reshape(linxInit<1, 1, [ ]);
     Xib_0 = zeros(numel(linxInit), 1);
     Xib_0(~inxBeforeActual) = YXEPG(linxInit(~inxBeforeActual));
-    inxZeroEffect = reshape(all(T==0, 1), [ ], 1);
-    inxReset = inxZeroEffect & ~isfinite(Xib_0);
+    % inxZeroEffect = reshape(all(T==0, 1), [ ], 1);
+    % inxReset = inxZeroEffect & ~isfinite(Xib_0);
 else
     Xib_0 = reshape(data.ForceInit, [ ], 1);
     YXEPG(linxInit) = Xib_0;

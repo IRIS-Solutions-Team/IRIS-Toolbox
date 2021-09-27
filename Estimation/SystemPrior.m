@@ -14,7 +14,7 @@ classdef SystemPrior < handle
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('SystemPrior.SystemPrior');
-                addRequired(pp, 'Expression', @(x) ischar(x) || isa(x, 'string'));
+                addRequired(pp, 'Expression', @(x) ischar(x) || isstring(x));
                 addRequired(pp, 'Distribution', @(x) isa(x, 'distribution.Distribution'));
                 addParameter(pp, 'LowerBound', -Inf, @(x) isnumeric(x) && isscalar(x));
                 addParameter(pp, 'UpperBound', Inf, @(x) isnumeric(x) && isscalar(x));
@@ -46,7 +46,7 @@ classdef SystemPrior < handle
 
 
         function parseExpression(this, systemPriorWrapper)
-            expression = this.Expression;
+            expression = char(this.Expression);
             expression = [expression, ' '];
             position = 1;
             while true

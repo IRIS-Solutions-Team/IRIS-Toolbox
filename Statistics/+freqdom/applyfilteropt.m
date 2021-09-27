@@ -10,17 +10,14 @@ function [isFilter, filter, freq, applyFilterTo] = applyfilteropt(opt, freq, sol
 %--------------------------------------------------------------------------
 
 nyxi = length(solutionVector);
-filter = opt.Filter;
+filter = char(opt.Filter);
 applyFilterTo = opt.ApplyTo;
-if ischar(applyFilterTo)
-    applyFilterTo = regexp(applyFilterTo, '\w+', 'match');
-end
 
 % Linear filter applied to some variables.
 if isequal(applyFilterTo, @all)
     applyFilterTo = true(1, nyxi);
-elseif iscellstr(applyFilterTo) || ischar(applyFilterTo)
-    applyFilterTo = applyFilterTo(:).';
+elseif iscellstr(applyFilterTo) || ischar(applyFilterTo) || isstring(applyFilterTo)
+    applyFilterTo = reshape(cellstr(applyFilterTo), 1, []);
     [pos, notFound] = textfun.findnames(solutionVector, applyFilterTo);
     if ~isempty(notFound)
         utils.error('freqdom:applyfilteropt', ...

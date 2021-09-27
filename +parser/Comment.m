@@ -1,10 +1,13 @@
-classdef Comment < parser.White
+classdef Comment ...
+    < parser.White
+
     properties (Constant)
         BLOCK_COMMENT_OPEN = '%{'
         BLOCK_COMMENT_CLOSE = '%}'
         LINE_COMMENT = '%'
         LINE_CONTINUATION = '...'
         COMMENT_WHITEOUT = char(0)
+        OBSIDIAN_REF = "^\^[^\n]*"
     end
 
 
@@ -16,11 +19,12 @@ classdef Comment < parser.White
             else
                 code = char(p.Code);
             end
-            white = parser.Comment.whiteOutLabels(code);           
+            white = parser.Comment.whiteOutLabels(code);
             white = parser.Comment.whiteOutBlockComment(white);
             white = parser.Comment.whiteOutLineComment(white);
+            white = parser.Comment.whiteOutObsidian(white);
             white = parser.Comment.whiteOutLineContinuation(white);
-            inx = white==parser.Comment.COMMENT_WHITEOUT; 
+            inx = white==parser.Comment.COMMENT_WHITEOUT;
             code(inx) = '';
             white(inx) = '';
             if ~isCharInp
@@ -48,14 +52,20 @@ classdef Comment < parser.White
 
         function wh = whiteOutLineComment(wh)
             s = regexptranslate('escape', parser.Comment.LINE_COMMENT);
-            [from, to] = regexp(wh, [s,'[^\n]*'], 'start', 'end');  
+            [from, to] = regexp(wh, [s,'[^\n]*'], 'start', 'end');
             wh = parser.Comment.whiteOut(wh, from, to, parser.Comment.COMMENT_WHITEOUT);
         end%
 
 
         function b = whiteOutLineContinuation(b)
             s = regexptranslate('escape', parser.Comment.LINE_CONTINUATION);
-            [from, to] = regexp(b, [s,'[^\n]*\n?'], 'start', 'end');  
+            [from, to] = regexp(b, [s,'[^\n]*\n?'], 'start', 'end');
+            b = parser.Comment.whiteOut(b, from, to, parser.Comment.COMMENT_WHITEOUT);
+        end%
+
+
+        function b = whiteOutObsidian(b)
+            [from, to] = regexp(b, parser.Comment.OBSIDIAN_REF, 'start', 'end', 'lineanchors');
             b = parser.Comment.whiteOut(b, from, to, parser.Comment.COMMENT_WHITEOUT);
         end%
     end

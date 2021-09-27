@@ -1,15 +1,11 @@
-function s = extractInput(s, kind)
 % extractInput  Extract dynamic or steady part from input equation
 %
-% IRIS backed function
-% No help provided
+% -[IrisToolbox] Macroeconomic Modeling Toolboxl
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+function s = extractInput(s, equationSwitch)
 
-%--------------------------------------------------------------------------
-
-inputClass = class(s);
+inputClass = string(class(s));
 
 if ~iscellstr(s)
     s = cellstr(s);
@@ -17,14 +13,14 @@ end
 
 pos = strfind(s, '!!');
 ixFor = find( ~cellfun(@isempty, pos) );
-if strcmpi(kind, 'Dynamic')
+if lower(string(equationSwitch))=="dynamic"
     for i = ixFor
         s{i} = [s{i}(1:pos{i}-1), ';'];
         if s{i}(end)~=';'
             s{i}(end+1) = ';';
         end
     end
-elseif strcmpi(kind, 'Steady')
+elseif lower(string(equationSwitch))=="steady"
     for i = ixFor
         s{i} = s{i}(pos{i}+2:end);
         if s{i}(end)~=';'
@@ -35,9 +31,9 @@ else
     throw( exception.Base('General:Internal', 'error') );
 end
 
-if strcmpi(inputClass, 'char')
+if inputClass=="char"
     s = char(s);
-elseif strcmpi(inputClass, 'string')
+elseif inputClass=="string"
     s = string(s);
 end
 

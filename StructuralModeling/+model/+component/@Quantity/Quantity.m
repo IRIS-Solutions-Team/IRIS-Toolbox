@@ -90,6 +90,11 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = enforceLogStatus(varargin)
         varargout = getCorrNames(varargin)
         varargout = getStdNames(varargin)
+
+        function flag = hasLogVariables(this)
+            flag = any(this.InxLog);
+        end%
+
         varargout = implementGet(varargin)
         varargout = initializeLogStatus(varargin)
         varargout = testCompatible(varargin)
@@ -118,6 +123,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = seal(varargin)
         varargout = size(varargin)
         varargout = userSelection2Index(varargin)
+        varargout = userEquationsFromParsedEquations(varargin)
         varargout = validateNames(varargin)
 
 

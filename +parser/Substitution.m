@@ -1,15 +1,15 @@
 classdef Substitution < handle
     properties
         Block = cell.empty(1, 0) % Substitution definition blocks
-        Name  = cell.empty(1, 0) % Substitution names
-        Body  = cell.empty(1, 0) % Substitution bodies
-        Code  = cell.empty(1, 0) % Code with substition blocks removed
+        Name = cell.empty(1, 0) % Substitution names
+        Body = cell.empty(1, 0) % Substitution bodies
+        Code = cell.empty(1, 0) % Code with substition blocks removed
     end
 
 
     properties (Constant)
-        SUBSTITUTION_PATTERN = '!substitutions(.*?)(?=![a-zA-Z]|$)'
-        NAME_BODY_PATTERN    = '(\<[a-zA-Z]\w*\>)\s*:?\s*=\s*([^;]*)\s*;'
+        SUBSTITUTION_PATTERN = '!substitutions(-preprocessor|-postprocessor)?(.*?)(?=![a-zA-Z]|$)'
+        NAME_BODY_PATTERN = '(\<[a-zA-Z]\w*\>)\s*:?\s*=\s*([^;]*)\s*;'
     end
 
 
@@ -28,22 +28,28 @@ classdef Substitution < handle
         function readBlock(this)
             block = cell.empty(1, 0);
             % Read the blocks one by one to preserve their order in the
-            % model code. Remove the substitution blocks from the code.
+            % model code; remove the substitution blocks from the code
             c = this.Code;
             while true
-                [tok, start, finish] = regexp( c, this.SUBSTITUTION_PATTERN, ...
-                                               'tokens', 'start', 'end', 'once' );
+                [tok, start, finish] = regexp( ...
+                    c, this.SUBSTITUTION_PATTERN, ...
+                    'tokens', 'start', 'end', 'once' ...
+                );
                 if isempty(start)
                     break
                 end
-                block{1, end+1} = strtrim(tok{1}); %#ok<AGROW>
-                c(start:finish) = '';
+                block{1, end+1} = strip(tok{2}); %#ok<AGROW>
+                processor = erase(string(tok{1}), "-");
+                if processor=="preprocessor" || processor=="postprocessor"
+                    temp = replace(c(start:finish), "!substitutions-"+processor, "!"+processor);
+                    c = [c(1:start-1), char(temp), c(finish+1:end)];
+                else
+                    c(start:finish) = '';
+                end
             end
             this.Code = c;
             this.Block = block;
         end%
-
-
 
 
         function readNameBody(this)
@@ -55,8 +61,10 @@ classdef Substitution < handle
             for i = 1 : length(this.Block)
                 b = this.Block{i};
                 while true
-                    [tkn, from, to] = regexp( b, this.NAME_BODY_PATTERN, ...
-                                              'tokens', 'start', 'end', 'once' );
+                    [tkn, from, to] = regexp( ...
+                        b, this.NAME_BODY_PATTERN, ...
+                        'tokens', 'start', 'end', 'once' ...
+                    );
                     if isempty(from)
                         break
                     end
@@ -95,7 +103,7 @@ classdef Substitution < handle
 
         function c = writeFinal(this)
             c = this.Code;
-            % Expand substitutions in other substitutions first.
+            % Expand substitutions in other substitutions first
             numNames = length(this.Name);
             ptn = cell(1, numNames);
             for i = 1 : numNames

@@ -89,10 +89,9 @@ classdef Link
                 return
             end
 
-            TYPE = @int8;
             PTR = @int16;
 
-            inxL = equations.Type==TYPE(4);
+            inxL = equations.Type==4;
             if ~any(inxL)
                 return
             end

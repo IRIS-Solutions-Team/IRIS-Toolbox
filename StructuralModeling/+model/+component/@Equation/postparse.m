@@ -37,7 +37,7 @@ equation.Dynamic = strcat(id, equation.Dynamic);
 equation.Steady = strcat(id, equation.Steady);
 
 %
-% Dynamic equations except dtrends and links
+% Dynamic equations except links
 %
 isLinks = false;
 equation.Dynamic(~inxL) = regexprep( ...

@@ -57,8 +57,7 @@ if isempty(varargin)
     % Called:
     % flag = isstationary(this)
     %
-    TYPE = @int8;
-    flag = all(this.Variant.EigenStability~=TYPE(1), 2);
+    flag = all(this.Variant.EigenStability~=1, 2);
     flag = permute(flag, [1, 3, 2]);
 else
     %

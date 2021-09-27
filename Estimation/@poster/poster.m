@@ -37,43 +37,41 @@ classdef poster < shared.GetterSetter
 
     properties
         % Names of parameters.
-        ParamList = cell(1, 0)
-        
+        ParameterNames (1, :) string = string.empty(1, 0)
+
         % Objective function.
         MinusLogPostFunc = [ ]
         MinusLogPostFuncArgs = { }
         MinusLogLikFunc = [ ]
         MinusLogLikFuncArgs = { }
         LogPriorFunc = { }
-        
+
         % Log posterior density at initial vector.
         InitLogPost = NaN
-        
+
         % Initial vector of parameters.
         InitParam = zeros(1, 0)
-        
+
         % Initial proposal cov matrix; will be multiplied by squared
         % `.InitScale`.
-        InitProposalCov = [ ] 
-        
+        InitProposalCov = [ ]
+
         % Cholesky factor of initial proposal cov matrix; if empty,
         % chol(...) is performed on `.InitProposalCov`.
         InitProposalChol = [ ]
-        
+
         % Initial sqrt of factor by which cov matrix will be multiplied.
         InitScale = 1/3
-        
+
         % Initial counts of draws, acceptances, and burn-ins.
-        InitCount = [0, 0, 0] 
-        
+        InitCount = [0, 0, 0]
+
         % Lower and upper bounds on individual parameters.
         Lower = [ ]
         Upper = [ ]
     end
-    
-    
-    
-    
+
+
     methods
         function this = poster(varargin)
             % poster  Create new empty posterior simulation (poster) object.
@@ -92,10 +90,10 @@ classdef poster < shared.GetterSetter
             % automatically within estimation methods of various other objects, such as
             % [`model/estimate`](model/estimate).
             %
-            
+
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2021 IRIS Solutions Team.
-                        
+
             if isempty(varargin)
                 return
             elseif length(varargin)==1 && isa(varargin{1}, 'poster')
@@ -104,48 +102,42 @@ classdef poster < shared.GetterSetter
                 this = struct2obj(this, varargin{1});
             end
         end
-        
-        
-        
-        
+
+
         varargout = arwm(varargin)
+        varargout = neighbors(varargin)
+        varargout = plotNeighbors(varargin)
         varargout = eval(varargin)
         varargout = stats(varargin)
-        
-        
-        
-        
-        function this = set.ParamList(this, list)
-            if ischar(list) || iscellstr(list)
+
+
+        function this = set.ParameterNames(this, list)
+            if ischar(list) || isstring(list) || iscellstr(list)
                 if ischar(list)
                     list = regexp(list,' \w+', 'match');
                 end
-                this.ParamList = list(:).';
-                if length(this.ParamList)~=length(unique(this.ParamList))
-                    utils.error('poster:set:ParamList', ...
+                this.ParameterNames = textual.stringify(list);
+                n = numel(this.ParameterNames);
+                if n~=numel(unique(this.ParameterNames))
+                    utils.error('poster:set:ParameterNames', ...
                         'Parameter names must be unique.');
                 end
-                n = length(this.ParamList);
                 this.LogPriorFunc = cell(1, n); %#ok<MCSUP>
                 this.Lower = -inf(1, n); %#ok<MCSUP>
                 this.Upper = inf(1, n); %#ok<MCSUP>
-            elseif isnumericscalar(list)
-                n = list;
-                this.ParamList = cell(1, n);
-                for i = 1 : n
-                    this.ParamList{i} = sprintf('p%g', i);
-                end
+            elseif isnumeric(list) && isscalar(list)
+                this.ParameterNames = "p" + string(1:list);
             else
-                utils.error('poster:set:ParamList', ...
-                    'Invalid assignment to poster.paramList.');
+                utils.error('poster:set:ParameterNames', ...
+                    'Invalid assignment to poster.ParameterNames.');
             end
         end
-        
-        
-        
-        
+
+
+
+
         function this = set.InitParam(this, init)
-            n = length(this.ParamList); %#ok<MCSUP>
+            n = numel(this.ParameterNames); %#ok<MCSUP>
             if isnumeric(init)
                 init = init(:).';
                 if length(init)==n
@@ -161,12 +153,12 @@ classdef poster < shared.GetterSetter
                     'Invalid assignment to poster.InitParam.');
             end
         end
-        
-        
-        
-        
+
+
+
+
         function this = set.Lower(this, X)
-            n = length(this.ParamList); %#ok<MCSUP>
+            n = numel(this.ParameterNames); %#ok<MCSUP>
             if numel(X)==n
                 this.Lower = -inf(1, n);
                 this.Lower(:) = X(:);
@@ -177,12 +169,12 @@ classdef poster < shared.GetterSetter
                     'the number of parameters.']);
             end
         end
-        
-        
-        
-        
+
+
+
+
         function this = set.Upper(this, X)
-            n = length(this.ParamList); %#ok<MCSUP>
+            n = numel(this.ParameterNames); %#ok<MCSUP>
             if numel(X)==n
                 this.Upper = -inf(1, n);
                 this.Upper(:) = X(:);
@@ -193,16 +185,16 @@ classdef poster < shared.GetterSetter
                     'the number of parameters.']);
             end
         end
-        
-        
-        
-        
+
+
+
+
         function this = set.InitProposalCov(this, C)
             if ~isnumeric(C)
                 utils.error('poster:set:InitProposalCov', ...
                     'Invalid assignment to poster.InitProposalCov.');
             end
-            n = length(this.ParamList); %#ok<MCSUP>
+            n = numel(this.ParameterNames); %#ok<MCSUP>
             C = C(:,:);
             if any( size(C)~=n )
                 utils.error('poster:set:InitProposalCov', ...
@@ -244,32 +236,32 @@ classdef poster < shared.GetterSetter
             this.InitProposalCov = C;
         end
     end
-    
-    
-    
-    
-    methods (Hidden)     
+
+
+
+
+    methods (Hidden)
         function disp(this)
             builtin('disp', this);
         end
-        
-        
-        
-        
+
+
+
+
         function this = setlowerbounds(this, varargin)
             this = setbounds(this,'lower',varargin{:});
         end
-        
-        
-        
-        
+
+
+
+
         function this = setupperbounds(this, varargin)
             this = setbounds(this,'upper',varargin{:});
         end
-        
-        
-        
-        
+
+
+
+
         function this = setbounds(this, lowerUpper, varargin)
             if length(varargin)==1 && isnumeric(varargin{1})
                 if lowerUpper(1)=='l'
@@ -284,49 +276,47 @@ classdef poster < shared.GetterSetter
                 if ischar(userList)
                     userList = regexp(userList, '\w+', 'match');
                 end
-                userList = userList(:).';
+                userList = textual.stringify(userList);
                 pos = nan(size(userList));
-                for i = 1 : length(userList)
-                    temp = find(strcmp(this.ParamList, userList{i}));
+                for i = 1 : numel(userList)
+                    temp = find(this.ParameterNames==userList(i));
                     if ~isempty(temp)
                         pos(i) = temp;
                     end
                 end
                 if any(isnan(pos))
                     utils.error('poster:setbounds', ...
-                        'this is not a valid parameter name: ''%s''.', ...
-                        userList{isnan(pos)});
+                        'This is not a valid parameter name: ''%s''.', ...
+                        userList(isnan(pos)));
                 end
                 if lowerUpper(1)=='l'
-                    this.Lower(pos) = varargin{2}(:).';
+                    this.Lower(pos) = reshape(varargin{2}, 1, []);
                 else
-                    this.Upper(pos) = varargin{2}(:).';
+                    this.Upper(pos) = reshape(varargin{2}, 1, []);
                 end
             end
             chkbounds(this);
         end
-        
-        
-        
-        
+
+
+
+
         function this = setprior(this, name, func)
-            if ischar(name) && isfunc(func)
-                pos = strcmp(this.ParamList, name);
-                if any(pos)
+            if (isstring(name) || ischar(name)) && isfunc(func)
+                pos = find(this.ParameterNames==string(name));
+                if ~isempty(pos)
                     this.LogPriorFunc{pos} = func;
                 else
                     utils.error('poster:setprior', ...
-                        'this is not a valid parameter name: ''%s''.', ...
+                        'This is not a valid parameter name: ''%s''.', ...
                         name);
                 end
             end
-        end
-        
-        
-        
-        
+        end%
+
+
         function chkbounds(this)
-            n = length(this.ParamList);
+            n = numel(this.ParameterNames);
             if isempty(this.InitParam)
                 return
             end
@@ -336,28 +326,22 @@ classdef poster < shared.GetterSetter
             if isempty(this.Upper)
                 this.Upper = inf(1, n);
             end
-            inx = this.InitParam<this.Lower ...
-                | this.InitParam>this.Upper;
+            inx = this.InitParam<this.Lower | this.InitParam>this.Upper;
             if any(inx)
                 utils.error('poster:chkbounds', ...
-                    ['The initial value for this parameter is ', ...
-                    'out of bounds: ''%s''.'], ...
-                    this.ParamList{inx});
+                    'The initial value for this parameter is out of bounds: %s', ...
+                    this.ParameterNames(inx));
             end
-        end
+        end%
     end
-    
-    
-    
-    
+
+
     methods (Access=protected, Hidden)
         varargout = mylogpost(varargin)
         varargout = mysimulate(varargin)
     end
-    
-    
-    
-    
+
+
     methods (Static, Hidden)
         varargout = loadobj(varargin)
         varargout = myksdensity(varargin)

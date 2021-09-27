@@ -13,17 +13,27 @@ Function | Description
 [`Model.fromString`](fromSnippet.md) | {{ model._fromSnippet }}
 
 
+### Assigning values within models
+
+Function | Description 
+---|---
+[`reset`](reset.md) | {{ model._reset }}
+[`rescaleStd`](rescaleStd.md) | {{ model._rescaleStd }}
+
+
 ### Solving and simulating models 
 
 Function | Description 
 ---|---
-[`solve`](solve.md) | {{ model._solve }}
 [`simulate`](simulate.md) | {{ model._simulate }}
+[`solve`](solve.md) | {{ model._solve }}
+[`system`](system.md) | {{ model._system }}
 
 
 ### Getting information about models
 
 Function | Description 
 ---|---
+[`analyticGradients`](analyticGradients.md) | {{ model._analyticGradients }}
 [`table`](table.md) | {{ model._table }}
 

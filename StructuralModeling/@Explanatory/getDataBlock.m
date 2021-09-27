@@ -15,12 +15,11 @@ startDate = range(1);
 endDate = range(end);
 extStartDate = dater.plus(startDate, maxLag);
 extEndDate = dater.plus(endDate, maxLead);
-extRange = dater.colon(extStartDate, extEndDate);
-numExtPeriods = numel(extRange);
+extdRange = dater.colon(extStartDate, extEndDate);
+numExtPeriods = numel(extdRange);
 
 [variableNames, residualNames, ~, ~] = collectAllNames(this);
 variableNames = setdiff(variableNames, residualNames, "stable");
-allNames = [variableNames, residualNames];
 
 if lhsRequired
     %
@@ -40,9 +39,19 @@ else
     optionalNames = [lhsNames(inxLhsOptional), residualNames];
 end
 
+
+%
+% The same LHS name can appear in multiple equations, make sure both the
+% required and optional names are uniques lists
+%
+requiredNames = unique(requiredNames, "stable");
+optionalNames = unique(optionalNames, "stable");
+allNames = unique([variableNames, residualNames], "stable");
+
+
 data = shared.DataBlock( );
 data.Names = allNames;
-data.ExtendedRange = extRange;
+data.ExtendedRange = extdRange;
 
 if isa(inputData, 'shared.DataBlock')
     data.YXEPG = hereGetDataFromDataBlock( );
@@ -60,13 +69,19 @@ data.BaseRangeColumns = find(inxBaseRangeColumns);
 return
 
     function YXEPG = hereGetDataFromDatabank( )
-        scalarAllowed = @all;
-        databankInfo = checkInputDatabank( ...
-            this, inputData, extRange, ...
-            requiredNames, optionalNames, context, ...
-            scalarAllowed ...
+        allowedNumeric = @all;
+        allowedLog = string.empty(1, 0);
+        context = "";
+        dbInfo = checkInputDatabank( ...
+            this, inputData, extdRange ...
+            , requiredNames, optionalNames ...
+            , allowedNumeric, allowedLog ...
+            , context ...
         );
-        YXEPG = requestData(this, databankInfo, inputData, extRange, allNames);
+        YXEPG = requestData( ...
+            this, dbInfo, inputData ...
+            , allNames, extdRange ...
+        );
     end%
 
 
@@ -121,7 +136,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     numExtendedPeriods = numel(extendedRange);
     lhsRequired = true;
     act = getDataBlock(g, db, baseRange, lhsRequired, "");
-    assertEqual(testCase, act.NumExtendedPeriods, numExtendedPeriods);
+    assertEqual(testCase, act.NumExtdPeriods, numExtendedPeriods);
     exp_YXEPG = nan(7, numExtendedPeriods);
     exp_YXEPG(1, :) = db.x(extendedRange);
     exp_YXEPG(2, :) = db.a(extendedRange);

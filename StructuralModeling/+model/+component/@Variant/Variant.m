@@ -48,11 +48,10 @@ classdef Variant
 
 
         function this = createIndexOfStdCorrAllowed(this, quantity)
-            TYPE = @int8;
-            ixe = quantity.Type==TYPE(31) | quantity.Type==TYPE(32);
+            ixe = quantity.Type==31 | quantity.Type==32;
             ne = nnz(ixe);
             typeOfShocks = quantity.Type(ixe);
-            ix31 = typeOfShocks==TYPE(31);
+            ix31 = typeOfShocks==31;
             inxCorrAllowed = true(ne);
             inxCorrAllowed(ix31, ~ix31) = false;
             inxCorrAllowed(~ix31, ix31) = false;
@@ -62,18 +61,17 @@ classdef Variant
         
 
         function this = preallocateValues(this, numVariants, quantity)
-            TYPE = @int8;
             numQuantities = length(quantity);
             if checkSize(this.Values, [1, numQuantities, numVariants])
                 this.Values(:) = NaN;
             else
                 this.Values = nan(1, numQuantities, numVariants);
             end
-            ixe = quantity.Type==TYPE(31) | quantity.Type==TYPE(32);
+            ixe = quantity.Type==31 | quantity.Type==32;
             % Steady state of shocks cannot be changed from 0+0i.
             this.Values(1, ixe, :) = 0;
             % Steady state of exogenous variables preset to default.
-            ixg = quantity.Type==TYPE(5);
+            ixg = quantity.Type==5;
             this.Values(1, ixg, :) = model.DEFAULT_STEADY_EXOGENOUS;
             % Steady state of ttrend cannot be changed from 0+1i.
             inxTimeTrend = strcmp(quantity.Name, model.component.Quantity.RESERVED_NAME_TTREND);
@@ -82,9 +80,8 @@ classdef Variant
 
 
         function this = preallocateStdCorr(this, quantity, defaultStd)
-            TYPE = @int8;
             nv = size(this.Values, 3);
-            ne = nnz(quantity.Type==TYPE(31) | quantity.Type==TYPE(32));
+            ne = nnz(quantity.Type==31 | quantity.Type==32);
             numStdCorr = ne + ne*(ne-1)/2;
             if checkSize(this.StdCorr, [1, numStdCorr, nv])
                 this.StdCorr(:) = 0;
@@ -101,9 +98,8 @@ classdef Variant
 
 
         function this = preallocateFloors(this, quantity, defaultFloor)
-            TYPE = @int8;
             inxFloors = ...
-                startsWith(quantity.Name, quantity.FLOOR_PREFIX) & quantity.Type==TYPE(4);
+                startsWith(quantity.Name, quantity.FLOOR_PREFIX) & quantity.Type==4;
             this.Values(1, inxFloors, :) = defaultFloor;
         end%
 
@@ -140,7 +136,6 @@ classdef Variant
         
         
         function this = resetTransition(this, variantsRequested, vector, numHashed, numObserved)
-            TYPE = @int8;
             nv = size(this.Values, 3);
             [~, ~, ~, ~, ne] = sizeSolution(vector);
 
@@ -162,7 +157,7 @@ classdef Variant
             end
 
             this.EigenValues(1:end, 1:end, variantsRequested) = NaN;
-            this.EigenStability(1:end, 1:end, variantsRequested) = TYPE(0);
+            this.EigenStability(1:end, 1:end, variantsRequested) = 0;
             this.IxInit(1:end, 1:end, variantsRequested) = true;
         end%
 
@@ -178,17 +173,15 @@ classdef Variant
 
 
         function numUnitRoots = getNumOfUnitRoots(this, variantsRequested)
-            TYPE = @int8;
             if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
                 variantsRequested = ':';
             end
-            numUnitRoots = sum(this.EigenStability(:, :, variantsRequested)==TYPE(1), 2);
+            numUnitRoots = sum(this.EigenStability(:, :, variantsRequested)==1, 2);
         end%
 
 
         function stableRoots = getStableRoots(this, variantRequested)
-            TYPE = @int8;
-            inxStableRoots = this.EigenStability(:, :, variantRequested)==TYPE(0);
+            inxStableRoots = this.EigenStability(:, :, variantRequested)==0;
             stableRoots = this.EigenValues(inxStableRoots);
         end%
 

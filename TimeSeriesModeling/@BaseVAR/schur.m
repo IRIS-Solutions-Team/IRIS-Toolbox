@@ -31,10 +31,6 @@ function this = schur(this)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE= @int8;
-
-%--------------------------------------------------------------------------
-
 [ny, p, nv] = size(this.A);
 p = p / max(ny, 1);
 
@@ -73,9 +69,9 @@ for v = 1 : nv
         [this.U(:, :, v), this.T(:, :, v)] = ordschur(U, T, clusters);
         orderedEigenValues = ordeig(this.T(:, :, v));
         this.EigVal(1, :, v) = orderedEigenValues;
-        this.EigenStability(1, 1:numUnstableRoots, v) = TYPE(2);
-        this.EigenStability(1, numUnstableRoots+(1:numUnitRoots), v) = TYPE(1);
-        this.EigenStability(1, numUnstableRoots+numUnitRoots+1:end, v) = TYPE(0);
+        this.EigenStability(1, 1:numUnstableRoots, v) = 2;
+        this.EigenStability(1, numUnstableRoots+(1:numUnitRoots), v) = 1;
+        this.EigenStability(1, numUnstableRoots+numUnitRoots+1:end, v) = 0;
     end
 end
 

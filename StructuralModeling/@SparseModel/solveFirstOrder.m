@@ -19,7 +19,6 @@ function [this, info] = solveFirstOrder(this, variantsRequested, opt)
 %     -4      |  Steady state does not hold
 %
 
-TYPE = @int8;
 SOLVE_TOLERANCE = this.Tolerance.Solve;
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 SEVN2_TOLERANCE = this.Tolerance.Sevn2Patch;
@@ -27,8 +26,8 @@ SEVN2_TOLERANCE = this.Tolerance.Sevn2Patch;
 %--------------------------------------------------------------------------
 
 nv = countVariants(this);
-inxY = this.Quantity.Type==TYPE(1);
-inxT = this.Equation.Type==TYPE(1);
+inxY = this.Quantity.Type==1;
+inxT = this.Equation.Type==1;
 inxHash = this.Equation.InxHashEquations;
 numHash = nnz(inxHash);
 numObserved = nnz(this.Quantity.InxObserved);
@@ -202,7 +201,6 @@ end
 
 function [eigenStability, bk, exitFlag] = locallyVerifyStability(eigenValues, numXib, tolerance)
     %(
-    TYPE = @int8;
     absEigen = abs(eigenValues);
     inxStableRoots = absEigen<=(1-tolerance);
     inxUnitRoots = abs(absEigen-1)<tolerance;
@@ -222,13 +220,13 @@ function [eigenStability, bk, exitFlag] = locallyVerifyStability(eigenValues, nu
         exitFlag = Inf;
     end
 
-    eigenStability = repmat(TYPE(0), 1, numel(eigenValues));
-    eigenStability(1, inxStableRoots) = TYPE(0);
-    eigenStability(1, inxUnitRoots) = TYPE(1);
-    eigenStability(1, ~inxStableRoots & ~inxUnitRoots) = TYPE(2);
+    eigenStability = repmat(0, 1, numel(eigenValues));
+    eigenStability(1, inxStableRoots) = 0;
+    eigenStability(1, inxUnitRoots) = 1;
+    eigenStability(1, ~inxStableRoots & ~inxUnitRoots) = 2;
 
-    numStableRoots = nnz(eigenStability(1, :)==TYPE(0));
-    numUnitRoots = nnz(eigenStability(1, :)==TYPE(1));
+    numStableRoots = nnz(eigenStability(1, :)==0);
+    numUnitRoots = nnz(eigenStability(1, :)==1);
     bk = [numXib; numUnitRoots; numStableRoots];
     %)
 end%

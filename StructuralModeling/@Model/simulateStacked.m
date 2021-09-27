@@ -38,7 +38,6 @@ end
 %
 updateTargetsWithinFrame(data);
 
-
 numBlocks = numel(blazer.Blocks);
 for i = 1 : numBlocks
     block__ = blazer.Blocks{i};

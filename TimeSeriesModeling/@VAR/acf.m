@@ -49,8 +49,6 @@ function [C, Q] = acf(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
 opt = passvalopt('VAR.acf', varargin{:});
 
 returnCorrelations = nargout>1;
@@ -78,7 +76,7 @@ end
 for v = find(~inxOfUnstable)
     [T, R, ~, ~, ~, ~, U, Omega] = sspace(this, v);
     eigenStability = this.EigenStability(:, :, v);
-    indexUnitRoots = eigenStability==TYPE(1);
+    indexUnitRoots = eigenStability==1;
     if isFilter
         S = freqdom.xsfvar(this.A(:, :, v), Omega, freq, filter, applyTo);
         C(:, :, :, v) = freqdom.xsf2acf(S, freq, maxOrder);

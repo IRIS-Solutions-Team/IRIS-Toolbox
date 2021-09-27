@@ -60,8 +60,6 @@ function [mll, grad, hess, varScale] = diffloglik(this, data, range, parameterNa
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
-
 persistent pp
 %(
 if isempty(pp)
@@ -80,11 +78,6 @@ end
 opt = parse(pp, data, range, parameterNames, varargin{:});
 unmatched = pp.UnmatchedInCell;
 
-if ischar(range)
-    range = textinp2dat(range);
-end
-
-
 %
 % Process Kalman filter options; `loglikopt` also expands solution forward
 % if anticipated shifts in shocks are included
@@ -100,10 +93,11 @@ data = datarequest('yg*', this, data, range);
 
 %
 % Create StdCorr vector from user-supplied database:
-% * --clip means remove trailing NaNs
-% * --presample means include one presample period
+% * clip=true means remove trailing NaNs
+% * presample=true means include one presample period
 %
-lik.StdCorr = varyStdCorr(this, range, lik.Override, lik.Multiply, '--clip', '--presample');
+optionsHere = struct("Clip", true, "Presample", true);
+lik.StdCorr = varyStdCorr(this, range, lik.Override, lik.Multiply, optionsHere);
 
 %--------------------------------------------------------------------------
 
@@ -132,14 +126,14 @@ end
 %
 % Find parameter names and create parameter index
 %
-ell = lookup(this.Quantity, parameterNames, TYPE(4));
+ell = lookup(this.Quantity, parameterNames, 4);
 posValues = ell.PosName;
 posStdCorr = ell.PosStdCorr;
-indexValidNames = ~isnan(posValues) | ~isnan(posStdCorr);
-if any(~indexValidNames)
+inxValidNames = ~isnan(posValues) | ~isnan(posStdCorr);
+if any(~inxValidNames)
     utils.error('model:diffloglik', ...
         'This is not a valid parameter name: ''%s''.', ...
-        parameterNames{~indexValidNames});
+        parameterNames{~inxValidNames});
 end
 
 

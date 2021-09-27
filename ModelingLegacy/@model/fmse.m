@@ -1,10 +1,10 @@
-function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
+function [X, YXVec, stdDb] = fmse(this, time, varargin)
 % fmse  Forecast mean square error matrices.
 %
 % ## Syntax ##
 %
 %     [F, List, D] = fmse(M, NPer, ...)
-%     [F, List, D] = fmse(M, Range, ...)
+%     [F, List, D] = fmse(M, range, ...)
 %
 %
 % ## Input Arguments ##
@@ -14,7 +14,7 @@ function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
 %
 % * `NPer` [ numeric ] - Number of periods.
 %
-% * `Range` [ numeric | char ] - Date range.
+% * `range` [ numeric | char ] - Date range.
 %
 %
 % ## Output Arguments ##
@@ -48,7 +48,6 @@ function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TYPE = @int8;
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
@@ -61,13 +60,11 @@ INPUT_PARSER.parse(this, time);
 opt = passvalopt('model.fmse', varargin{:});
 
 % tell whether time is nper or range
-if ischar(time)
-    time = textinp2dat(time);
-elseif length(time)==1 && round(time)==time && time>0
+if isscalar(time) && round(time)==time && time>0
     time = 1 : time;
 end
-Range = time(1) : time(end);
-nPer = length(Range);
+range = time(1) : time(end);
+nPer = numel(range);
 
 isSelect = ~isequal(opt.select, @all);
 isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
@@ -98,12 +95,12 @@ if nargout>2
     dbStd = struct( );
     for i = find(imag(id)==0)
         name = this.Quantity.Name{id(i)};
-        dbankOfStd.(name) = TIME_SERIES_CONSTRUCTOR( ...
-            Range, ...
+        stdDb.(name) = TIME_SERIES_CONSTRUCTOR( ...
+            range, ...
             sqrt( permute(X(i, i, :, :), [3, 4, 1, 2]) ) ...
-            );
+        );
     end
-    dbankOfStd = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, dbankOfStd);
+    stdDb = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, stdDb);
 end
 
 if nargout<=1 && ~isSelect && ~isNamedMat

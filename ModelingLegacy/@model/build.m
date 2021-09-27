@@ -46,9 +46,16 @@ this.Link = reorder(this.Link, opt);
 
 % Pre-compute symbolic derivatives of
 % * transition and measurement equations wrt variables (if symbdiff=true),
-% * dtrends equations wrt parameters (always).
+% * measurement trends equations wrt parameters (always).
 % Convert string equations to anonymous functions
-this = differentiate(this, opt.symbdiff);
+temp = struct();
+temp.Symbolic = opt.symbdiff;
+temp.DiffOutput = "array";
+this.Gradient = differentiate(this, temp);
+
+
+% Convert measurement trends, links and gradients to anonymous functions
+this = functionsFromEquations(this);
 
 
 % Create Deriv to System convertor

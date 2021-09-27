@@ -29,7 +29,7 @@ function outp = bn(this, inp, range, varargin)
 %
 % * `DTrends=@auto` [ `@auto` | `true` | `false` ] - Measurement variables
 % in input and output data include deterministic trends specified in
-% [`!dtrends`](irislang/dtrends) equations.
+% [`!measurement-trends`](irislang/dtrends) equations.
 %
 %
 % ## Description ##
@@ -45,22 +45,17 @@ function outp = bn(this, inp, range, varargin)
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 EYE_TOLERANCE = this.Tolerance.Solve;
-TYPE = @int8;
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.bn');
-    inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
-    inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addRequired('Range', @validate.date);
-    inputParser.addDeviationOptions(false);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.bn');
+    pp.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
+    pp.addRequired('InputDatabank', @isstruct);
+    pp.addRequired('Range', @validate.date);
+    pp.addDeviationOptions(false);
 end
-inputParser.parse(this, inp, range, varargin{:});
-opt = inputParser.Options;
-
-if ischar(range)
-    range = textinp2dat(range);
-end
+pp.parse(this, inp, range, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -176,4 +171,5 @@ end
 % Create output database from hdataobj.
 outp = hdata2tseries(hd);
 
-end
+end%
+

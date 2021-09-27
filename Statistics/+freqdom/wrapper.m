@@ -1,14 +1,10 @@
 function [SS, DD] = wrapper(~, systemProperty, ~)
 
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
-
 ny = systemProperty.NumObserved;
 nxi = systemProperty.NumStates;
 nb = systemProperty.NumBackward;
 ne = systemProperty.NumShocks;
-inxOfUnitRoots = systemProperty.EigenStability==TYPE(1);
+inxOfUnitRoots = systemProperty.EigenStability==1;
 numOfUnitRoots = systemProperty.NumUnitRoots;
 [T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderTriangular{:};
 R = R(:, 1:ne);

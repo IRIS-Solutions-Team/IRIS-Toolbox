@@ -16,7 +16,7 @@ end
 inxY = qty.Type==1;
 
 % Create list of measurement variable names against which the LHS of
-% dtrends equations will be matched. Add log(...) for log-variables.
+% measurement trend equations will be matched. Add log(...) for log-variables.
 listName = qty.Name;
 inxLog = qty.IxLog;
 listCompleteName = listName;

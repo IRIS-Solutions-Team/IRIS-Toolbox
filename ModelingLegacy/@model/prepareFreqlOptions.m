@@ -7,8 +7,6 @@ function likOpt = prepareFreqlOptions(this, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.prepareFreqlOptions');
@@ -34,7 +32,7 @@ if nz>0
     likOpt.Condition = false(1, nz);
 else
     [~, likOpt.InxToExclude] = userSelection2Index( this.Quantity, ...
-                                                    likOpt.exclude, TYPE(1) );
+                                                    likOpt.exclude, 1 );
 end
 
 % Out-of-lik parameters
@@ -45,7 +43,7 @@ else
         likOpt.OutOfLik = regexp(likOpt.OutOfLik, '\w+', 'match');
     end
     likOpt.OutOfLik = likOpt.OutOfLik(:)';
-    ell = lookup(this.Quantity, likOpt.OutOfLik, TYPE(4));
+    ell = lookup(this.Quantity, likOpt.OutOfLik, 4);
     pos = ell.PosName;
     inxOfNaN = isnan(pos);
     if any(inxOfNaN)

@@ -5,13 +5,10 @@ classdef dates < irisinp.generic
         Omitted = @error
         ValidFn = @validate.date
     end
-    
+
 
     methods
         function this = preprocess(this,~)
-            if ischar(this.Value)
-                this.Value = textinp2dat(this.Value);
-            end
-        end
+        end%
     end
 end

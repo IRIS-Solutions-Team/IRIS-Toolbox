@@ -1,17 +1,12 @@
-function X = requestData(~, dbInfo, inputDb, dates, allNames)
-% requestData  Return input data matrix for selected model names
+% requestData  Retrieve input data matrix for selected model names
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function X = requestData(~, dbInfo, inputDb, namesRequested, dates)
 
-dates = double(dates);
 numPeriods = numel(dates);
-numNames = numel(allNames);
+numNames = numel(namesRequested);
 
 if isequal(inputDb, "asynchronous")
     X = nan(numNames, numPeriods, 1);
@@ -21,12 +16,32 @@ end
 numPages = dbInfo.NumPages;
 X = nan(numNames, numPeriods, numPages);
 
+logPrefix = model.component.Quantity.LOG_PREFIX;;
+inxLogInput = ismember(namesRequested, dbInfo.NamesWithLogInputData);
+hasAnyNamesWithLogInputData = ~isempty(dbInfo.NamesWithLogInputData);
+
 for name = dbInfo.NamesAvailable
-    if isstruct(inputDb)
-        field = inputDb.(name);
-    else
-        field = retrieve(inputDb, name);
+
+    if ismissing(name)
+        continue
     end
+
+    inxName = name==namesRequested;
+    if ~any(inxName)
+        continue
+    end
+
+    dbName = name;
+    if hasAnyNamesWithLogInputData && any(dbName==dbInfo.NamesWithLogInputData)
+        dbName = logPrefix + dbName;
+    end
+
+    if isstruct(inputDb)
+        field = inputDb.(dbName);
+    else
+        field = retrieve(inputDb, dbName);
+    end
+
     if isempty(field)
         continue
     end
@@ -50,7 +65,7 @@ for name = dbInfo.NamesAvailable
             data = repmat(reshape(field, 1, 1, [ ]), 1, numPeriods, 1);
         end
     end
-    X(name==allNames, :, :) = data;
+    X(name==namesRequested, :, :) = data;
 end
 
 end%

@@ -1,15 +1,9 @@
-function [exc, args] = chkStructureAfter(this, quantity, equation)
-% chkStructureAfter  Check model structure after loss function.
+% checkStructureAfter  Check model structure after loss function.
 %
-% Backend IRIS function.
-% No help provided.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
-
-TYPE = @int8;
-
-%--------------------------------------------------------------------------
+function [exc, args] = checkStructureAfter(this, quantity, equation, ~)
 
 exc = [ ];
 args = { };
@@ -19,13 +13,13 @@ insxs = across(this.Incidence.Steady, 'Shift');
 ind0 = across(this.Incidence.Dynamic, 'Zero'); % At zero shift.
 ins0 = across(this.Incidence.Steady, 'Zero');
 
-ixy = quantity.Type==TYPE(1);
-ixx = quantity.Type==TYPE(2);
+ixy = quantity.Type==1;
+ixx = quantity.Type==2;
 ny = sum(ixy);
 nx = sum(ixx);
 
-ixm = equation.Type==TYPE(1);
-ixt = equation.Type==TYPE(2);
+ixm = equation.Type==1;
+ixt = equation.Type==2;
 nm = sum(ixm);
 nt = sum(ixt);
 

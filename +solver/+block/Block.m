@@ -9,7 +9,7 @@
 classdef (Abstract) Block < handle
     properties
         % ParentBlazer  Pointer to the parent Blazer object
-        ParentBlazer 
+        ParentBlazer
 
         % Type  Type of block
         Type
@@ -21,7 +21,7 @@ classdef (Abstract) Block < handle
         SolverOptions = [ ]
 
         % IsAnalyticalJacob  Return analytical Jacobian from objective function
-        IsAnalyticalJacob = false 
+        IsAnalyticalJacob = false
 
         PtrQuantities = double.empty(1, 0)
         PtrEquations = double.empty(1, 0)
@@ -32,8 +32,8 @@ classdef (Abstract) Block < handle
 
         % LhsQuantityFormat  Format to create string representing an LHS
         % variable to verify the RHS of possible assignments
-        LhsQuantityFormat 
-        
+        LhsQuantityFormat
+
         Shift (1, :) double = zeros(1, 0)
 
         % JacobPattern  Logical index of pairs equation-quantity that has a
@@ -41,13 +41,13 @@ classdef (Abstract) Block < handle
         JacobPattern (:, :) logical = logical.empty(0)
 
         Gradients (3, :) cell = cell(3, 0)
-        
+
         XX2L
         D
-        
+
         Lower
         Upper
-        
+
         RunTime = struct( )
     end
 
@@ -57,8 +57,8 @@ classdef (Abstract) Block < handle
         PositionOfZeroShift
         NeedsAnalyticalJacob
     end
-    
-    
+
+
     properties (Constant)
         SAVEAS_SECTION = string(repmat(' ', 1, 75))
         SAVEAS_INDENT = "    "
@@ -69,7 +69,7 @@ classdef (Abstract) Block < handle
         VECTORIZE
         PREAMBLE
     end
-    
+
 
     methods
         function this = Block(varargin)
@@ -82,7 +82,7 @@ classdef (Abstract) Block < handle
             end
         end%
 
-        
+
         function classify(this)
             asgn = this.ParentBlazer.Assignments;
             eqtn = this.ParentBlazer.Equations;
@@ -102,16 +102,16 @@ classdef (Abstract) Block < handle
                 this.Type = type;
             end
         end%
-        
-        
+
+
         function flag = checkRhsOfAssignment(this, eqtn)
             % Verify that the LHS quantity does not occur on the RHS of an assignment.
             c = sprintf(this.LhsQuantityFormat, this.PtrQuantities);
             rhs = solver.block.Block.removeLhs( eqtn{this.PtrEquations} );
             flag = isempty( strfind(rhs, c) );
         end%
-        
-        
+
+
         function prepareBlock(this, blazer)
             this.ParentBlazer = blazer;
             classify(this); % Classify block as SOLVE or ASSIGNMENT
@@ -140,7 +140,7 @@ classdef (Abstract) Block < handle
         end%
 
 
-        function [z, exitFlag] = solve(this, fnObjective, z0, exitFlagHeader)
+        function [z, f, exitFlag, lastJacob] = solve(this, fnObjective, z0, exitFlagHeader)
             if isa(this.SolverOptions, 'solver.Options')
                 %
                 % Iris solvers
@@ -150,7 +150,7 @@ classdef (Abstract) Block < handle
                 % successfully solved
                 for i = 1 : numel(this.SolverOptions)
                     this.SolverOptions(i).JacobPattern = this.JacobPattern;
-                    [z, ~, exitFlag] = solver.algorithm.qnsd( ...
+                    [z, f, exitFlag, ~, lastJacob] = solver.algorithm.qnsd( ...
                         fnObjective, z0, this.SolverOptions(i), exitFlagHeader ...
                     );
                     if hasSucceeded(exitFlag)
@@ -165,22 +165,24 @@ classdef (Abstract) Block < handle
                 solverName = this.SolverOptions.SolverName;
                 if strcmpi(solverName, 'lsqnonlin')
                     this.SolverOptions.JacobPattern = sparse(double(this.JacobPattern));
-                    [z, ~, ~, exitFlag] = ...
+                    [z, ~, f, exitFlag, ~, ~, lastJacob] = ...
                         lsqnonlin(fnObjective, z0, this.Lower, this.Upper, this.SolverOptions);
                 elseif strcmpi(solverName, 'fsolve')
                     %this.SolverOptions.JacobPattern = sparse(double(this.JacobPattern));
                     this.SolverOptions.Algorithm = 'levenberg-marquardt';
                     %this.SolverOptions.Algorithm = 'trust-region';
                     %this.SolverOptions.SubproblemAlgorithm = 'cg';
-                    [z, ~, exitFlag] = fsolve(fnObjective, z0, this.SolverOptions);
+                    [z, f, exitFlag, ~, lastJacob] = fsolve(fnObjective, z0, this.SolverOptions);
                 end
                 exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
                 z = real(z);
                 z( abs(z)<=this.SolverOptions.StepTolerance ) = 0;
 
             elseif isa(this.SolverOptions, 'function_handle')
-                % User-Supplied Solver
-                [z, ~, exitFlag] = this.SolverOptions(fnObjective, z0);
+                %
+                % User-supplied solver
+                %
+                [z, f, exitFlag, lastJacob] = this.SolverOptions(fnObjective, z0);
 
             else
                 exception.error([
@@ -189,30 +191,30 @@ classdef (Abstract) Block < handle
                 ]);
             end
         end%
-        
+
 
         function s = print(this, blockId, names, equations)
             numEquations = numel(this.PtrEquations);
             s = sprintf("\n") ...
-                + sprintf("%%%% Block #%g  \n", blockId) ...
-                + sprintf("%% Number of equations: %g\n", numEquations) ...
-                + sprintf("%% %s\n", this.Type.SaveAsKeyword) ...
-                + printListUknowns(this, names) ...
+                + sprintf("## Block %g  \n\n", blockId) ...
+                + sprintf("Number of equations: %g\n\n", numEquations) ...
+                + sprintf("%s\n", this.Type.SaveAsKeyword) ...
+                + printListUnknowns(this, names) ...
+                + sprintf("\n") ...
+                + sprintf("Equations:\n") ...
                 + printListEquations(this, equations);
         end%
 
 
 
 
-        function s = printListUknowns(this, names)
+        function s = printListUnknowns(this, names)
             ptrQuantities = this.PtrQuantities;
             if isempty(ptrQuantities) || isempty(names)
                 s = "";
                 return
             end
-            s = "% " + solver.block.Block.SAVEAS_INDENT ...
-                + "(" + join(names(ptrQuantities), ",") + ")" ...
-                + sprintf("\n");
+            s = "{" + join(names(ptrQuantities), ",") + "}" + sprintf("\n");
         end%
 
 
@@ -224,13 +226,14 @@ classdef (Abstract) Block < handle
                 s = "";
                 return
             end
+            equations = string(equations(ptrEquations));
             separator = sprintf("\n%s", solver.block.Block.SAVEAS_INDENT);
-            s = separator + join(equations(ptrEquations), separator);
+            s = separator + join(string(equations), separator) + sprintf("\n");
         end%
 
 
-        
-        
+
+
         function setShift(this)
             % Return max lag and max lead across all equations in this block.
             if isEmptyBlock(this.Type)
@@ -250,8 +253,8 @@ classdef (Abstract) Block < handle
             end
             this.Shift = from : to;
         end%
-        
-        
+
+
         function s = size(this)
             s = [1, numel(this.PtrEquations)];
         end%
@@ -286,10 +289,10 @@ classdef (Abstract) Block < handle
 
     methods (Abstract)
        prepareForSolver(varargin)
-       prepareJacob(varargin) 
+       prepareJacob(varargin)
     end
-    
-    
+
+
     methods (Static)
         function eqtn = removeLhs(eqtn)
             close = textfun.matchbrk(eqtn, 2);
@@ -301,7 +304,7 @@ classdef (Abstract) Block < handle
 
 
         function exitFlag = checkFiniteSolution(z, exitFlag)
-            if ~hasSucceeded(exitFlag) 
+            if ~hasSucceeded(exitFlag)
                 return
             end
             if any(isnan(z(:)) | isinf(z(:)))

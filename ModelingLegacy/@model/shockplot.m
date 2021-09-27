@@ -79,10 +79,6 @@ pp.parse(this, shockName, range, listOfNamesToPlot);
 
 [opt, varargin] = passvalopt('model.shockplot', varargin{:});
 
-if ischar(range)
-    range = textinp2dat(range);
-end
-
 %--------------------------------------------------------------------------
 
 ixe = this.Quantity.Type==int8(31) | this.Quantity.Type==int8(32);

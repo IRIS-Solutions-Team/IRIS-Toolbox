@@ -66,7 +66,6 @@ function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
@@ -96,7 +95,7 @@ runningData = databank.backend.ensureTypeConsistency(runningData, opt.OutputType
 %--------------------------------------------------------------------------
 
 numQuantities = numel(this.Quantity.Name);
-inxE = getIndexByType(this, TYPE(31), TYPE(32));
+inxE = getIndexByType(this, 31, 32);
 ne = sum(inxE);
 nv = length(this);
 numPeriods = numel(range);
@@ -108,8 +107,20 @@ if isempty(runningData) || isequal(runningData, struct( ))
 else
     requiredNames = cell.empty(1, 0);
     optionalNames = namesShocks;
-    databankInfo = checkInputDatabank(this, runningData, range, requiredNames, optionalNames);
-    E = requestData(this, databankInfo, runningData, range, namesShocks);
+    allowedNumeric = string.empty(1, 0);
+    allowedLog = string.empty(1, 0);
+    context = "";
+    databankInfo = checkInputDatabank( ...
+        this, runningData, range ...
+        , requiredNames, optionalNames ...
+        , allowedNumeric, allowedLog ...
+        , context ...
+    );
+
+    E = requestData( ...
+        this, databankInfo, runningData ...
+        , [requiredNames, optionalNames], range ...
+    );
 end
 numPages = size(E, 3);
 

@@ -1,40 +1,35 @@
-function D = hdatafinal(Y)
 % hdatafinal  Finalize HData output struct.
 %
-% Backend IRIS function.
-% No help provided.
-
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
+
+function D = hdatafinal(Y)
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-%--------------------------------------------------------------------------
-
-D = struct( );
+D = struct();
 
 if isfield(Y, 'M0') && ~isequal(Y.M0, [ ])
-    doOneOutputArea('0');
+    hereOneOutput('0');
 end
 
 if isfield(Y, 'M1') && ~isequal(Y.M1, [ ])
-    doOneOutputArea('1');
+    hereOneOutput('1');
 end
 
 if isfield(Y, 'M2') && ~isequal(Y.M2, [ ])
-    doOneOutputArea('2');
+    hereOneOutput('2');
 end
 
 f = fieldnames(D);
-if length(f)==1
+if numel(f)==1
     D = D.(f{1});
 end
 
+return
 
-
-
-    function doOneOutputArea(X)
+    function hereOneOutput(X)
         switch X
             case '0'
                 outpName = 'pred';
@@ -69,4 +64,5 @@ end
             D.(outpName) = hdata2tseries(Y.(meanField));
         end
     end 
-end
+end%
+

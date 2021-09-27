@@ -72,8 +72,6 @@ function [this, namesAssigned] = assign(this, varargin)
 
 persistent POS_VALUES INDEX_VALUES_RHS POS_STDCORR INDEX_STDCORR_RHS NAMES_ASSIGNED
 
-stringify = @(x) reshape(string(x), 1, []);
-
 inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
 
 namesAssigned = cell(1, 0);
@@ -81,7 +79,8 @@ if isempty(varargin)
     return
 end
 
-flags = hereReadFlags( );
+flags = hereReadFlags();
+
 
 % Number of input arguments with the growth label removed.
 n = numel(varargin);
@@ -106,7 +105,7 @@ elseif isa(varargin{1}, 'model')
     % Assign from another model object:
     % m = assign(m, n);
     % m = assign(m, n, list);
-    assignFromModelObj( );
+    assignFromModelObj();
     
 elseif n==1 && isnumeric(varargin{1})
     % Quick assignment after iniatialization.
@@ -114,7 +113,7 @@ elseif n==1 && isnumeric(varargin{1})
     assert( ...
         ~isempty(POS_VALUES) || ~isempty(POS_STDCORR), ...
         'model:assign', ...
-        'Initialize assign( ) before using the function with a single numeric input.' ...
+        'Initialize assign() before using the function with a single numeric input.' ...
     );
     if any(INDEX_VALUES_RHS)
         this.Variant.Values(1, POS_VALUES, :) = varargin{1}(INDEX_VALUES_RHS);
@@ -126,10 +125,12 @@ elseif n==1 && isnumeric(varargin{1})
     % Keep persistent variables and return immediately.
     return
     
-elseif n<=2 && iscellstr(varargin{1})
-    % assign(m, cellstr) initializes quick-assign function.
+elseif n<=2 && (iscellstr(varargin{1}) || isstring(varargin{1}))
+    % assign(m, ["a", "b"]) or
+    % assign(m, {'a', 'b'}) initializes quick-assign function.
+    %
     % m = assign(m, cellstr, array);
-    inputNames = reshape(varargin{1}, 1, [ ]);
+    inputNames = cellstr(reshape(varargin{1}, 1, []));
     varargin(1) = [ ];
     numNames = numel(inputNames);
     ell = lookup(this.Quantity, inputNames);
@@ -147,14 +148,14 @@ elseif n<=2 && iscellstr(varargin{1})
         POS_STDCORR = posStdCorr;
         INDEX_VALUES_RHS = indexQuantityRhs;
         INDEX_STDCORR_RHS = inxStdCorrRhs;
-        getNamesAssigned( );
+        getNamesAssigned();
         NAMES_ASSIGNED = namesAssigned;
         
         % Keep persistent variables and return immediately.
         return
     elseif isnumeric(varargin{1})
         value = varargin{1};
-        assignListValue( );
+        assignListValue();
         assert( ...
             isempty(invalidLhsNames), ...
             exception.Base('Model:InvalidName', 'error'), ...
@@ -203,7 +204,7 @@ elseif n<=2 && (isstruct(varargin{1}) || isa(varargin{1}, 'table'))
         end
         hereAssignPositionValue(inputNames{i}, posQuantity(i), posStdCorr(i), value__);
     end
-    reportInvalid( );
+    reportInvalid();
 
 elseif all(cellfun(@(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp'), varargin(1:2:end)))
     % m = assign(m, name, value, name, value, ...)
@@ -250,7 +251,7 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp'), varargi
             end
         end
     end
-    reportInvalid( );
+    reportInvalid();
     if ~isempty(invalidLhsNames)
         throw( ...
             exception.Base('Model:InvalidName', 'error'), ...
@@ -287,39 +288,42 @@ end
 
 % Put together list of parameters, steady states, std deviations, and
 % correlations that have been assigned.
-getNamesAssigned( );
+getNamesAssigned();
 
 return
 
     
-    function flags = hereReadFlags( )
-        flags = struct( );
+    function flags = hereReadFlags()
+        flags = struct();
         flags.Level = false;
         flags.Change = false;
         flags.ExcludeNaNs = false;
-        while ~isempty(varargin) && ischar(varargin{1}) ...
-                && strncmp(varargin{1}, '-', 1)
-            switch lower(strtrim(varargin{1}))
-                case '-level'
-                    flags.Level = true;
-                case {'-change', '-growth'}
-                    flags.Change = true;
-                case '-excludenans'
-                    flags.ExcludeNaNs = true;
-                otherwise
-                    throw( ...
-                        exception.Base('Model:INVALID_ASSIGN_FLAG', 'error'), ...
-                        varargin{1} ...
-                    );
+        while true 
+            temp = varargin{1};
+            if ~(ischar(temp) || (isstring(temp) && isscalar(temp)))
+                break
             end
-            varargin(1) = [ ];
+            temp = lower(strip(temp));
+            if ~startsWith(temp, "-")
+                break
+            end
+            if endsWith(temp, "level", "ignoreCase", true)
+                flags.Level = true;
+            elseif endsWith(temp, ["change", "growth"], "ignoreCase", true)
+                flags.Change = true;
+            elseif endsWith(temp, "excludeNaNs", "ignoreCase", true)
+                flags.ExcludeNaNs = true;
+            else
+                break
+            end
+            varargin(1) = [];
         end
     end%
 
 
 
 
-    function assignFromModelObj( )
+    function assignFromModelObj()
         rhs = varargin{1};
         namesToAssign = @all;
         if n>=2 && ~isequal(namesToAssign, @all)
@@ -448,7 +452,7 @@ return
 
 
 
-    function assignListValue( )
+    function assignListValue()
         if size(value, 2)==1 && numNames>1
             value = repmat(value, 1, numNames, 1);
         end
@@ -479,9 +483,7 @@ return
     end%
 
 
-
-
-    function reportInvalid( )
+    function reportInvalid()
         if ~isempty(invalidLength)
             utils.error( 'modelobj:assign', ...
                 ['Incorrect number of alternative values assigned ', ...
@@ -496,9 +498,7 @@ return
     end%
 
 
-
-
-    function getNamesAssigned( )
+    function getNamesAssigned()
         namesAssigned = this.Quantity.Name(inxValues);
         lse = this.Quantity.Name(inxE);
         namesAssigned = [namesAssigned, strcat('std_', lse(inxStdCorr(1:numE)))];

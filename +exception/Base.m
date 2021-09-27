@@ -59,12 +59,17 @@ classdef Base
         
         function assert(condition, this, varargin)
             if ~condition
-                throw(this, varargin{:});
+                raise(this, varargin{:});
             end
         end%
 
 
         function throw(this, varargin)
+            raise(this, varargin{:});
+        end%
+
+
+        function raise(this, varargin)
             EMPTY_HIGHLIGHT = this.HIGHLIGHT;
             EMPTY_HIGHLIGHT(:) = ' ';
             header = createHeader(this);
@@ -131,7 +136,7 @@ classdef Base
                 end
             end
             varargin = strtrim(varargin);
-            throw(this, varargin{:});
+            raise(this, varargin{:});
         end%
 
 

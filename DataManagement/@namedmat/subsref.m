@@ -14,6 +14,16 @@ if strcmp(s(1).type, ".")
     return
 end
 
+
+% Linear indexing by numeric or logical vector/array - convert to double
+if numel(s)==1 && isequal(s(1).type, '()') && numel(s(1).subs)==1 ...
+        && (isnumeric(s(1).subs{1}) || islogical(s(1).subs{1}))
+    output = double(this);
+    output = builtin("subsref", output, s);
+    return
+end
+
+
 isPreserved = strcmp(s(1).type, '()');
 
 if strcmp(s(1).type, '()')
@@ -64,18 +74,15 @@ end%
 
 function subs = locallyPositionsFromNames(subs, this, dimensionName)
     inputNames = subs;
-    if validate.stringScalar(inputNames)
-        inputNames = regexp(inputNames, '\w+', 'match');
-    end
     inputNames = reshape(string(inputNames), 1, [ ]);
     numInputNames = numel(inputNames);
     subs = textual.locate(inputNames, this.(dimensionName+"Names"));
-    inxNaN = isnan(subs);
-    if any(inxNaN)
+    inxNa = isnan(subs);
+    if any(inxNa)
         exception.error([
             "NamedMatrix:InvalidRowReference"
             "This is not a valid reference to %1 in NamedMatrix object: %s"
-        ], dimensionName+"Names", inputNames(inxNaN));
+        ], dimensionName+"Names", inputNames(inxNa));
     end
 end%
 

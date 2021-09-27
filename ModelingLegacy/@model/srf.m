@@ -44,8 +44,6 @@ function [s, range, select, opt] = srf(this, time, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-TYPE = @int8;
-
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.srf');
@@ -68,7 +66,7 @@ end
 
 %--------------------------------------------------------------------------
 
-inxOfE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+inxOfE = getIndexByType(this.Quantity, 31, 32);
 numOfE = sum(inxOfE);
 nv = length(this);
 listOfE = this.Quantity.Name(inxOfE);

@@ -1,4 +1,4 @@
-function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, listParameters, varargin)
+function [F, FF, delta, freq, G, step] = fisher(this, numPeriods, listParameters, varargin)
 % fisher  Approximate Fisher information matrix in frequency domain.
 %
 % ## Syntax ##
@@ -68,56 +68,46 @@ function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, listParamete
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-TYPE = @int8;
-
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/fisher');
-    INPUT_PARSER.addRequired('M', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('NPer', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
-    INPUT_PARSER.addRequired('PList', @(x) iscellstr(x) || ischar(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model/fisher');
+    pp.addRequired('model', @(x) isa(x, 'model'));
+    pp.addRequired('numPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
+    pp.addRequired('parameters', @(x) isstring(x) || iscellstr(x) || ischar(x));
 end
-INPUT_PARSER.parse(this, numOfPeriods, listParameters);
+pp.parse(this, numPeriods, listParameters);
 
 % Read and validate optional input arguments.
 opt = passvalopt('model.fisher', varargin{:});
 
-ixy = this.Quantity.Type==TYPE(1);
+ixy = this.Quantity.Type==1;
 [ny, ~, ~, nf, ne] = sizeSolution(this.Vector);
-nv = length(this);
+nv = countVariants(this);
 
-% Process the 'exclude' option.
-indexToExclude = false(ny, 1);
-if ~isempty(opt.exclude)
-    if ischar(opt.exclude)
-        opt.exclude = regexp(opt.exclude, '\w+', 'match');
-    end
-    lsMeasurementVar = this.Quantity.Name(ixy);
-    for i = 1 : length(opt.exclude)
-        ix = strcmp(lsMeasurementVar, opt.exclude{i});
-        indexToExclude(ix) = true;
-    end
+% Process the Exclude option.
+inxToExclude = false(ny, 1);
+if ~isempty(opt.Exclude)
+    inxToExclude = ismember( ...
+        textual.stringify(this.Quantity.Name(ixy)) ...
+        , textual.stringify(opt.Exclude) ...
+    );
 end
 
 % Get parameter cellstr list from a char list.
-if ischar(listParameters)
-    listParameters = regexp(listParameters, '\w+', 'match');
-end
+listParameters = cellstr(listParameters);
 
 EPSILON = eps( )^opt.epspower;
 
-%--------------------------------------------------------------------------
-
-ny = ny - sum(indexToExclude);
+ny = ny - nnz(inxToExclude);
 if ny==0
     utils.warning('model:fisher', ...
         'No measurement variables included in computing Fisher matrix.');
 end
 
 ixYLog = this.Quantity.IxLog(ixy);
-ixYLog(indexToExclude) = [ ];
+ixYLog(inxToExclude) = [ ];
 
-ell = lookup(this.Quantity, listParameters, TYPE(4));
+ell = lookup(this.Quantity, listParameters, 4);
 posValues = ell.PosName;
 posStdCorr = ell.PosStdCorr;
 inxNaPosValues = isnan(posValues);
@@ -152,21 +142,21 @@ this.Update.Solve = prepareSolve(this, opt.Solve{:}, "silent", true);
 
 this.Update.NoSolution = 'Error';
 
-numOfParameters = length(listParameters);
-numOfFreq = floor(numOfPeriods/2) + 1;
-freq = 2*pi*(0 : numOfFreq-1)/numOfPeriods;
+numParameters = length(listParameters);
+numFreq = floor(numPeriods/2) + 1;
+freq = 2*pi*(0 : numFreq-1)/numPeriods;
 
 % Kronecker delta vector.
 % Different for even or odd number of periods.
-delta = ones(1, numOfFreq);
-if mod(numOfPeriods, 2)==0
+delta = ones(1, numFreq);
+if mod(numPeriods, 2)==0
     delta(2:end-1) = 2;
 else
     delta(2:end) = 2;
 end
 
-FF = nan(numOfParameters, numOfParameters, numOfFreq, nv);
-F = nan(numOfParameters, numOfParameters, nv);
+FF = nan(numParameters, numParameters, numFreq, nv);
+F = nan(numParameters, numParameters, nv);
 
 % Create a command-window progress bar.
 if opt.progress
@@ -186,17 +176,17 @@ for v = 1 : nv
     
     % Compute derivatives of SGF and steady state
     % wrt the selected parameters.
-    dG = nan(ny, ny, numOfFreq, numOfParameters);
+    dG = nan(ny, ny, numFreq, numParameters);
     if ~opt.Deviation
-        dy = zeros(ny, numOfParameters);
+        dy = zeros(ny, numParameters);
     end
     % Determine differentiation step.
-    p0 = nan(1, numOfParameters);
+    p0 = nan(1, numParameters);
     p0(~inxNaPosValues) = m.Variant.Values(:, posValues(~inxNaPosValues), :);
     p0(~inxNaPosStdCorr) = m.Variant.StdCorr(:, posStdCorr(~inxNaPosStdCorr), :);
-    step = max([abs(p0);ones(1, numOfParameters)], [ ], 1)*EPSILON;
+    step = max([abs(p0);ones(1, numParameters)], [ ], 1)*EPSILON;
     
-    for i = 1 : numOfParameters
+    for i = 1 : numParameters
         pp = p0;
         pm = p0;
         pp(i) = pp(i) + step(i);
@@ -233,16 +223,16 @@ for v = 1 : nv
         
         % Update the progress bar.
         if opt.progress
-            update(progress, ((v-1)*numOfParameters+i)/(nv*numOfParameters));
+            update(progress, ((v-1)*numParameters+i)/(nv*numParameters));
         end
     end
     
     % Compute Fisher information matrix.
     % Steady-state-independent part.
-    for i = 1 : numOfParameters
-        for j = i : numOfParameters
-            fi = zeros(1, numOfFreq);
-            for k = 1 : numOfFreq
+    for i = 1 : numParameters
+        for j = i : numParameters
+            fi = zeros(1, numFreq);
+            for k = 1 : numFreq
                 fi(k) = trace( real(Gi(:, :, k)*dG(:, :, k, i)*Gi(:, :, k)*dG(:, :, k, j)) );
             end
             if ~opt.Deviation
@@ -250,7 +240,7 @@ for v = 1 : nv
                 % We don't divide the effect by 2*pi because
                 % we skip dividing G by 2*pi, too.
                 A = dy(:, i)*dy(:, j)';
-                fi(1) = fi(1) + numOfPeriods*trace(Gi(:, :, 1)*(A + A'));
+                fi(1) = fi(1) + numPeriods*trace(Gi(:, :, 1)*(A + A'));
             end
             FF(i, j, :, v) = fi;
             FF(j, i, :, v) = fi;
@@ -277,13 +267,13 @@ this.Update = this.EMPTY_UPDATE;
 return
 
 
-    function [T, R, Z, H, Omg, numOfUnitRoots] = getSspace( )
+    function [T, R, Z, H, Omg, numUnitRoots] = getSspace( )
         [T, R, ~, Z, H, ~, ~, Omg] = sspaceMatrices(m, 1);
         T = T(nf+1:end, :);
-        Z = Z(~indexToExclude, :);
+        Z = Z(~inxToExclude, :);
         R = R(nf+1:end, 1:ne);
-        H = H(~indexToExclude, 1:ne);
-        numOfUnitRoots = getNumOfUnitRoots(m.Variant);
+        H = H(~inxToExclude, 1:ne);
+        numUnitRoots = getNumOfUnitRoots(m.Variant);
     end 
 
     
@@ -292,7 +282,7 @@ return
         y = m.Variant.Values(:, ixy, :);
         y = real(y);
         % Adjust for excluded measurement variables.
-        y(indexToExclude) = [ ];
+        y(inxToExclude) = [ ];
         % Take log of log variables; `ixYLog` has been already adjusted
         % for excluded measurement variables.
         y(ixYLog) = log(y(ixYLog));
@@ -300,23 +290,23 @@ return
 end 
 
 
-function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numOfUnitRoots, freq, opt)
+function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numUnitRoots, freq, opt)
     % Spectrum generating function and its inverse.
     % Computationally optimised for observables.
     [ny, nb] = size(Z);
-    numOfFreq = length(freq(:));
+    numFreq = length(freq(:));
     Sgm1 = R*Omg*R.';
     Sgm2 = H*Omg*H.';
-    G = nan(ny, ny, numOfFreq);
-    for i = 1 : numOfFreq
+    G = nan(ny, ny, numFreq);
+    for i = 1 : numFreq
         iFreq = freq(i);
-        if iFreq==0 && numOfUnitRoots>0
+        if iFreq==0 && numUnitRoots>0
             % Exclude the unit-root part of the transition matrix, and compute SGF only
             % for the stable part. Stationary variables are unaffected.
-            Z0 = Z(:, numOfUnitRoots+1:end);
-            T0 = T(numOfUnitRoots+1:end, numOfUnitRoots+1:end);
-            R0 = R(numOfUnitRoots+1:end, :);
-            X = Z0 / (eye(nb-numOfUnitRoots) - T0);
+            Z0 = Z(:, numUnitRoots+1:end);
+            T0 = T(numUnitRoots+1:end, numUnitRoots+1:end);
+            R0 = R(numUnitRoots+1:end, :);
+            X = Z0 / (eye(nb-numUnitRoots) - T0);
             G(:, :, i) = trimSymmetric(X*(R0*Omg*R0.')*X' + Sgm2);
         else
             X = Z/(eye(nb) - T*exp(-1i*iFreq));
@@ -328,13 +318,13 @@ function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numOfUnitRoots, freq, opt)
     % and second, we do not divide the steady-state effect
     % by 2*pi either.
     if nargout>1
-        Gi = nan(ny, ny, numOfFreq);
+        Gi = nan(ny, ny, numFreq);
         if opt.chksgf
-            for i = 1 : numOfFreq
+            for i = 1 : numFreq
                 Gi(:, :, i) = computePseudoInverse(G(:, :, i), opt.tolerance);
             end
         else
-            for i = 1 : numOfFreq
+            for i = 1 : numFreq
                 Gi(:, :, i) = inv(G(:, :, i));
             end
         end

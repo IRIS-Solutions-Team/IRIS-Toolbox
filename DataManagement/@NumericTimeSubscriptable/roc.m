@@ -88,8 +88,6 @@ end
 
 [shift, power] = dater.resolveShift(getRangeAsNumeric(this), varargin{:});
 
-%--------------------------------------------------------------------------
-
 
 %==========================================================================
 this = unop(@series.change, this, 0, @rdivide, shift);

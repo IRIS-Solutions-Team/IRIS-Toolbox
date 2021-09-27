@@ -131,17 +131,10 @@ classdef grouping < shared.UserDataContainer ...
             
             pp = inputParser( );
             pp.addRequired('m', @(x) isa(x, 'model'));
-            pp.addRequired('type', @(x) ischar(x));
+            pp.addRequired('type', @(x) ischar(x) || isstring(x));
             pp.parse(m, type);
 
-            if any(strncmpi(type, {'shock', 'measu'}, 5))
-                this = prepareGrouping(m, this, type, opt);
-            else
-                throw( ...
-                    exception.Base('Grouping:InvalidType', 'error'), ...
-                    type ...
-                    ); %#ok<GTARG>
-            end
+            this = prepareGrouping(m, this, type, opt);
         end
 
         

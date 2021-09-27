@@ -49,7 +49,7 @@ classdef LinearSystem ...
 
 
     properties (Dependent)
-        NumExtendedPeriods
+        NumExtdPeriods
         Omega
         NumXi
         NumXiB
@@ -110,6 +110,11 @@ classdef LinearSystem ...
 
 
     methods (Hidden)
+        function value = hasLogVariables(this)
+            value = false;
+        end%
+
+
         function value = countVariants(this)
             value = 1;
         end%
@@ -161,7 +166,7 @@ classdef LinearSystem ...
             numV  = this.NumV;
             numY  = this.NumY;
             numW  = this.NumW;
-            numExtPeriods = this.NumExtendedPeriods;
+            numExtPeriods = this.NumExtdPeriods;
             T = nan(numXi, numXiB, numExtPeriods);
             R = nan(numXi, numV, numExtPeriods);
             k = nan(numXi, 1, numExtPeriods);
@@ -181,7 +186,7 @@ classdef LinearSystem ...
 
 
     methods
-        function numExtendedPeriods = get.NumExtendedPeriods(this)
+        function numExtendedPeriods = get.NumExtdPeriods(this)
             numExtendedPeriods = this.NumPeriods + 1;
         end%
 

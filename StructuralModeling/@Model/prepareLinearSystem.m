@@ -1,13 +1,9 @@
-function [obj, initCond] = prepareLinearSystem(this, input)
 % prepareLinearSystem  Prepare LinearSystem object from Model object
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+function [obj, initCond] = prepareLinearSystem(this, input)
 
 % input.Variant
 % input.FilterRange
@@ -15,9 +11,7 @@ TYPE = @int8;
 % input.Multiply
 % input.BreakUnlessTimeVarying
 
-%--------------------------------------------------------------------------
-
-inxP = getIndexByType(this.Quantity, TYPE(4));
+inxP = getIndexByType(this.Quantity, 4);
 numP = nnz(inxP);
 input.FilterRange = double(input.FilterRange);
 baseStart = input.FilterRange(1);
@@ -51,7 +45,9 @@ end
 [overrideParams, equalsDefaultParams, equalsPreviousParams] = ...
     locallyOverrideAndMultiply(overrideParams, [ ], defaultParams);
 
-[overrideStdCorr, ~, multiplyStdCorr] = varyStdCorr(this, input.FilterRange, input.Override, [ ], '--clip');
+optionsHere = struct("Clip", true, "Presample", false);
+[overrideStdCorr, ~, multiplyStdCorr] ...
+    = varyStdCorr(this, input.FilterRange, input.Override, [ ], optionsHere);
 defaultStdCorr = this.Variant.StdCorr(1, :, input.Variant);
 if ~isempty(overrideStdCorr) && size(overrideStdCorr, 2)<numBasePeriods
     overrideStdCorr(:, end+1) = defaultStdCorr;
@@ -96,7 +92,7 @@ return
         end
     end%
 
-        
+
 
 
     function hereAssignSspaceMatrices( )
@@ -135,7 +131,7 @@ return
                 update.PosOfStdCorr = double.empty(1, 0);
                 update.Values = this.Variant.Values(1, :, input.Variant);
                 update.StdCorr = this.Variant.StdCorr(1, :, input.Variant);
-                update.Steady = false;
+                update.Steady = prepareSteady(this, "run", false);
                 update.CheckSteady = prepareCheckSteady(this, "run", false);
                 update.Solve = prepareSolve(this, "silent", true);
             end%
@@ -160,7 +156,7 @@ return
                 Omega__ = covfun.stdcorr2cov(overrideStdCorr(:, t), numE);
                 matrices__ = { Omega__(inxV, inxV), Omega__(inxW, inxW) };
             end
-            obj = assign(obj, t, missing, matrices__);  
+            obj = assign(obj, t, missing, matrices__);
             previousMatrices = matrices__;
         end
     end%
@@ -169,7 +165,10 @@ return
 
 
     function initCond = hereInitialize( )
-        s = struct( );
+        s = struct();
+        s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
+        s.DIFFUSE_SCALE = this.DIFFUSE_SCALE;
+        s.OBJ_FUNC_PENALTY = this.OBJ_FUNC_PENALTY;
         requiredForward = 0;
         [T, R, k, Z, H, d, s.U, Zb, s.InxV, s.InxW, s.NumUnitRoots, s.InxInit] = getIthKalmanSystem(this, input.Variant, requiredForward);
         [numXi, numXiB] = size(T);

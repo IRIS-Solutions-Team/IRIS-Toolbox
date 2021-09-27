@@ -1,10 +1,16 @@
-function [realX, imagX] = splitRealImag(x)
+function [realX, imagX] = splitRealImag(x, valueToRemove)
+
+if nargin<2
+    valueToRemove = 0;
+end
 
 realX = real(x);
-realX(realX==0) = [ ];
-
 imagX = imag(x);
-imagX(imagX==0) = [ ];
+
+if isscalar(valueToRemove)
+    realX(realX==valueToRemove) = [ ];
+    imagX(imagX==valueToRemove) = [ ];
+end
 
 end%
 

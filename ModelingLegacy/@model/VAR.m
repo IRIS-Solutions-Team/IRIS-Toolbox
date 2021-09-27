@@ -53,10 +53,6 @@ if ischar(select)
         '[a-zA-Z][\w\(\)\{\}\+\-]*', 'match');
 end
 
-if ischar(range)
-    range = textinp2dat(range);
-end
-
 %--------------------------------------------------------------------------
 
 nv = length(this);

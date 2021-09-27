@@ -1,6 +1,5 @@
 function [response, isValid, query] = implementGet(this, ~, ~, query, varargin)
 
-TYPE = @int8;
 response = [ ];
 isValid = true;
 numEquations = numel(this.Input);
@@ -24,9 +23,9 @@ if isQuery('Eqtn')
     end
     select = true(1, numEquations);
     if flagStruct.Measurement
-        select = this.Type==TYPE(1);
+        select = this.Type==1;
     elseif flagStruct.Transition
-        select = this.Type==TYPE(2);
+        select = this.Type==2;
     end
     response = response(select);
     response = reshape(response, [ ], 1);
@@ -48,7 +47,7 @@ elseif isQuery( ...
     if strncmpi(lowerQuery, 'N', 1)
         inx = this.IxHash;
     else
-        inx = this.Type==TYPE(find(strncmpi(lowerQuery, {'Y', 'X', 'D', 'L'}, 1))); %#ok<FNDSB>
+        inx = this.Type==find(strncmpi(lowerQuery, {'Y', 'X', 'D', 'L'}, 1)); %#ok<FNDSB>
     end
     if endsWith(lowerQuery, 'Eqtn', 'IgnoreCase', true)
         response = this.Input(inx);

@@ -1,17 +1,9 @@
 % diff  Differentiate one equation wrt to list of names
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function diffEqtn = diff(eqtn, wrts, output)
-
-try, output; 
-    catch, output = 'array'; end %#ok<NOCOM,VUNUS>
-
-%--------------------------------------------------------------------------
 
 % Create string and remove anonymous function preamble.
 if isfunc(eqtn)
@@ -39,7 +31,7 @@ for i = 1 : numWrts
     end
 end
 
-if strcmpi(output, 'array')
+if string(output)=="array"
     listUnknowns = sprintf('%s ', listUnknowns{:});
 end
 diffEqtn = Ad.diff(eqtn, listUnknowns);
