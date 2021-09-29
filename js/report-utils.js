@@ -273,6 +273,7 @@ function createChartForPlotly(data, limits, settings) {
       autorange: true,
       type: 'linear',
       fixedrange: true,
+      tickformat: 'g',
       gridcolor: DEFAULT_GRID_COLOR,
       showline: DEFAULT_SHOW_AXIS,
       linecolor: DEFAULT_AXIS_COLOR
