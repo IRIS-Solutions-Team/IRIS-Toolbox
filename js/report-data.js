@@ -7,7 +7,9 @@ var $reportWithoutData = {
     "Subtitle": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras id faucibus felis. Nunc vulputate orci nibh, in aliquam risus finibus viverra.",
     "Footer": "Duis ut ultricies lorem. Nullam faucibus pulvinar massa vel faucibus.",
     "ChartLibrary": "plotly",
-    "InteractiveCharts": true
+    "InteractiveCharts": true,
+    "TableOfContents": true,
+    "TableOfContentsDepth": 2
   },
   "Content": [
     {
@@ -379,7 +381,7 @@ var $reportWithoutData = {
       "Title": "Matrices",
       "Settings": {
         "Class": "",
-        "NumRows": 1,
+        "NumRows": 2,
         "NumColumns": 2
       },
       "Content": [
@@ -421,49 +423,88 @@ var $reportWithoutData = {
             [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
             [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 10000]
           ]
-        }
-      ]
-    },
-    {"Type":"CHART","Title":"ZZZ","Settings":{"Class":"","DateFormat": "YYYY:Q","StartDate":"2020-02-15","EndDate":"2022-11-15"},"Content":[{"Type":"SERIES","Title":"aaa","Settings":{"Class":""},"Content":{"Dates":["2020-02-15","2020-05-15","2020-08-15","2020-11-15","2021-02-15","2021-05-15","2021-08-15","2021-11-15","2022-02-15","2022-05-15","2022-08-15","2022-11-15"],"Values":[0.81472368639317894,0.90579193707561922,0.12698681629350606,0.91337585613901939,0.63235924622540951,0.097540404999409525,0.2784982188670484,0.54688151920498385,0.9575068354342976,0.96488853519927653,0.15761308167754828,0.9705927817606157]}}]},
-    {
-      "Type": "CHART",
-      "Title": "Chart 1",
-      "Settings": {
-        "Class": "",
-        "DateFormat": "YYYY:Q",
-        "IsTitlePartOfChart": false,
-        "Highlight": [
-          {
-            "EndDate": "2020-12-31"
-          },
-          {
-            "StartDate": "2022-04-01",
-            "Color": "rgba(100, 0, 200, 0.1)"
-          }
-        ],
-        "StartDate": "2020-01-01",
-        "EndDate": "2024-12-31"
-      },
-      "Content": [
-        {
-          "Type": "SERIES",
-          "Title": "Series 101",
-          "Settings": {
-            "Class": "",
-            "Type": "bar"
-          },
-          "Content": "PtkeOkuClHzhOfpmBevf"
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 102",
+          "Type": "SECTION",
+          "Title": "Subsection bla-bla",
           "Settings": {
-            "Class": ""
+            "Class": "",
+            "Tag": "h2"
           },
-          "Content": "ZinudJuZuGitiNTsJpBR"
-        }
-      ]
+          "Content": [
+            {
+              "Type": "MATRIX",
+              "Title": "Matrix 3",
+              "Settings": {
+                "Class": "",
+              },
+              "Content": [
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.266559545656, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 100],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+                [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 10000]
+              ]
+            }]
+        }]
     },
+    { "Type": "CHART", "Title": "ZZZ", "Settings": { "Class": "", "DateFormat": "YYYY:Q", "StartDate": "2020-02-15", "EndDate": "2022-11-15" }, "Content": [{ "Type": "SERIES", "Title": "aaa", "Settings": { "Class": "" }, "Content": { "Dates": ["2020-02-15", "2020-05-15", "2020-08-15", "2020-11-15", "2021-02-15", "2021-05-15", "2021-08-15", "2021-11-15", "2022-02-15", "2022-05-15", "2022-08-15", "2022-11-15"], "Values": [0.00000081472368639317894, 0.00000090579193707561922, 0.00000012698681629350606, 0.00000091337585613901939, 0.00000063235924622540951, 0.000000097540404999409525, 0.0000002784982188670484, 0.00000054688151920498385, 0.0000009575068354342976, 0.00000096488853519927653, 0.00000015761308167754828, 0.0000009705927817606157] } }] },
+    {
+      "Type": "SECTION",
+      "Title": "My awesome section",
+      "Settings": {
+        "Class": "",
+        "Tag": "h4"
+      },
+      "Content": {
+        "Type": "CHART",
+        "Title": "Chart 1",
+        "Settings": {
+          "Class": "",
+          "DateFormat": "YYYY:Q",
+          "IsTitlePartOfChart": false,
+          "Highlight": [
+            {
+              "EndDate": "2020-12-31"
+            },
+            {
+              "StartDate": "2022-04-01",
+              "Color": "rgba(100, 0, 200, 0.1)"
+            }
+          ],
+          "StartDate": "2020-01-01",
+          "EndDate": "2024-12-31"
+        },
+        "Content": [
+          {
+            "Type": "SERIES",
+            "Title": "Series 101",
+            "Settings": {
+              "Class": "",
+              "Type": "bar"
+            },
+            "Content": "PtkeOkuClHzhOfpmBevf"
+          },
+          {
+            "Type": "SERIES",
+            "Title": "Series 102",
+            "Settings": {
+              "Class": ""
+            },
+            "Content": "ZinudJuZuGitiNTsJpBR"
+          }
+        ]
+      },
+    },
+
     {
       "Type": "PAGEBREAK",
       "Title": "",

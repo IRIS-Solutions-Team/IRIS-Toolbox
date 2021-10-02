@@ -1,6 +1,6 @@
 body, h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
-  font-weight: 300;
-  font-family: 'Lato';
+  font-weight: 400;
+  font-family: 'Open Sans', 'Lato', sans-serif;
   font-style: normal;
 }
 
@@ -77,6 +77,36 @@ h6, .h6 {
 .left-logo-img, .right-logo-img {
   /* left and right logo IMG elements */
   height: 100px;
+}
+
+.report-toc-button {
+  /* ToC toggle button */
+  /* nothing so far */
+}
+
+.report-toc-menu-wrapper {
+  /* wrapper of ToC menu */
+  /* nothing so far */
+}
+
+.report-toc-menu {
+  /* ToC menu DIV*/
+  background: #fefefe;
+}
+
+.report-toc-menu-content {
+  /* ToC content UL*/
+  /* nothing so far */
+}
+
+.report-toc-menu-entry {
+  /* ToC entry LI*/
+  /* nothing so far */
+}
+
+.report-toc-menu-entry-link {
+  /* A HREF within the ToC entry LI*/
+  /* nothing so far */
 }
 
 .rephrase-chart {
@@ -396,6 +426,9 @@ h6, .h6 {
   .report-body {
     overflow: visible;
     width: auto !important;
+  }
+  .report-toc-button {
+    display: none;
   }
   .report-footer {
     display: none;

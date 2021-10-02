@@ -15,6 +15,9 @@ $(document).foundation();
 (function () {
   'use strict';
 
+  const DEFAULT_TOC_DEPTH = 2;
+  const EXCLUDE_FROM_TOC = ['SERIES', 'DIFFSERIES', 'HEADING', 'WRAPPER', 'PAGEBREAK'];
+
   // browser tab title
   document.title = $report.Title || "";
 
@@ -86,6 +89,27 @@ $(document).foundation();
   } else {
     var footerText = footerDiv.querySelector('.footer-text');
     footerText.innerText = $report.Settings.Footer || "";
+  }
+
+  // assign IDs to all elements
+  $report.Content = $ru.assignElementIds($report.Content, []).content;
+
+  // render ToC if needed
+  var tocWrapperDiv = document.querySelector('.report-toc-menu-wrapper');
+  var tocButton = document.querySelector('.report-toc-button');
+  if (!$report.Settings.hasOwnProperty("TableOfContents") || !$report.Settings.TableOfContents) {
+    tocWrapperDiv.style.display = 'none';
+    tocButton.style.display = 'none';
+  } else {
+    var tocMenuDiv = document.querySelector('.report-toc-menu');
+    var tocMenu = document.createElement("ul");
+    $(tocMenu).addClass(["vertical", "menu", "report-toc-menu-content"]);
+    const tocDepth = $report.Settings.hasOwnProperty("TableOfContentsDepth")
+      ? $report.Settings.TableOfContentsDepth
+      : DEFAULT_TOC_DEPTH;
+    const tocExcludeTypes = EXCLUDE_FROM_TOC;
+    tocMenu = $ru.generateToc(tocMenu, $report.Content, tocDepth, tocExcludeTypes);
+    tocMenuDiv.appendChild(tocMenu);
   }
 
   // create report body

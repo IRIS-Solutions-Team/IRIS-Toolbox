@@ -19,9 +19,13 @@ var $ru = {
   addPageBreak: addPageBreak,
   createWrapper: createWrapper,
   createTextBlock: createTextBlock,
+  createSection: createSection,
   appendObjSettings: appendObjSettings,
   momentJsDateFormatToD3TimeFormat: momentJsDateFormatToD3TimeFormat,
   postProcessIrisCode: postProcessIrisCode,
+  getElementIds: getElementIds,
+  assignElementIds: assignElementIds,
+  generateToc: generateToc,
   databank: {
     getEntry: getEntry,
     getEntryName: getEntryName,
@@ -39,6 +43,7 @@ const DEFAULT_SHOW_LEGEND = true;
 function createChart(parent, chartObj) {
   const chartLib = chartObj.Settings.ChartLibrary || DEFAULT_CHART_LIBRARY;
   var chartParent = document.createElement("div");
+  $(chartParent).attr("id", chartObj.Id);
   $(chartParent).addClass("rephrase-chart");
   // apply custom css class to .rephrase-chart div
   if (chartObj.Settings.Class && (typeof chartObj.Settings.Class === "string"
@@ -112,6 +117,7 @@ function createChartSeries(seriesObj, limits, color, chartLib) {
 // add div that would force page break when printing
 function addPageBreak(parent, _breakObj) {
   var pageBreakDiv = document.createElement("div");
+  $(pageBreakDiv).attr("id", _breakObj.Id);
   $(pageBreakDiv).addClass("page-break");
   pageBreakDiv.innerHTML = "&nbsp;";
   parent.appendChild(pageBreakDiv);
@@ -227,7 +233,6 @@ function createSeriesForChartJs(title, dates, values, seriesSettings, colors, li
   }
   return seriesObj;
 }
-
 
 // create chart elements using Plotly library
 function createChartForPlotly(data, limits, settings) {
@@ -379,12 +384,12 @@ function createSeriesForPlotly(title, dates, values, seriesSettings, colors) {
   return seriesObj;
 }
 
-
 function createMatrix(parent, matrixObj) {
   // by default do not round matrix numbers
   const nDecParsed = parseInt(matrixObj.Settings.NumDecimals);
   const nDecimals = isNaN(nDecParsed) ? -1 : nDecParsed;
   var matrixParent = document.createElement("div");
+  $(matrixParent).attr("id", matrixObj.Id);
   $(matrixParent).addClass("rephrase-matrix");
   // apply custom css class to .rephrase-matrix div
   if (matrixObj.Settings.Class && (typeof matrixObj.Settings.Class === "string"
@@ -406,7 +411,7 @@ function createMatrix(parent, matrixObj) {
   if (matrixObj.Content && (matrixObj.Content instanceof Array) && matrixObj.Content.length > 0) {
     var matrix = document.createElement("table");
     $(matrix).addClass(["rephrase-matrix-table", "hover", "unstriped"]);
-    // apply custom css class to .rephrase-chart div
+    // apply custom css class to .rephrase-matrix-table div
     if (matrixObj.Settings.Class && (typeof matrixObj.Settings.Class === "string"
       || matrixObj.Settings.Class instanceof Array)) {
       $(matrix).addClass(matrixObj.Settings.Class);
@@ -462,6 +467,7 @@ function createMatrix(parent, matrixObj) {
 
 function createTextBlock(parent, textObj) {
   var textParent = document.createElement("div");
+  $(textParent).attr("id", textObj.Id);
   $(textParent).addClass("rephrase-text-block");
   // apply custom css class to .rephrase-text-block div
   if (textObj.Settings.Class && (typeof textObj.Settings.Class === "string"
@@ -615,6 +621,7 @@ function getColorList(nColors) {
 function createTable(parent, tableObj) {
   // create a div to wrap the table
   var tableParent = document.createElement("div");
+  $(tableParent).attr("id", tableObj.Id);
   $(tableParent).addClass(["rephrase-table-parent", "table-scroll"]);
   parent.appendChild(tableParent);
   // create table title
@@ -838,14 +845,17 @@ function createTableSeries(tbodyRow, tableRowObj) {
           : v2 - v1); // difference
       var baselineDataCell = document.createElement("td");
       $(baselineDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-baseline']);
+      $(baselineDataCell).css('text-align', (isNaN(v1)) ? 'left' : 'right');
       baselineDataCell.innerText = isNaN(v1) ? nanValue : v1.toFixed(nDecimals);
       baselineRow.appendChild(baselineDataCell);
       var alternativeDataCell = document.createElement("td");
       $(alternativeDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-alternative']);
+      $(alternativeDataCell).css('text-align', (isNaN(v2)) ? 'left' : 'right');
       alternativeDataCell.innerText = isNaN(v2) ? nanValue : v2.toFixed(nDecimals);
       alternativeRow.appendChild(alternativeDataCell);
       var diffDataCell = document.createElement("td");
       $(diffDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-diff']);
+      $(diffDataCell).css('text-align', (isNaN(vDiff)) ? 'left' : 'right');
       diffDataCell.innerText = isNaN(vDiff) ? nanValue : vDiff.toFixed(nDecimals) + ((diffMethod === "percent") ? "%" : "");
       diffRow.appendChild(diffDataCell);
     }
@@ -860,6 +870,7 @@ function createTableSeries(tbodyRow, tableRowObj) {
       const v = (tableRowObj.Content.Values[j] === null) ? NaN : tableRowObj.Content.Values[j];
       var tbodyDataCell = document.createElement("td");
       $(tbodyDataCell).addClass('rephrase-table-data-cell');
+      $(tbodyDataCell).css('text-align', (isNaN(v)) ? 'left' : 'right');
       tbodyDataCell.innerText = isNaN(v) ? nanValue : v.toFixed(nDecimals);
       tbodyRow.appendChild(tbodyDataCell);
     }
@@ -869,6 +880,7 @@ function createTableSeries(tbodyRow, tableRowObj) {
 function createGrid(parent, gridObj) {
   // create a parent div elements for rows
   var gridRowParent = document.createElement("div");
+  $(gridRowParent).attr("id", gridObj.Id);
   $(gridRowParent).addClass(["rephrase-grid", "grid-y", "grid-padding-y"]);
   parent.appendChild(gridRowParent);
   // create grid title
@@ -905,6 +917,7 @@ function createGrid(parent, gridObj) {
 function createPager(parent, pagerObj) {
   // create a parent div element for the pager
   var pagerParent = document.createElement("div");
+  $(pagerParent).attr("id", pagerObj.Id);
   $(pagerParent).addClass(["rephrase-pager"]);
   parent.appendChild(pagerParent);
   // create pager title
@@ -992,6 +1005,33 @@ function createPager(parent, pagerObj) {
 }
 
 // wrapper element for cascading its settings down the ladder
+function createSection(parent, sectionObj) {
+  // create a parent div element for the section
+  var sectionParent = document.createElement("div");
+  $(sectionParent).attr("id", sectionObj.Id);
+  $(sectionParent).addClass(["rephrase-section"]);
+  parent.appendChild(sectionParent);
+  // create section title
+  if (sectionObj.Title) {
+    var sectionTitle = document.createElement(
+      (sectionObj.Settings && sectionObj.Settings.Tag)
+        ? sectionObj.Settings.Tag
+        : "h2"
+    );
+    $(sectionTitle).addClass("rephrase-pager-title");
+    sectionTitle.innerText = sectionObj.Title;
+    sectionParent.appendChild(sectionTitle);
+  }
+  const sectionContent = (sectionObj.Content instanceof Array)
+    ? sectionObj.Content
+    : [sectionObj.Content];
+  for (let i = 0; i < sectionContent.length; i++) {
+    const elementObj = sectionContent[i];
+    $ru.addReportElement(parent, elementObj, sectionObj.Settings);
+  }
+}
+
+// wrapper element for cascading its settings down the ladder
 function createWrapper(parent, wrapperObj) {
   for (let i = 0; i < wrapperObj.Content.length; i++) {
     const elementObj = wrapperObj.Content[i];
@@ -1024,6 +1064,9 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
     case "text":
       $ru.createTextBlock(parentElement, elementObj);
       break;
+    case "section":
+      $ru.createSection(parentElement, elementObj);
+      break;
     case "wrapper":
       $ru.createWrapper(parentElement, elementObj);
       break;
@@ -1034,6 +1077,82 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
       console.log("Unknown report element");
       break;
   }
+}
+
+function getElementIds(content) {
+  var ids = [];
+  const thisContent = (content instanceof Array) ? content : [content];
+  for (var i = 0; i < thisContent.length; i++) {
+    if (!thisContent[i]) {
+      continue;
+    }
+    if (thisContent[i].hasOwnProperty("Id")) {
+      ids.push(thisContent[i].Id);
+    }
+    if (thisContent[i].hasOwnProperty("Content")
+      && (thisContent[i].Content instanceof Array || (typeof thisContent[i].Content === "object"))) {
+      ids = ids.concat(getElementIds(thisContent[i].Content));
+    }
+  }
+  return ids;
+}
+
+function assignElementIds(content, existingIds) {
+  existingIds = existingIds.concat($ru.getElementIds(content));
+  const isListContent = (content instanceof Array);
+  content = isListContent ? content : [content];
+
+  for (var i = 0; i < content.length; i++) {
+    if (content[i] && (typeof content[i] === "object")
+      && !content[i].hasOwnProperty("Id")
+      && content[i].hasOwnProperty("Type")) {
+      var sfx = 0;
+      const baseName = content[i].Type.toLowerCase();
+      while (existingIds.includes('rephrase-' + baseName + "-" + sfx)) {
+        ++sfx;
+      }
+      const newId = 'rephrase-' + baseName + "-" + sfx;
+      content[i].Id = newId;
+      existingIds.push(newId);
+    }
+    if (content[i] && content[i].hasOwnProperty("Content") && (typeof content[i].Content === "object")) {
+      const res = $ru.assignElementIds(content[i].Content, existingIds);
+      content[i].Content = res.content;
+      existingIds = res.existingIds;
+    }
+  }
+
+  return { content: isListContent ? content : content[0], existingIds: existingIds };
+}
+
+function generateToc(parentList, content, depth, excludeTypes) {
+  const thisContent = (content instanceof Array) ? content : [content];
+
+  for (var i = 0; i < thisContent.length; i++) {
+    if (thisContent[i] && (typeof thisContent[i] === "object")
+      && thisContent[i].hasOwnProperty("Id")
+      && thisContent[i].hasOwnProperty("Type")
+      && !excludeTypes.includes(thisContent[i].Type)) {
+      var tocMenuEntry = document.createElement("li");
+      $(tocMenuEntry).addClass("report-toc-menu-entry");
+      var tocMenuEntryLink = document.createElement("a");
+      $(tocMenuEntryLink).addClass("report-toc-menu-entry-link");
+      $(tocMenuEntryLink).attr('href', '#' + thisContent[i].Id);
+      $(tocMenuEntryLink).text(thisContent[i].Title || "Untitled element");
+      tocMenuEntry.appendChild(tocMenuEntryLink);
+      // check if there's a child content and the depth requires creating the submenu
+      if (depth > 1 && thisContent[i].Type.toLowerCase() !== "pager"
+        && thisContent[i].hasOwnProperty("Content")
+        && (typeof thisContent[i].Content === "object")) {
+        var tocSubMenu = document.createElement("ul");
+        $(tocSubMenu).addClass(["nested", "vertical", "menu", "report-toc-menu-content"]);
+        tocSubMenu = $ru.generateToc(tocSubMenu, thisContent[i].Content, depth - 1, excludeTypes);
+        tocMenuEntry.appendChild(tocSubMenu);
+      }
+      parentList.appendChild(tocMenuEntry);
+    }
+  }
+  return parentList;
 }
 
 // copy parent object settings to the current one if the setting
