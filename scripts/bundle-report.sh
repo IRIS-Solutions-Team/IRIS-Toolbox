@@ -35,6 +35,7 @@ cleancss -o ../dist/lib/report.min.css ../css/main.css
 
 # minify, concat and copy all report rendering scripts into one ./dist/lib/render.min.js
 declare -a js_report_list=(
+  "../js/databank/databank.js"
   "../js/report-utils.js"
   "../js/report-settings.js"
   "../js/report-renderer.js"
