@@ -8,10 +8,10 @@
   <title>My report name</title>
   
   <!-- load vendor styles -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@release-auto-29744c4-42/dist/lib/vendor.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@#VERSION#/dist/lib/vendor.min.css">
 
   <!-- load default report styles -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@release-auto-29744c4-42/dist/lib/report.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@#VERSION#/dist/lib/report.min.css">
 
   <!-- user-defined styles -->
   <style>/* user-defined-css-here */</style>
@@ -30,6 +30,14 @@
         </div>
         <div class="right-logo cell shrink"></div>
       </div>
+      <button type="button" class="hollow button small float-center report-toc-button" data-toggle="offCanvasToc">Table
+        of Contents</button>
+    </div>
+
+    <!-- ToC menu -->
+    <div class="off-canvas-wrapper report-toc-menu-wrapper">
+      <div class="off-canvas position-right report-toc-menu" id="offCanvasToc" data-off-canvas>
+      </div>
     </div>
 
     <!-- report body -->
@@ -42,7 +50,7 @@
   </div>
 
   <!-- link to default report logo (hidden) -->
-  <img class="report-default-logo" src="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@release-auto-29744c4-42/dist/img/iris-logo.png">
+  <img class="report-default-logo" src="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@#VERSION#/dist/img/iris-logo.png">
 
   <!-- Warn if JS is disabled in the browser -->
   <noscript>
@@ -50,13 +58,13 @@
   </noscript>
 
   <!-- external dependencies -->
-  <script src="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@release-auto-29744c4-42/dist/lib/vendor-no-plotly.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@#VERSION#/dist/lib/vendor-no-plotly.min.js"></script>
   
   <!-- report data -->
   <script>// report-data-script-here</script>
   
   <!-- rendering scripts -->
-  <script src="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@release-auto-29744c4-42/dist/lib/render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@#VERSION#/dist/lib/render.min.js"></script>
 </body>
 
 </html>
