@@ -50,14 +50,14 @@ range = pp.Results.YearlyDates;
 
 range = double(range);
 if isequal(range, Inf)
-    startYear = numeric.convert(this.StartAsNumeric, Frequency.YEARLY);
-    endYear = numeric.convert(this.EndAsNumeric, Frequency.YEARLY);
+    startYear = dater.convert(this.StartAsNumeric, Frequency.YEARLY);
+    endYear = dater.convert(this.EndAsNumeric, Frequency.YEARLY);
     range = dater.colon(startYear, endYear);
 end
 range = reshape(range, [ ], 1);
 
 freq = this.FrequencyAsNumeric;
-func = @(year) numeric.datecode(freq, year, 1:freq);
+func = @(year) dater.datecode(freq, year, 1:freq);
 dates = arrayfun(func, dat2ypf(range), 'UniformOutput', false);
 data = getData(this, [dates{:}]);
 sizeData = size(data);

@@ -73,7 +73,7 @@ else
 end
 
 [flag, toFreq] = Frequency.validateFrequency(toFreq);
-outputDate = numeric.convert(double(inputDate), double(toFreq), varargin{:});
+outputDate = dater.convert(double(inputDate), double(toFreq), varargin{:});
 
 if strcmpi(outputClass, 'DateWrapper')
     outputDate = DateWrapper(outputDate);

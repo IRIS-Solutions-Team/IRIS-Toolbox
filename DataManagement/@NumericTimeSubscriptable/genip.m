@@ -257,8 +257,8 @@ numLowPeriods = round(lowEnd - lowStart + 1);
 %
 % Define high-frequency dates
 %
-highStart = numeric.convert(lowStart, highFreq, "--skip");
-highEnd = numeric.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--skip");
+highStart = dater.convert(lowStart, highFreq, "--skip");
+highEnd = dater.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--skip");
 
 %
 % Get low-frequency level data
