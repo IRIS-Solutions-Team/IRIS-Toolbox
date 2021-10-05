@@ -590,10 +590,10 @@ NumericTimeSubscriptable ...
             [dates, values] = varargin{1:2};
             varargin(1:2) = [ ];
 
-            skipInputParserArgument = cell.empty(1, 0);
+            skipInputParser = cell.empty(1, 0);
             if nargin>=3 && (ischar(varargin{end}) || (isstring(varargin{end}) && isscalar(varargin{end}))) ...
                 && startsWith(varargin{end}, "--skip", "ignoreCase", true)
-                skipInputParserArgument = varargin(end);
+                skipInputParser = varargin(end);
                 varargin(end) = [ ];
             end
             if ~isempty(varargin)
@@ -609,20 +609,47 @@ NumericTimeSubscriptable ...
                 userData = [ ];
             end
 
+            this = implementConstructor(this, dates, values, comment, userData, skipInputParser);
+        end%
+    end
+
+
+    methods (Hidden)
+        function this = implementConstructor(this, dates, values, comment, userData, skipInputParser)
+            % >=R2019b
+            %(
+            arguments
+                this Series
+                dates {validate.mustBeDate}
+                values {locallyValidateValues}
+                comment {locallyValidateComment}
+                userData
+                skipInputParser
+            end
+            skip = ~isempty(skipInputParser);
+            %)
+            % >=R2019b
+
+
+            % <=R2019a
+            %{
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('NumericTimeSubscriptable.NumericTimeSubscriptable');
                 pp.KeepDefaultOptions = true;
 
                 addRequired(pp, 'Dates', @validate.date);
-                addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle') || isstring(x) || iscell(x));
-                addRequired(pp, 'Comment', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
+                addRequired(pp, 'Values', @locallyValidateValues);
+                addRequired(pp, 'Comment', @locallyValidateComment);
                 addRequired(pp, 'UserData');
             end
-            skip = maybeSkip(pp, skipInputParserArgument{:});
+            skip = maybeSkip(pp, skipInputParser{:});
             if ~skip
                 parse(pp, dates, values, comment, userData);
             end
+            %}
+            % <=R2019a
+
 
             %
             % Initialize the time series start date and data, trim data
@@ -645,10 +672,33 @@ NumericTimeSubscriptable ...
             %
             % Populate user data
             %
-            if ~isequal(userData, [ ])
+            if ~isequal(userData, [])
                 this = userdata(this, userData);
             end
         end%
     end
 end
+
+%
+% Local validators
+%
+
+function locallyValidateValues(x)
+    %(
+    if isnumeric(x) || islogical(x) || isa(x, 'function_handle') || isstring(x) || iscell(x)
+        return
+    end
+    error("Input value must be a numeric, logical, string or cell array, or a function.");
+    %)
+end%
+
+
+function locallyValidateComment(x)
+    %(
+    if isempty(x) || ischar(x) || iscellstr(x) || isstring(x)
+        return
+    end
+    error("Input value must empty or a string.");
+    %)
+end%
 
