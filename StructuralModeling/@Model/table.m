@@ -66,7 +66,8 @@ for n = requests
         
     elseif any(strcmpi(n, {'SteadyChange', 'SteadyChanges'}))
         compare = false;
-        addTable = tableValues(this, @imag, compare, [ ], '', 'SteadyChange', opt);
+        setNaN = ~getIndexByType(this.Quantity, 1, 2, 5);
+        addTable = tableValues(this, @imag, compare, [], setNaN, 'SteadyChange', opt);
 
 
     elseif any(strcmpi(n, {'CompareSteadyChange', 'CompareSteadyChanges'}))
@@ -298,7 +299,9 @@ function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName
             values(:, 1) = [ ];
         end
     end
-    if strcmpi(setNaN, 'log')
+    if islogical(setNaN)
+        values(setNaN, :) = NaN;
+    elseif strcmpi(setNaN, 'log')
         values(inxLog, :) = NaN;
     elseif strcmpi(setNaN, 'nonlog')
         values(~inxLog, :) = NaN;
@@ -308,10 +311,12 @@ end%
 
 
 function addTable = tableForm(this)
-    inxLog = reshape(this.Quantity.IxLog, [], 1);
-    values = repmat("", numel(inxLog), 1);
-    values(~inxLog) = "Diff–";
-    values(inxLog) = "Rate/";
+    numQuantities = numel(this.Quantity.Name);
+    inxLog = reshape(this.Quantity.InxLog, 1, []);
+    inxYX = reshape(getIndexByType(this.Quantity, 1, 2, 5), 1, []);
+    values = repmat("", numQuantities, 1);
+    values(inxYX & ~inxLog) = "Diff–";
+    values(inxYX & inxLog) = "Rate/";
     addTable = tableTopic(this, {'Form'}, [ ], values);
 end%
 
@@ -351,13 +356,15 @@ end%
 
 
 function addTable = tableTopic(this, columnNames, inx, varargin)
-    names = this.Quantity.Name(:);
+    names = reshape(this.Quantity.Name, [], 1);
     if ~isempty(inx)
         names = names(inx);
     end
     columnNames = [{'Name'}, columnNames];
-    addTable = table( names, varargin{:}, ...
-                      'VariableNames', columnNames );
+    addTable = table( ...
+        names, varargin{:} ...
+        , 'VariableNames', columnNames ...
+    );
 end%
 
 
