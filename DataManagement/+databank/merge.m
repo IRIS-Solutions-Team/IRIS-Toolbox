@@ -132,7 +132,7 @@ function [mainDb, fieldsToMerge] = concatenateNext(func, mainDb, mergeWith, fiel
 end%
 
 
-function mainDb = replaceNext(mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge] = replaceNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
     for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
@@ -146,7 +146,7 @@ function mainDb = replaceNext(mainDb, mergeWith, fieldsToMerge, opt)
 end%
 
 
-function mainDb = discardNext(mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge] = discardNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
     for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
@@ -160,7 +160,7 @@ function mainDb = discardNext(mainDb, mergeWith, fieldsToMerge, opt)
 end%
 
 
-function mainDb = errorNext(mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge] = errorNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
     errorFields = string.empty(1, 0);
     for n = reshape(string(fieldsToMerge), 1, [])
