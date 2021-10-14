@@ -578,7 +578,7 @@ function momentJsDateFormatToD3TimeFormat(dateFormat) {
 // convert frequency letter to Chart.js time unit
 function freqToMomentJsUnit(freq) {
   var unit = "";
-  switch (freq) {
+  switch (+freq) {
     case 365:
       unit = "day";
       break;
