@@ -54,10 +54,10 @@ jobs:
               sed -i 's/\r//g' $f
               cp $f temp.orig
               tr '\n' '\v' < temp.orig > temp.replaced
-              sed -i 's/% >=R2019b[ ]*\v%(/% >=R2019b\v%{/g' temp.replaced
-              sed -i 's/%)\v% >=R2019b[ ]*/%}\v% >=R2019b/g' temp.replaced
-              sed -i 's/% <=R2019a[ ]*\v%{/% <=R2019a\v%(/g' temp.replaced
-              sed -i 's/%}\v% <=R2019a[ ]*/%)\v% <=R2019a/g' temp.replaced
+              sed -i 's/% >=R2019b[ ]*\v\([ ]*\)%(/% >=R2019b\v\1%{/g' temp.replaced
+              sed -i 's/%)\v\([ ]*\)% >=R2019b[ ]*/%}\v\1% >=R2019b/g' temp.replaced
+              sed -i 's/% <=R2019a[ ]*\v\([ ]*\)%{/% <=R2019a\v\1%(/g' temp.replaced
+              sed -i 's/%}\v\([ ]*\)% <=R2019a[ ]*/%)\v\1% <=R2019a/g' temp.replaced
               tr '\v' '\n' < temp.replaced > temp.final
               # cat temp.final
               cp temp.final $f
