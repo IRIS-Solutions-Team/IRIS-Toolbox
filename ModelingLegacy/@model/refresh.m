@@ -36,8 +36,6 @@ function this = refresh(this, variantsRequested);
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-PTR = @int16;
-
 if ~any(this.Link)
     return
 end
@@ -53,7 +51,7 @@ end
 
 %--------------------------------------------------------------------------
 
-numQuantities = length(this.Quantity);
+numQuantities = numel(this.Quantity);
 
 % Get a 1-(numQuantities+numStdCorr)-nv matrix of quantities and stdcorrs
 x = [

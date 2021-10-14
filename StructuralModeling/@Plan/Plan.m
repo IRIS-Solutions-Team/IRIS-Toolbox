@@ -1,5 +1,4 @@
 % Plan  Simulation Plans for Model and Explanatory objects
-%
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team

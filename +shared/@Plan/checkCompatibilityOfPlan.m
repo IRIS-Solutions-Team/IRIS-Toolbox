@@ -1,8 +1,5 @@
 % checkCompatibilityOfPlan  Check compatibility of plan, simulation range and simulated object
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
