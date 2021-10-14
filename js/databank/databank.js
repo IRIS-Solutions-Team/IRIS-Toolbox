@@ -35,13 +35,13 @@ function getSeriesContent(name) {
   if (dataObj && typeof dataObj === "object" && dataObj.hasOwnProperty("Values")
     && (dataObj.Values instanceof Array) && dataObj.hasOwnProperty("Dates")) {
     var dates = [];
-    if (dataObj.Dates instanceof Array) {
+    if ((dataObj.Dates instanceof Array) && dataObj.Dates.length === dataObj.Values.length) {
       dates = dataObj.Dates.map(function (d) {
         return new Date(d);
       });
     } else {
       const freqUnit = $ru.freqToUnit(dataObj.Frequency);
-      const startDate = new Date(dataObj.Dates);
+      const startDate = new Date((dataObj.Dates instanceof Array) ? dataObj.Dates[0] : dataObj.Dates);
       for (var i = 0; i < dataObj.Values.length; i++) {
         dates.push(moment(startDate).add(i, freqUnit).toDate());
       }
