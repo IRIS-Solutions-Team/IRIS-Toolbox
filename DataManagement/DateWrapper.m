@@ -93,10 +93,10 @@ classdef DateWrapper ...
         end%
 
 
-        function this = minus(a, b)
-            a = double(a);
-            b = double(b);
-            if all(a(:)~=round(a(:))) && all(b(:)~=round(b(:)))
+        function output = minus(a, b)
+            % Test if both inputs are dates; if so, return a numeric
+            if (isa(a, 'DateWrapper') && isa(b, 'DateWrapper')) ...
+                || (all(a(:)~=round(a(:))) && all(b(:)~=round(b(:))))
                 if ~all(dater.getFrequency(a(:))==dater.getFrequency(b(:)))
                     exception.error([
                         "Dater:InvalidInputs"
@@ -104,9 +104,11 @@ classdef DateWrapper ...
                         "or two dates of the same frequency from each other."
                     ]);
                 end
-                this = floor(a) - floor(b);
+                output = floor(a) - floor(b);
                 return
             end
+            a = double(a);
+            b = double(b);
             if ~all(a==round(a)) && ~all(b==round(b))
                 throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
             end
@@ -121,7 +123,7 @@ classdef DateWrapper ...
                     "or two dates of the same frequency from each other."
                 ]);
             end
-            this = DateWrapper(x);
+            output = DateWrapper(x);
         end%
 
 

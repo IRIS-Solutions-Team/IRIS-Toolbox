@@ -19,7 +19,7 @@ classdef Serialize ...
     methods 
         function outputSeries = seriesFromJson(this, inputRecord, name)
             %(
-            if ~isempty(this.Frequency) && strlength(this.Frequency)>0
+            if ~isempty(this.Frequency) && strlength(this.Frequency)>0 && isfield(inputRecord, this.Frequency)
                 freq = frequencyFromLetter(this, inputRecord.(this.Frequency));
             else
                 freq = [];
@@ -73,7 +73,7 @@ classdef Serialize ...
                 end
                 outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
                 if strlength(this.Frequency)>0 
-                    outputRecord.(this.Frequency) = char(this.letterFromFrequency(inputSeries.Frequency));
+                    outputRecord.(this.Frequency) = string(letterFromFrequency(this, inputSeries.Frequency));
                 end
             else
                 % Empty time series
@@ -221,7 +221,7 @@ classdef Serialize ...
 
         function freq = letterFromFrequency(this, freq)
             %(
-            freq = double(freq);
+            freq = string(double(freq));
             %)
         end%
 

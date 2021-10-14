@@ -1,4 +1,21 @@
 classdef Dater < DateWrapper
+    methods
+        function output = plus(varargin)
+            output = plus@DateWrapper(varargin{:});
+            if isa(output, 'DateWrapper')
+                output = Dater(output);
+            end
+        end%
+
+        function output = minus(varargin)
+            output = minus@DateWrapper(varargin{:});
+            if isa(output, 'DateWrapper')
+                output = Dater(output);
+            end
+        end%
+    end
+
+
     methods (Static)
         function t = today(varargin)
             t = Dater(dater.today(varargin{:}));
