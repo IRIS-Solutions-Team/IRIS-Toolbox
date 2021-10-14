@@ -211,12 +211,17 @@ o.Data = data;
 o.NameRow = nameRow;
 o.NanString = opt.Nan;
 o.Format = format;
+o.CommentRow = cell.empty(1, 0);
+o.ClassRow = cell.empty(1, 0);
+
 if opt.Comments
     o.CommentRow = commentRow;
 end
+
 if opt.Class
     o.ClassRow = classRow;
 end
+
 if ~isempty(fieldnames(userDataFields))
     o.UserDataFields = userDataFields;
 end
@@ -271,19 +276,6 @@ function c = locallySerialize(oo, opt)
         formatString = ['"', formatString, '"'];
     end
 
-    if isfield(oo, 'CommentRow')
-        commentRow = oo.CommentRow;
-    else
-        commentRow = { };
-    end
-
-    if isfield(oo, 'ClassRow')
-        classRow = oo.ClassRow;
-    else
-        classRow = { };
-    end
-    isClassRow = ~isempty(classRow);
-
     if isfield(oo, 'UnitRow')
         unitRow = oo.UnitRow;
     else
@@ -297,57 +289,33 @@ function c = locallySerialize(oo, opt)
     end
     isNaString = ~strcmpi(naString, 'NaN');
 
-    if isfield(oo, 'Format')
-        format = oo.Format;
-    else
-        format = '%.8e';
-    end
-
-    if isfield(oo, 'Highlight')
-        highlight = oo.Highlight;
-    else
-        highlight = [ ];
-    end
-    isHighlight = ~isempty(highlight);
+    format = char(oo.Format);
 
     isUserData = isfield(oo, 'UserData');
 
-    %--------------------------------------------------------------------------
+
 
     % Create an empty buffer
     c = '';
 
-    % Write name row.
-    if isHighlight
-        nameRow = [{''}, nameRow];
-    end
     c = [c, sprintf(formatString, opt.NamesHeader), herePrintCharCells(nameRow)];
 
     % Write comments
-    if ~isempty(commentRow)
-        if isHighlight
-            commentRow = [{''}, commentRow];
-        end
-        c = [c, newline( ), sprintf(formatString, opt.CommentsHeader), herePrintCharCells(commentRow)];
+    if ~isempty(oo.CommentRow)
+        c = [c, newline( ), sprintf(formatString, opt.CommentsHeader), herePrintCharCells(oo.CommentRow)];
     end
 
     % Write unit
     if ~isempty(unitRow)
-        if isHighlight
-            unitRow = [{''}, unitRow];
-        end
         c = [c, newline( ), sprintf(formatString, opt.UnitsHeader), herePrintCharCells(unitRow)];
     end
 
     % Write class
-    if isClassRow
-        if isHighlight
-            classRow = [{''}, classRow];
-        end
+    if ~isempty(oo.ClassRow)
         c = [ ...
             c, newline( ) ...
             , sprintf(formatString, opt.ClassHeader) ...
-            , herePrintCharCells(classRow) ...
+            , herePrintCharCells(oo.ClassRow) ...
         ];
     end
 
@@ -355,9 +323,6 @@ function c = locallySerialize(oo, opt)
     if isfield(oo, 'UserDataFields')
         for n = reshape(string(fieldnames(oo.UserDataFields)), 1, [])
             ithRow = oo.UserDataFields.(n);
-            if isHighlight
-                ithRow = [{''}, ithRow];
-            end
             c = [
                 c, newline( ) ...
                 , sprintf(formatString, ['.', char(n)]) ...
@@ -372,9 +337,9 @@ function c = locallySerialize(oo, opt)
 
     % Create format string fot the imaginary parts of data; they need to be
     % always printed with a plus or minus sign.
-    iFormat = [format, 'i'];
-    if isempty(strfind(iFormat, '%+')) && isempty(strfind(iFormat, '%0+'))
-        iFormat = strrep(iFormat, '%', '%+');
+    imagFormat = [format, 'i'];
+    if isempty(strfind(imagFormat, '%+')) && isempty(strfind(imagFormat, '%0+'))
+        imagFormat = strrep(imagFormat, '%', '%+');
     end
 
     % Find columns that have at least one non-zero imag. These column will
@@ -400,7 +365,7 @@ function c = locallySerialize(oo, opt)
     % Create a sequence of formats for one line.
     formatLine = cell(1, numColumns);
     % Format string for columns that have imaginary numbers.
-    formatLine(iCol) = {[delimiter, format, iFormat]};
+    formatLine(iCol) = {[delimiter, format, imagFormat]};
     % Format string for columns that only have real numbers.
     formatLine(~iCol) = {[delimiter, format]};
     formatLine = [formatLine{:}];

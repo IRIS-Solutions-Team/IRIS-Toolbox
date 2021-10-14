@@ -13,6 +13,7 @@ classdef Serialize ...
         ScalarAsArray = false
         ReadDateFunc = @dater.fromIsoString
         WriteDateFunc = @dater.toIsoString
+        WriteFrequencyFunc = @writeFrequency
     end
 
 
@@ -73,7 +74,7 @@ classdef Serialize ...
                 end
                 outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
                 if strlength(this.Frequency)>0 
-                    outputRecord.(this.Frequency) = string(letterFromFrequency(this, inputSeries.Frequency));
+                    outputRecord.(this.Frequency) = this.WriteFrequencyFunc(this, inputSeries.Frequency);
                 end
             else
                 % Empty time series
@@ -219,9 +220,9 @@ classdef Serialize ...
         end%
 
 
-        function freq = letterFromFrequency(this, freq)
+        function freq = writeFrequency(this, freq)
             %(
-            freq = string(double(freq));
+            freq = double(freq);
             %)
         end%
 
