@@ -617,7 +617,7 @@ NumericTimeSubscriptable ...
     methods (Hidden)
         function this = implementConstructor(this, dates, values, comment, userData, skipInputParser)
             % >=R2019b
-            %(
+            %{
             arguments
                 this Series
                 dates {validate.mustBeDate}
@@ -627,12 +627,12 @@ NumericTimeSubscriptable ...
                 skipInputParser
             end
             skip = ~isempty(skipInputParser);
-            %)
+            %}
             % >=R2019b
 
 
             % <=R2019a
-            %{
+            %(
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('NumericTimeSubscriptable.NumericTimeSubscriptable');
@@ -647,7 +647,7 @@ NumericTimeSubscriptable ...
             if ~skip
                 parse(pp, dates, values, comment, userData);
             end
-            %}
+            %)
             % <=R2019a
 
 
