@@ -13,6 +13,7 @@ classdef Type
         PAGEBREAK
         TEXT
         MATRIX
+        PAGER
     end
 end
 

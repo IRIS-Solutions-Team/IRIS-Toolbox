@@ -15,6 +15,7 @@ classdef Report ...
             rephrase.Type.TEXT
             rephrase.Type.PAGEBREAK
             rephrase.Type.MATRIX
+            rephrase.Type.PAGER
         ]
         EMBED_REPORT_DATA = "// report-data-script-here"
         EMBED_USER_STYLE = "/* user-defined-css-here */"
@@ -47,6 +48,13 @@ classdef Report ...
             fileNameBase = hereResolveFileNameBase(fileName);
 
             %
+            % Create report json
+            %
+
+            build@rephrase.Container(this);
+            reportJson = string(jsonencode(this));
+
+            %
             % Create data json
             %
             if isempty(this.DataRequests) || isempty(keys(reportDb))
@@ -56,13 +64,6 @@ classdef Report ...
                 serial = series.Serialize( );
                 dataJson = string(jsonencode(serial.jsonFromDatabank(requestDb)));
             end
-
-            %
-            % Create report json
-            %
-
-            build@rephrase.Container(this);
-            reportJson = string(jsonencode(this));
 
             script = ...
                 "var $report=" + reportJson + ";" + string(newline( )) ...
