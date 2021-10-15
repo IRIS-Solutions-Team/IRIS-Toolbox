@@ -16,6 +16,7 @@ classdef Report ...
             rephrase.Type.PAGEBREAK
             rephrase.Type.MATRIX
             rephrase.Type.PAGER
+            rephrase.Type.SECTION
         ]
         EMBED_REPORT_DATA = "// report-data-script-here"
         EMBED_USER_STYLE = "/* user-defined-css-here */"
