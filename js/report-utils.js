@@ -3,7 +3,10 @@
 // utility methods
 var $ru = {
   createChart: createChart,
+  createChartContent: createChartContent,
   createChartSeries: createChartSeries,
+  createChartCurve: createChartCurve,
+  createChartMarker: createChartMarker,
   createChartForChartJs: createChartForChartJs,
   createSeriesForChartJs: createSeriesForChartJs,
   createChartForPlotly: createChartForPlotly,
@@ -79,6 +82,23 @@ function createChart(parent, chartObj) {
     ? $ru.createChartForChartJs(data, limits, chartObj.Settings)
     : $ru.createChartForPlotly(data, limits, chartObj.Settings);
   chartParent.appendChild(chartBody);
+}
+
+function createChartContent(contentObj, limits, color, chartLib) {
+  if (!contentObj || !(typeof contentObj === "object")
+    || !contentObj.hasOwnProperty("Type") || !contentObj.Type) {
+    return {};
+  }
+  // todo: implement this 
+  // switch between createChartCurve, createChartMarker and createChartSeries
+}
+
+function createChartCurve(curveObj, limits, color, chartLib) {
+  // todo: implement this
+}
+
+function createChartMarker(markerObj, limits, color, chartLib) {
+  // todo: implement this
 }
 
 function createChartSeries(seriesObj, limits, color, chartLib) {
@@ -241,6 +261,9 @@ function createChartForPlotly(data, limits, settings) {
   const DEFAULT_AXIS_COLOR = '#aaa';
   const dateFormat = settings.DateFormat;
   const highlight = settings.Highlight || [];
+  const isSeries = (!settings.hasOwnProperty("IsSeries"))
+    ? true
+    : settings.IsSeries;
   const interactive = (!settings.hasOwnProperty("InteractiveCharts"))
     ? true
     : settings.InteractiveCharts;
@@ -254,8 +277,8 @@ function createChartForPlotly(data, limits, settings) {
     },
     xaxis: {
       range: [limits.min, limits.max],
-      type: 'date',
-      tickformat: $ru.momentJsDateFormatToD3TimeFormat(dateFormat),
+      type: isSeries ? 'date' : 'linear',
+      tickformat: isSeries ? $ru.momentJsDateFormatToD3TimeFormat(dateFormat) : "",
       gridcolor: DEFAULT_GRID_COLOR,
       showline: DEFAULT_SHOW_AXIS,
       linecolor: DEFAULT_AXIS_COLOR
@@ -302,8 +325,8 @@ function createChartForPlotly(data, limits, settings) {
     responsive: true,
     staticPlot: !interactive
   };
-  // add range highlighting if needed so
-  if (highlight && highlight instanceof Array && highlight.length > 0) {
+  // add range highlighting if needed so (for the Series charts only)
+  if (isSeries && highlight && highlight instanceof Array && highlight.length > 0) {
     layout.shapes = [];
     for (let i = 0; i < highlight.length; i++) {
       const hConfig = highlight[i];
