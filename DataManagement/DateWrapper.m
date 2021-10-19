@@ -7,9 +7,10 @@ classdef DateWrapper ...
             if startsWith__("FrequencyAsNum")
                 value = dater.getFrequency(this);
             elseif startsWith__("Freq")
-                value = DateWrapper.getFrequency(this);
+                value = dater.getFrequency(this);
+                value = Frequency(value);
             elseif startsWith__("Year")
-                value = DateWrapper.getYear(this);
+                value = dater.getYear(this);
             else
                 exception.error([
                     "DateWrapper:InvalidQuery"
@@ -33,10 +34,10 @@ classdef DateWrapper ...
             if isEmpty
                 frequencyDisplayName = "Empty";
             else
-                freq = DateWrapper.getFrequency(this);
+                freq = dater.getFrequency(this);
                 firstFreq = freq(1);
                 if all(firstFreq==freq(:))
-                    frequencyDisplayName = char(firstFreq);
+                    frequencyDisplayName = char(Frequency(firstFreq));
                 else
                     frequencyDisplayName = "Mixed Frequency";
                 end
@@ -187,7 +188,7 @@ classdef DateWrapper ...
 
 
         function [durationObj, halfDurationObj] = duration(this)
-            frequency = DateWrapper.getFrequency(this);
+            frequency = getFrequency(this);
             [durationObj, halfDurationObj] = duration(frequency);
         end%
 
@@ -209,6 +210,22 @@ classdef DateWrapper ...
 
         function datetimeObj = toMatlab(varargin)
             datetimeObj = dater.toMatlab(varargin{:});
+        end%
+
+
+        function year = getYear(dateCode)
+            year = dater.getYearPeriodFrequency(double(dateCode));
+        end%
+
+
+        function [year, period, freq] = getYearPeriodFrequency(dateCode)
+            [year, period, freq] = dater.getYearPeriodFrequency(double(dateCode));
+            freq = Frequency(freq);
+        end%
+
+
+        function freq = getFrequency(dateCode)
+            freq = Frequency(dater.getFrequency(dateCode));
         end%
     end
 
@@ -283,16 +300,6 @@ classdef DateWrapper ...
 
         function c = toCellstr(dateCode, varargin)
             c = dat2str(double(dateCode), varargin{:});
-        end%
-
-
-        function year = getYear(dateCode)
-            year = dat2ypf(double(dateCode));
-        end%
-
-
-        function freq = getFrequency(dateCode)
-            freq = Frequency(dater.getFrequency(dateCode));
         end%
 
 
