@@ -48,7 +48,7 @@ switch query
         answ = VAR(this);
         
     case {'singval', 'sing', 'singvalues'}
-        answ = this.SingVal;
+        answ = this.SingValues;
         
     case {'ny'}
         answ = size(this.C, 1);

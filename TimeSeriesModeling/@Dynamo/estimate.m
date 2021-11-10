@@ -20,9 +20,14 @@ if isempty(pp)
     pp.addParameter('Method', 'auto', @(x) isequal(x, 'auto') || isequal(x, 1) || isequal(x, 2));
     pp.addParameter('Order', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x)))
     pp.addParameter('Rank', Inf, @(x) isnumeric(x) && isscalar(x));
+    pp.addParameter('Mean', []);
+    pp.addParameter('Std', []);
 end
 pp.parse(this, d, range, crit, varargin{:});
 opt = pp.Options;
+
+this.Mean = opt.Mean;
+this.Std = opt.Std;
 
 order = opt.Order;
 if isequal(order, @auto)
@@ -39,7 +44,7 @@ y0 = y;
 [this, y] = stdize(this, y);
 
 % Estimate static factors using principal components
-[FF, this.C, U, this.Sigma, this.SingVal, sample, ctf] ...
+[FF, this.C, U, this.Sigma, this.SingValues, sample, ctf] ...
     = Dynamo.pc(y, crit, opt.Method);
 
 % Estimate VAR(p, q) on factors

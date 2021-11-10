@@ -3,20 +3,20 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [X, C, E, Sigma, singValues, inxSample, ctf] = pc(Y, Crit, Method)
+function [X, C, E, Sigma, singValues, inxSample, ctf] = pc(Y, crit, method)
 
 % crit = [power, maxnumber]
-if numel(Crit) == 1
-    Crit = [Crit, Inf];
+if numel(crit)==1
+    crit = [crit, Inf];
 end
 
 [ny, nPer] = size(Y);
 
-if strcmpi(Method, 'auto')
-    if nPer > ny
-        Method = 1;
+if strcmpi(method, 'auto')
+    if nPer>ny
+        method = 1;
     else
-        Method = 2;
+        method = 2;
     end
 end
 
@@ -30,13 +30,13 @@ end
 
 % Covariance matrix of input series.
 % The matrix is needed whatever method.
-yCov = Y(:, inxSample)*Y(:, inxSample)'/nObs;
-if any(~isfinite(yCov(:)))
+covY = Y(:, inxSample)*Y(:, inxSample)'/nObs;
+if any(~isfinite(covY(:)))
     utils.error('Dynamo', 'Sample covariance matrix contains NaNs or Infs.');
 end
 
-if Method == 1
-    Q = yCov;
+if method==1
+    Q = covY;
     n = ny;
 else
     Q = Y(:, inxSample)'*Y(:, inxSample)/nObs;
@@ -47,13 +47,13 @@ end
 singValues = diag(singValues(1:n, 1:n));
 cumSing = cumsum(singValues);
 cumSing = cumSing/cumSing(end);
-r = min([find(cumSing >= Crit(1), 1), Crit(2)]);
+r = min([find(cumSing>=crit(1), 1), crit(2)]);
 X = nan(r, nPer);
 E = nan(ny, nPer);
 ctf = nan(ny, nPer, r);
 
 % y = C*x + e;
-if Method == 1
+if method==1
     C = U(:, 1:r);
     X(:, inxSample) = C.'*Y(:, inxSample);
     
@@ -84,7 +84,7 @@ if r==ny
     Sigma = zeros(ny);
 else
     E(:, inxSample) = Y(:, inxSample) - C*X(:, inxSample);
-    Sigma = yCov - C*C';
+    Sigma = covY - C*C';
 end
 
 end%

@@ -8,8 +8,8 @@ end
 answ = [ ];
 flag = true;
 
-nx = size(this.C, 2);
-p = size(this.A, 2)/nx;
+numF = size(this.C, 2);
+p = size(this.A, 2)/numF;
 nv = countVariants(this);
 
 query = lower(string(query));
@@ -21,7 +21,6 @@ switch char(query)
     case {'mean', 'std'}
         field = [upper(query(1)), lower(query(2:end))];
         answ = struct();
-        nv = countVariants(this);
         names = this.ObservedNames;
         for i = 1 : numel(names)
             try
@@ -41,7 +40,7 @@ switch char(query)
         answ = VAR(this);
         
     case {'singval', 'sing', 'singvalues', 'singularvalues'}
-        answ = this.SingVal;
+        answ = this.SingValues;
         
     case {'ny', 'numobserved'}
         answ = size(this.C, 1);

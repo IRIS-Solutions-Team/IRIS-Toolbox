@@ -20,6 +20,8 @@ if isempty(pp)
 end
 opt = pp.parse(this, inputDb, range, varargin{:});
 
+nv = countVariants(this);
+
 numY = size(this.C, 1);
 numF = size(this.C, 2);
 order = size(this.A, 2) / numF;
@@ -31,8 +33,12 @@ info = struct();
 %
 range = double(range);
 y = hereGetObserved();
+
+% TODO: Support for multiple data pages
+y = y(:, :, 1); 
+
 [this, y] = stdize(this, y);
-numPeriods = size(y, 2);
+
 
 
 %

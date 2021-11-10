@@ -84,8 +84,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % Std  Std deviations of observed variables used to standardized their data
         Std = double.empty(0, 1)
 
-        % SingVal   Singular values of the principal components
-        SingVal = [ ]
+        % SingValues   Singular values of the principal components
+        SingValues = [ ]
 
         % B  Impact matrix of orthonormalized errors in factor VAR
         B = double.empty(0)
@@ -121,6 +121,8 @@ classdef (CaseInsensitiveProperties=true) ...
         ContributionNames
 
         NumFactors
+
+        NumObserved
     end
 
 
@@ -216,17 +218,9 @@ classdef (CaseInsensitiveProperties=true) ...
 
             this = this@BaseVAR();
             this.EndogenousNames = list;
-
-            if isscalar(options.Mean)
-                options.Mean = repmat(options.Mean, numel(list), 1);
-            end
+            
             this.Mean = options.Mean;
-
-            if isscalar(options.Std)
-                options.Std = repmat(options.Std, numel(list), 1);
-            end
             this.Std = options.Std;
-
             this.Order = options.Order;
         end%
     end
@@ -265,6 +259,53 @@ classdef (CaseInsensitiveProperties=true) ...
 
         function x = get.NumFactors(this)
             x = size(this.A, 1);
+        end%
+
+
+        function x = get.NumObserved(this)
+            x = numel(this.EndogenousNames);
+        end%
+
+
+        function this = set.Mean(this, x)
+            if isempty(x)
+                return
+            end
+            numObserved = numel(this.EndogenousNames);
+            if isempty(this.Mean)
+                this.Mean = nan(numObserved, 1);
+            end
+            if isscalar(x)
+                this.Mean(:) = x;
+            else
+                nv = size(this.Mean, 2);
+                x = x(:, :);
+                if size(x, 2)==1 && nv>1
+                    x = repmat(x, 1, nv);
+                end
+                this.Mean(:, :) = x(:, :);
+            end
+        end%
+
+
+        function this = set.Std(this, x)
+            if isempty(x)
+                return
+            end
+            numObserved = numel(this.EndogenousNames);
+            if isempty(this.Std)
+                this.Std = nan(numObserved, 1);
+            end
+            if isscalar(x)
+                this.Std(:) = x;
+            else
+                nv = size(this.Std, 2);
+                x = x(:, :);
+                if size(x, 2)==1 && nv>1
+                    x = repmat(x, 1, nv);
+                end
+                this.Std(:, :) = x(:, :);
+            end
         end%
     end
 end
