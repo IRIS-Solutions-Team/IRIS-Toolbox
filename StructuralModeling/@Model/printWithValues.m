@@ -6,10 +6,12 @@ function code = printWithValues(modelObject, modelFile, options)
 arguments
     modelObject (1, 1) Model
     modelFile (1, :) string
+
     options.SaveAs (1, 1) string = ""
     options.Parameters (1, 1) logical = true
     options.Steady (1, 1) logical = true
     options.MarkdownCode (1, 1) = false
+    options.Braces (1, 2) string = ["<", ">"]
 end
 %)
 % >=R2019b
@@ -73,7 +75,7 @@ for i = find(inxSelect)
     else
         valueString = compose("%g", real(value)) + compose("%+gi", imag(value));
     end
-    valueString = "<" + join(valueString, ", ") + ">";
+    valueString = options.Braces(1) + join(valueString, ", ") + options.Braces(2);
     code = regexprep(code, "\<" + name + "\>(\{[^\}]*\})?", name + "$1" + valueString);
 end
 

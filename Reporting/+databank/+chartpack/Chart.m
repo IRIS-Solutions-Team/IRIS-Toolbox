@@ -13,6 +13,8 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         Transform = @parent
 
         PlotSettings = cell.empty(1, 0)
+
+        PageBreak (1, 1) logical = false
     end
 
 
@@ -20,6 +22,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         SEPARATE_CAPTION = ":"
         EXCLUDE_FROM_TRANSFORM = "^"
         EXPANSION_MARK = "?"
+        PAGE_BREAK = "//"
     end
 
 
@@ -28,6 +31,26 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             for i = 1 : 2 : numel(varargin)
                 this.(varargin{i}) = varargin{i+1};
             end
+        end%
+
+
+        function n = getMaxNumCharts(this)
+            if isempty(this)
+                n = 0;
+                return
+            end
+            inxPageBreaks = [this.PageBreak];
+            if ~any(inxPageBreaks)
+                n = numel(this);
+                return
+            end
+            if inxPageBreaks(1)==false
+                inxPageBreaks = [true, inxPageBreaks];
+            end
+            if inxPageBreaks(end)==false
+                inxPageBreaks = [inxPageBreaks, true];
+            end
+            n = max(diff(find(inxPageBreaks)) - 1);
         end%
 
 
@@ -125,6 +148,19 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             end
             %)
         end%
+
+
+        function runPlotExtras(this, plotHandles)
+            %(
+            parent = this.ParentChartpack;            
+            if ~isempty(parent.PlotSettings)
+                set(plotHandles, parent.PlotSettings{:});
+            end
+            for i = 1 : numel(parent.PlotExtras)
+                parent.PlotExtras{i}(plotHandles);
+            end
+            %)
+        end%
     end
 
 
@@ -142,8 +178,14 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             for n = inputString
                 temp = databank.chartpack.Chart(varargin{:});
                 temp.InputString = strip(n);
-                [temp.Caption, temp.Expression, temp.ApplyTransform] ...
-                    = databank.chartpack.Chart.parseInputString(temp.InputString);
+                if startsWith(temp.InputString, "%")
+                    continue
+                elseif temp.InputString==databank.chartpack.Chart.PAGE_BREAK
+                    temp.PageBreak = true;
+                else
+                    [temp.Caption, temp.Expression, temp.ApplyTransform] ...
+                        = databank.chartpack.Chart.parseInputString(temp.InputString);
+                end
                 this(end+1) = temp;
             end
             %)

@@ -41,7 +41,7 @@ classdef ParameterizedArmani ...
             if isa(this.ParameterizedMA, 'function_handle')
                 this.MA = this.ParameterizedMA(p);
             end
-        end%    
+        end%
     end
 
 
@@ -66,7 +66,7 @@ classdef ParameterizedArmani ...
             ar = temp(1);
             ma = temp(2);
             if contains(ar, "]*[")
-                ar = replace(ar, "]**[", "],[");
+                ar = replace(ar, "]*[", "],[");
                 ar = "{" + ar + "}";
             end
             if contains(ma, "]*[")

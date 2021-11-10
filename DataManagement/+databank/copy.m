@@ -11,7 +11,7 @@ arguments
     opt.SourceNames {locallyValidateNames(opt.SourceNames)} = @all
     opt.TargetNames {locallyValidateNames(opt.TargetNames)} = @auto
     opt.TargetDb {locallyValidateDb(opt.TargetDb)} = @empty
-    opt.Transform {locallyValidateTransform(opt.Transform)} = []
+    opt.Transform {locallyValidateTransform(opt.Transform)} = cell.empty(1, 0)
     opt.WhenTransformFails {locallyValidateWhenTransformFails} = "error"
 end
 %)
@@ -30,7 +30,7 @@ if isempty(pp)
     addParameter(pp, "SourceNames", @all, @locallyValidateNames);
     addParameter(pp, "TargetNames", @auto, @locallyValidateNames);
     addParameter(pp, "TargetDb", @empty, @locallyValidateDb);
-    addParameter(pp, "Transform", [], @locallyValidateTransform);
+    addParameter(pp, "Transform", cell.empty(1, 0), @locallyValidateTransform);
     addParameter(pp, "WhenTransformFails", "error", @locallyValidateWhenTransformFails);
 end
 opt = parse(pp, sourceDb, varargin{:});
@@ -41,6 +41,9 @@ opt = parse(pp, sourceDb, varargin{:});
 sourceNames = opt.SourceNames;
 targetNames = opt.TargetNames;
 transform = opt.Transform;
+if ~iscell(transform)
+    transform = {transform};
+end
 
 %
 % Resolve source names
@@ -67,7 +70,9 @@ for i = 1 : numSourceNames
     value = sourceDb.(char(sourceName__));
     if ~isempty(transform)
         try
-            value = transform(value);
+            for f = reshape(transform, 1, [])
+                value = f{1}(value);
+            end
         catch
             inxSuccess(i) = false;
             continue
@@ -172,7 +177,7 @@ end%
 
 
 function locallyValidateTransform(input)
-    if isempty(input) || isa(input, 'function_handle')
+    if isempty(input) || isa(input, 'function_handle') || (iscell(input) && all(cellfun(@(x) isa(x, "function_handle"), input)))
         return
     end
     error("Validation:Failed", "Input value must be empty or a function handle");

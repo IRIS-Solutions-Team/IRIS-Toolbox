@@ -251,8 +251,8 @@ function udf = locallyAddUserDataFields(udf, ithUserData, numColumns)
         valueToSave = repmat({''}, 1, numColumns);
         if isstruct(ithUserData) && isfield(ithUserData, n)
             fieldValue = ithUserData.(n); 
-            if isstring(fieldValue) || ischar(fieldValue)
-                valueToSave{1} = char(fieldValue);
+            if isstring(fieldValue) || ischar(fieldValue) || (iscellstr(fieldValue) && isscalar(fieldValue))
+                valueToSave{1} = char(string(fieldValue));
             end
         end
         udf.(n) = [udf.(n), valueToSave];
@@ -290,8 +290,6 @@ function c = locallySerialize(oo, opt)
     isNaString = ~strcmpi(naString, 'NaN');
 
     format = char(oo.Format);
-
-    isUserData = isfield(oo, 'UserData');
 
 
 

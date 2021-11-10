@@ -55,7 +55,7 @@ elseif lower(what)==lower("postprocessor")
     output = this.Postprocessor;
 
 
-elseif lower(what)==lower("parameterValues")
+elseif any(lower(what)==erase(["parameter-values", "parameters-struct"], "-"))
     inx = this.Quantity.Type==4;
     values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
     output = locallyCreateStruct(this.Quantity.Name(inx), values);
@@ -120,6 +120,9 @@ elseif any(lower(what)==lower(["stableRoots", "unitRoots", "unstableRoots"]))
         output(1, 1:n, v) = eigenValues(1, inxSelect(1, :, v), v);
     end
     output(:, all(isnan(output), 3), :) = [ ];
+    if ~isreal(output) && any(isnan(output(:)))
+        output(isnan(output)) = complex(NaN, NaN);
+    end
 
 
 elseif any(lower(what)==lower("maxLag"))

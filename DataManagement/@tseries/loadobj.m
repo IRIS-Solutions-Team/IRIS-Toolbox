@@ -7,8 +7,11 @@ function this = loadobj(this, varargin)
 
 if isstruct(this)
     s = this;
-    this = tseries(s.start, s.data, s.Comment);
-    % this = struct2obj(tseries( ), this);
+    userData = [];
+    if isfield(s, 'UserData')
+        userData = s.UserData;
+    end
+    this = tseries(s.start, s.data, s.Comment, userData);
     if ~checkConsistency(this)
         this = tseries( );
     end 

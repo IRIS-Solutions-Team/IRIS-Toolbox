@@ -15,7 +15,7 @@ arguments
     options.Silent (1, 1) logical = false
     options.Equations = ""
     options.Normalize (1, 1) logical = true
-    options.PreferredSchur (1, 1) string {mustBeMember(options.PreferredSchur, ["schur", "qz"])} = "schur"
+    options.PreferredSchur (1, 1) string {mustBeMember(options.PreferredSchur, ["schur", "qz"])} = "qz"
     options.ForceDiff (1, 1) logical = false
     options.MatrixFormat = "plain"
     options.Symbolic (1, 1) logical = true
@@ -38,7 +38,7 @@ if isempty(pp)
     addParameter(pp, "Silent", false, @validate.logicalScalar);
     addParameter(pp, "Equations", "");
     addParameter(pp, "Normalize", true, @validate.logicalScalar);
-    addParameter(pp, "PreferredSchur", "schur", @(x) mustBeMember(x, ["schur", "qz"]));
+    addParameter(pp, "PreferredSchur", "qz", @(x) mustBeMember(x, ["schur", "qz"]));
     addParameter(pp, "ForceDiff", false, @validate.logicalScalar);
     addParameter(pp, "MatrixFormat", "plain");
     addParameter(pp, "Symbolic", true, @validate.logicalScalar);

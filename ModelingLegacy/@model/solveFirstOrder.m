@@ -609,9 +609,9 @@ function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedS
     isSevn2 = hereApplySevn2Patch() | isSevn2;
     if isSevn2
         exception.warning([
-            "Model:QZWarning"
-            "Numerical instability detected in QZ decomposition. "
-            "The SEVN2 patch was applied to the matrix factors. "
+            "Model"
+            "Numerical instability detected in QZ decomposition; "
+            "the SEVN2 patch was applied to the system matrix factors. "
         ]);
     end
 

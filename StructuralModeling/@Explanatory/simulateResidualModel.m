@@ -148,7 +148,7 @@ for q = 1 : numEquations
                 end
 
                 %
-                % Convert residuals to ARMA innovations
+                % Convert residuals to primitive innovations
                 %
                 innovations = filter(inv(residualModel), data(first:last, v));
 

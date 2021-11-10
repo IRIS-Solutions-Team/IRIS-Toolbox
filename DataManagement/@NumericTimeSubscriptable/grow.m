@@ -5,12 +5,12 @@
 
 % >=R2019b
 %(
-function this = grow(this, operator, growth, dates, shift, opt)
+function this = grow(this, operator, change, dates, shift, opt)
 
 arguments
     this {locallyValidateLevelInput}
     operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "difflog", "roc", "pct"])}
-    growth {locallyValidateGrowthInput(growth)}
+    change {locallyValidateGrowthInput(change)}
     dates {validate.properDates(dates)}
     shift {locallyValidateShift(shift)} = -1
 
@@ -22,14 +22,14 @@ end
 
 % <=R2019a
 %{
-function this = grow(this, operator, growth, dates, varargin)
+function this = grow(this, operator, change, dates, varargin)
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Series/grow');
     addRequired(pp, 'level', @locallyValidateLevelInput);
     addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, 'function_handle'));
-    addRequired(pp, 'growth', @locallyValidateGrowthInput);
+    addRequired(pp, 'change', @locallyValidateGrowthInput);
     addRequired(pp, 'dates', @validate.properDate);
     addOptional(pp, 'shift', -1, @locallyValidateShift);
 
@@ -38,7 +38,7 @@ if isempty(pp)
     % Legacy option
     addParameter(pp, 'BaseShift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, -intmax( ), -1));
 end
-opt = parse(pp, this, operator, growth, dates, varargin{:});
+opt = parse(pp, this, operator, change, dates, varargin{:});
 if isequal(opt.BaseShift, @auto)
     shift = pp.Results.shift;
 else
@@ -66,7 +66,7 @@ endAll = max([dates, datesShifted]);
 % Get level data
 if isnumeric(this)
     numPeriods = round(endAll - startAll + 1);
-    sizeGrowth = size(growth.Data);
+    sizeGrowth = size(change.Data);
     levelData = repmat(this, [numPeriods, sizeGrowth(2:end)]);
 else
     levelData = getDataFromTo(this, startAll, endAll);
@@ -74,12 +74,12 @@ end
 sizeLevelData = size(levelData);
 levelData = levelData(:, :);
 
-% Get growth rate data
-if isa(growth, 'NumericTimeSubscriptable')
-    growthData = getDataFromTo(growth, startAll, endAll);
+% Get change rate data
+if isa(change, 'NumericTimeSubscriptable')
+    growthData = getDataFromTo(change, startAll, endAll);
     growthData = growthData(:, :);
 else
-    growthData = repmat(growth, size(levelData));
+    growthData = repmat(change, size(levelData));
 end
 
 

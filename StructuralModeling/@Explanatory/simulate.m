@@ -296,7 +296,7 @@ return
             inxExogenizedAlways = logical.empty(0);
             inxExogenizedWhenData = logical.empty(0);
         elseif ~isempty(options.Plan)
-            checkCompatibilityOfPlan(this, range, options.Plan);
+            checkPlanConsistency(this, range, options.Plan);
             inxExogenized = options.Plan.InxOfAnticipatedExogenized | options.Plan.InxOfUnanticipatedExogenized;
             inxExogenizedWhenData = options.Plan.InxToKeepEndogenousNaN;
             inxExogenizedAlways = inxExogenized & ~inxExogenizedWhenData;

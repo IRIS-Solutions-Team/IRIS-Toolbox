@@ -59,6 +59,7 @@ if isempty(pp)
     addParameter(pp, 'Simulate', false, @(x) isequal(x, false) || validate.nestedOptions(x));
     addParameter(pp, 'Weighting', [ ], @isnumeric);
     addParameter(pp, 'MeanOnly', false, @validate.logicalScalar);
+    addParameter(pp, 'MedianOnly', false, @validate.logicalScalar);
     addParameter(pp, 'ReturnStd', true, @validate.logicalScalar);
     addParameter(pp, 'ReturnMedian', logical.empty(1, 0));
     addParameter(pp, 'ReturnMSE', true, @validate.logicalScalar);

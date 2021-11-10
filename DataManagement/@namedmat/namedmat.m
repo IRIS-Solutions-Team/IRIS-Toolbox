@@ -198,6 +198,13 @@ classdef namedmat < double
             this = abs@double(this);
             this = namedmat(this, rowNames, columnNames);
         end%
+
+        function this = round(this, varargin)
+            rowNames = this.RowNames;
+            columnNames = this.ColNames;
+            this = round@double(this, varargin{:});
+            this = namedmat(this, rowNames, columnNames);
+        end%
     end
 
 

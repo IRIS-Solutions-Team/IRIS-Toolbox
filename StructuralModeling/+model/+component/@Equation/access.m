@@ -24,8 +24,10 @@ elseif lower(what)==lower("equationsSteady")
     output = stringify(this.Input);
     output = model.component.Equation.extractInput(output, "steady");
 
+
 elseif lower(what)==lower("measurementEquations")
     output = stringify(this.Input(this.Type==1));
+
 
 elseif lower(what)==lower("transitionEquations")
     output = stringify(this.Input(this.Type==2));
@@ -35,6 +37,15 @@ elseif any(lower(what)==lower(["measurement-trends", "dtrends"]))
 
 elseif lower(what)==lower("links")
     output = stringify(this.Input(this.Type==4));
+
+
+elseif lower(what)==erase("equation-descriptions", "-")
+    output = textual.stringify(this.Label);
+
+
+elseif lower(what)==erase("equation-attributes", "-")
+    output = unique([this.Attributes{:}], "stable");
+
 
 else
     beenHandled = false;

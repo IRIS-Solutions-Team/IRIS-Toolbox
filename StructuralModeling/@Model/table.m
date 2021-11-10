@@ -66,7 +66,7 @@ for n = requests
         
     elseif any(strcmpi(n, {'SteadyChange', 'SteadyChanges'}))
         compare = false;
-        setNaN = ~getIndexByType(this.Quantity, 1, 2, 5);
+        setNaN = []; %~getIndexByType(this.Quantity, 1, 2, 5);
         addTable = tableValues(this, @imag, compare, [], setNaN, 'SteadyChange', opt);
 
 
@@ -77,7 +77,7 @@ for n = requests
         
     elseif any(strcmpi(n, {'SteadyDiff', 'SteadyDiffs'}))
         compare = false;
-        setNaN = 'log';
+        setNaN = []; % 'log';
         addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyDiff', opt);
 
 

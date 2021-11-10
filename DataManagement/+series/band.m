@@ -44,12 +44,12 @@ for i = 1 : numBands
     end
 
     % Remove data points where either xData or yData is NaN.
-    ixNa = isnan(yData);
-    if all(ixNa)
-        continue
-    end
-    xData = xData(~ixNa);
-    yData = yData(~ixNa);
+    % ixNa = isnan(yData);
+    % if all(ixNa)
+        % continue
+    % end
+    % xData = xData(~ixNa);
+    % yData = yData(~ixNa);
 
     % Draw patch object, mix its face color.
     set(axesHandle, 'nextPlot', 'add');

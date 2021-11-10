@@ -18,7 +18,7 @@ classdef validate
 
 
         function flag = databankType(input)
-            flag = validate.anyString(input, ["struct", "Dictionary"]);
+            flag = validate.anyText(input, ["struct", "Dictionary"]);
         end%
 
 
@@ -80,24 +80,30 @@ classdef validate
         end%
 
 
-        function flag = anyString(input, varargin)
-            if ~ischar(input) && ~isstring(input)
+        function flag = anyString(varargin)
+            flag = validate.anyText(varargin{:});
+        end%
+
+
+        function flag = anyText(input, varargin)
+            if ~validate.textScalar(input)
                 flag = false;
                 return
             end
-            if numel(varargin)==1 
-                try
-                    flag = matches(input, varargin{1}, "ignoreCase", true);
-                catch
-                    flag = any(strcmpi(input, varargin{1}));
-                end
+            input = string(input);
+            if numel(varargin)==1
+                match = string(varargin{1});
             else
-                try
-                    flag = any(matches(input, string(varargin), "ignoreCase", true));
-                catch
-                    flag = any(strcmpi(input, string(varargin)));
+                match = repmat("", size(varargin));
+                for i = 1 : numel(varargin)
+                    match(i) = string(varargin{i});
                 end
             end
+            if any(lower(input)==lower(match))
+                flag = true;
+                return
+            end
+            flag = false;
         end%
 
 
@@ -118,6 +124,12 @@ classdef validate
                 return
             end
             flag = true;
+            %)
+        end%
+
+
+        function mustBeDateFormat(x)
+            %(
             %)
         end%
 
@@ -276,7 +288,7 @@ classdef validate
 
     methods (Static)
         function mustBeAnyString(x, varargin)
-            if validate.anyString(x, varargin{:})
+            if validate.anyText(x, varargin{:})
                 return
             end
             error("Input value must be one of the following strings: " + sprintf(" ""%s""", varargin{:}) + ".");
@@ -287,7 +299,7 @@ classdef validate
             if isempty(x)
                 return
             end
-            if validate.anyString(x, varargin{:})
+            if validate.anyText(x, varargin{:})
                 return
             end
             error("Input value must be one of the following strings: " + sprintf("""%s""", varargin{:}) + ".");
@@ -323,21 +335,31 @@ classdef validate
 
 
         function mustBeText(x)
-            if ischar(x) || isstring(x) || iscellstr(x) 
+            if validate.text(x)
                 return
             end
             error("Input value must be a string, char or cellstr.");
         end%
-            
+
+
+        function flag = textScalar(x)
+            %(
+            if validate.text(x) && numel(string(x))==1
+                flag = true;
+                return
+            end
+            flag = false;
+            %)
+        end%
+
 
         function mustBeTextScalar(x)
-            try %#ok<TRYNC>
-                validate.mustBeText(x);
-                if isscalar(string(x))
-                    return
-                end
+            %(
+            if validate.textScalar(x)
+                return
             end
             error("Input value must be a scalar text string.");
+            %)
         end%
 
 

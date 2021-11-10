@@ -1,13 +1,9 @@
-function x = refresh(this, x, select)
 % refresh  Refresh dynamic links
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function x = refresh(this, x, select)
 
 % x is expected to be (nQty+nsx)-by-nv
 nx = size(x, 1);

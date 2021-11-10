@@ -28,9 +28,10 @@ end
 
 predictError = [ ];
 if isfield(regOutp, 'Pe')
+    logPrefix = string(model.component.Quantity.LOG_PREFIX);
     predictError = struct( );
     for i = find(inxY)
-        name = this.Quantity.Name{i};
+        name = string(this.Quantity.Name(i));
         data = permute(regOutp.Pe(i, :, :), [2, 3, 1]);
         if this.Quantity.IxLog(i)
             name = logPrefix + name;
@@ -45,12 +46,12 @@ if isfield(regOutp, 'V')
     V = regOutp.V;
 end
 
-% Update out-of-lik parameters in the model object.
+% Update out-of-lik parameters in the model object
 delta = struct( );
-lsDelta = this.Quantity.Name(opt.OutOfLik);
+namesOutLik = string(this.Quantity.Name(opt.OutOfLik));
 if isfield(regOutp, 'Delta')
-    for i = 1 : length(opt.OutOfLik)
-        name = lsDelta{i};
+    for i = 1 : numel(opt.OutOfLik)
+        name = namesOutLik(i);
         posQty = opt.OutOfLik(i);
         this.Variant.Values(:, posQty, :) = regOutp.Delta(i, :);
         delta.(name) = regOutp.Delta(i, :);
@@ -61,7 +62,7 @@ PDelta = [ ];
 if isfield(regOutp, 'PDelta')
     PDelta = regOutp.PDelta;
     if isNamedMat
-        PDelta = namedmat(PDelta, lsDelta, lsDelta);
+        PDelta = namedmat(PDelta, namesOutLik, namesOutLik);
     end
 end
 

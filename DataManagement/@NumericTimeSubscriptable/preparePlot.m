@@ -10,7 +10,9 @@ if isempty(parser)
     parser = extend.InputParser('@Series/preparePlot');
     parser.KeepUnmatched = true;
     parser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('PlotSpec', cell.empty(1, 0), @validatePlotSpec);
+    parser.addOptional('PlotSpec', cell.empty(1, 0), @locallyValidatePlotSpec);
+    parser.addParameter('Range', Inf);
+    parser.addParameter('Transform', []);
 end
 
 %--------------------------------------------------------------------------
@@ -39,9 +41,13 @@ else
     inputSeries = [ ];
 end
 
-parser.parse(inputSeries, varargin{:});
+options = parser.parse(inputSeries, varargin{:});
 plotSpec = parser.Results.PlotSpec;
 unmatched = parser.UnmatchedInCell;
+
+if ~isequal(options.Range, Inf)
+    dates = double(options.Range);
+end
 
 % Always wrap PlotSpec up in a cell array
 if ~iscell(plotSpec)
@@ -52,15 +58,18 @@ if isa(axesHandle, 'function_handle')
     axesHandle = axesHandle();
 end
 
-end%
+if isa(options.Transform, 'function_handle')
+    inputSeries = options.Transform(inputSeries);
+end
 
+end%
 
 %
 % Local Functions
 %
 
-
-function flag = validatePlotSpec(x)
+function flag = locallyValidatePlotSpec(x)
+    %(
     if iscell(x)
         flag = true;
         return
@@ -95,5 +104,6 @@ function flag = validatePlotSpec(x)
         return
     end
     flag = true;
+    %)
 end%
 

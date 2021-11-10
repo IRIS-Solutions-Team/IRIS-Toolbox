@@ -35,6 +35,10 @@ plotHandles = cell(1, 0);
 countChartsInWindow = 0;
 currentFigure = gobjects(0);
 for x = this.Charts
+    if x.PageBreak
+        countChartsInWindow = 0;
+        continue
+    end
     if countChartsInWindow==0
         if ~isempty(currentFigure)
             runFigureExtras(this, currentFigure);
@@ -53,9 +57,7 @@ for x = this.Charts
         x.Data = round(x.Data, this.Round);
     end
     plotHandles__ = this.PlotFunc(range{:}, x.Data);
-    if ~isempty(this.PlotSettings)
-        set(plotHandles__, this.PlotSettings{:});
-    end
+    runPlotExtras(x, plotHandles__);
     plotHandles{end}{end+1} = plotHandles__;
 
     [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...

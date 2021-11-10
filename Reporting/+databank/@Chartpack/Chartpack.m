@@ -29,6 +29,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
 
         FigureExtras (1, :) cell = cell.empty(1, 0)
         AxesExtras (1, :) cell = cell.empty(1, 0)
+        PlotExtras (1, :) cell = cell.empty(1, 0)
     end
 
 
@@ -68,8 +69,8 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
                 end
                 return
             end
-            numCharts = numel(this.Charts);
-            [numRows, numColumns] = visual.backend.optimizeSubplot(min(numCharts, this.MaxTilesPerWindow));
+            maxNumCharts = getMaxNumCharts(this.Charts);
+            [numRows, numColumns] = visual.backend.optimizeSubplot(min(maxNumCharts, this.MaxTilesPerWindow));
             tiles = [numRows, numColumns];
         end%
 

@@ -651,7 +651,7 @@ function plan = locallyResolvePlan(this, baseRange, plan, anticipate)
         if ~isempty(anticipate)
             hereThrowError();
         end
-        checkCompatibilityOfPlan(this, baseRange, plan);
+        checkPlanConsistency(this, baseRange, plan);
         return
     end
     if islogical(plan)

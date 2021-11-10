@@ -10,7 +10,7 @@ function varargout = implementFilter(order, inputSeries, range__, options)
 arguments
     order (1, 1) double {mustBeInteger, mustBePositive}
     inputSeries NumericTimeSubscriptable
-    range__ {validate.mustBeRange} = Inf
+    range__ (1, :) double {validate.mustBeRange} = Inf
 
     options.Range {validate.mustBeRange} = Inf
     options.Change Series = Series.empty(0, 1)
