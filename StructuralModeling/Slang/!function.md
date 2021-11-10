@@ -1,4 +1,4 @@
-# `!function`
+# !function
 
 {== Create exportable m-file function to be saved in working directory==}
 

@@ -1,4 +1,4 @@
-# `databank.clip`
+# databank.clip
 
 {== Clip all time series in databank to a new range ==}
 

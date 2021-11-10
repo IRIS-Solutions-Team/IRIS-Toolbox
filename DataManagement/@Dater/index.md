@@ -19,18 +19,18 @@ the following date frequencies:
 
 | Function      | Description       |
 |---            |---                |
-| [`yy`](yy.md) | {{ dates._yy }} |
-| [`hh`](hh.md) | {{ dates._hh }} |
-| [`qq`](qq.md) | {{ dates._qq }} |
-| [`mm`](mm.md) | {{ dates._mm }} |
-| [`ww`](ww.md) | {{ dates._ww }} |
-| [`dd`](dd.md) | {{ dates._dd }} |
-| [`ii`](ii.md) | {{ dates._ii }} |
+[`yy`](yy.md)                                                | Create yearly dates
+[`hh`](hh.md)                                                | Create half-yearly dates
+[`qq`](qq.md)                                                | Create quarterly dates
+[`mm`](mm.md)                                                | Create monthly dates
+[`ww`](ww.md)                                                | Create weekly dates
+[`dd`](dd.md)                                                | Create daily dates
+[`ii`](ii.md)                                                | Create integer dates (numbered observations)
 
 
 ### Converting Dates
 
 | Function      | Description       |
 |---            |---                |
-| [`toString`](toString.md) | {{ dates._toString }} |
+[`toString`](toString.md)                                    | Print IrisT dates as formatted strings
 

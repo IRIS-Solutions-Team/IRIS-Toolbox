@@ -1,4 +1,4 @@
-# `movavg`
+# movavg
 
 {== Moving geometric average pseudofunction ==}
 

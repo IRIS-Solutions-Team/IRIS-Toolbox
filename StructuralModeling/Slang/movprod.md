@@ -1,4 +1,4 @@
-# `movsum`
+# movsum
 
 {== Moving product pseudofunction ==}
 

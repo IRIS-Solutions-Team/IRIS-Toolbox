@@ -1,4 +1,4 @@
-# `pct`
+# pct
 
 {== Percent change ==}
 

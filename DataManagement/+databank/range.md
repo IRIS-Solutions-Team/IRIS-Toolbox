@@ -1,4 +1,4 @@
-# range  
+# databank.range  
 
 {== Find a range that encompasses the ranges of all or selected databank time series ==}
 

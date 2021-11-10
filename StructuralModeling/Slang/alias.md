@@ -1,4 +1,4 @@
-# `||` 
+# || 
 
 {== Separate alias from the rest of name or equation description ==}
 

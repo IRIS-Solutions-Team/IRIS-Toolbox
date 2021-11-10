@@ -1,4 +1,4 @@
-# `!links`
+# !links
 
 {== Define dynamic links ==}
 

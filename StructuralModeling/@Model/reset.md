@@ -1,4 +1,4 @@
-# `reset`
+# reset
 
 {== Reset specific values within model object ==}
 

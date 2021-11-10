@@ -1,4 +1,4 @@
-# `!dtrends`
+# !dtrends
 
 {== Block of deterministic trend equations ==}
 

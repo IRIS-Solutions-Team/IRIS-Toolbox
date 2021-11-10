@@ -1,4 +1,4 @@
-# `steady`
+# steady
 
 {== Compute steady state or balance-growth path of the model ==}
 

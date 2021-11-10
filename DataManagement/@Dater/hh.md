@@ -1,4 +1,4 @@
-# `hh  |  Dater.hh  |  dater.hh`
+# hh  |  Dater.hh  |  dater.hh
 
 {== Create half-yearly dates ==}
 

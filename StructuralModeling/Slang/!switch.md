@@ -1,4 +1,4 @@
-# `!switch...!case...!otherwise...!end`
+# !switch...!case...!otherwise...!end
 
 {== Switch among several cases based on expression.==}
 

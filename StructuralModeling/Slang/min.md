@@ -1,4 +1,4 @@
-# `min`
+# min
 
 {== Define loss function for optimal policy ==}
 

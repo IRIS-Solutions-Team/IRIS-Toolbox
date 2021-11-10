@@ -1,4 +1,4 @@
-# `!transition-equations`
+# !transition-equations
 
 {== Block of transition equations ==}
 

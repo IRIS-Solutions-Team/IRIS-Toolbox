@@ -3,7 +3,7 @@
 {== Create table based on selected indicators from Model object ==}
 
 
-# Syntax
+## Syntax
 
 
     outputTable = table(model, request, ...)
@@ -22,14 +22,14 @@ __`requests`__ [ char | cellstr | string ]
 > valid requests.
 > 
 
-# Output arguments
+## Output arguments
 
 __`outputTable`__ [ table ]
 > 
 > Table object with requested values.
 > 
 
-# Options
+## Options
 
 __`CompareFirstColumn=true`__ [ `true` | `false` ] 
 > 
@@ -151,9 +151,9 @@ associated with the current solution.
 magnitude) associated with the current solution.
 
 
-# Examples
+## Examples
 
-## Plain vanilla table
+### Plain vanilla table
 
 Create table with a steady state summary:
 
@@ -162,7 +162,7 @@ table(m, ["steadyLevel", "steadyChange", "form", "description"])
 ```
 
 
-## Save table to spreadsheet
+### Save table to spreadsheet
 
 Create the same table as before, and save it to an Excel spreadsheet file:
 

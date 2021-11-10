@@ -1,14 +1,19 @@
-# `databank.merge`
+# databank.merge
 
 {== Merge two or more databanks ==}
 
 
 ## Syntax
 
-    outputDb = databank.merge(method, primaryDb [, otherDb ], ...)
+    outputDb = databank.merge(method, primaryDb [, otherDb ], ___)
 
 
-## Input Arguments
+## Shortcut syntax for `databank.merge("horzcat", ___)`
+
+    outputDb = databank.horzcat(primaryDb, [, otherDb], ___)
+
+
+## Input arguments
 
 __`method`__ [ `"horzcat"` | `"vertcat"` | `"replace"` | `"discard"` | `"error"` ] 
 > 
@@ -28,7 +33,7 @@ __`otherDb`__ [ struct | Dictionary ]
 > `primaryDb` to create the `outputDb`.
 > 
 
-## Output Arguments
+## Output arguments
 
 __`outputDb`__ [ struct | Dictionary ] 
 > 

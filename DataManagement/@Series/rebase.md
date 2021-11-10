@@ -1,47 +1,74 @@
-# rebase  
+# rebase
 
 {== Rebase times series data to specified period ==}
 
 
 ## Syntax
 
-    outputSeries = rebase(inputSeries, basePeriod, baseValue, ...)
+    [outputSeries, priorValue, reciprocal] = rebase(inputSeries, basePeriod, baseValue, ___)
 
 
-## Input Arguments
+## Input arguments
 
 __`inputSeries`__ [ Series ]
 >
 >  Input time series that will be rebased.
 >
 
-__`basePeriod="allStart"`__ [ Dater | `"allStart"` | `"allEnd"` ] -
+__`basePeriod`__ [ Dater | `"allStart"` | `"allEnd"` ] -
 > 
-> Date relative to which the input data will be rebased (baseValue period);
+> Date relative to which the input data will be rebased;
 > `'allStart'` means the first date for which all time series columns have
-> a NaN observation; `'allEnd'` means the last such date.
+> a NaN observation; `'allEnd'` means the last such date. The `basePeriod`
+> may be a vector of dates, in which case the mean or geometric mean of the
+> corresponding values will be calculated.
 > 
 
-__`baseValue=1`__ [ `0` | `1` | `100` ]
+__`baseValue`__  [ numeric ]
 >
-> Rebasing mode and value:
->
-> * `B=0` means additive rebasing with `0` in the `basePeriod`; 
->
-> * `B=1` means multiplicative rebasing with `1` in the `basePeriod`;
->
-> * `B=100` means multiplicative rebasing with `100` in the `basePeriod`.
+> The new value that the `outputSeries` will see in the `basePeriod`.
 >
 
-## Output Arguments
+
+## Options
+
+__`Mode="auto"`__ [ `"auto"` | `"additive"` | `"multiplicative"` ]
+>
+> Rebasing mode; if `Mode="auto"`, the rebasing mode will be based on the
+> `baseValue`: `"additive"` for `baseValue=0`, `"multiplicative"`
+> otherwise;
+>
+
+__`Reciprocal=[]`__ [ empty | Series ]
+>
+> A reciprocal series that will be rebased so that the sum or the product
+> (depending on the `Mode=`) of the `inputSeries` and the `Reciprocal` is
+> preserved. The `Reciprocal=` series must be the same size as the
+> `inputSeries`.
+>
+
+
+## Output arguments
 
 __`outputSeries`__ [ Series ]
 >
-> Rebased time series.
+> Rebased output time series.
 >
+
+__`priorValue`__ [ numeric ]
+>
+> The value of the `inputSeries` in `basePeriod` before rebasing.
+>
+
+__`reciprocal`__ [ empty | Series ]
+>
+> Rebased reciprocal series.
+>
+
 
 ## Description
 
 
 ## Example
+
 
