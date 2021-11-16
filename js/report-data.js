@@ -22,38 +22,50 @@ var $reportWithoutData = {
       },
       "Content": "---\n\n# Section 1\n## Lorem ipsum dolor sit amet, ne suavitate definiebas eum.\nOmnes integre euismod eum at, mei an placerat antiopam moderatius \\\\(\\alpha+\\lambda\\\\), ut sonet voluptatibus vim. Vivendo noluisse mea ad. $$f(x) = \\int_{-\\infty}^\\infty\n\\hat f\\xi\\,e^{2 \\pi i \\xi x}\n\\,d\\xi$$ Laudem quaerendum qui id. Est vero elit reque eu, sea iisque invidunt id.\n\nEx quas deseruisse liberavisse vel. Cu mei posse causae delicatissimi, ei simul fierent nam. *Placerat percipitur in qui, no vis facete omnium **elaboraret***.\n \n> An brute appareat tacimates quo. \n\nQuando invenire constituto duo et, usu nulla repudiandae cu, mel no virtute quaeque `appellantur`. No usu admodum consequuntur, nec te minim copiosae, vide justo nulla has ne. Vel te alii libris intellegat.\n\n| Tables        | Are           | Cool  |\n| ------------- |:-------------:| -----:|\n| col 3 is      | right-aligned | $1600 |\n| col 2 is      | centered      |   $12 |\n| zebra stripes | are neat      |    $1 |\n\n---\n\n#### Matlab code block\n\n```matlab\ns = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting';\n% comment\n%% cell title comment\nd = \"sfdfsdfsdf\";\n!variables \ndisp(s);\n```\n\n#### Matlab/IRIS code block\n\n```iris\ns = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting';\n% comment\n%% cell title comment\nd = \"sfdfsdfsdf\";\n!variables \ndisp(s);\ndl_y = 4*(l_y-l_y{-1});\n```\n\n#### JavaScript code block\n\n```javascript\nvar s = \"JavaScript syntax highlighting\";\n// comment\nalert(s);\n```\n\n#### Python code block\n\n```python\ns = \"Python syntax highlighting\"\n# comment\nprint s\n```\n\n#### Julia code block\n\n```julia\n#= comment\nanother comment=#\nf(x::Integer) = 1 + invoke(f, Tuple{Real}, x);\n```\n\n#### R code block\n\n```r\nlibrary(glue)\n\n# comment\nname <- \"Bianca\"\nglue(\"The result of `1 + 2` is {1 + 2}, so says {name}.\")\n```\n\n***"
     },
-    // {
-    //   "Type": "CHART",
-    //   "Title": "Yiled Curve, kind of",
-    //   "Settings": { 
-    //     "Class": "", 
-    //     "IsTitlePartOfChart": false
-    //   }, 
-    //   "Content": [
-    //     { 
-    //       "Type": "CURVE", 
-    //       "Title": "Yield Curve 1", 
-    //       "Settings": { "Class": "" }, 
-    //       "Content": { 
-    //         "Ticks": [1, 7, 365/12, 365/6, 365/4, 365, 365*2],
-    //         "TickLabels": ["1D", "7D", "1M", "2M", "3M", "1Y", "2Y"],
-    //         "Values": [1.5, 3.2, 3.7, 4.3, 4.9, 5.1, 5.3]
-    //       } 
-    //     },
-    //     { 
-    //       "Type": "MARKER", 
-    //       "Title": "x005", 
-    //       "Settings": { 
-    //         "Class": "",
-    //         "X": 365*1.35,
-    //         "Y": 4.3,
-    //         "Color": "rgba(100, 0, 0, 1)",
-    //         "Symbol": "asterisk"
-    //       }, 
-    //       "Content": null
-    //     }
-    //   ]
-    // },
+    {
+      "Type": "CHART",
+      "Title": "Yield Curve, kind of",
+      "Settings": { 
+        "Class": "",
+        "IsSeries": false,
+        "IsTitlePartOfChart": false,
+        "Ticks": [1, 7, 365/12, 365/6, 365/4, 365, 365*1.5, 365*2, 365*3, 365*4],
+        "TickLabels": ["1D", "7D", "1M", "2M", "3M", "1Y", "1.5Y", "2Y", "3Y", "4Y"]
+      }, 
+      "Content": [
+        { 
+          "Type": "CURVE", 
+          "Title": "Yield Curve 1", 
+          "Settings": { "Class": "" }, 
+          "Content": {
+            "Ticks": [1, 7, 365/12, 365/6, 365/4, 365, 365*2],
+            "Values": [1.5, 3.2, 3.7, 4.3, 4.9, 5.1, 5.3]
+          } 
+        },
+        { 
+          "Type": "CURVE", 
+          "Title": "Yield Curve 2", 
+          "Settings": { "Class": "" }, 
+          "Content": {
+            "Ticks": [1, 7, 365/12, 365/6, 365/4, 365, 365*1.5, 365*3],
+            "Values": [2.5, 4.2, 4.7, 5.3, 5.9, 6.1, 6.3, 6.4]
+          } 
+        },
+        { 
+          "Type": "MARKER", 
+          "Title": "x005", 
+          "Settings": { 
+            "Class": "",
+            "Color": "rgba(0, 120, 120, 1)",
+            "Symbol": "cross"
+          }, 
+          "Content": {
+            "X": 365*1.35,
+            "Y": 4.3,
+          }
+        }
+      ]
+    },
     {
       "Type": "TABLE",
       "Title": "Table 0 (DIFF)",

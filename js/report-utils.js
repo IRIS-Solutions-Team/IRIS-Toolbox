@@ -39,6 +39,7 @@ var $ru = {
 
 const DEFAULT_CHART_LIBRARY = "plotly";
 const DEFAULT_HIGHLIGHT_COLOR = "rgba(100, 100, 100, 0.2)";
+const DEFAULT_MARKER_COLOR = "rgba(10, 10, 10, 1)";
 const DEFAULT_SHOW_LEGEND = true;
 
 // generic function preparing the chart area and calling the implementation
@@ -70,17 +71,36 @@ function createChart(parent, chartObj) {
     min: chartObj.Settings.StartDate ? new Date(chartObj.Settings.StartDate) : null,
     max: chartObj.Settings.EndDate ? new Date(chartObj.Settings.EndDate) : null
   };
+  const isSeries = (!chartObj.Settings.hasOwnProperty("IsSeries"))
+    ? true
+    : chartObj.Settings.IsSeries;
+  var ticks = { tickLabels: [], tickValues: [] };
+  if (!isSeries) {
+    if (chartObj.Settings.hasOwnProperty("TickLabels")) {
+      ticks.tickLabels = chartObj.Settings.TickLabels;
+    }
+    if (chartObj.Settings.hasOwnProperty("Ticks")) {
+      ticks.tickValues = chartObj.Settings.Ticks;
+    }
+    limits.min = 0;
+    limits.max = ((ticks.tickValues instanceof Array) && ticks.tickValues.length) ? Math.max(...ticks.tickValues) : null;
+  }
   if (chartObj.hasOwnProperty("Content") && chartObj.Content instanceof Array) {
     const colorList = $ru.getColorList(chartObj.Content.length);
+    var cx = -1;
     for (var i = 0; i < chartObj.Content.length; i++) {
-      const seriesObj = chartObj.Content[i];
-      seriesObj.Settings = appendObjSettings(seriesObj.Settings || {}, chartObj.Settings || {});
-      data.push($ru.createChartSeries(seriesObj, limits, colorList[i], chartLib));
+      const contentObj = chartObj.Content[i];
+      contentObj.Settings = appendObjSettings(contentObj.Settings || {}, chartObj.Settings || {});
+      if (contentObj.Type.toLowerCase() !== "marker") {
+        cx++;
+      }
+      const thisColor = (contentObj.Type.toLowerCase() === "marker") ? DEFAULT_MARKER_COLOR : colorList[cx];
+      data.push($ru.createChartContent(contentObj, limits, thisColor, chartLib));
     }
   }
   const chartBody = (chartLib.toLowerCase() === "chartjs")
-    ? $ru.createChartForChartJs(data, limits, chartObj.Settings)
-    : $ru.createChartForPlotly(data, limits, chartObj.Settings);
+    ? $ru.createChartForChartJs(data, limits, chartObj.Settings, ticks)
+    : $ru.createChartForPlotly(data, limits, chartObj.Settings, ticks);
   chartParent.appendChild(chartBody);
 }
 
@@ -89,26 +109,72 @@ function createChartContent(contentObj, limits, color, chartLib) {
     || !contentObj.hasOwnProperty("Type") || !contentObj.Type) {
     return {};
   }
-  // todo: implement this 
   // switch between createChartCurve, createChartMarker and createChartSeries
+  switch (contentObj.Type.toLowerCase()) {
+    case "curve":
+      return $ru.createChartCurve(contentObj, limits, color, chartLib);
+    case "marker":
+      return $ru.createChartMarker(contentObj, limits, color, chartLib);
+    case "series":
+      return $ru.createChartSeries(contentObj, limits, color, chartLib);
+    default:
+      return {};
+  }
 }
 
 function createChartCurve(curveObj, limits, color, chartLib) {
-  // todo: implement this
+  // return empty object if smth. is wrong
+  if (!curveObj.hasOwnProperty("Content") || !((typeof curveObj.Content === "string")
+    || (typeof curveObj.Content === "object"
+      && curveObj.Content.hasOwnProperty("Ticks")
+      && curveObj.Content.hasOwnProperty("Values")))) {
+    return {};
+  }
+  if (typeof curveObj.Content === "string") {
+    // todo: implement curve objects in the databank
+  }
+  const overrideColor = (curveObj.hasOwnProperty("Settings") && (typeof curveObj.Settings === "object")
+    && curveObj.Settings.hasOwnProperty("Color")) ? curveObj.Settings.Color : null;
+  const colors = {
+    lineColor: overrideColor || color
+  }
+  switch (chartLib.toLowerCase()) {
+    case "chartjs":
+    // todo: implement this
+    case "plotly":
+    default:
+      return $ru.createSeriesForPlotly(curveObj.Title, curveObj.Content.Ticks, curveObj.Content.Values, curveObj.Settings, colors, false);
+  }
 }
 
 function createChartMarker(markerObj, limits, color, chartLib) {
-  // todo: implement this
+  // return empty object if smth. is wrong
+  if (!markerObj.hasOwnProperty("Content") || !((typeof markerObj.Content === "string")
+    || (typeof markerObj.Content === "object"
+      && markerObj.Content.hasOwnProperty("X")
+      && markerObj.Content.hasOwnProperty("Y")))) {
+    return {};
+  }
+  const overrideColor = (markerObj.hasOwnProperty("Settings") && (typeof markerObj.Settings === "object")
+    && markerObj.Settings.hasOwnProperty("Color")) ? markerObj.Settings.Color : null;
+  const colors = {
+    markerColor: overrideColor || color
+  }
+  switch (chartLib.toLowerCase()) {
+    case "chartjs":
+    // todo: implement this
+    case "plotly":
+    default:
+      return $ru.createSeriesForPlotly(markerObj.Title, markerObj.Content.X, markerObj.Content.Y, markerObj.Settings, colors, true);
+  }
 }
 
 function createChartSeries(seriesObj, limits, color, chartLib) {
   // return empty object if smth. is wrong
-  if (!seriesObj || !(typeof seriesObj === "object") || !seriesObj.hasOwnProperty("Type")
-    || seriesObj.Type.toLowerCase() !== "series" || !seriesObj.hasOwnProperty("Content")
-    || !((typeof seriesObj.Content === "string")
-      || (typeof seriesObj.Content === "object"
-        && seriesObj.Content.hasOwnProperty("Dates")
-        && seriesObj.Content.hasOwnProperty("Values")))) {
+  if (!seriesObj.hasOwnProperty("Content") || !((typeof seriesObj.Content === "string")
+    || (typeof seriesObj.Content === "object"
+      && seriesObj.Content.hasOwnProperty("Dates")
+      && seriesObj.Content.hasOwnProperty("Values")))) {
     return {};
   }
   if (typeof seriesObj.Content === "string") {
@@ -130,7 +196,7 @@ function createChartSeries(seriesObj, limits, color, chartLib) {
       return $ru.createSeriesForChartJs(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings, colors, limits);
     case "plotly":
     default:
-      return $ru.createSeriesForPlotly(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings, colors);
+      return $ru.createSeriesForPlotly(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings, colors, false);
   }
 }
 
@@ -144,7 +210,7 @@ function addPageBreak(parent, _breakObj) {
 }
 
 // create chart elements using Chart.js library
-function createChartForChartJs(data, limits, settings) {
+function createChartForChartJs(data, limits, settings, ticks) {
   const dateFormat = settings.DateFormat;
   const highlight = settings.Highlight || [];
   var canvas = document.createElement("canvas");
@@ -255,7 +321,7 @@ function createSeriesForChartJs(title, dates, values, seriesSettings, colors, li
 }
 
 // create chart elements using Plotly library
-function createChartForPlotly(data, limits, settings) {
+function createChartForPlotly(data, limits, settings, ticks) {
   const DEFAULT_GRID_COLOR = '#ddd';
   const DEFAULT_SHOW_AXIS = true;
   const DEFAULT_AXIS_COLOR = '#aaa';
@@ -269,6 +335,7 @@ function createChartForPlotly(data, limits, settings) {
     : settings.InteractiveCharts;
   var chartBody = document.createElement("div");
   $(chartBody).addClass("rephrase-chart-body");
+  debugger;
   const layout = {
     showlegend: (!settings.hasOwnProperty("ShowLegend")) ? DEFAULT_SHOW_LEGEND : settings.ShowLegend,
     font: {
@@ -281,7 +348,12 @@ function createChartForPlotly(data, limits, settings) {
       tickformat: isSeries ? $ru.momentJsDateFormatToD3TimeFormat(dateFormat) : "",
       gridcolor: DEFAULT_GRID_COLOR,
       showline: DEFAULT_SHOW_AXIS,
-      linecolor: DEFAULT_AXIS_COLOR
+      linecolor: DEFAULT_AXIS_COLOR,
+      tickmode: isSeries ? "auto" : "array",
+      tickvals: ticks.tickValues,
+      ticktext: ticks.tickLabels,
+      tickangle: isSeries ? "auto" : 0,
+      ticklabeloverflow: "hide past div",
       // tickformatstops: [
       //   {
       //     "dtickrange": [null, 604800000],
@@ -303,7 +375,7 @@ function createChartForPlotly(data, limits, settings) {
       fixedrange: true,
       tickformat: 'g',
       gridcolor: DEFAULT_GRID_COLOR,
-      showline: DEFAULT_SHOW_AXIS,
+      showline: isSeries ? DEFAULT_SHOW_AXIS : false, // so that YC charts look nicer
       linecolor: DEFAULT_AXIS_COLOR
     },
     legend: {
@@ -381,14 +453,23 @@ function createChartForPlotly(data, limits, settings) {
 }
 
 // create series object for Plotly chart
-function createSeriesForPlotly(title, dates, values, seriesSettings, colors) {
+function createSeriesForPlotly(title, dates, values, seriesSettings, colors, markerOnly) {
   const seriesPlotType = seriesSettings.Type || "scatter";
   var seriesObj = {
-    x: dates,
-    y: values,
+    x: (dates instanceof Array) ? dates : [dates],
+    y: (values instanceof Array) ? values : [values],
     name: title || "",
     type: seriesPlotType.toLowerCase()
   };
+  if (markerOnly) {
+    seriesObj.mode = "markers";
+    seriesObj.marker = {
+      color: colors.markerColor,
+      symbol: seriesSettings.Symbol || "circle-open", // see: https://plotly.com/javascript/reference/#scatter-marker-symbol
+      size: 12
+    };
+    seriesObj.showlegend = false;
+  }
   if (seriesObj.type === "bar") {
     seriesObj.marker = {
       color: colors.barFaceColor,
@@ -398,10 +479,8 @@ function createSeriesForPlotly(title, dates, values, seriesSettings, colors) {
       }
     }
   } else {
-    seriesObj.marker = {
-      line: {
-        color: colors.lineColor
-      }
+    seriesObj.line = {
+      color: colors.lineColor
     }
   }
   return seriesObj;
