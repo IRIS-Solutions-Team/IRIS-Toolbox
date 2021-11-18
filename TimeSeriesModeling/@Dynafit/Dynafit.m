@@ -1,6 +1,6 @@
-% Dynamo  Dynamic Factor Models
+% Dynafit  Dynamic Factor Models
 %
-% This section describes the `Dynamo` class of objects.
+% This section describes the `Dynafit` class of objects.
 %
 %
 % Description
@@ -24,14 +24,14 @@
 % * \(u_t\) is a vector of orthonormal VAR errors, with
 % \(\Omega=\mathrm{E}[u_t u_t']\).
 %
-% Dynamo methods:
+% Dynafit methods:
 %
 % Categorical List
 % -----------------
 %
 % __Constructor__
 %
-%   Dynamo - Create new empty Dynamo object
+%   Dynafit - Create new empty Dynafit object
 %
 %
 % __Properties Directly Accessible__
@@ -48,7 +48,7 @@
 %   Cross - Downscale for off-diagonal elements in idiosyncratic covariance matrix
 %
 %
-% __Getting Information about Dynamo Objects__
+% __Getting Information about Dynafit Objects__
 %
 %   comment - Get or set user comments in an IRIS object
 %   get - Query model object properties
@@ -59,12 +59,12 @@
 %
 % __Estimation__
 %
-%   estimate - Estimate Dynamo using static principal components
+%   estimate - Estimate Dynafit using static principal components
 %
 %
 % __Filtering and Forecasting__
 %
-%   filter - Re-estimate factors by Kalman filtering data taking Dynamo coefficients as given
+%   filter - Re-estimate factors by Kalman filtering data taking Dynafit coefficients as given
 %
 %
 
@@ -72,7 +72,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 classdef (CaseInsensitiveProperties=true) ...
-    Dynamo < BaseVAR
+    Dynafit < BaseVAR
 
     properties
         % C  Factor loading matrix
@@ -170,39 +170,39 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
     methods
-        function this = Dynamo(list, options)
-            % Dynamo  Create new empty Dynamo object
+        function this = Dynafit(list, options)
+            % Dynafit  Create new empty Dynafit object
             %
             % __Syntax__
             %
-            %     F = Dynamo(List)
+            %     F = Dynafit(List)
             %
             %
             % __Input Arguments__
             %
             % * `List` [ cellstr | char ] - Names of observed variables in
-            % the Dynamo model.
+            % the Dynafit model.
             %
             %
             % __Output Arguments__
             %
-            % * `F` [ Dynamo ] - New Dynamo object.
+            % * `F` [ Dynafit ] - New Dynafit object.
             %
             %
             % __Description__
             %
-            % This function creates a new empty Dynamo object. It is usually followed by
-            % the [estimate](Dynamo/estimate) function to estimate the Dynamo parameters
+            % This function creates a new empty Dynafit object. It is usually followed by
+            % the [estimate](Dynafit/estimate) function to estimate the Dynafit parameters
             % on data.
             %
             %
             % __Example__
             %
-            % To estimate a Dynamo, you first need to create an empty VAR object, and
-            % then run the [Dynamo](Dynamo/estimate) function on it, e.g.
+            % To estimate a Dynafit, you first need to create an empty VAR object, and
+            % then run the [Dynafit](Dynafit/estimate) function on it, e.g.
             %
             %     list = {'DLCPI', 'DLGDP', 'R'};
-            %     f = Dynamo(list);
+            %     f = Dynafit(list);
             %     f = estimate(f, d, range);
             %
 

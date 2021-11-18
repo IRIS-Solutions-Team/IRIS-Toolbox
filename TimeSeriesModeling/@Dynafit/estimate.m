@@ -1,4 +1,4 @@
-% Type `web Dynamo/estimate.md` for help on this function
+% Type `web Dynafit/estimate.md` for help on this function
 %
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
@@ -9,8 +9,8 @@ function ...
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('Dynamo.estimate');
-    pp.addRequired('Dynamo', @(x) isa(x, 'Dynamo'));
+    pp = extend.InputParser('Dynafit.estimate');
+    pp.addRequired('Dynafit', @(x) isa(x, 'Dynafit'));
     pp.addRequired('InputData', @isstruct);
     pp.addRequired('Range', @validate.range);
     pp.addRequired('RQ', ...
@@ -45,7 +45,7 @@ y0 = y;
 
 % Estimate static factors using principal components
 [FF, this.C, U, this.Sigma, this.SingValues, sample, ctf] ...
-    = Dynamo.pc(y, crit, opt.Method);
+    = Dynafit.pc(y, crit, opt.Method);
 
 % Estimate VAR(p, q) on factors
 [this.A, this.B, this.Omega, E, this.IxFitted] ...
@@ -63,11 +63,11 @@ if this.Cross<1
 end
 
 % Common components
-common = Dynamo.cc(this.C, FF);
-common = Dynamo.destdize(common, this.Mean, this.Std); 
+common = Dynafit.cc(this.C, FF);
+common = Dynafit.destdize(common, this.Mean, this.Std); 
 
 % Idiosyncratic residuals
-U = Dynamo.destdize(U, 0, this.Std);
+U = Dynafit.destdize(U, 0, this.Std);
 
 
 %

@@ -7,8 +7,8 @@ function [outputDb, this, info] = kalmanFilter(this, inputDb, range, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('Dynamo/kalmanFilter');
-    pp.addRequired('a', @(x) isa(x, 'Dynamo'));
+    pp = extend.InputParser('Dynafit/kalmanFilter');
+    pp.addRequired('a', @(x) isa(x, 'Dynafit'));
     pp.addRequired('InputData', @validate.databank);
     pp.addRequired('Range', @isnumeric);
     pp.addParameter('Cross', true, ...
@@ -63,7 +63,7 @@ end
 % cross-correlations are pulled down because then the idiosyncratic cov
 % matrix is non-singular.
 if isequal(opt.InvFunc, @auto)
-    if this.Cross==1 && opt.Cross==1
+    if double(this.Cross)==1 && double(opt.Cross)==1
         invFunc = @pinv;
     else
         invFunc = @inv;
@@ -97,13 +97,13 @@ end
 %
 % Observed
 %
-[y, Py] = Dynamo.destdize(y, this.Mean, this.Std, Py);
+[y, Py] = Dynafit.destdize(y, this.Mean, this.Std, Py);
 
 %
 % Common components
 %
-[cc, Pc] = Dynamo.cc(this.C, x(1:numF, :, :), Px(1:numF, 1:numF, :, :));
-[cc, Pc] = Dynamo.destdize(cc, this.Mean, this.Std, Pc);
+[cc, Pc] = Dynafit.cc(this.C, x(1:numF, :, :), Px(1:numF, 1:numF, :, :));
+[cc, Pc] = Dynafit.destdize(cc, this.Mean, this.Std, Pc);
 
 
 %
@@ -116,7 +116,7 @@ Pf = Px(1:numF, 1:numF, :, :);
 %
 % Idiosyncratic residuals
 %
-uu = Dynamo.destdize(uu, 0, this.Std);
+uu = Dynafit.destdize(uu, 0, this.Std);
 
 
 if ~opt.MeanOnly

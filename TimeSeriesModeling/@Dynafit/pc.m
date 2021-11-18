@@ -25,14 +25,14 @@ nanInx = isnan(Y);
 inxSample = all(~nanInx, 1);
 nObs = sum(inxSample);
 if nObs==2
-    utils.error('Dynamo', 'No observations available to estimate Dynamo object.');
+    utils.error('Dynafit', 'No observations available to estimate Dynafit object.');
 end
 
 % Covariance matrix of input series.
 % The matrix is needed whatever method.
 covY = Y(:, inxSample)*Y(:, inxSample)'/nObs;
 if any(~isfinite(covY(:)))
-    utils.error('Dynamo', 'Sample covariance matrix contains NaNs or Infs.');
+    utils.error('Dynafit', 'Sample covariance matrix contains NaNs or Infs.');
 end
 
 if method==1
