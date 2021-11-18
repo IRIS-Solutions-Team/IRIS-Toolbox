@@ -76,7 +76,7 @@ classdef Report ...
                 template = hereReadTemplate(source);
 
                 % FIXME
-                template = replace(template, """Lato""", """Open Sans""");
+                % template = replace(template, """Lato""", """Open Sans""");
 
                 template = hereEmbedReportData(template);
                 template = hereEmbedUserStyle(template);

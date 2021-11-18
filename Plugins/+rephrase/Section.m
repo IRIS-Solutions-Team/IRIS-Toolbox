@@ -14,7 +14,6 @@ classdef Section ...
             rephrase.Type.CHART
             rephrase.Type.MATRIX
             rephrase.Type.PAGER
-            rephrase.Type.SECTION
         ]
     end
 

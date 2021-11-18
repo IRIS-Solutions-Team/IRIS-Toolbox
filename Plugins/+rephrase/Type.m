@@ -2,18 +2,20 @@ classdef Type
     enumeration
         VOID
         REPORT
+
+        SECTION
         GRID
         TABLE
         DIFFTABLE
         CHART
+        PAGER
+
         SERIES
         DIFFSERIES
         HEADING
-        SECTION
         PAGEBREAK
         TEXT
         MATRIX
-        PAGER
     end
 end
 

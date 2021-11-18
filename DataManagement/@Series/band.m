@@ -3,8 +3,8 @@ function [plotHandle, bandHandles, dates, midData, xCoor] ...
 
 arguments
     mid Series
-    lower Series
-    upper Series
+    lower {locallyValidateBounds} = []
+    upper {locallyValidateBounds} = []
 
     options.Range {validate.mustBeDate} = [-Inf, Inf]
     options.AxesHandle (1, 1) = @gca
@@ -14,6 +14,19 @@ arguments
     bandOptions.White (1, 1) double {mustBeInRange(bandOptions.White, 0, 1)} = 0.85
     bandOptions.Relative (1, 1) logical = true
     bandOptions.ExcludeFromLegend (1, 1) logical = true
+end
+
+
+if isequal(lower, []) && isequal(upper, [])
+    lower = retrieveColumns(mid, 2);
+    if size(mid.Data, 2)>2
+        upper = retrieveColumns(mid, 3);
+    end
+    mid = retrieveColumns(mid, 1);
+end
+
+if isequal(upper, [])
+    upper = lower;
 end
 
 
@@ -32,4 +45,19 @@ bandHandles = series.band(axesHandle, plotHandle, midData, xCoor, lowerData, upp
 set(axesHandle, 'layer', options.Layer);
 
 end%
+
+%
+% Local validators
+%
+
+function locallyValidateBounds(x)
+    %(
+    if isa(x, 'Series') || isequal(x, [])
+        return
+    end
+    error("Input value must be a time series.");
+    %)
+end%
+
+
 

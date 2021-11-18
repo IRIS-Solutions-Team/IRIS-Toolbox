@@ -24,6 +24,7 @@ if isempty(pp)
     pp.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     pp.addParameter('Smooth', false, @validate.logicalScalar);
     pp.addParameter('Highlight', [], @validate.properRange);
+    pp.addParameter('PlotSettings', cell.empty(1, 0), @iscell);
 end
 opt = pp.parse(varargin{:});
 unmatchedOptions = pp.UnmatchedInCell;
@@ -70,7 +71,7 @@ end
 
 set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
 [plotHandle, isTimeAxis] = this.plotSwitchboard( ...
-    plotFunc, axesHandle, xData, yData, plotSpec, opt.Smooth, unmatchedOptions{:} ...
+    plotFunc, axesHandle, xData, yData, plotSpec, opt.Smooth, unmatchedOptions{:}, opt.PlotSettings{:} ...
 );
 
 try %#ok<TRYNC>
