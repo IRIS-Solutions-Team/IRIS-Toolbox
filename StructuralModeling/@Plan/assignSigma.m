@@ -46,7 +46,7 @@ if isempty(pp)
     pp = extend.InputParser('Plan.assign');
     addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
     addRequired(pp, 'datesToAssign', @(x) isequal(x, @all) || validate.date(x));
-    addRequired(pp, 'namesToAssign', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(pp, 'namesToAssign', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
     addRequired(pp, 'variantsToAssign', @(x) isequal(x, @all) || isnumeric(x));
     addRequired(pp, 'newValue', @isnumeric);
 end
@@ -57,9 +57,6 @@ else
     [variants, newValue] = varargin{:};
 end
 pp.parse(this, dates, names, variants, newValue);
-opt = pp.Options;
-
-%--------------------------------------------------------------------------
 
 inxDates = resolveDates(this, dates);
 

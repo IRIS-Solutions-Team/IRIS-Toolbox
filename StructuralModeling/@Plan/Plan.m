@@ -298,7 +298,7 @@ classdef Plan ...
 
 
         function inxDates = resolveDates(this, dates)
-            if isequal(dates, @all)
+            if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
                 inxDates = false(1, this.NumExtdPeriods);
                 inxDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
                 return

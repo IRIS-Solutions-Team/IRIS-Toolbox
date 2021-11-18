@@ -57,8 +57,9 @@ elseif lower(what)==lower("postprocessor")
 
 elseif any(lower(what)==erase(["parameter-values", "parameters-struct"], "-"))
     inx = this.Quantity.Type==4;
+    names = this.Quantity.Name(inx);
     values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
-    output = locallyCreateStruct(this.Quantity.Name(inx), values);
+    output = locallyCreateStruct(names, values);
 
 
 elseif lower(what)==lower("stdValues")
