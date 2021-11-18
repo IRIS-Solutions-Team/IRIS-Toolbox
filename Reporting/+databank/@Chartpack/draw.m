@@ -63,7 +63,7 @@ for x = this.Charts
     [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
         = locallyCreateTitle(x, currentAxes);
 
-    locallyHighlight(x, currentAxes);
+    locallyDrawBackground(x);
 
     runAxesExtras(x, currentAxes);
 
@@ -121,14 +121,20 @@ function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes)
 end%
 
 
-function locallyHighlight(x, currentAxes)
+function locallyDrawBackground(x)
     %(
     parent = x.ParentChartpack;
-    if isempty(parent.Highlight)
-        return
+    if ~isempty(parent.Highlight)
+        visual.highlight(parent.Highlight);
     end
-    visual.highlight(currentAxes, parent.Highlight);
+    if ~isempty(parent.XLine)
+        visual.xline(parent.XLine{1}, parent.XLine{2:end});
+    end
+    if ~isempty(parent.YLine)
+        visual.yline(parent.YLine{1}, parent.YLine{2:end});
+    end
     %)
 end%
+
 
 %#ok<*AGROW>

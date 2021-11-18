@@ -1,4 +1,4 @@
-function [lineHandles, textHandles] = plotnfiniteLine(caller, varargin)
+function [lineHandles, textHandles] = plotInfiniteLine(caller, varargin)
 % plotInfiniteLine  Add infintely stretched vertical or horizontal line at specified position
 %
 % Backend IRIS function

@@ -2,8 +2,8 @@
 %
 % __Syntax__
 %
-%     [PatchHandles, TextHandles] = highlight(Range, ...)
-%     [PatchHandles, TextHandles] = highlight(AxesHandles, Range, ...)
+%     [patchHandles, textHandles] = highlight(Range, ...)
+%     [patchHandles, textHandles] = highlight(AxesHandles, Range, ...)
 %
 %
 % __Input Arguments__
@@ -47,6 +47,9 @@
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 function [patchHandles, textHandles] = highlight(varargin)
+
+BACKGROUND_LEVEL = -4;
+LIM_MULTIPLE = 100;
 
 %#ok<*AGROW>
 
@@ -129,9 +132,6 @@ if isscalar(opt.Color)
     opt.Color = opt.Color*[1, 1, 1];
 end
 
-BACKGROUND_LEVEL = -4;
-LIM_MULTIPLE = 100;
-
 for a = 1 : numel(axesHandle)
     h = axesHandle(a);
 
@@ -150,7 +150,7 @@ for a = 1 : numel(axesHandle)
 
     yData = getYData(h, LIM_MULTIPLE);
     for i = 1 : numel(range)
-        xData = getXData(h, range{i}, opt);
+        xData = locallyGetXData(h, range{i}, opt);
         if isempty(xData)
             continue
         end
@@ -193,7 +193,24 @@ set(patchHandles, 'HandleVisibility', opt.HandleVisibility);
 end%
 
 
-function xData = getXData(h, range, opt)
+function xData = locallyGetXData(h, range, opt)
+    %(
+    isLegacyTimeSeriesPlot = isequal(getappdata(h, 'IRIS_SERIES'), true);
+    if isLegacyTimeSeriesPlot
+        datePosition = getappdata(h, 'IRIS_DATE_POSITION');
+        if isempty(datePosition)
+            datePosition = opt.DatePosition;
+        end
+        range = double(range);
+        dates = [range(1)-1, range(1), range(end), range(end)+1];
+        freq = dater.getFrequency(range(1));
+        if freq~=Frequency.Daily
+            dates = dat2dec(dates, char(datePosition));
+        end
+        xData = [ mean(dates(1:2)), mean(dates(3:4)) ];
+        return
+    end
+
     isTimeSeriesPlot = isequal(getappdata(h, 'IRIS_TimeSeriesPlot'), true);
     if ~isTimeSeriesPlot || ~opt.Dates
         xData = range([1, end]);
@@ -231,17 +248,21 @@ function xData = getXData(h, range, opt)
         end
         xData = [xData(1)-around, xData(2)+around];
     end
+    %)
 end%
 
 
 function yData = getYData(h, LIM_MULTIPLE)
+    %(
     yData = get(h, 'YLim');
     height = yData(2) - yData(1);
     yData = [yData(1)-LIM_MULTIPLE*height, yData(2)+LIM_MULTIPLE*height];
+    %)
 end%
 
 
 function handlePatch = locallyDrawPatch(handleAxes, xData, yData, opt, unmatched)
+    %(
     xData = xData([1, 2, 2, 1]);
     yData = yData([1, 1, 2, 2]);
     nextPlot = get(handleAxes, 'NextPlot');
@@ -254,5 +275,6 @@ function handlePatch = locallyDrawPatch(handleAxes, xData, yData, opt, unmatched
         , unmatched{:} ...
     );
     set(handleAxes, 'NextPlot', nextPlot);
+    %)
 end%
 

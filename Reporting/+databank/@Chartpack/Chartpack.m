@@ -5,7 +5,6 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
 
         Range = Inf
         PlotFunc {validate.mustBeFunc} = @plot
-        Highlight {locallyValidateHighlight} = double.empty(1, 0)
         Extra = []
         Transform {validate.mustBeScalarOrEmpty} = []
         NewLine (1, 1) string = "//"
@@ -13,9 +12,13 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         ShowFormulas (1, 1) logical = false
         ShowTransform (1, 1) logical = false
         ShowFigure (1, 1) double = Inf
-
         Round (1, 1) double = Inf
+
         Expansion (1, :) cell = cell.empty(1, 0)
+
+        Highlight {locallyValidateHighlight} = double.empty(1, 0)
+        XLine = cell.empty(1, 0)
+        YLine = cell.empty(1, 0)
 
         Tiles = @auto
         MaxTilesPerWindow (1, 1) double {mustBeInteger, mustBePositive} = 40
@@ -56,6 +59,22 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         function this = le(this, varargin)
             this = clear(this);
             this = add(this, varargin{:});
+        end%
+
+
+        function this = set.XLine(this, x)
+            if ~iscell(x)
+                x = {x};
+            end
+            this.XLine = x;
+        end%
+
+
+        function this = set.YLine(this, x)
+            if ~iscell(x)
+                x = {x};
+            end
+            this.YLine = x;
         end%
     end
 
