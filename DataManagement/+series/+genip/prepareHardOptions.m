@@ -14,7 +14,7 @@ numInit = transition.NumInit;
 highRange = double(highRange);
 highStart = highRange(1);
 highEnd = highRange(end);
-highFreq = DateWrapper.getFrequency(highStart);
+highFreq = dater.getFrequency(highStart);
 initStart = dater.plus(highStart, -numInit);
 initEnd = dater.plus(highStart, -1);
 
