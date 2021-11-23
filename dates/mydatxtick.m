@@ -86,7 +86,11 @@ return
         else
             firstDate = double(userRange(1));
             lastDate = double(userRange(end));
-            xLim = dat2dec([firstDate, lastDate], opt.DatePosition);
+            if isDaily
+                xLim = [firstDate, lastDate];
+            else
+                xLim = dat2dec([firstDate, lastDate], opt.DatePosition);
+            end
         end
         xLim = double(xLim);
         while xLim(2)<=xLim(1)
