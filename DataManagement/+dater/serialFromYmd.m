@@ -2,13 +2,13 @@ function serial = serialFromYmd(freq, year, month, day)
 
 freq = round(double(freq));
 switch freq
-    case 1
+    case Frequency.Yearly
         serial = Frequency.serialize(freq, year);
-    case 2
+    case Frequency.HalfYearly
         serial = Frequency.serialize(freq, year, Frequency.month2period(freq, month));
-    case 4
+    case Frequency.Quarterly
         serial = Frequency.serialize(freq, year, Frequency.month2period(freq, month));
-    case 12
+    case Frequency.Monthly
         serial = Frequency.serialize(freq, year, month);
     otherwise
         serial = Frequency.serialize(freq, year, month, day);

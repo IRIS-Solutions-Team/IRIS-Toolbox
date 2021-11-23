@@ -1,7 +1,7 @@
 
 % >=R2019b
 %(
-function code = printWithValues(modelObject, modelFile, options)
+function code = print(modelObject, modelFile, options)
 
 arguments
     modelObject (1, 1) Model
@@ -19,7 +19,7 @@ end
 
 % <=R2019a
 %{
-function code = printWithValues(modelObject, modelFile, varargin)
+function code = print(modelObject, modelFile, varargin)
 
 persistent pp
 if isempty(pp)

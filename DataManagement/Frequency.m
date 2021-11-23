@@ -53,17 +53,18 @@ classdef Frequency < double
         end%
 
 
-        function daysPerPeriods = getDaysPerPeriod(this)
+        %{
+        function days = getDaysPerPeriod(this)
             switch this
                 case Frequency.WEEKLY
-                    daysPerPeriods = 7;
+                    days = 7;
                 case Frequency.DAILY
-                    daysPerPeriods = 1;
+                    days = 1;
                 otherwise
-                    daysPerPeriods = NaN;
+                    days = NaN;
             end
         end%
-
+        %}
 
         function output = colon(a, b, varargin)
             if isa(a, 'Frequency')

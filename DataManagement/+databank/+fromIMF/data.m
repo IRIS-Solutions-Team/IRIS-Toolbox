@@ -1,3 +1,5 @@
+% Type `web +databank/+fromIMF/data.md` for help on this function
+%
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
@@ -78,10 +80,11 @@ info.Response = response;
 end%
 
 %
-% Local Functions
+% Local functions
 %
 
 function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, counterMap, options, nameOptions)
+    %(
     try
         allResponseData = response.CompactData.DataSet.Series;
     catch
@@ -246,14 +249,17 @@ end%
 %
 
 function locallyValidateFrequency(freq)
+    %(
     if any(freq==[Frequency.YEARLY, Frequency.QUARTERLY, Frequency.MONTHLY])
         return
     end
     error("Frequency needs to be one of {YEARLY, QUARTERLY, MONTHLY}.");
+    %)
 end%
 
 
 function locallyValidateDate(date, freq)
+    %(
     if isinf(date)
         return
     end
@@ -261,5 +267,6 @@ function locallyValidateDate(date, freq)
         return
     end
     error("Options StartDate and EndDate need to be regular dates complying with Frequency.");
+    %)
 end%
 

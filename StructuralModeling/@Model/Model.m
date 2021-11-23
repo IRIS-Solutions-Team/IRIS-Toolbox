@@ -264,7 +264,7 @@ classdef Model ...
         varargout = kalmanFilter(varargin)
         varargout = equationStartsWith(varargin)
         varargout = isLinear(varargin)
-        varargout = printWithValues(varargin)
+        varargout = print(varargin)
         varargout = replaceNames(varargin)
         varargout = rescaleStd(varargin)
         varargout = resetBounds(varargin)
