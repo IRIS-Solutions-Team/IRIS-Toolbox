@@ -45,7 +45,7 @@ Xi = Xi + P*(FiZ'*U);
 %
 % Make correction step for exact measurement equations
 %
-Xi = hereMakeCorrectionForExactMeasuremen(Xi);
+Xi = hereMakeCorrectionForExactMeasurement(Xi);
 
 return
 
@@ -70,7 +70,7 @@ return
     end%
 
 
-    function Xi = hereMakeCorrectionForExactMeasuremen(Xi)
+    function Xi = hereMakeCorrectionForExactMeasurement(Xi)
         %(
         if isempty(SigmaW)
             Zc = Z;

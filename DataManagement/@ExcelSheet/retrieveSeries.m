@@ -60,7 +60,7 @@ opt = parse(pp, this, locationRef, varargin{:});
 if ~iscell(locationRef)
     locationRef = { locationRef };
 end
-location = cell(size(locationRef));
+
 if startsWith(this.Orientation, "row", "ignoreCase", true)
     location = ExcelReference.decodeRow(locationRef{:});
     dataCutout = this.Buffer(location, dataRange);
@@ -69,12 +69,14 @@ else
     location = ExcelReference.decodeColumn(locationRef{:});
     dataCutout = this.Buffer(dataRange, location);
 end
+
 data = nan(size(dataCutout));
 inxValid = cellfun(@isnumeric, dataCutout);
 dataCutout(~inxValid) = { NaN };
 for i = 1 : size(dataCutout, 2)
     data(:, i) = [dataCutout{:, i}];
 end
+
 if isempty(opt.Comment)
     comment = retrieveDescription(this, locationRef, varargin{:});
 else
