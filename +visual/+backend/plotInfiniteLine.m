@@ -1,16 +1,14 @@
-function [lineHandles, textHandles] = plotInfiniteLine(caller, varargin)
 % plotInfiniteLine  Add infintely stretched vertical or horizontal line at specified position
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+function [lineHandles, textHandles] = plotInfiniteLine(caller, varargin)
 
 lineHandles = gobjects(1 ,0);
 textHandles = gobjects(1 ,0);
 
-if ~isempty(varargin) && all(isgraphics(varargin{1}))
+if ~isempty(varargin) && all(isgraphics(varargin{1})) && ~isnumeric(varargin{1})
     axesHandle = varargin{1};
     varargin(1) = [ ];
     axesHandle = visual.backend.resolveAxesHandles('All', axesHandle);
@@ -44,6 +42,7 @@ if isempty(parser)
     parser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
     parser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
     parser.addParameter({'Placement', 'LinePlacement', 'TimePosition'}, 'Exactly', @(x) any(strcmpi(x, {'Exactly', 'Middle', 'Before', 'After'})));
+    parser.addParameter('NumPointsWithin', 5);
     % Legacy options
     parser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
     parser.addParameter('VPosition', '');
@@ -136,25 +135,36 @@ for a = 1 : numOfAxes
     yHeight = yLim(2) - yLim(1);
     for i = 1 : numel(location)
         if isVertical
-            xData = location([i, i]);
-            yData = [yLim(1)-LIM_MULTIPLE*yHeight, yLim(2)+LIM_MULTIPLE*yHeight];
+            opt.NumPointsWithin = 5;
+            xData = repmat(location(i), 1, opt.NumPointsWithin+2);
+            yData = [
+                yLim(1)-LIM_MULTIPLE*yHeight ...
+                , linspace(yLim(1), yLim(2), opt.NumPointsWithin) ...
+                , yLim(2)+LIM_MULTIPLE*yHeight ...
+            ];
         else
-            xData = [xLim(1)-LIM_MULTIPLE*xWidth, xLim(2)+LIM_MULTIPLE*xWidth];
-            yData = location([i, i]);
+            xData = [
+                xLim(1)-LIM_MULTIPLE*xWidth ...
+                , linspace(xLim(1), xLim(2), opt.NumPointsWithin) ...
+                , xLim(2)+LIM_MULTIPLE*xWidth ...
+            ];
+            yData = repmat(location(i), 1, opt.NumPointsWithin+2);
         end
         % Function line( ) always adds line objects to existing graphs even if
         % the NextPlot option is 'replace'
-        ithLineHandle = line( xData, yData, ...
-                              'Parent', h, ...
-                              'Color', [0, 0, 0], ...
-                              'YLimInclude', 'off', 'XLimInclude', 'off', ...
-                              'LineWidth', 0.5, ...
-                              unmatched{:} );
-        
+        ithLineHandle = line(  ...
+            xData, yData ...
+            , 'Parent', h ...
+            , 'Color', [0, 0, 0] ...
+            , 'YLimInclude', 'off' ...
+            , 'XLimInclude', 'off' ...
+            , 'LineWidth', 0.5 ...
+            , unmatched{:} ...
+        );
         % Add annotation
         if ~isempty(opt.Text) && isVertical
-            ithTextHandle = visual.backend.createCaption( h, location(i), ...
-                                                          opt.Text{:} );
+            ithTextHandle ...
+                = visual.backend.createCaption(h, location(i), opt.Text{:});
             textHandles = [textHandles, ithTextHandle]; %#ok<AGROW>
         end
 

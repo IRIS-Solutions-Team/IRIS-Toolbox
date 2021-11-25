@@ -21,12 +21,12 @@ classdef ProgressBar < handle
 
 
     properties (Constant)
-        FULL_BAR =  char(9608)
-        PARTIAL_BAR =  char(9615:-1:9608)
+        FULL_BAR = '#' % char(9608)
+        PARTIAL_BAR =  '.oO@#' % char(9615:-1:9608)
         EMPTY_BAR = ' '
         TITLE_FILL = '.'
-        LEFT_EDGE = '|'
-        RIGHT_EDGE = '|'
+        LEFT_EDGE = '['
+        RIGHT_EDGE = ']'
     end
 
 
@@ -46,7 +46,7 @@ classdef ProgressBar < handle
                 this.TitleRow(3+(1:length(this.Title))) = this.Title;
             end
             %}
-            this.TitleRow = [repmat(' ', 1, strlength(this.LEFT_EDGE)), this.Title];
+            this.TitleRow = [repmat(' ', 1, strlength(this.LEFT_EDGE)-1), this.Title];
             textual.looseLine( );
             fprintf('%s', this.TitleRow);
             this.LastIndicatorRow = sprintf('%s%*s%s', this.LEFT_EDGE, this.NumProgress, ' ', this.RIGHT_EDGE);
@@ -68,12 +68,14 @@ classdef ProgressBar < handle
                 partialBar = char.empty(1, 0);
             end
             emptyBars = repmat(this.EMPTY_BAR, 1, this.NumProgress - numel(fullBars) - numel(partialBar));
-            deleteLastIndicatorRow(this);
             indicatorRow = [
                 this.LEFT_EDGE, fullBars, partialBar, emptyBars, this.RIGHT_EDGE ...
-                sprintf(' %5.1f%%', permille/10)
+                sprintf(' %g%%\n ', round(permille/10))
             ];
-            fprintf('%s', indicatorRow);
+            if ~isequal(indicatorRow, this.LastIndicatorRow)
+                deleteLastIndicatorRow(this);
+                fprintf('%s', indicatorRow);
+            end
             this.LastIndicatorRow = indicatorRow;
             this.Diary(end+1, :) = {permille, indicatorRow};
             if permille==1000
