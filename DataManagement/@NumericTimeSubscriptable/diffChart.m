@@ -1,7 +1,7 @@
 
 % >=R2019b
 %(
-function [axesHandle, plotHandles, diffPlotHandle] = diffChart(inputSeries, opt)
+function [plotHandles, axesHandle, diffPlotHandle] = diffChart(inputSeries, opt)
 
 arguments
     inputSeries (:, 2) Series

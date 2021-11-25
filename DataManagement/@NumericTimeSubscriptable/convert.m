@@ -456,7 +456,7 @@ function [y2, flag] = locallyImplementQuadraticMatch(y1, numWithin)
         % y2__(:, 1) = b(1, 2) + b(2, 2)*t1 + b(3, 2)*t1.^2;
         % y2__(:, end) = b(1, end-1) + b(2, end-1)*t3 + b(3, end-1)*t3.^2;
 
-        y2(:, i) = a * c;
+        y2(:, i) = reshape(a * c, [], 1);
     end
     %)
 end%

@@ -47,8 +47,13 @@ else
 end
 
 if startsWith(string(options.MatrixFormat), "named", "ignoreCase", true)
+    eVectorX = eVector;
+    forward = size(R, 2) / numE - 1;
+    if forward>1
+        eVectorX = locallyExpandShockNames(eVectorX, forward);
+    end
     T = namedmat(T, xiVector, alphaVector1);
-    R = namedmat(R, xiVector, eVector);
+    R = namedmat(R, xiVector, eVectorX);
     K = namedmat(K, xiVector, "1");
     Z = namedmat(Z, yVector, alphaVector0);
     H = namedmat(H, yVector, eVector);
@@ -76,3 +81,16 @@ output.EVector = eVector;
 
 end%
 
+%
+% Local functions
+%
+
+function eVector = locallyExpandShockNames(eVector, horizon)
+    %(
+    temp = eVector;
+    for i = 1 : horizon
+        time = "{+" + string(i) + "}";
+        eVector = [eVector, temp + time];
+    end
+    %)
+end%
