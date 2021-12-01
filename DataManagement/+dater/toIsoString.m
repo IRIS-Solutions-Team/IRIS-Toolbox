@@ -19,7 +19,7 @@ freq(inxNaN) = [ ];
 if ~Frequency.sameFrequency(freq)
     exception.error([
         "DateWrapper:ToIsoString"
-        "Cannot convert dates of multiple date frequencies "
+        "Cannot convert date vectors with mixed date frequencies "
         "in one run of the function dater.toIsoString( )."
     ]);
 end

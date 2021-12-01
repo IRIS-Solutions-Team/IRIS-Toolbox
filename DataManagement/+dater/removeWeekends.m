@@ -1,7 +1,7 @@
 function [dates, inxWeekday] = removeWeekends(dates)
 
 freq = dater.getFrequency(dates);
-if any(freq~=Frequency.DAILY & freq~=Frequency.BUSINESS)
+if any(freq~=Frequency__.Daily)
     exception.error([
         "Dater:RemoveWeekendsNonDaily"
         "The function dater.removeWeekends() can be applied to daily or business frequency dates only."

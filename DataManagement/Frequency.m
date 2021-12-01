@@ -1,27 +1,27 @@
 classdef Frequency < double
     enumeration
-        INTEGER           (  0)
-        Integer           (  0)
+        INTEGER           (Frequency__.Integer)
+        Integer           (Frequency__.Integer)
 
-        YEARLY            (  1)
-        Yearly            (  1)
+        YEARLY            (Frequency__.Yearly)
+        Yearly            (Frequency__.Yearly)
 
-        HALFYEARLY        (  2)
-        HalfYearly        (  2)
+        HALFYEARLY        (Frequency__.HalfYearly)
+        HalfYearly        (Frequency__.HalfYearly)
 
-        QUARTERLY         (  4)
-        Quarterly         (  4)
+        QUARTERLY         (Frequency__.Quarterly)
+        Quarterly         (Frequency__.Quarterly)
 
-        MONTHLY           ( 12)
-        Monthly           ( 12)
+        MONTHLY           (Frequency__.Monthly)
+        Monthly           (Frequency__.Monthly)
 
-        WEEKLY            ( 52)
-        Weekly            ( 52)
+        WEEKLY            (Frequency__.Weekly)
+        Weekly            (Frequency__.Weekly)
 
-        DAILY             (365)
-        Daily             (365)
+        DAILY             (Frequency__.Daily)
+        Daily             (Frequency__.Daily)
 
-        NaN               (NaN)
+        NaN               (Frequency__.NaN)
     end
 
 
