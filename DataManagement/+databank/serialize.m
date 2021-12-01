@@ -2,12 +2,12 @@
 %{
 % ## Syntax ##
 %
-%     [c, listSerialized] = databank.serialized(inputDatabank, dates, ...)
+%     [c, listSerialized] = databank.serialized(inputDb, dates, ...)
 %
 %
 % ## Input Arguments ##
 %
-% __`inputDatabank`__ [ struct | Dictionary | containers.Map ] -
+% __`inputDb`__ [ struct | Dictionary | containers.Map ] -
 % Input databank whose time series and numeric entries will be serialized
 % to a character vector.
 %
@@ -20,7 +20,7 @@
 % ## Output Arguments ##
 %
 % __`c`__ [ char ] -
-% Character vector serializing the `inputDatabank`.
+% Character vector serializing the `inputDb`.
 %
 %
 % ## Options ##
@@ -36,7 +36,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [c, listSerialized] = serialize(inputDatabank, varargin)
+function [c, listSerialized] = serialize(inputDb, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
@@ -44,7 +44,7 @@ FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.serialize');
-    addRequired(pp, 'inputDatabank', @validate.databank);
+    addRequired(pp, 'inputDb', @validate.databank);
     addOptional(pp, 'dates', Inf, @(x) isequal(x, Inf) || validate.date(x));
 
     addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
@@ -61,11 +61,12 @@ if isempty(pp)
     addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'Delimiter', ',', @validate.string);
     addParameter(pp, 'QuoteStrings', true, @validate.logicalScalar);
+    addParameter(pp, 'SourceNames', Inf);
 
     addDateOptions(pp);
 end
 %)
-opt = parse(pp, inputDatabank, varargin{:});
+opt = parse(pp, inputDb, varargin{:});
 dates = pp.Results.dates;
 
 % Set up the formatting string
@@ -81,7 +82,7 @@ opt.UserDataFields = reshape(string(opt.UserDataFields), 1, []);
 
 % TODO: Implement -Inf:date, date:Inf
 if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
-    dates = databank.range(inputDatabank);
+    dates = databank.range(inputDb);
     if iscell(dates)
         exception.error([
             "Databank:CannotSaveMixedFrequencies"
@@ -113,10 +114,10 @@ o = struct( );
 % Handle custom delimiter
 o.Delimiter = opt.Delimiter;
 
-if isa(inputDatabank, 'containers.Map')
-    list = keys(inputDatabank);
-else
-    list = fieldnames(inputDatabank).';
+% Field names to save
+list = databank.fieldNames(inputDb);
+if ~isequal(opt.SourceNames, Inf)
+    list = intersect(list, textual.stringify(opt.SourceNames), 'stable');
 end
 
 % Initialise the data matrix as a N-by-1 vector of NaNs to mimic the Dates.
@@ -131,7 +132,7 @@ userDataFields = locallyInitializeUserDataFields(opt);
 inxSerialized = false(size(list));
 
 for i = 1 : nList
-    x = inputDatabank.(list{i});
+    x = inputDb.(list{i});
     
     if isa(x, 'TimeSubscriptable')
         freq__ = x.FrequencyAsNumeric;
