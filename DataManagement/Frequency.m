@@ -35,19 +35,19 @@ classdef Frequency < double
 
         function d = getCalendarDuration(this)
             switch this
-                case Frequency.YEARLY
+                case Frequency__.Yearly
                     d = calendarDuration(1, 0, 0);
-                case Frequency.HALFYEARLY
+                case Frequency__.HalfYearly
                     d = calendarDuration(0, 6, 0);
-                case Frequency.QUARTERLY
+                case Frequency__.Quarterly
                     d = calendarDuration(0, 3, 0);
-                case Frequency.MONTHLY
+                case Frequency__.Monthly
                     d = calendarDuration(0, 1, 0);
-                case Frequency.WEEKLY
+                case Frequency__.Weekly
                     d = calendarDuration(0, 0, 7);
-                case Frequency.DAILY
+                case Frequency__.Daily
                     d = calendarDuration(0, 0, 1);
-                case Frequency.INTEGER
+                case Frequency__.Integer
                     d = 1;
             end
         end%
@@ -56,9 +56,9 @@ classdef Frequency < double
         %{
         function days = getDaysPerPeriod(this)
             switch this
-                case Frequency.WEEKLY
+                case Frequency__.Weekly
                     days = 7;
-                case Frequency.DAILY
+                case Frequency__.Daily
                     days = 1;
                 otherwise
                     days = NaN;
@@ -102,22 +102,22 @@ classdef Frequency < double
 
         function [durationObj, halfDurationObj] = duration(this)
             switch this
-            case Frequency.YEARLY
+            case Frequency__.Yearly
                 durationObj = calyears(1);
                 halfDurationObj = calmonths(6);
-            case Frequency.HALFYEARLY
+            case Frequency__.HalfYearly
                 durationObj = calmonths(6);
                 halfDurationObj = calmonths(3);
-            case Frequency.QUARTERLY
+            case Frequency__.Quarterly
                 durationObj = calquarters(1);
                 halfDurationObj = caldays(45);
-            case Frequency.MONTHLY
+            case Frequency__.Monthly
                 durationObj = calmonths(1);
                 halfDurationObj = caldays(15);
-            case Frequency.WEEKLY
+            case Frequency__.Weekly
                 durationObj = calweeks(1);
                 halfDurationObj = days(3.5);
-            case Frequency.DAILY
+            case Frequency__.Daily
                 durationObj = caldays(1);
                 halfDurationObj = days(0.5);
             otherwise
@@ -574,13 +574,13 @@ classdef Frequency < double
         function c = toFredLetter(this)
             %(
             switch this
-                case Frequency.YEARLY
+                case Frequency__.Yearly
                     c = "A";
-                case Frequency.HALFYEARLY
+                case Frequency__.HalfYearly
                     c = "SA";
-                case Frequency.QUARTERLY
+                case Frequency__.Quarterly
                     c = "Q";
-                case Frequency.MONTHLY
+                case Frequency__.Monthly
                     c = "M";
                 otherwise
                     exception.error([
@@ -596,11 +596,11 @@ classdef Frequency < double
         function c = toIMFLetter(this)
             %(
             switch this
-                case Frequency.YEARLY
+                case Frequency__.Yearly
                     c = "A";
-                case Frequency.QUARTERLY
+                case Frequency__.Quarterly
                     c = "Q";
-                case Frequency.MONTHLY
+                case Frequency__.Monthly
                     c = "M";
                 otherwise
                     exception.error([

@@ -420,16 +420,16 @@ classdef DateWrapper ...
             dateString = string(dateString);
             sizeDateString = size(dateString);
             switch freq
-                case Frequency.YEARLY
+                case Frequency__.Yearly
                     date = yy(double(dateString));
-                case Frequency.QUARTERLY
+                case Frequency__.Quarterly
                     % Force the results to be 1-by-N-by-2
                     dateString = [reshape(dateString, 1, [ ]), "xxx-Qx"];
                     yp = split(dateString, "-Q");
                     yp(:, end, :) = [ ];
                     yp = double(yp);
                     date = qq(yp(:, :, 1), yp(:, :, 2));
-                case Frequency.MONTHLY
+                case Frequency__.Monthly
                     dateString = [reshape(dateString, 1, [ ]), "xxx-xx"];
                     yp = split(dateString, "-");
                     yp(:, end, :) = [ ];
