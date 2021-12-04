@@ -87,9 +87,21 @@ elseif any(what==lower("nameAttributes"))
     output = this.Attributes;
 
 
-elseif what==lower("positions")
+elseif any(what==lower(["namePositions", "positions"]))
     positions = num2cell(1 : numQuantities);
     output = cell2struct(positions, allNames, 2);
+
+
+elseif any(what==lower("nameTypes"))
+    types = repmat("", size(this.Type));
+    types(this.Type==1) = "measurement-variables";
+    types(this.Type==2) = "transition-variables";
+    types(this.Type==31) = "measurement-shocks";
+    types(this.Type==32) = "transition-shocks";
+    types(this.Type==4) = "parameters";
+    types(this.Type==5) = "exogenous-variables";
+    types = num2cell(types);
+    output = cell2struct(types, allNames, 2);
 
 
 elseif what==lower("nameAttributesList")
