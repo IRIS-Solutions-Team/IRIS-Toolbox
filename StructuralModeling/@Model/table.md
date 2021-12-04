@@ -108,7 +108,12 @@ not declared as log-variables, compared to the first parameter variant;
 variable declared as log-variables, compared to the first parameter
 variant; `NaN` for nonlog-variables.
 
-* `"Description"` - Description text from the model file.
+* `"Description"` - Description text from the model file (quoted text
+  preceding the name in a declaration section).
+
+* `"Alias"` - Alias text from the model file (the part of the quoted text
+  preceding the name in a declaration section that follows after a double
+  exclamation mark).
 
 * `"Log"` - Indicator of log-variables: `true` for each model variable
 declared as a log-variable, `false` otherwise.

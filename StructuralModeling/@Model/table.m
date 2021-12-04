@@ -121,8 +121,12 @@ for n = requests
         addTable = tableValues(this, @real, compare, inxParameters, setNaN, 'CompareParameters', opt);
 
 
-    elseif any(strcmpi(n, {'Description', 'Descriptions'}))
+    elseif startsWith(n, "description", "ignoreCase", true);
         addTable = tableDescription(this);
+
+
+    elseif startsWith(n, "alias", "ignoreCase", true);
+        addTable = tableAlias(this);
 
 
     elseif any(strcmpi(n, {'Log', 'LogStatus'}))
@@ -328,9 +332,14 @@ end%
 
 
 function addTable = tableDescription(this)
-    values = this.Quantity.Label(:);
-    values = string(values);
+    values = reshape(string(this.Quantity.Label), [], 1);
     addTable = tableTopic(this, {'Description'}, [ ], values);
+end%
+
+
+function addTable = tableAlias(this)
+    values = reshape(string(this.Quantity.Alias), [], 1);
+    addTable = tableTopic(this, {'Alias'}, [ ], values);
 end%
 
 
