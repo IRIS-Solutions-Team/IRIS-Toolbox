@@ -117,6 +117,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
     
     methods
+        varargout = access(varargin)
         varargout = assign(varargin)
         varargout = companion(varargin)
         varargout = datarequest(varargin)
@@ -175,7 +176,7 @@ classdef (CaseInsensitiveProperties=true) ...
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('BaseVAR.BaseVAR');
-                pp.addRequired('EndogenousNames', @(x) ~isempty(x) && validate.list(x));
+                pp.addRequired('EndogenousNames', @(x) isempty(x) || validate.list(x));
                 pp.addParameter('Comment', '', @validate.scalarString);
                 pp.addParameter({'ExogenousNames', 'Exogenous'}, string.empty(1, 0), @validate.list);
                 pp.addParameter({'GroupNames', 'Groups'}, string.empty(1, 0), @validate.list);
@@ -440,11 +441,13 @@ classdef (CaseInsensitiveProperties=true) ...
             x = struct( );
             x.EndogenousNames = this.EndogenousNames;
             x.ExogenousNames = this.ExogenousNames;
+            x.NumEndogenous = numel(this.EndogenousNames);
+            x.Order = this.Order;
+            x.NumVariants = countVariants(this);
             x.ConditioningNames = this.ConditioningNames;
             if this.IsPanel
                 x.GroupNames = this.GroupNames;
             end
-            x.NumVariants = countVariants(this);
             x.Comment = string(this.Comment);
             x.UserData = this.UserData;
             groups = matlab.mixin.util.PropertyGroup(x);

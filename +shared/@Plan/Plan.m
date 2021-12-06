@@ -6,6 +6,7 @@ classdef Plan
         getSigmasForPlan
     end % methods
 
+
     methods
         function slackPairs = getSlackPairsForPlan(this, varargin)
             slackPairs = string.empty(0, 2);
@@ -20,7 +21,7 @@ classdef Plan
 
     methods (Hidden)
         varargout = preparePlan(varargin)
-        varargout = checkCompatibilityOfPlan(varargin)
+        varargout = checkPlanConsistency(varargin)
     end % methods
 end % classdef
 

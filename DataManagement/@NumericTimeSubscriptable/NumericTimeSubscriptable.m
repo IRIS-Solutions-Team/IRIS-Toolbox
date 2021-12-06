@@ -619,7 +619,7 @@ NumericTimeSubscriptable ...
             % >=R2019b
             %{
             arguments
-                this Series
+                this
                 dates {validate.mustBeDate}
                 values {locallyValidateValues}
                 comment {locallyValidateComment}

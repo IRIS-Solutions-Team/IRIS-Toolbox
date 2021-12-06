@@ -1,4 +1,4 @@
-# `!ttrend`
+# !ttrend
 
 {== Linear time trend in deterministic trend equations ==}
 

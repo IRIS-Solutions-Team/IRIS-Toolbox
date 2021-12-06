@@ -54,17 +54,7 @@ function [lineHandles, textHandles] = vline(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-%--------------------------------------------------------------------------
-
-exception.warning([
-    "Obsolete"
-    "Function visual.vline has become obsolete and "
-    "is scheduled for removal from the IrisToolbox."
-    "Use the new Matlab function xline() instead."
-]);
-
 [lineHandles, textHandles] = visual.backend.plotInfiniteLine('vline', varargin{:});
-
 
 end%
 

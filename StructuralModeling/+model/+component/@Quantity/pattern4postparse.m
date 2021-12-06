@@ -17,8 +17,8 @@ numQuantities = numel(this.Name);
 % subscripts; these are allowed but ignored.
 % ###### ptn(ixp) = strcat('&?', ptn(ixp), '((\{[^\}]+\})?)');
 
-% Replacements in dynamic equations.
-% Replacements in dtrends.
+% Replacements in dynamic equations
+% Replacements in dtrends
 replaceNames = cell(1, numQuantities);
 for i = 1 : numQuantities
     replaceNames{i} = sprintf('%g', i);

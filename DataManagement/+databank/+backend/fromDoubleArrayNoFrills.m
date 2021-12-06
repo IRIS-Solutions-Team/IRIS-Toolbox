@@ -31,7 +31,7 @@ elseif isstring(comments)
     comments = cellstr(comments);
 end
 
-hereCheckDimensions( );
+hereCheckDimensions();
 
 startDate = double(startDate);
 

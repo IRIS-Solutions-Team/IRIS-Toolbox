@@ -1,4 +1,4 @@
-# `roc`
+# roc
 
 {== Gross rate of change pseudofunction ==}
 

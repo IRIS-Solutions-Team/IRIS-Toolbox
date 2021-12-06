@@ -1,4 +1,4 @@
-# `collectLhsNames`  
+# collectLhsNames  
 
 {== Collect names of LHS variables ==}
 

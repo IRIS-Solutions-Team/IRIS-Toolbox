@@ -142,7 +142,7 @@ classdef ExcelReference
 
 
 
-        function range = decodeRowRange(xlsRange)
+        function range = decodeRowRange(xlsRange, sizeBuffer)
             xlsRange = strtrim(xlsRange);
             tokens = regexp( ...
                 xlsRange, "^(\d+|_)(\.\.(\d+|_))?$" ...

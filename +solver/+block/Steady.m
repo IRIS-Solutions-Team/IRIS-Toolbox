@@ -154,12 +154,20 @@ classdef Steady < solver.block.Block
                             end
                         end
                     end
+
+                    if any(~isfinite(z))
+                        exitFlag = solver.ExitFlag.NAN_INF_PREEVAL;
+                        error.EvaluatesToNan = this.PtrEquations;
+                        return
+                    end
+
                     if any(inxLog__) && any(z<=0)
                         exitFlag = solver.ExitFlag.LOG_NEGATIVE_ASSIGNED;
                         error.LogAssignedNonpositive = ptrLevel;
-                    else
-                        exitFlag = solver.ExitFlag.ASSIGNED;
+                        return
                     end
+
+                    exitFlag = solver.ExitFlag.ASSIGNED;
                 end%
 
 
@@ -311,7 +319,6 @@ classdef Steady < solver.block.Block
             %
             ptrUnion = iris.utils.unionRealImag(this.PtrQuantities);
 
-            numEquations = numel(this.PtrEquations);
             numQuantities = numel(ptrUnion);
             acrossShifts = across(this.ParentBlazer.Incidence, "Shifts");
             this.JacobPattern = acrossShifts(this.PtrEquations, ptrUnion);

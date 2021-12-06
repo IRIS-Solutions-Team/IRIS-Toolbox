@@ -4,13 +4,13 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%{
+%(
 function varargout = implementFilter(order, inputSeries, range__, options)
 
 arguments
     order (1, 1) double {mustBeInteger, mustBePositive}
     inputSeries NumericTimeSubscriptable
-    range__ {validate.mustBeRange} = Inf
+    range__ (1, :) double {validate.mustBeRange} = Inf
 
     options.Range {validate.mustBeRange} = Inf
     options.Change Series = Series.empty(0, 1)
@@ -30,12 +30,12 @@ end
 if isempty(options.Change) && ~isempty(options.Growth)
     options.Change = options.Growth;
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function varargout = implementFilter(order, inputSeries, varargin)
 
 persistent pp
@@ -60,7 +60,7 @@ if isempty(pp)
 end
 options = parse(pp, order, inputSeries, varargin{:});
 range__ = pp.Results.range__;
-%)
+%}
 % <=R2019a
 
 

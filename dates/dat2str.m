@@ -182,8 +182,8 @@ daysOfWeek = { 'Sunday', 'Monday', 'Tuesday', 'Wednesday', ...
 
 [year, per, freq] = dat2ypf(dat);
 
-inxWeekly = freq==Frequency.WEEKLY;
-inxDaily = freq==Frequency.DAILY;
+inxWeekly = freq==Frequency__.Weekly;
+inxDaily = freq==Frequency__.Daily;
 inxMatlabSerial = inxWeekly | inxDaily;
 
 % Matlab serial date numbers (daily or weekly dates only), calendar years, 
@@ -230,7 +230,7 @@ for iDat = 1 : nDat
     end
 
     %{
-    if ithFreq==Frequency.DAILY && ~isCalendar
+    if ithFreq==Frequency__.Daily && ~isCalendar
         throw( exception.Base('Dates:CalendarFormatForDaily', 'error') );
     end
     %}
@@ -390,9 +390,9 @@ return
             case 'PP'
                 s = sprintf('%02g', iPer);
             case 'P'
-                if ithFreq<Frequency.MONTHLY
+                if ithFreq<Frequency__.Monthly
                     s = sprintf('%g', iPer);
-                elseif ithFreq<Frequency.DAILY
+                elseif ithFreq<Frequency__.Daily
                     s = sprintf('%02g', iPer);
                 else
                     s = sprintf('%03g', iPer);
@@ -522,11 +522,11 @@ return
         % Non-calendar month
         month = NaN;
         switch ithFreq
-            case {Frequency.YEARLY, Frequency.HALFYEARLY, Frequency.QUARTERLY}
+            case {Frequency__.Yearly, Frequency__.HalfYearly, Frequency__.Quarterly}
                 month = per2month(iPer, ithFreq, opt.ConversionMonth);
-            case Frequency.MONTHLY
+            case Frequency__.Monthly
                 month = iPer;
-            case Frequency.WEEKLY
+            case Frequency__.Weekly
                 % Non-calendar month of a weekly date is the month that contains Thursday
                 [~, month] = datevec( double(iMsd+3) );
         end
@@ -537,7 +537,7 @@ return
 
     function subs = subsFreqLetter( )
         subs = '';
-        if ithFreq==Frequency.DAILY
+        if ithFreq==Frequency__.Daily
             % TODO: Include daily freq letter in config
             subs = 'X';
         else

@@ -12,8 +12,6 @@ if nargin<4
     prepareOnly = false;
 end
 
-%--------------------------------------------------------------------------
-
 runningData = systemProperty.CallerData;
 method = runningData.Method(min(run, end));
 deviation = runningData.Deviation(min(run, end));

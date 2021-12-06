@@ -1,4 +1,4 @@
-# `databank.apply`
+# databank.apply
 
 {== Apply function to a selection of databank fields ==}
 

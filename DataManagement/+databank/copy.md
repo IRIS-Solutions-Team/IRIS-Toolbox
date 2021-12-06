@@ -1,4 +1,4 @@
-# `databank.copy`
+# databank.copy
 
 {== Copy fields of source databank to target databank ==}
 
@@ -42,11 +42,12 @@ __`TargetNames=@auto`__ [ cellstr | string | function_handle ]
 > the `SourceNames`.
 > 
 
-__`Transform=[ ]`__ [ empty | function_handle ]
+__`Transform={}`__ [ empty | function_handle | cell ]
 > 
-> Transformation function applied to each of the fields being copied
-> over from the `sourceDb` to the `targetDb`; if empty, no
-> transformation is performed.
+> Transformation function or functions applied to each of the fields being
+> copied over from the `sourceDb` to the `targetDb`; if empty, no
+> transformation is performed; if a cell array of functions, each function
+> will be applied consecutively.
 > 
 
 __`WhenTransformFails='Error'`__ [ `'Error'` | `'Warning'` | `'Silence'` ]

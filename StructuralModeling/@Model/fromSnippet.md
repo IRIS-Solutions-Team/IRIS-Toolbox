@@ -1,4 +1,4 @@
-# `Model.fromSnippet`
+# Model.fromSnippet
 
 {== Create new Model object from snippet of code within m-file ==}
 

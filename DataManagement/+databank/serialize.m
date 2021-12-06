@@ -2,12 +2,12 @@
 %{
 % ## Syntax ##
 %
-%     [c, listSerialized] = databank.serialized(inputDatabank, dates, ...)
+%     [c, listSerialized] = databank.serialized(inputDb, dates, ...)
 %
 %
 % ## Input Arguments ##
 %
-% __`inputDatabank`__ [ struct | Dictionary | containers.Map ] -
+% __`inputDb`__ [ struct | Dictionary | containers.Map ] -
 % Input databank whose time series and numeric entries will be serialized
 % to a character vector.
 %
@@ -20,7 +20,7 @@
 % ## Output Arguments ##
 %
 % __`c`__ [ char ] -
-% Character vector serializing the `inputDatabank`.
+% Character vector serializing the `inputDb`.
 %
 %
 % ## Options ##
@@ -36,7 +36,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [c, listSerialized] = serialize(inputDatabank, varargin)
+function [c, listSerialized] = serialize(inputDb, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
@@ -44,7 +44,7 @@ FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.serialize');
-    addRequired(pp, 'inputDatabank', @validate.databank);
+    addRequired(pp, 'inputDb', @validate.databank);
     addOptional(pp, 'dates', Inf, @(x) isequal(x, Inf) || validate.date(x));
 
     addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
@@ -61,11 +61,12 @@ if isempty(pp)
     addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'Delimiter', ',', @validate.string);
     addParameter(pp, 'QuoteStrings', true, @validate.logicalScalar);
+    addParameter(pp, 'SourceNames', Inf, @(x) isequal(x, Inf) || isequal(x, @all) || isstring(x));
 
     addDateOptions(pp);
 end
 %)
-opt = parse(pp, inputDatabank, varargin{:});
+opt = parse(pp, inputDb, varargin{:});
 dates = pp.Results.dates;
 
 % Set up the formatting string
@@ -81,7 +82,7 @@ opt.UserDataFields = reshape(string(opt.UserDataFields), 1, []);
 
 % TODO: Implement -Inf:date, date:Inf
 if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
-    dates = databank.range(inputDatabank);
+    dates = databank.range(inputDb, "sourceNames", opt.SourceNames);
     if iscell(dates)
         exception.error([
             "Databank:CannotSaveMixedFrequencies"
@@ -113,10 +114,10 @@ o = struct( );
 % Handle custom delimiter
 o.Delimiter = opt.Delimiter;
 
-if isa(inputDatabank, 'containers.Map')
-    list = keys(inputDatabank);
-else
-    list = fieldnames(inputDatabank).';
+% Field names to save
+list = databank.fieldNames(inputDb);
+if ~isequal(opt.SourceNames, Inf) && ~isequal(opt.SourceNames, @all)
+    list = intersect(list, textual.stringify(opt.SourceNames), 'stable');
 end
 
 % Initialise the data matrix as a N-by-1 vector of NaNs to mimic the Dates.
@@ -131,7 +132,7 @@ userDataFields = locallyInitializeUserDataFields(opt);
 inxSerialized = false(size(list));
 
 for i = 1 : nList
-    x = inputDatabank.(list{i});
+    x = inputDb.(list{i});
     
     if isa(x, 'TimeSubscriptable')
         freq__ = x.FrequencyAsNumeric;
@@ -211,12 +212,17 @@ o.Data = data;
 o.NameRow = nameRow;
 o.NanString = opt.Nan;
 o.Format = format;
+o.CommentRow = cell.empty(1, 0);
+o.ClassRow = cell.empty(1, 0);
+
 if opt.Comments
     o.CommentRow = commentRow;
 end
+
 if opt.Class
     o.ClassRow = classRow;
 end
+
 if ~isempty(fieldnames(userDataFields))
     o.UserDataFields = userDataFields;
 end
@@ -246,8 +252,8 @@ function udf = locallyAddUserDataFields(udf, ithUserData, numColumns)
         valueToSave = repmat({''}, 1, numColumns);
         if isstruct(ithUserData) && isfield(ithUserData, n)
             fieldValue = ithUserData.(n); 
-            if isstring(fieldValue) || ischar(fieldValue)
-                valueToSave{1} = char(fieldValue);
+            if isstring(fieldValue) || ischar(fieldValue) || (iscellstr(fieldValue) && isscalar(fieldValue))
+                valueToSave{1} = char(string(fieldValue));
             end
         end
         udf.(n) = [udf.(n), valueToSave];
@@ -271,19 +277,6 @@ function c = locallySerialize(oo, opt)
         formatString = ['"', formatString, '"'];
     end
 
-    if isfield(oo, 'CommentRow')
-        commentRow = oo.CommentRow;
-    else
-        commentRow = { };
-    end
-
-    if isfield(oo, 'ClassRow')
-        classRow = oo.ClassRow;
-    else
-        classRow = { };
-    end
-    isClassRow = ~isempty(classRow);
-
     if isfield(oo, 'UnitRow')
         unitRow = oo.UnitRow;
     else
@@ -297,57 +290,31 @@ function c = locallySerialize(oo, opt)
     end
     isNaString = ~strcmpi(naString, 'NaN');
 
-    if isfield(oo, 'Format')
-        format = oo.Format;
-    else
-        format = '%.8e';
-    end
+    format = char(oo.Format);
 
-    if isfield(oo, 'Highlight')
-        highlight = oo.Highlight;
-    else
-        highlight = [ ];
-    end
-    isHighlight = ~isempty(highlight);
 
-    isUserData = isfield(oo, 'UserData');
-
-    %--------------------------------------------------------------------------
 
     % Create an empty buffer
     c = '';
 
-    % Write name row.
-    if isHighlight
-        nameRow = [{''}, nameRow];
-    end
     c = [c, sprintf(formatString, opt.NamesHeader), herePrintCharCells(nameRow)];
 
     % Write comments
-    if ~isempty(commentRow)
-        if isHighlight
-            commentRow = [{''}, commentRow];
-        end
-        c = [c, newline( ), sprintf(formatString, opt.CommentsHeader), herePrintCharCells(commentRow)];
+    if ~isempty(oo.CommentRow)
+        c = [c, newline( ), sprintf(formatString, opt.CommentsHeader), herePrintCharCells(oo.CommentRow)];
     end
 
     % Write unit
     if ~isempty(unitRow)
-        if isHighlight
-            unitRow = [{''}, unitRow];
-        end
         c = [c, newline( ), sprintf(formatString, opt.UnitsHeader), herePrintCharCells(unitRow)];
     end
 
     % Write class
-    if isClassRow
-        if isHighlight
-            classRow = [{''}, classRow];
-        end
+    if ~isempty(oo.ClassRow)
         c = [ ...
             c, newline( ) ...
             , sprintf(formatString, opt.ClassHeader) ...
-            , herePrintCharCells(classRow) ...
+            , herePrintCharCells(oo.ClassRow) ...
         ];
     end
 
@@ -355,9 +322,6 @@ function c = locallySerialize(oo, opt)
     if isfield(oo, 'UserDataFields')
         for n = reshape(string(fieldnames(oo.UserDataFields)), 1, [])
             ithRow = oo.UserDataFields.(n);
-            if isHighlight
-                ithRow = [{''}, ithRow];
-            end
             c = [
                 c, newline( ) ...
                 , sprintf(formatString, ['.', char(n)]) ...
@@ -372,9 +336,9 @@ function c = locallySerialize(oo, opt)
 
     % Create format string fot the imaginary parts of data; they need to be
     % always printed with a plus or minus sign.
-    iFormat = [format, 'i'];
-    if isempty(strfind(iFormat, '%+')) && isempty(strfind(iFormat, '%0+'))
-        iFormat = strrep(iFormat, '%', '%+');
+    imagFormat = [format, 'i'];
+    if isempty(strfind(imagFormat, '%+')) && isempty(strfind(imagFormat, '%0+'))
+        imagFormat = strrep(imagFormat, '%', '%+');
     end
 
     % Find columns that have at least one non-zero imag. These column will
@@ -400,7 +364,7 @@ function c = locallySerialize(oo, opt)
     % Create a sequence of formats for one line.
     formatLine = cell(1, numColumns);
     % Format string for columns that have imaginary numbers.
-    formatLine(iCol) = {[delimiter, format, iFormat]};
+    formatLine(iCol) = {[delimiter, format, imagFormat]};
     % Format string for columns that only have real numbers.
     formatLine(~iCol) = {[delimiter, format]};
     formatLine = [formatLine{:}];

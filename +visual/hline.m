@@ -43,16 +43,7 @@ function lineHandles = hline(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-%--------------------------------------------------------------------------
-
-exception.warning([
-    "Obsolete"
-    "Function visual.hline has become obsolete and "
-    "is scheduled for removal from the IrisToolbox."
-    "Use the new Matlab function yline() instead."
-]);
-
-
 lineHandles = visual.backend.plotInfiniteLine('hline', varargin{:});
 
-end
+end%
+

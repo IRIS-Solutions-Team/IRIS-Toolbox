@@ -3,7 +3,7 @@
 {== Create table based on selected indicators from Model object ==}
 
 
-# Syntax
+## Syntax
 
 
     outputTable = table(model, request, ...)
@@ -22,14 +22,14 @@ __`requests`__ [ char | cellstr | string ]
 > valid requests.
 > 
 
-# Output arguments
+## Output arguments
 
 __`outputTable`__ [ table ]
 > 
 > Table object with requested values.
 > 
 
-# Options
+## Options
 
 __`CompareFirstColumn=true`__ [ `true` | `false` ] 
 > 
@@ -108,7 +108,12 @@ not declared as log-variables, compared to the first parameter variant;
 variable declared as log-variables, compared to the first parameter
 variant; `NaN` for nonlog-variables.
 
-* `"Description"` - Description text from the model file.
+* `"Description"` - Description text from the model file (quoted text
+  preceding the name in a declaration section).
+
+* `"Alias"` - Alias text from the model file (the part of the quoted text
+  preceding the name in a declaration section that follows after a double
+  exclamation mark).
 
 * `"Log"` - Indicator of log-variables: `true` for each model variable
 declared as a log-variable, `false` otherwise.
@@ -151,9 +156,9 @@ associated with the current solution.
 magnitude) associated with the current solution.
 
 
-# Examples
+## Examples
 
-## Plain vanilla table
+### Plain vanilla table
 
 Create table with a steady state summary:
 
@@ -162,7 +167,7 @@ table(m, ["steadyLevel", "steadyChange", "form", "description"])
 ```
 
 
-## Save table to spreadsheet
+### Save table to spreadsheet
 
 Create the same table as before, and save it to an Excel spreadsheet file:
 

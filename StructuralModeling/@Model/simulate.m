@@ -153,7 +153,6 @@ runningData.IsAsynchronous = isAsynchronous;
 runningData.PrepareOutputInfo = nargout>=2;
 runningData.PrepareFrameData = nargout>=3;
 
-
 % Retrieve data from intput databank, set up ranges
 hereExtractInputData();
 
@@ -271,6 +270,7 @@ return
         allowedNumeric = string.empty(1, 0);
         allowedLog = string.empty(1, 0);
         context = "";
+
         dbInfo = checkInputDatabank( ...
             this, inputDb, baseRange ...
             , requiredNames, optionalNames ...
@@ -278,7 +278,13 @@ return
             , context ...
         );
 
-        % Retrieve data from the input databank
+
+        %
+        % Retrieve data for variables from the input databank
+        %
+        % Defer parameters until simulateFrame because the model object is
+        % changing in SystemProperty execution
+        %
         [runningData.YXEPG, ~, extdRange, ~, runningData.MaxShift, runningData.TimeTrend] ...
             = data4lhsmrhs( ...
                 this, inputDb, baseRangePlusDummy ...
@@ -651,7 +657,7 @@ function plan = locallyResolvePlan(this, baseRange, plan, anticipate)
         if ~isempty(anticipate)
             hereThrowError();
         end
-        checkCompatibilityOfPlan(this, baseRange, plan);
+        checkPlanConsistency(this, baseRange, plan);
         return
     end
     if islogical(plan)

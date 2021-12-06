@@ -157,7 +157,7 @@ Ta2 = Ta(numUnitRoots+1:end, numUnitRoots+1:end);
 Ra2 = Ra(numUnitRoots+1:end, :);
 
 % Combine user-supplied stdcorr with model std/corr
-optionsHere = struct("Clip", false, "Presample", false);
+optionsHere = struct('Clip', false, 'Presample', false);
 overrideStdCorr = varyStdCorr(this, range, opt.Override, opt.Multiply, optionsHere);
 usrStdcorrInx = ~isnan(overrideStdCorr);
 

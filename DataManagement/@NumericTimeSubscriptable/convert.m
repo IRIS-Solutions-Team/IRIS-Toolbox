@@ -65,7 +65,7 @@ elseif oldFreq>newFreq
 else
     if validate.stringScalar(opt.Method) && startsWith(opt.Method, ["quadSum", "quadAvg", "quadMean"], "ignoreCase", true)
         % Sum- or average-matching interpolation
-        conversionFunc = @locallyInterpolateAndMatch;
+        conversionFunc = @locallyInterpolateQuadraticMatch;
     else
         % Non-matching interpolation
         conversionFunc = @locallyInterpolate;
@@ -100,7 +100,7 @@ end%
 
 
 function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
-
+    %(
     %  
     % Handle Method="default", "first", "last", "random", in char, string
     % or function_handle
@@ -217,6 +217,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
         newData = reshape(newData, newSize);
     end
     newStart = dater.fromSerial(newFreq, newStartSerial);
+    %)
 end%
 
 
@@ -340,9 +341,10 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
 end%
 
 
-function [newData, newStart] = locallyInterpolateAndMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
-    n = newFreq/oldFreq;
-    if n~=round(n)
+function [newData, newStart] = locallyInterpolateQuadraticMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+    %(
+    numWithin = newFreq/oldFreq;
+    if numWithin~=round(numWithin)
         utils.error('NumericTimeSubscriptable:convert', ...
             ['Source and target frequencies are incompatible ', ...
             'in ''%s'' interpolation.'], ...
@@ -365,7 +367,7 @@ function [newData, newStart] = locallyInterpolateAndMatch(this, oldStart, oldEnd
     % period
     newStart = dater.datecode(newFreq, newStartYear, newStartPer);
 
-    [newData, flag] = interpolateAndMatchEval(oldData, n);
+    [newData, flag] = locallyImplementQuadraticMatch(oldData, numWithin);
     if ~flag
         exception.warning([
             "Series:CannotInterpolateInsampleNaNs"
@@ -373,52 +375,91 @@ function [newData, newStart] = locallyInterpolateAndMatch(this, oldStart, oldEnd
             "with in-sample missing observations. "
         ], opt.Method);
     end
-    if startsWith(opt.Method, ["quadAvg", "quadMean"], "ignoreCase", true)
-        newData = newData*n;
+    if contains(lower(opt.Method), "sum")
+        newData = newData / numWithin;
     end
     newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);
+    %)
 end% 
 
 
+function [y2, flag] = locallyImplementQuadraticMatch(y1, numWithin)
+    %(
+    [numPeriods, ny] = size(y1);
+    y2 = nan(numPeriods*numWithin, ny);
+%     t1 = (1 : numWithin)';
+%     t2 = (numWithin+1 : 2*numWithin)';
+%     t3 = (2*numWithin+1 : 3*numWithin)';
+% 
+%     M = [
+%         numWithin, sum(t1), sum(t1.^2)
+%         numWithin, sum(t2), sum(t2.^2)
+%         numWithin, sum(t3), sum(t3.^2)
+%     ];
 
+    T = mean(1:numWithin);
+    Tminus1 = T - numWithin;
+    Tplus1 = T + numWithin;
+    Tminus2 = T - 2*numWithin;
+    Tplus2 = T + 2*numWithin;
 
-function [y2, flag] = interpolateAndMatchEval(y1, n)
-    [nObs, ny] = size(y1);
-    y2 = nan(nObs*n, ny);
-    t1 = (1 : n)';
-    t2 = (n+1 : 2*n)';
-    t3 = (2*n+1 : 3*n)';
-    M = [
-        n, sum(t1), sum(t1.^2)
-        n, sum(t2), sum(t2.^2)
-        n, sum(t3), sum(t3.^2)
+    A = [
+        Tminus1 .^ (0:2)
+        1, T, mean((1:numWithin).^2)
+        Tplus1 .^ (0:2)
     ];
+
+    Afirst = [
+        1, T, mean((1:numWithin).^2)
+        Tplus1 .^ (0:2)
+        Tplus2 .^ (0:2)
+    ];
+
+    Alast = [
+        Tminus2 .^ (0:2)
+        Tminus1 .^ (0:2)
+        1, T, mean((1:numWithin).^2)
+    ];
+
+    a = (1:numWithin)' .^ (0:2);
+
+    addNa = nan(3, 1);
     flag = true;
+
     for i = 1 : ny
-        iY1 = y1(:, i);
-        [iSample, flagi] = getsample(iY1');
-        flag = flag && flagi;
-        if ~any(iSample)
-            continue
-        end
-        iY1 = iY1(iSample);
-        iNObs = numel(iY1);
-        yy = [ iY1(1:end-2), iY1(2:end-1), iY1(3:end) ]';
-        b = nan(3, iNObs);
-        b(:, 2:end-1) = M \ yy;
-        iY2 = nan(n, iNObs);
-        for t = 2 : iNObs-1
-            iY2(:, t) = b(1, t)*ones(n, 1) + b(2, t)*t2 + b(3, t)*t2.^2;
-        end
-        iY2(:, 1) = b(1, 2) + b(2, 2)*t1 + b(3, 2)*t1.^2;
-        iY2(:, end) = b(1, end-1) + b(2, end-1)*t3 + b(3, end-1)*t3.^2;
-        iSample = iSample(ones(1, n), :);
-        iSample = iSample(:);
-        y2(iSample, i) = iY2(:);
+        % y1__ = y1(:, i);
+        % [iSample, flagi] = getsample(y1__');
+        % flag = flag && flagi;
+        % if ~any(iSample)
+            % continue
+        % end
+        % y1__ = y1__(iSample);
+        % iNObs = numel(y1__);
+
+        yy = [ y1(1:end-2, i), y1(2:end-1, i), y1(3:end, i) ];
+        yy = [ addNa, transpose(yy), addNa ];
+        inxNa = all(isnan(yy), 1);
+
+        % b = nan(3, numPeriods);
+        % b(:, ~inxNa) = M \ yy(:, ~inxNa);
+        % y2__ = nan(numWithin, numPeriods);
+
+        c = nan(3, numPeriods);
+        c(:, ~inxNa) = A \ yy(:, ~inxNa);
+        c(:, 1) = Afirst \ y1(1:3, i);
+        c(:, end) = Alast \ y1(end-2:end, i);
+
+        % for t = 2 : numPeriods-1
+        %     y2__(:, t) = b(1, t)*ones(numWithin, 1) + b(2, t)*t2 + b(3, t)*t2.^2;
+        % end
+
+        % y2__(:, 1) = b(1, 2) + b(2, 2)*t1 + b(3, 2)*t1.^2;
+        % y2__(:, end) = b(1, end-1) + b(2, end-1)*t3 + b(3, end-1)*t3.^2;
+
+        y2(:, i) = reshape(a * c, [], 1);
     end
+    %)
 end%
-
-
 
 
 function data = first(data, varargin)
@@ -426,13 +467,9 @@ function data = first(data, varargin)
 end%
 
 
-
-
 function data = last(data, varargin)
     data = data(end, :);
 end%
-
-
 
 
 function data = random(data, varargin)
@@ -479,4 +516,3 @@ assertEqual(testCase, y3.Data, y6.Data, "absTol", 1e-12);
 
 ##### SOURCE END #####
 %}
-

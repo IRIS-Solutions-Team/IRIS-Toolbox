@@ -2,25 +2,28 @@
 # Compile X13 on Mac OS X
 # ========================
 # 
-# * Install gfortran:
-#   - Get the binaries from http://hpc.sourceforge.net/
-#   - In Terminal, cd to the download folder
-#   - Run "gunzip gfortran-xx-bin.tar.gz"
-#   - Run "sudo tar -xvf gfortran-xx-bin.tar -C /"
-#   - Check "gfortran —version"
-# 
+# Update gfortran and gcc
+#     brew upgrade gcc
+#     brew upgrade gfortran
+#
+# Add this to .bashrc
+#
+# export LIBRARY_PATH="$LIBRARY_PATH:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
+#
 # * Install XCode
+#
+#     sude xcode-select --install
 # 
 # * In XCode Preferences, enable Command Tools
 # 
 # * Download X1x source code archive, unzip in a temporary directory
 # 
-# * In Makefile
+# * In makefile.xxx
 #   - Set LINKER and FC both to gfortran
-#   - Comment out "LDFLAGS   = -s" (obsolete option)
-#   - Remove "-static" from "$(LINKER) -static" (obsolete option)
+#   - Comment out "LDFLAGS   = -s" 
+#   - Remove "-static" from "$(LINKER) -static" 
 # 
-# * Run "make --makefile=Makefile.xxx" to build an executable
+# * Run "make --makefile=makefile.xxx" to build an executable
 # 
 # * Use "otool -L filename" to identify dependencies of the executable on other dylibs located in /usr/local/lib
 # 

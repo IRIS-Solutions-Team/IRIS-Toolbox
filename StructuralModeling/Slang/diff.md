@@ -1,4 +1,4 @@
-# `diff`
+# diff
 
 {== First difference pseudofunction ==}
 

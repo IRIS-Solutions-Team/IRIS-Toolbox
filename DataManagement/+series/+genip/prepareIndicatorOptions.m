@@ -21,7 +21,7 @@ highRange = double(highRange);
 highStart = highRange(1);
 highExtStart = dater.plus(highStart, -numInit);
 highEnd = highRange(end);
-highFreq = DateWrapper.getFrequency(highStart);
+highFreq = dater.getFrequency(highStart);
 
 indicator = struct( );
 indicator.Model = locallyResolveIndicatorModel(opt.Indicator_Model);

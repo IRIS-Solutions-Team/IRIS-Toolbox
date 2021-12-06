@@ -54,9 +54,9 @@ Frequency.checkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq
-    case Frequency.INTEGER
+    case Frequency__.Integer
         dec = per;
-    case Frequency.DAILY
+    case Frequency__.Daily
         if isempty(userPosition)
             dec = per;
         else
@@ -66,10 +66,10 @@ switch freq
             adjust = getAdjustmentFactor(pos);
             dec = year + (per + adjust) ./ 365;
         end
-    case {Frequency.YEARLY, Frequency.HALFYEARLY, Frequency.QUARTERLY, Frequency.MONTHLY}
+    case {Frequency__.Yearly, Frequency__.HalfYearly, Frequency__.Quarterly, Frequency__.Monthly}
         adjust = getAdjustmentFactor(pos);
         dec = year + (per + adjust) ./ freq;
-    case Frequency.WEEKLY
+    case Frequency__.Weekly
         switch pos
             case {'s', 'b', 'f'}
                 conversionDay = 'Monday';

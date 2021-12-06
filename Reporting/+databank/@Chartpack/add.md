@@ -1,4 +1,4 @@
-# `add`
+# add
 
 {== Add new chart to a databank.Chartpack object ==}
 

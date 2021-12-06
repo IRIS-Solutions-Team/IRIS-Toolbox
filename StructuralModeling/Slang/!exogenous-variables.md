@@ -1,4 +1,4 @@
-# `!exogenous-variables`
+# !exogenous-variables
 
 {== Declare names exogenous variables ==}
 

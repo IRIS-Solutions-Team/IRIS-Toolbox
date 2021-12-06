@@ -242,7 +242,7 @@ return
                 hereMoveToNextEol( );
                 continue
             end
-            
+
             % Read individual comma-separated cells on the current line. Capture the
             % entire match (including separating commas and double quotes), not only
             % tokens -- this is a workaround for a bug in Octave.
@@ -252,29 +252,29 @@ return
             % Remove double quotes from beginning and end of each cell.
             tkn = regexprep(tkn, '^"', '', 'once');
             tkn = regexprep(tkn, '"$', '', 'once');
-            
+
             if isempty(tkn) || all(cellfun(@isempty, tkn))
                 ident = '%';
             else
                 ident = erase(tkn{1}, "->");
                 ident = strip(ident);
             end
-            
+
             if isnumeric(opt.SkipRows) && any(rowCount==opt.SkipRows)
                 hereMoveToNextEol( );
                 continue
             end
-            
+
             if hereTestNameRow( )
                 nameRow = tkn(2:end);
                 isNameRowDone = true;
                 hereMoveToNextEol( );
                 continue
             end
-            
+
 
             isDate = true;
-            
+
             %
             % ## User Data Fields
             %
@@ -326,14 +326,14 @@ return
                     && any(~cellfun(@isempty, regexp(ident, opt.SkipRows)))
                 isDate = false;
             end
-            
+
             if ~isDate
                 hereMoveToNextEol( );
-            end 
+            end
         end%
-        
+
         return
-        
+
 
             function hereMoveToNextEol( )
                 if ~isempty(eol)
@@ -344,7 +344,7 @@ return
                 end
             end%
 
-            
+
             function flag = hereTestNameRow( )
                 if isNameRowDone
                     flag = false;
@@ -382,16 +382,17 @@ return
         if isempty(file)
             return
         end
-        % Read date column (first column).
-        datesColumn = regexp(file, "^[^,]*?(?=,|$)", "match", "lineanchors");
+
+        % Read date column (first column)
+        datesColumn = regexp(file, "^[^,]*?(,|$)", "match", "lineanchors");
         datesColumn = strip(datesColumn);
         datesColumn = erase(datesColumn, ",");
-        
+
         % Remove leading or trailing single or double quotes.
         % Some programs save any text cells with single or double quotes.
         datesColumn = regexprep(datesColumn, '^["'']', '');
         datesColumn = regexprep(datesColumn, '["'']$', '');
-        
+
         % Replace user-supplied NaN strings with 'NaN'. The user-supplied NaN
         % strings must not contain commas.
         file = erase(lower(file), " ");
@@ -414,14 +415,14 @@ return
                 file = replace(file, opt.NaN, "NaN");
             end
         end
-        
+
         % Replace empty character cells with numeric NaNs
         file = replace(file, '""', "NaN");
         % Replace date highlights with numeric NaNs
         file = replace(file, '"***"', "NaN");
         % Define white spaces
         whiteSpace = sprintf(' \b\r\t');
-        
+
         % Remove single and double quotes from the data part of the file
         if ~isempty(opt.RemoveFromData)
             for n = reshape(string(opt.RemoveFromData), 1, [])
@@ -465,7 +466,7 @@ return
             inxMissing = flipud(inxMissing);
             datesColumn = datesColumn(end:-1:1);
         end
-    end% 
+    end%
 
 
 
@@ -486,11 +487,11 @@ return
         end
         % Convert date strings
         if ~isempty(datesColumn) && ~all(inxEmptyDates)
-            if isequal(opt.DateFormat, @iso)
+            if isequal(opt.DateFormat, @iso) || validate.anyText(opt.DateFormat, "ISO")
                 if ~validate.numericScalar(opt.EnforceFrequency)
                     exception.error([
                         "Databank:EnforceFrequencyWhenIso"
-                        "Option EnforceFrequency must be specified whenever DateFormat=@iso."
+                        "Option EnforceFrequency= must be specified whenever DateFormat=""ISO""."
                     ]);
                 end
                 dates(~inxEmptyDates) ...
@@ -504,25 +505,25 @@ return
                     "freqLetters", opt.FreqLetters ...
                 );
             end
-            
+
             if startsWith(string(opt.Continuous), "ascend", "ignoreCase", true)
                 dates = dater.plus(dates(1), 0 : numDates-1);
             elseif startsWith(string(opt.Continuous), "descend", "ignoreCase", true)
                 dates = fliplr(dater.plus(dates(end), -(0 : numDates-1)));
             end
-            
+
         end
         % Exclude NaN dates (that includes also empty dates), but keep all data
         % rows; this is because of non-time-series data
         inxNaDates = isnan(dates);
         dates(inxNaDates) = [ ];
-        
+
         % Homogeneous frequency check
         if ~isempty(dates)
             freqDates = dater.getFrequency(dates);
             Frequency.checkMixedFrequency(freqDates, [ ], 'in CSV data files');
         end
-    end% 
+    end%
 
 
 
@@ -598,10 +599,10 @@ return
             outputDb.(char(name)) = newEntry;
             count = count + numColumns;
         end
-        
+
         return
-        
-        
+
+
         function userData = hereCreateSeriesUserdata( )
             userData = struct( );
             for ii = 1 : numSeriesUserData
@@ -639,7 +640,7 @@ return
         elseif startsWith(opt.Case, "upper", "ignoreCase", true)
             nameRow = upper(nameRow);
         end
-    end% 
+    end%
 
 
 
@@ -655,7 +656,7 @@ return
         inxToGenerate = ~inxEmpty & ~inxValid;
         % Index of valid names that will be protected
         inxToProtect = ~inxEmpty & inxValid;
-        % `genvarname` now guarantees uniqueness of names by appending `1`, `2`, 
+        % `genvarname` now guarantees uniqueness of names by appending `1`, `2`,
         % etc. at the end of the string; did not use to be the case in older
         % versions of Matlab.
         if any(inxToGenerate)

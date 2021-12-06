@@ -58,9 +58,9 @@ function tabular(this)
 %--------------------------------------------------------------------------
 
 switch this.Frequency
-    case {Frequency.INTEGER, Frequency.YEARLY}
+    case {Frequency__.Integer, Frequency__.Yearly}
         disp(this);
-    case {Frequency.DAILY}
+    case {Frequency__.Daily}
         disp(this, '', 'disp2dDaily');
     otherwise
         disp(this, '', 'disp2dYearly');

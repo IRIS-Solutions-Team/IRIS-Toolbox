@@ -1,4 +1,4 @@
-# `regress`
+# regress
 
 {== Ordinary or weighted least-square regression ==}
 

@@ -35,6 +35,10 @@ plotHandles = cell(1, 0);
 countChartsInWindow = 0;
 currentFigure = gobjects(0);
 for x = this.Charts
+    if x.PageBreak
+        countChartsInWindow = 0;
+        continue
+    end
     if countChartsInWindow==0
         if ~isempty(currentFigure)
             runFigureExtras(this, currentFigure);
@@ -53,15 +57,13 @@ for x = this.Charts
         x.Data = round(x.Data, this.Round);
     end
     plotHandles__ = this.PlotFunc(range{:}, x.Data);
-    if ~isempty(this.PlotSettings)
-        set(plotHandles__, this.PlotSettings{:});
-    end
+    runPlotExtras(x, plotHandles__);
     plotHandles{end}{end+1} = plotHandles__;
 
     [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
         = locallyCreateTitle(x, currentAxes);
 
-    locallyHighlight(x, currentAxes);
+    locallyDrawBackground(x);
 
     runAxesExtras(x, currentAxes);
 
@@ -119,14 +121,20 @@ function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes)
 end%
 
 
-function locallyHighlight(x, currentAxes)
+function locallyDrawBackground(x)
     %(
     parent = x.ParentChartpack;
-    if isempty(parent.Highlight)
-        return
+    if ~isempty(parent.Highlight)
+        visual.highlight(parent.Highlight);
     end
-    visual.highlight(currentAxes, parent.Highlight);
+    if ~isempty(parent.XLine)
+        visual.xline(parent.XLine{1}, parent.XLine{2:end});
+    end
+    if ~isempty(parent.YLine)
+        visual.yline(parent.YLine{1}, parent.YLine{2:end});
+    end
     %)
 end%
+
 
 %#ok<*AGROW>

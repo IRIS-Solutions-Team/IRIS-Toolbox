@@ -35,7 +35,7 @@ if isempty(pp)
     pp = extend.InputParser('databank.range');
     addRequired(pp, 'inputDb', @validate.databank);
 
-    addParameter(pp, ["SourceNames", "NameList"], @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'Rxp'));
+    addParameter(pp, ["SourceNames", "NameList"], @all, @locallyValidateSourceNames);
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || validate.frequency(x));
@@ -121,7 +121,7 @@ return
             elseif isa(listNames, 'rexp') || isa(listNames, 'Rxp')
                 inxMatched = ~cellfun(@isempty, regexp(allInputEntries, string(listNames), 'once'));
                 listNames = allInputEntries(inxMatched);
-            elseif isequal(listNames, @all)
+            elseif isequal(listNames, @all) || isequal(listNames, Inf)
                 listNames = allInputEntries;
             end
         end
@@ -147,7 +147,7 @@ end%
 
 function locallyValidateSourceNames(x)
     %(
-    if isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x) || isa(x, 'Rxp')
+    if isequal(x, Inf) || isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x) || isa(x, 'Rxp')
         return
     end
     error("Input value must be @all, an array of strings, or a Rxp object.");

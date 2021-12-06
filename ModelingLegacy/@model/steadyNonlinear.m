@@ -286,12 +286,17 @@ return
 
     function hereHandleErrors()
         %(
+        if hasSucceeded(exitFlag)
+            return
+        end
+
         if ~isempty(error.EvaluatesToNan)
             raise( ...
                 exception.Base('Steady:EvaluatesToNan', 'error'), ...
                 this.Equation.Input{error.EvaluatesToNan} ...
             );
         end
+
         if ~isempty(error.LogAssignedNonpositive)
             name = string(this.Quantity.Name{error.LogAssignedNonpositive});
             exception.error([
@@ -300,6 +305,12 @@ return
                 "but has been assigned a zero or negative steady value: %s "
             ], name);
         end
+
+        exception.error([ ...
+            "Model"
+            "This equation failed to solve in steady state: %s"
+            ], string(this.Equation.Input(blk.PtrEquations)) ...
+        );
         %)
     end%
 end%

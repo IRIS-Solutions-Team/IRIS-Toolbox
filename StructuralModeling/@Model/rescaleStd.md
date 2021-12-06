@@ -1,4 +1,4 @@
-# `rescaleStd`
+# rescaleStd
 
 {== Rescale all std deviations by the same factor ==}
 

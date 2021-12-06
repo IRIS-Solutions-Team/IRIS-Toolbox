@@ -49,13 +49,13 @@ ptn = hereParseFormat( );
 tkn = regexpi(cellstr(inputString), ptn, 'names', 'once', 'forceCellOutput');
 [year, per, day, month, freq, inxPeriod] = locallyParseDateStrings(tkn, configStruct, opt);
 
-inxCalendarDaily = freq==Frequency.DAILY;
-inxCalendarWeekly = freq==Frequency.WEEKLY & ~inxPeriod;
+inxCalendarDaily = freq==Frequency__.Daily;
+inxCalendarWeekly = freq==Frequency__.Weekly & ~inxPeriod;
 
 if any(inxCalendarWeekly)
-    dateCode(inxCalendarWeekly) = numeric.ww( year(inxCalendarWeekly), ...
-                                              month(inxCalendarWeekly), ...
-                                              day(inxCalendarWeekly) );
+    dateCode(inxCalendarWeekly) = numeric.ww( ...
+        year(inxCalendarWeekly), month(inxCalendarWeekly), day(inxCalendarWeekly) ...
+    );
 end
 
 if any(inxCalendarDaily)
@@ -118,7 +118,7 @@ return
 
     function hereParseDateFormatOption( )
         if strcmpi(opt.EnforceFrequency, 'Daily')
-            opt.EnforceFrequency = Frequency.DAILY;
+            opt.EnforceFrequency = Frequency.Daily;
         end
         
         if (isstruct(opt.DateFormat) || iscell(opt.DateFormat)) ...
@@ -136,7 +136,7 @@ return
         
         if strncmp(opt.DateFormat, '$', 1) && ...
                 ( isequal(opt.EnforceFrequency, false) || isequal(opt.EnforceFrequency, 0) )
-            opt.EnforceFrequency = Frequency.DAILY;
+            opt.EnforceFrequency = Frequency.Daily;
         end
         
         if strncmp(opt.DateFormat, '$', 1)
@@ -171,7 +171,7 @@ function [year, per, day, month, freq, inxPeriod] = locallyParseDateStrings(cell
         end
         
         if isfield(tkn, 'Indeterminate') && ~isempty(tkn.Indeterminate)
-            freq(i) = Frequency.INTEGER;
+            freq(i) = Frequency.Integer;
             per(i) = sscanf(tkn.Indeterminate, '%g');
             continue
         end

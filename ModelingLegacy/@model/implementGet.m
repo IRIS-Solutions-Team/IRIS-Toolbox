@@ -8,10 +8,6 @@
 
 function [response, flag, query] = implementGet(this, query, varargin)
 
-EIGEN_TOLERANCE = this.Tolerance.Eigen;
-
-%--------------------------------------------------------------------------
-
 [response, flag] = implementGet@shared.UserDataContainer(this, query, varargin{:});
 if flag, return, end
 
@@ -94,7 +90,7 @@ if strncmpi(query, 'Equations:ParameterValues', length('Equations:ParameterValue
 else
 
     switch lower(query)
-        
+
         case 'preprocessor'
             response = this.Preprocessor;
 
@@ -108,36 +104,36 @@ else
                 'Dynamic', implementGet(this.Incidence.Dynamic, 'Incidence'), ...
                 'Steady',  implementGet(this.Incidence.Steady, 'Incidence') ...
                 );
-            
-            
+
+
         case 'file'
             response = this.FileName;
 
-            
+
         case 'param'
             response = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this);
-            
-            
+
+
         case 'plainparam'
             response = addToDatabank('Parameters', this);
-     
+
 
         case 'std'
             response = addToDatabank('Std', this);
-            
-            
+
+
         case 'corr'
             response = addToDatabank('Corr', this);
 
 
         case 'nonzerocorr'
             response = addToDatabank('NonzeroCorr', this);
-            
-            
+
+
         case 'stdcorr'
             response = addToDatabank({'Std', 'Corr'}, this);
-            
-            
+
+
         case 'exogenous'
             ixg = this.Quantity.Type==5;
             response = struct( );
@@ -145,71 +141,71 @@ else
                 name = this.Quantity.Name{i};
                 values = this.Variant.Values(:, i, :);
                 response.(name) = permute(values, [2, 3, 1]);
-            end        
-            
-            
-            
-            
+            end
+
+
+
+
         case 'stdlist'
             response = getStdNames(this.Quantity);
-            
-            
-            
-            
+
+
+
+
         case 'corrlist'
             response = getCorrNames(this.Quantity);
-            
-            
-            
-            
+
+
+
+
         case 'stdcorrlist'
             listOfStdNames = implementGet(this, 'StdList');
             listOfCorrNames = implementGet(this, 'CorrList');
             response = [listOfStdNames, listOfCorrNames];
-            
-            
-            
-            
+
+
+
+
         case {'log', 'islog'}
             ixType = this.Quantity.Type~=4;
             response = cell2struct( ...
                 num2cell(this.Quantity.IxLog(ixType)), ...
                 this.Quantity.Name(ixType), 2 ...
                 );
-            
-            
+
+
         case {'loglist'}
             response = this.Quantity.Name(this.Quantity.IxLog);
-            
-            
+
+
         case {'nonloglist'}
             response = this.Quantity.Name(~this.Quantity.IxLog);
-            
-            
+
+
         case {'covmat', 'omega'}
             response = getIthOmega(this, ':');
-            
-            
+
+
         case {'stdvec'}
             response = permute(this.Variant.StdCorr(:, 1:ne, :), [2, 3, 1]);
-            
-            
+
+
         case {'stdcorrvec'}
             response = permute(this.Variant.StdCorr, [2, 3, 1]);
-            
-            
+
+
         case {'nalt', 'numofvariants'}
             response = nv;
-            
-            
+
+
         case {'nametype'}
             response = this.Quantity.Type;
-            
-            
+
+
         case 'build'
             response = this.Build;
 
-            
+
         case {'preparser', 'preparsercontrol', 'pset', 'controlparameters'}
             response = this.PreparserControl;
 
@@ -217,17 +213,17 @@ else
         case {'substitutions'}
             response = this.Substitutions;
 
-            
+
         case 'steady'
             response = cell2DbaseFunc(steadyLevel+1i*steadyGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
-            
-            
+
+
         case 'steadylevel'
             response = cell2DbaseFunc(steadyLevel);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
-            
-            
+
+
         case 'steadygrowth'
             response = cell2DbaseFunc(steadyGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
@@ -236,67 +232,67 @@ else
         case 'dt'
             response = cell2DbaseFunc(dtLevel+1i*dtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
-            
-            
+
+
         case 'dtlevel'
             response = cell2DbaseFunc(dtLevel);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
 
-            
+
         case 'dtgrowth'
             inxNaNSolutions = this.Quantity.Type==1;
             response = cell2DbaseFunc(dtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
-            
+
         case 'steady+dt'
             response = cell2DbaseFunc(ssDtLevel+1i*ssDtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
-            
+
         case 'steadylevel+dtlevel'
             response = cell2DbaseFunc(ssDtLevel);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
-            
+
         case 'steadygrowth+dtgrowth'
             response = cell2DbaseFunc(ssDtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
-            
+
         case {'eig', 'eigval', 'roots'}
             response = eig(this);
-            
+
         case 'rlist'
             response = implementGet(this.Reporting, 'list');
-                    
+
         case 'reqtn'
             response = implementGet(this.Reporting, 'eqtn');
-            
+
         case 'rlabel'
             response = implementGet(this.Reporting, 'label');
-            
+
         case {'yvector', 'yvec'}
             response = printVector(this.Quantity, this.Vector.Solution{1}, logStyle);
             response = reshape(response, [ ], 1);
             response = cellstr(response);
-            
+
         case {'xvector', 'xvec', 'xivector', 'xivec'}
             response = printVector(this.Quantity, this.Vector.Solution{2}, logStyle);
             response = reshape(response, [ ], 1);
             response = cellstr(response);
-            
+
         case {'xfvector', 'xfvec', 'xifvector', 'xifvec'}
             response = printVector(this.Quantity, this.Vector.Solution{2}, logStyle);
             response = reshape(response(1:numXiF), [ ], 1);
             response = cellstr(response);
-            
+
         case {'xbvector', 'xbvec', 'xibvector', 'xibvec'}
             response = printVector(this.Quantity, this.Vector.Solution{2}, logStyle);
             response = reshape(response(numXiF+1:end), [ ], 1);
             response = cellstr(response);
-            
+
         case {'evector', 'evec'}
             response = printVector(this.Quantity, this.Vector.Solution{3}, logStyle);
             response = reshape(response, [ ], 1);
             response = cellstr(response);
-            
+
         case {'ylog', 'xlog', 'elog', 'plog', 'glog'}
             switch query(1)
                 case 'y'
@@ -312,12 +308,12 @@ else
                     ixType = this.Quantity.Type==5;
                 otherwise
                     ixType = false(1, length(this.Quantity));
-            end        
+            end
             response = this.Quantity.IxLog(ixType);
-            
 
-        
-        
+
+
+
         case {'eylist', 'exlist'}
             switch query(2)
                 case 'y'
@@ -326,48 +322,57 @@ else
                     ixType = this.Quantity.Type==32;
             end
             response = this.Quantity.Name(ixType);
-            
-            
-            
-            
+
+
+
+
         case {'diffuse', 'nonstationary', 'isnonstationary', 'stationary', 'isstationary' ...
                 'stationarylist', 'nonstationarylist'}
             needsToCheckSolution = true;
-            getStationary(query);
+            if startsWith(query, "is")
+                query(1:2) = '';
+            end
+            if contains(query, "list", "ignoreCase", true)
+                output = "list";
+            else
+                output = "struct";
+            end
+            stationaryFlag = ~startsWith(query, "non");
+            [~, response] = getStationaryStatus(this, stationaryFlag, output);
 
-            
+
         case 'maxlag'
             maxLagDynamic = this.Incidence.Dynamic.MinShift;
             maxLagSteady = this.Incidence.Steady.MinShift;
             response = min(maxLagDynamic, maxLagSteady);
-            
-            
+
+
         case 'maxlead'
             maxLeadDynamic = this.Incidence.Dynamic.MaxShift;
             maxLeadSteady = this.Incidence.Steady.MaxShift;
             response = max(maxLeadDynamic, maxLeadSteady);
-            
-            
-            
-            
+
+
+
+
         case {'icond', 'initcond', 'required', 'requiredinitcond'}
             % True initial conditions required at least in one parameter variant.
-            vecXb = this.Vector.Solution{2}(numXiF+1:end);
+            vecYXi = this.Vector.Solution{2}(numXiF+1:end);
             ixInit = any(this.Variant.IxInit, 3);
             if startsWith(query, "required", "ignoreCase", true)
                 logStyle = "none";
             end
-            response = printVector(this.Quantity, vecXb(ixInit)-1i, logStyle);
+            response = printVector(this.Quantity, vecYXi(ixInit)-1i, logStyle);
             response = cellstr(response);
-            
-            
-            
-            
+
+
+
+
         case {'forward'}
             response = size(this.Variant.FirstOrderSolution{2}, 2)/ne - 1;
             needsToCheckSolution = true;
-            
-            
+
+
         case {'stableroots', 'unitroots', 'unstableroots'}
             eigenValues = this.Variant.EigenValues;
             eigenStability = this.Variant.EigenStability;
@@ -385,12 +390,12 @@ else
                 response(1, 1:n, v) = eigenValues(1, ixSelect(1, :, v), v);
             end
             response(:, all(isnan(response), 3), :) = [ ];
-            
-            
+
+
         case 'epsilon'
             response = this.Tolerance.DiffStep;
-            
-            
+
+
         case 'userdata'
             response = userdata(this);
 
@@ -400,51 +405,51 @@ else
         % Database of autoexogenise definitions d.variable = 'shock';
         case {'autoexogenise', 'autoexogenised', 'autoexogenize', 'autoexogenized'}
             response = autoexogenise(this);
-            
-            
-            
-            
+
+
+
+
         case {'autoswap', 'autoswaps', 'autoexog'}
             response = autoswap(this);
 
-            
+
         case {'reporting', 'rpteq'}
             response = this.Reporting;
-            
-            
+
+
         case 'nx'
             response = length(this.Vector.Solution{2});
-            
-            
-            
-            
+
+
+
+
         case 'numxib'
             response = size(this.Variant.FirstOrderSolution{7}, 1);
-            
-            
-            
-            
+
+
+
+
         case 'numxif'
             response = length(this.Vector.Solution{2}) - size(this.Variant.FirstOrderSolution{7}, 1);
-            
-            
-            
-            
+
+
+
+
         case 'ny'
             response = sum(this.Quantity.Type==1);
-            
-            
-            
-            
+
+
+
+
         case 'ng'
             response = sum(this.Quantity.Type==5);
-            
-            
-            
-            
+
+
+
+
         case 'ne'
             response = sum(this.Quantity.Type==31 | this.Quantity.Type==32);
-            
+
 
 
 
@@ -459,16 +464,16 @@ else
 
 
 
-            
+
         case {'lastsyst', 'lastsystem'}
             response = this.LastSystem;
-            
+
 
 
 
         otherwise
             flag = false;
-            
+
     end
 
 end
@@ -488,55 +493,6 @@ if ~isempty(needsToAddToDatabank)
     response = addToDatabank(needsToAddToDatabank, this, response);
 end
 
-return
-
-
-
-
-    function getStationary(query)
-        if strncmpi(query, 'is', 2)
-            query(1:2) = '';
-        end
-        vecXb = [this.Vector.Solution{1:2}];
-        t0 = imag(vecXb)==0;
-        name = this.Quantity.Name( real(vecXb(t0)) );
-        [~, inxNaNSolutions] = isnan(this, 'solution');
-        status = nan([sum(t0), nv]);
-        for iiAlt = find(~inxNaNSolutions)
-            inxUnitRoots = this.Variant.EigenStability(:, 1:numXiB, iiAlt)==1;
-            dy = any(abs(this.Variant.FirstOrderSolution{4}(:, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            df = any(abs(this.Variant.FirstOrderSolution{1}(1:numXiF, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            db = any(abs(this.Variant.FirstOrderSolution{7}(:, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            d = [dy, df, db];
-            
-            if strncmp(query, 's', 1)
-                % Stationary
-                status(:, iiAlt) = double(~d(t0)).';
-            else
-                % Non-stationary
-                status(:, iiAlt) = double(d(t0)).';
-            end
-        end
-        try %#ok<TRYNC>
-            status = logical(status);
-        end
-        if contains(query, "list", "IgnoreCase", true)
-            % List
-            if nv==1
-                response = name(status==true | status==1);
-                response = response(:)';
-            else
-                response = cell([1, nv]);
-                for ii = 1 : nv
-                    response{ii} = name(status(:, ii)==true | status(:, ii)==1);
-                    response{ii} = response{ii}(:).';
-                end
-            end
-        else
-            % Databank
-            response = cell2struct( num2cell(status, 2), name(:), 1 );
-        end
-    end%
 end%
 
 
@@ -589,7 +545,7 @@ function [Dl, Dg] = getSteadyDtrends(this)
     gx = imag(x);
 
     nv = length(this);
-    ixy = this.Quantity.Type==1; 
+    ixy = this.Quantity.Type==1;
     ny = sum(ixy);
     posy = find(ixy);
     ixd = this.Equation.Type==3;

@@ -40,15 +40,6 @@ function lineHandles = zeroline(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-%--------------------------------------------------------------------------
-
-exception.warning([
-    "Obsolete"
-    "Function visual.zeroline has become obsolete and "
-    "is scheduled for removal from the IrisToolbox."
-    "Use the new Matlab function yline() instead."
-]);
-
 lineHandles = visual.backend.plotInfiniteLine('zeroline', varargin{:});
 
 end%

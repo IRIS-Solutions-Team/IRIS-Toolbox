@@ -1,3 +1,2 @@
-# [IrisToolbox] Reference Manual
-
+# Home
 

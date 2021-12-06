@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function outputDb = finalize(Y)
+function outputDb = finalize(Y, options)
 
 TIME_SERIES = Series();
 MEAN_OUTPUT = "Mean";
@@ -45,7 +45,9 @@ return
         contInput = ['C', X];
         mseInput = ['Mse', X];
 
-        outputDb.(prefix).(MEAN_OUTPUT) = seriesFromData(Y.(meanInput), "mean");
+        if ~options.MedianOnly
+            outputDb.(prefix).(MEAN_OUTPUT) = seriesFromData(Y.(meanInput), "mean");
+        end
         if isfield(Y, medianInput)
             outputDb.(prefix).(MEDIAN_OUTPUT) = seriesFromData(Y.(meanInput), "median");
         end
@@ -63,17 +65,8 @@ return
 
         if isfield(Y, mseInput)
             xbVector = Y.(mseInput).XbVector;
-            data = Y.(mseInput).Data;
-            numDates = size(data, 3);
-            numPages = size(data, 4);
-            cellData = cell(numDates, numPages);
-            for v = 1 : numPages
-                for t = 1 : numDates
-                    cellData{t, v} = namedmat(data(:, :, t, v), xbVector, xbVector);
-                end
-            end
-            outputDb.(prefix).(MSE_OUTPUT) ...
-                = Series(Y.(mseInput).Range(1), cellData);
+            cellData = covfun.cov2cell(Y.(mseInput).Data, xbVector, xbVector);
+            outputDb.(prefix).(MSE_OUTPUT) = Series(Y.(mseInput).Range(1), cellData);
         end
     end 
 end%

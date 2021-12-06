@@ -1,4 +1,4 @@
-# `!postprocessor`
+# !postprocessor
 
 {== Postprocessing equations ==}
 

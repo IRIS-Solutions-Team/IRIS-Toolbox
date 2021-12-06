@@ -201,14 +201,14 @@ classdef InputParser < inputParser
         function addDateOptions(this, context)
             configStruct = iris.get( );
             addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime) || isequal(x, @default) || isequal(x, @iso));
-            addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
+            addParameter(this, {'EnforceFrequency', 'Frequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
             addParameter(this, {'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
             addParameter(this, {'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
             addParameter(this, {'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
             addParameter(this, 'ConversionDay', @config, @iris.Configuration.validateConversionDay);
             addParameter(this, 'WDay', @config, @iris.Configuration.validateWDay);
             addParameter(this, 'DatePosition', 'c', @(x) (ischar(x) || isstring(x)) && startsWith(lower(string(x)), ["s", "e", "c"]));
-            
+
             % Backward compatibility options for datxtick( )
             addParameter(this, {'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isa(x,'function_handle'));
             this.HasDateOptions = true;

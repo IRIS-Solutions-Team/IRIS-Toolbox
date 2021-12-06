@@ -17,10 +17,15 @@ allNames = textual.stringify(this.Name);
 numQuantities = numel(allNames);
 ttrendName = textual.stringify(this.RESERVED_NAME_TTREND);
 
+
 if endsWith(what, "descriptions")
     allNames = textual.stringify(this.Label);
     what = erase(what, "descriptions");
+    if what==""
+        what = "names";
+    end
 end
+
 
 if what==lower("names")
     output = allNames;
@@ -64,14 +69,44 @@ elseif any(what==lower(["logStatus", "isLog"]))
     output = cell2struct(status, allNames(inxType), 2);
 
 
-elseif any(what==lower(["nameDescription", "nameLabel", "namesDescriptions"]))
+elseif any(what==lower(["nameDescription", "nameLabel", "namesDescriptions", "nameDescriptionsStruct"]))
     labels = arrayfun(@(x) string(x), this.Label, "uniformOutput", false);
     output = cell2struct(labels, this.Name, 2);
 
 
-elseif what==lower("positions")
+elseif any(what==lower("nameAliasesStruct"))
+    output = arrayfun(@(x) string(x), this.Alias, "uniformOutput", false);
+    output = cell2struct(output, this.Name, 2);
+
+
+elseif any(what==lower("nameAttributesStruct"))
+    output = cell2struct(this.Attributes, this.Name, 2);
+
+
+elseif any(what==lower("nameAttributes"))
+    output = this.Attributes;
+
+
+elseif any(what==lower(["namePositions", "positions"]))
     positions = num2cell(1 : numQuantities);
-    output= cell2struct(positions, allNames, 2);
+    output = cell2struct(positions, allNames, 2);
+
+
+elseif any(what==lower("nameTypes"))
+    types = repmat("", size(this.Type));
+    types(this.Type==1) = "measurement-variables";
+    types(this.Type==2) = "transition-variables";
+    types(this.Type==31) = "measurement-shocks";
+    types(this.Type==32) = "transition-shocks";
+    types(this.Type==4) = "parameters";
+    types(this.Type==5) = "exogenous-variables";
+    types = num2cell(types);
+    output = cell2struct(types, allNames, 2);
+
+
+elseif what==lower("nameAttributesList")
+    output = unique([this.Attributes{:}], "stable");
+
 
 else
     beenHandled = false;

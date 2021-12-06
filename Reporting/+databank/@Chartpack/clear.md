@@ -1,4 +1,4 @@
-# `clear`
+# clear
 
 {== Clear all charts from the chartpack ==}
 

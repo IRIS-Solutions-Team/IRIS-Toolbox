@@ -1,4 +1,4 @@
-# `!substitutions`
+# !substitutions
 
 {== Define text substitutions ==}
 

@@ -224,7 +224,9 @@ for t = 2 : numExtdPeriods
     PZt = ZP';
 
     % Mean prediction for observables available, y0(t|t-1)
-    d = s.d(:, min(t, end));
+    if ~isempty(s.d)
+        d = s.d(:, min(t, end));
+    end
     if ~s.NeedsSimulate
         y0 = Zj*a;
         if ~isempty(s.d)

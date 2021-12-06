@@ -22,34 +22,34 @@ if ~iscell(col)
 end
 
 for i = 1 : numBands
-    if i <= numWhites
+    if i<=numWhites
         white = options.White(i);
-    elseif i > numMidLines
+    elseif i>numMidLines
         white = white.^2;
     end
 
-    % Retrieve current set of data.
-    iCData = midData(:, min(i, end));
-    iLData = lowerData(:, min(i, end));
-    if options.Relative && all( iLData(:) >=0 )
-        iLData = -iLData;
+    % Retrieve current set of data
+    midData__ = midData(:, min(i, end));
+    lowerData__ = lowerData(:, min(i, end));
+    if options.Relative && all(lowerData__(:)>=0)
+        lowerData__ = -lowerData__;
     end
-    iHData = upperData(:, min(i, end));
+    upperData__ = upperData(:, min(i, end));
 
-    % Create x- and y-data for the patch function.
+    % Create x- and y-data for the patch function
     xData = [ xCoor; flipud(xCoor) ];
-    yData = [ iLData; flipud(iHData) ];
+    yData = [ lowerData__; flipud(upperData__) ];
     if options.Relative
-        yData = yData + [ iCData; flipud(iCData) ];
+        yData = yData + [midData__; flipud(midData__)];
     end
 
-    % Remove data points where either xData or yData is NaN.
-    ixNa = isnan(yData);
-    if all(ixNa)
-        continue
-    end
-    xData = xData(~ixNa);
-    yData = yData(~ixNa);
+    % Remove data points where either xData or yData is NaN
+    % ixNa = isnan(yData);
+    % if all(ixNa)
+        % continue
+    % end
+    % xData = xData(~ixNa);
+    % yData = yData(~ixNa);
 
     % Draw patch object, mix its face color.
     set(axesHandle, 'nextPlot', 'add');

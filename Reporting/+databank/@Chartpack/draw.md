@@ -1,4 +1,4 @@
-# `draw`
+# draw
 
 {== Render charts defined in Chartpack ==}
 

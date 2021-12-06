@@ -1,3 +1,5 @@
+% Type `web +databank/+fromIMF/data.md` for help on this function
+%
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
@@ -27,6 +29,7 @@ arguments
 end
 %}
 % >=R2019b
+
 
 if ~endsWith(options.URL, "/")
     options.URL = options.URL + "/";
@@ -77,10 +80,11 @@ info.Response = response;
 end%
 
 %
-% Local Functions
+% Local functions
 %
 
 function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, counterMap, options, nameOptions)
+    %(
     try
         allResponseData = response.CompactData.DataSet.Series;
     catch
@@ -102,9 +106,9 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
     for i = 1 : numel(allResponseData)
         responseData = hereGetIthReponse( );
         name = hereCreateName( );
-        if isstruct(responseData) && isfield(responseData, "Obs")
+        if isstruct(responseData) && isfield(responseData, 'Obs')
             [dates, values] = hereGetDatesValues( );
-            series = Series(dates, values, "", rmfield(responseData, "Obs"), "--skip");
+            series = Series(dates, values, '', rmfield(responseData, 'Obs'), '--skip');
         else
             series = Series();
         end
@@ -245,14 +249,17 @@ end%
 %
 
 function locallyValidateFrequency(freq)
+    %(
     if any(freq==[Frequency.YEARLY, Frequency.QUARTERLY, Frequency.MONTHLY])
         return
     end
     error("Frequency needs to be one of {YEARLY, QUARTERLY, MONTHLY}.");
+    %)
 end%
 
 
 function locallyValidateDate(date, freq)
+    %(
     if isinf(date)
         return
     end
@@ -260,5 +267,6 @@ function locallyValidateDate(date, freq)
         return
     end
     error("Options StartDate and EndDate need to be regular dates complying with Frequency.");
+    %)
 end%
 

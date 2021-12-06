@@ -1,4 +1,4 @@
-# `!autoswaps-simulate`
+# !autoswaps-simulate
 
 {== Definitions of variable-shock pairs to be autoswapped in dynamic simulations ==}
 

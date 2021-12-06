@@ -1,5 +1,4 @@
 % Plan  Simulation Plans for Model and Explanatory objects
-%
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
@@ -299,7 +298,7 @@ classdef Plan ...
 
 
         function inxDates = resolveDates(this, dates)
-            if isequal(dates, @all)
+            if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
                 inxDates = false(1, this.NumExtdPeriods);
                 inxDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
                 return

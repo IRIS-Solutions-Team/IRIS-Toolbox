@@ -59,6 +59,7 @@ if isempty(pp)
     addParameter(pp, 'Simulate', false, @(x) isequal(x, false) || validate.nestedOptions(x));
     addParameter(pp, 'Weighting', [ ], @isnumeric);
     addParameter(pp, 'MeanOnly', false, @validate.logicalScalar);
+    addParameter(pp, 'MedianOnly', false, @validate.logicalScalar);
     addParameter(pp, 'ReturnStd', true, @validate.logicalScalar);
     addParameter(pp, 'ReturnMedian', logical.empty(1, 0));
     addParameter(pp, 'ReturnMSE', true, @validate.logicalScalar);
@@ -140,7 +141,7 @@ end
 %
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
-optionsHere = struct("Clip", true, "Presample", true);
+optionsHere = struct('Clip', true, 'Presample', true);
 if ~isempty(opt.Override) || ~isempty(opt.Multiply)
     [opt.OverrideStdcorr, ~, opt.MultiplyStd] = varyStdCorr( ...
         this, range, opt.Override, opt.Multiply ...

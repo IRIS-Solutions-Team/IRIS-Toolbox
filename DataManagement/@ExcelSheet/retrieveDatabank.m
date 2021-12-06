@@ -140,7 +140,7 @@ return
 
     function [name, isMissing, isValid] = hereRetrieveName(location)
         %(
-        if this.Orientation=="Row"
+        if startsWith(this.Orientation, "row", "ignoreCase", true)
             name = this.Buffer{location, this.NamesLocation};
         else
             name = this.Buffer{this.NamesLocation, location};
@@ -170,7 +170,7 @@ return
             return
         end
 
-        if this.Orientation=="Row"
+        if startsWith(this.Orientation, "row", "ignoreCase", true)
             comment = this.Buffer{location, this.CommentsLocation};
         else
             comment = this.Buffer{this.CommentsLocation, location};

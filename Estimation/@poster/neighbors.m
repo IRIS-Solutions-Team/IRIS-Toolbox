@@ -10,6 +10,7 @@ arguments
     multiplicativeNeighbors (1, :) double
 
     options.Neighbors (1, 1) struct = struct()
+    options.Min (1, 1) double = 1
 end
 
 d = struct();
@@ -37,7 +38,11 @@ for i = 1 : numParams
         pp = cell(1, numNeighbors);
         pp(:) = {pStar};
         for j = 1 : numNeighbors
-            pp{j}(i) = pStar(i)*multiplicativeNeighbors(j);
+            if pp{j}(i)>=options.Min
+                pp{j}(i) = pStar(i)*multiplicativeNeighbors(j);
+            else
+                pp{j}(i) = pStar(i) + (multiplicativeNeighbors(j)-1);
+            end
             x{1}(end+1, 1) = pp{j}(i);
         end
     end
@@ -50,10 +55,15 @@ for i = 1 : numParams
     [x{2}(:, 1), x{2}(:, 2), x{2}(:, 3), x{2}(:, 4)] = eval(this, pp{:}); %#ok<EVLC>
     x{2} = -x{2};
 
+    % x{3} is normalized to its minimum
     x{3} = x{2};
-    x{3} = x{3} - min(x{3}, [], 1);
+    inxNa = any(~isfinite(x{3}), 2);
+    x{3}(inxNa, :) = NaN;
+    if any(~inxNa)
+        x{3}(~inxNa, :) = x{3}(~inxNa, :) - min(x{3}(~inxNa, :), [], 1);
+    end
 
-    % `x{3}` is a vector of auxiliary information.
+    % `x{4}` is a vector of auxiliary information.
     x{4} = [this.InitParam(i), -this.InitLogPost, this.Lower(i), this.Upper(i)];
 
     d.(pList{i}) = x;

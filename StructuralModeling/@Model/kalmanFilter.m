@@ -80,6 +80,8 @@ if any(inxNaData)
     );
 end
 
+options = locallyResolveReturnOptions(options);
+
 %
 % Pre-allocate requested output data
 %
@@ -126,7 +128,7 @@ info.MinusLogLik = minusLogLik;
 %
 % Post-process hdata output arguments
 %
-outputDb = hdataobj.finalize(outputData);
+outputDb = hdataobj.finalize(outputData, options);
 if options.FlattenOutput
     outputDb = locallyFlattenOutput(outputDb);
 end
@@ -186,28 +188,32 @@ return
         % Prediction
         %
         if isPred
-            outputData.M0 = hdataobj( this, extRange, numPredictions, ...
-                                 'IncludeLag', ~false );
-            if ~options.MeanOnly
-                if options.ReturnMedian
-                    outputData.N0 = [];
-                end
-                if options.ReturnStd
-                    outputData.S0 = hdataobj( this, extRange, numRuns, ...
-                                         'IncludeLag', false, ...
-                                         'IsVar2Std', true );
-                end
-                if options.ReturnMSE
-                    outputData.Mse0 = hdataobj( );
-                    outputData.Mse0.Data = nan(nb, nb, numExtPeriods, numRuns);
-                    outputData.Mse0.Range = extRange;
-                    outputData.Mse0.XbVector = xbVector;
-                end
-                if options.ReturnBreakdown
-                    outputData.C0 = hdataobj( this, extRange, numContributions, ....
-                                               'IncludeLag', false, ...
-                                               'Contributions', @measurement );
-                end
+            outputData.M0 = hdataobj( ...
+                this, extRange, numPredictions ...
+                , "IncludeLag", true ...
+            );
+            if options.ReturnMedian
+                outputData.N0 = [];
+            end
+            if options.ReturnStd
+                outputData.S0 = hdataobj( ...
+                    this, extRange, numRuns ...
+                    , 'IncludeLag', false ...
+                    , 'IsVar2Std', true ...
+                );
+            end
+            if options.ReturnMSE
+                outputData.Mse0 = hdataobj( );
+                outputData.Mse0.Data = nan(nb, nb, numExtPeriods, numRuns);
+                outputData.Mse0.Range = extRange;
+                outputData.Mse0.XbVector = xbVector;
+            end
+            if options.ReturnBreakdown
+                outputData.C0 = hdataobj( ...
+                    this, extRange, numContributions ....
+                    , 'IncludeLag', false ...
+                    , 'Contributions', @measurement ...
+                );
             end
         end
 
@@ -215,28 +221,32 @@ return
         % Update
         %
         if isUpdate
-            outputData.M1 = hdataobj( this, extRange, numRuns, ...
-                                 'IncludeLag', ~false );
-            if ~options.MeanOnly
-                if options.ReturnMedian
-                    outputData.N1 = [];
-                end
-                if options.ReturnStd
-                    outputData.S1 = hdataobj( this, extRange, numRuns, ...
-                                         'IncludeLag', false, ...
-                                         'IsVar2Std', true);
-                end
-                if options.ReturnMSE
-                    outputData.Mse1 = hdataobj( );
-                    outputData.Mse1.Data = nan(nb, nb, numExtPeriods, numRuns);
-                    outputData.Mse1.Range = extRange;
-                    outputData.Mse1.XbVector = xbVector;
-                end
-                if options.ReturnBreakdown
-                    outputData.C1 = hdataobj( this, extRange, numContributions, ...
-                                                 'IncludeLag', false, ...
-                                                 'Contributions', @measurement );
-                end
+            outputData.M1 = hdataobj( ...
+                this, extRange, numRuns ...
+                , 'IncludeLag', true ...
+            );
+            if options.ReturnMedian
+                outputData.N1 = [];
+            end
+            if options.ReturnStd
+                outputData.S1 = hdataobj( ...
+                    this, extRange, numRuns ...
+                    , 'IncludeLag', false ...
+                    , 'IsVar2Std', true ...
+                );
+            end
+            if options.ReturnMSE
+                outputData.Mse1 = hdataobj( );
+                outputData.Mse1.Data = nan(nb, nb, numExtPeriods, numRuns);
+                outputData.Mse1.Range = extRange;
+                outputData.Mse1.XbVector = xbVector;
+            end
+            if options.ReturnBreakdown
+                outputData.C1 = hdataobj( ...
+                    this, extRange, numContributions ...
+                    , 'IncludeLag', false ...
+                    , 'Contributions', @measurement  ...
+                );
             end
         end
 
@@ -245,28 +255,26 @@ return
         %
         if isSmooth
             outputData.M2 = hdataobj(this, extRange, numRuns);
-            if ~options.MeanOnly
-                if options.ReturnMedian
-                    outputData.N2 = [];
-                end
-                if options.ReturnStd
-                    outputData.S2 = hdataobj( ...
-                        this, extRange, numRuns ...
-                        , 'IsVar2Std', true ...
-                    );
-                end
-                if options.ReturnMSE
-                    outputData.Mse2 = hdataobj( );
-                    outputData.Mse2.Data = nan(nb, nb, numExtPeriods, numRuns);
-                    outputData.Mse2.Range = extRange;
-                    outputData.Mse2.XbVector = xbVector;
-                end
-                if options.ReturnBreakdown
-                    outputData.C2 = hdataobj( ...
-                        this, extRange, numContributions ...
-                        , 'Contributions', @measurement ...
-                    );
-                end
+            if options.ReturnMedian
+                outputData.N2 = [];
+            end
+            if options.ReturnStd
+                outputData.S2 = hdataobj( ...
+                    this, extRange, numRuns ...
+                    , 'IsVar2Std', true ...
+                );
+            end
+            if options.ReturnMSE
+                outputData.Mse2 = hdataobj( );
+                outputData.Mse2.Data = nan(nb, nb, numExtPeriods, numRuns);
+                outputData.Mse2.Range = extRange;
+                outputData.Mse2.XbVector = xbVector;
+            end
+            if options.ReturnBreakdown
+                outputData.C2 = hdataobj( ...
+                    this, extRange, numContributions ...
+                    , 'Contributions', @measurement ...
+                );
             end
         end
         %)
@@ -276,6 +284,16 @@ end%
 %
 % Local functions
 %
+
+function options = locallyResolveReturnOptions(options)
+    %(
+    options.ReturnStd = options.ReturnStd && ~options.MeanOnly && ~options.MedianOnly;
+    options.ReturnMSE = options.ReturnMSE && ~options.MeanOnly && ~options.MedianOnly;
+    options.ReturnBreakdown = options.ReturnBreakdown && ~options.MeanOnly && ~options.MedianOnly;
+    options.ReturnMedian = options.ReturnMedian && ~options.MeanOnly;
+    %)
+end%
+
 
 function outputDb = locallyFlattenOutput(outputDb)
     %(

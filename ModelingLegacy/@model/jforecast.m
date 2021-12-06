@@ -679,7 +679,7 @@ return
         % TODO: use `combineStdCorr` here
         % Combine sx from the current parameterisation and
         % sx supplied in Override= or cond
-        optionsHere = struct("Clip", false, "Presample", false);
+        optionsHere = struct('Clip', false, 'Presample', false);
         [overrideStdCorrReal, overrideStdCorrImag] ...
             = varyStdCorr(this, range, opt.Override, opt.Multiply, optionsHere);
 

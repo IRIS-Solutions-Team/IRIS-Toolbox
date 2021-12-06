@@ -1,4 +1,4 @@
-# `estimate`
+# estimate
 
 {== Estimate model parameters by optimizing selected objective function ==}
 

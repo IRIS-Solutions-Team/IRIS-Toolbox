@@ -15,7 +15,7 @@ flag = true;
 numVariants = countVariants(this);
 realSmall = getrealsmall( );
 
-switch query    
+switch lower(query)
     case {'omg', 'omega', 'cove', 'covresiduals'}
         answ = this.Omega;
         
@@ -39,7 +39,7 @@ switch query
         inx = all(isnan(answ), 3);
         answ(:, inx, :) = [ ];
         
-    case {'nper', 'nobs'}
+    case {'nper', 'nobs', 'numperiods'}
         answ = permute(sum(this.IxFitted, 2), [2, 3, 1]);
         
     case {'sample', 'fitted'}
@@ -106,4 +106,5 @@ switch query
         flag = false;        
 end
 
-end
+end%
+

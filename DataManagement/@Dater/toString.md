@@ -1,4 +1,4 @@
-# `toString`
+# toString
 
 {== Print IrisT dates as formatted strings ==}
 

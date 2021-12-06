@@ -1,4 +1,4 @@
-# `x13.season`
+# x13.season
 
 {== Interface to X13-Arima seasonal adjustment procedure ==}
  

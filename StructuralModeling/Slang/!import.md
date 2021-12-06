@@ -1,4 +1,4 @@
-# `!import`
+# !import
 
 {== Include the content of another model file.==}
 
