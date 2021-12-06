@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function code = print(modelObject, modelFile, options)
 
 arguments
@@ -18,7 +18,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function code = print(modelObject, modelFile, varargin)
 
 persistent pp
