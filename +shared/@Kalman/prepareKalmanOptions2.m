@@ -141,7 +141,7 @@ end
 %
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
-optionsHere = struct("Clip", true, "Presample", true);
+optionsHere = struct('Clip', true, 'Presample', true);
 if ~isempty(opt.Override) || ~isempty(opt.Multiply)
     [opt.OverrideStdcorr, ~, opt.MultiplyStd] = varyStdCorr( ...
         this, range, opt.Override, opt.Multiply ...

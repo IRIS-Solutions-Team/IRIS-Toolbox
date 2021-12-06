@@ -45,7 +45,7 @@ end
 [overrideParams, equalsDefaultParams, equalsPreviousParams] = ...
     locallyOverrideAndMultiply(overrideParams, [ ], defaultParams);
 
-optionsHere = struct("Clip", true, "Presample", false);
+optionsHere = struct('Clip', true, 'Presample', false);
 [overrideStdCorr, ~, multiplyStdCorr] ...
     = varyStdCorr(this, input.FilterRange, input.Override, [ ], optionsHere);
 defaultStdCorr = this.Variant.StdCorr(1, :, input.Variant);

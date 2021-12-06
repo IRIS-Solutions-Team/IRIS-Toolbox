@@ -96,7 +96,7 @@ data = datarequest('yg*', this, data, range);
 % * clip=true means remove trailing NaNs
 % * presample=true means include one presample period
 %
-optionsHere = struct("Clip", true, "Presample", true);
+optionsHere = struct('Clip', true, 'Presample', true);
 lik.StdCorr = varyStdCorr(this, range, lik.Override, lik.Multiply, optionsHere);
 
 %--------------------------------------------------------------------------
