@@ -1,7 +1,7 @@
 function [plotHandle, bandHandles, dates, midData, xCoor] ...
     = band(mid, lower, upper, options, bandOptions)
 
-% >=R2019
+% >=R2019b
 %(
 arguments
     mid Series
@@ -18,7 +18,7 @@ arguments
     bandOptions.ExcludeFromLegend (1, 1) logical = true
 end
 %)
-% >=R2019
+% >=R2019b
 
 
 if isequal(lower, []) && isequal(upper, [])
