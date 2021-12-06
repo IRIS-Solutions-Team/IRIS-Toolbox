@@ -272,7 +272,7 @@ POS_STDCORR = [ ];
 INDEX_STDCORR_RHS = [ ];
 NAMES_ASSIGNED = { };
 
-% Steady states cannot be changed from 0+0i.
+% Steady states for shocks cannot be changed from 0+0
 inxNonzeroShocks = false(1, numQuantities);
 inxNonzeroShocks(inxE) = any(this.Variant.Values(1, inxE, :)~=0, 3);
 if any(inxNonzeroShocks)
