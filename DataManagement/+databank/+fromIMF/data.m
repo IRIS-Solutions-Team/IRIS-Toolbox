@@ -106,9 +106,9 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
     for i = 1 : numel(allResponseData)
         responseData = hereGetIthReponse( );
         name = hereCreateName( );
-        if isstruct(responseData) && isfield(responseData, "Obs")
+        if isstruct(responseData) && isfield(responseData, 'Obs')
             [dates, values] = hereGetDatesValues( );
-            series = Series(dates, values, "", rmfield(responseData, "Obs"), "--skip");
+            series = Series(dates, values, '', rmfield(responseData, 'Obs'), '--skip');
         else
             series = Series();
         end
