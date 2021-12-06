@@ -291,6 +291,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = expansionMatrices(varargin)
         varargout = getIthOmega(varargin)
         varargout = getIthKalmanSystem(varargin)
+        varargout = getStationaryStatus(varargin)
 
 
         function names = nameAppendables(this)
