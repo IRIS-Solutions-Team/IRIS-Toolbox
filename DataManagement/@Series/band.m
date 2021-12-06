@@ -2,7 +2,7 @@ function [plotHandle, bandHandles, dates, midData, xCoor] ...
     = band(mid, lower, upper, options, bandOptions)
 
 % >=R2019b
-%(
+%{
 arguments
     mid Series
     lower {locallyValidateBounds} = []
@@ -17,7 +17,7 @@ arguments
     bandOptions.Relative (1, 1) logical = true
     bandOptions.ExcludeFromLegend (1, 1) logical = true
 end
-%)
+%}
 % >=R2019b
 
 
