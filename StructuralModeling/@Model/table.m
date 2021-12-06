@@ -39,6 +39,7 @@ if isempty(pp)
     addParameter(pp, 'SelectRows', false, @(x) isequal(x, false) || validate.list(x));
     addParameter(pp, {'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'WriteTable', "", @validate.mustBeTextScalar);
+    addParameter(pp, 'NonstationaryLevel', true);
 end
 opt = parse(pp, this, requests, varargin{:});
 %}

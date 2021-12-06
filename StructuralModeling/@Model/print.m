@@ -28,6 +28,7 @@ if isempty(pp)
     addParameter(pp, 'Parameters', true);
     addParameter(pp, 'Steady' , true);
     addParameter(pp, 'MarkdownCode', false);
+    addParameter(pp, 'Braces', ["<", ">"]);
 end
 parse(pp, varargin{:});
 options = pp.Results;
