@@ -15,6 +15,8 @@ arguments
     opt.SelectRows = false
     opt.SortAlphabetically (1, 1) logical = false
     opt.WriteTable (1, :) string = ""
+    opt.NonstationaryLevel (1, 1) logical = true
+    opt.Title (1, :) string = string.empty(1, 0)
 end
 %)
 % >=R2019b
@@ -30,7 +32,7 @@ if isempty(pp)
 
     addRequired(pp, 'model', @(x) isa(x, 'Model'));
     addRequired(pp, 'requests', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    
+
     addParameter(pp, 'CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Diary', "", @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
     addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
@@ -54,6 +56,7 @@ for n = requests
         compare = false;
         addTable = tableValues(this, @(x)x, compare, [ ], '', 'Steady', opt);
 
+
     elseif any(strcmpi(n, {'SteadyLevel', 'SteadyLevels'}))
         compare = false;
         addTable = tableValues(this, @real, compare, [ ], '', 'SteadyLevel', opt);
@@ -63,7 +66,7 @@ for n = requests
         compare = true;
         addTable = tableValues(this, @real, compare, [ ], '', 'CompareSteadyLevel', opt);
 
-        
+
     elseif any(strcmpi(n, {'SteadyChange', 'SteadyChanges'}))
         compare = false;
         setNaN = []; %~getIndexByType(this.Quantity, 1, 2, 5);
@@ -238,7 +241,15 @@ end
 
 % Select rows
 if ~isequal(opt.SelectRows, false)
-    outputTable = outputTable(string(opt.SelectRows), :);
+    selectRows = textual.stringify(opt.SelectRows);
+    while true
+        pos = find(startsWith(selectRows, ":"), 1);
+        if isempty(pos)
+            break
+        end
+        selectRows = [selectRows(1:pos-1), byAttributes(this, selectRows(pos)), selectRows(pos+1:end)];
+    end
+    outputTable = outputTable(selectRows, :);
 end
 
 % Sort table rows alphabetically
@@ -251,6 +262,7 @@ if ~isinf(opt.Round)
     outputTable = roundTable(outputTable, opt.Round);
 end
 
+outputTable.Properties.Description = join(opt.Title, newline());
 
 % 
 % Write table to file
@@ -292,6 +304,18 @@ function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName
     values = this.Variant.Values;
     values = retrieve(values);
     values = permute(values, [2, 3, 1]);
+    
+    if ~opt.NonstationaryLevel && ~contains(columnName, "change", "ignoreCase", true)
+        stationaryStatus = getStationaryStatus(this, true);
+        realValues = real(values);
+        imagValues = imag(values);
+        realValues(stationaryStatus==0, :) = NaN;
+        values = realValues;
+        if any(imagValues~=0)
+            values = values + 1i*imagValues;
+        end
+    end
+
     if ~isempty(inx)
         inxLog = inxLog(inx);
         values = values(inx, :);
