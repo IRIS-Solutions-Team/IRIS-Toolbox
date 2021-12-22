@@ -1,25 +1,19 @@
-function runningDb = ensureTypeConsistency(runningDb, outputType)
 % databank.backend.ensureTypeConsistency  Ensure consistency
 % of input/output databank and option OutputType
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function runningDb = ensureTypeConsistency(runningDb, outputType)
 
 if isequal(runningDb, [ ]) || isequal(runningDb, false)
-    if strcmpi(outputType, 'containers.Map')
-        runningDb = containers.Map('KeyType', 'char', 'ValueType', 'any');
-    elseif strcmpi(outputType, 'Dictionary')
+    if isequal(outputType, "Dictionary")
         runningDb = Dictionary( );
     else
         runningDb = struct( );
     end
 else
-    if isequal(outputType, @auto) || isa(runningDb, outputType)
+    if isequal(outputType, @auto) || isequal(outputType, "__auto__") || isa(runningDb, outputType)
         return
     end
     exception.error([

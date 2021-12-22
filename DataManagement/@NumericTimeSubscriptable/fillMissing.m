@@ -19,26 +19,20 @@ end
 function [this, datesMissing] = fillMissing(this, range, varargin)
 
 %( Input parser
-if isempty(this.Data)
-    return
-end
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser("NumericTimeSubscriptable/fillMissing");
     addRequired(pp, "inputSeries", @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, "range", @validate.range);
-    addRequired(pp, "method", @mustBeNonempty);
 end
 %)
 opt = parse(pp, this, range, varargin);
-method = pp.Results.method;
+method = varargin;
 %}
 % <=R2019a
 
 
 % Return immediately if the range is empty
-
 if isempty(range)
     datesMissing = DateWrapper.empty(1, 0);
     return
@@ -63,13 +57,13 @@ if nargout>=2
     end
 end
 
-if nnz(inxMissing)==0
-    return
+while ~isempty(method) && nnz(inxMissing)>0 && isa(method{1}, 'NumericTimeSubscriptable')
+    data = locallyReplaceData(data, startDate, endDate, inxMissing, method{1});
+    inxMissing = this.MissingTest(data) & inxRange;
+    method(1) = [];
 end
 
-if numel(method)==1 && isa(method{1}, 'NumericTimeSubscriptable')
-    data = locallyReplaceData(data, startDate, endDate, inxMissing, method{1});
-else
+if nnz(inxMissing)>0 && ~isempty(method)
     data = series.fillMissing(data, inxMissing, method{:});
 end
 

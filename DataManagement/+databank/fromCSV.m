@@ -3,9 +3,52 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+% >=R2019b
+%(
+function outputDb = fromCSV(fileName, opt)
+
+arguments
+    fileName (1, :) string 
+
+    opt.AddToDatabank {validate.mustBeDatabank(opt.AddToDatabank, [])} = []
+    opt.Case (1, 1) string {mustBeMember(opt.Case, ["", "lower", "upper"])} = ""
+    opt.CommentsHeader = ["CommentRow", "Comment", "Comments", "CommentsRow"], opt.CommentRow = []
+    opt.Continuous = false
+    opt.Delimiter (1, 1) string = ","
+    opt.FirstDateOnly (1, 1) logical = false
+    opt.NamesHeader = ["", "Variables", "Time"], opt.NameRow = [], opt.NamesRow = [], opt.LeadingRow = []
+    opt.NameFunc = [], opt.NamesFunc = []
+    opt.NaN (1, 1) string = "NaN"
+    opt.OutputType (1, 1) string {mustBeMember(opt.OutputType, ["__auto__", "struct", "Dictionary"])} = "__auto__"
+    opt.Preprocess = []
+    opt.RemoveFromData (1, :) string = string.empty(1, 0)
+    opt.Select = @all
+    opt.SkipRows (1, :) = string.empty(1, 0)
+    opt.DatabankUserData = Inf, opt.UserData = []
+    opt.UserDataField (1, 1) string = "."
+    opt.UserDataFieldList (1, :) string = string.empty(1, 0)
+    opt.VariableNames (1, :) string = "__auto__"
+    opt.DateFormat = @config
+    opt.EnforceFrequency = false, opt.Frequency = [], opt.Freq = [];
+    opt.FreqLetters = @config
+    opt.Months = @config
+end
+
+x = struct();
+x.NamesHeader = ["NameRow", "NamesRow", "LeadingRow"];
+x.CommentsHeader = ["CommentRow"];
+x.NameFunc = ["NamesFunc"];
+x.DatabankUserData = ["UserData"];
+x.EnforceFrequency = ["Frequency", "Freq"];
+opt = iris.utils.resolveAlias(opt, x, []);
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
 function outputDb = fromCSV(fileName, varargin)
 
-%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.fromCSV');
@@ -20,7 +63,7 @@ if isempty(pp)
     addParameter(pp, {'NamesHeader', 'NameRow', 'NamesRow', 'LeadingRow'}, ["", "Variables", "Time"], @(x) validate.text(x) || validate.roundScalar(x, 1, Inf));
     addParameter(pp, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'NaN', "NaN", @validate.stringScalar);
-    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
+    addParameter(pp, 'OutputType', "__auto__", @(x) ismember(x, ["__auto__", "struct", "Dictionary"]));
     addParameter(pp, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
     addParameter(pp, 'Select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
@@ -28,12 +71,16 @@ if isempty(pp)
     addParameter(pp, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
     addParameter(pp, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
     addParameter(pp, 'UserDataFieldList', [], @(x) isempty(x) || validate.text(x) || isnumeric(x));
-    addParameter(pp, 'VariableNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
+    addParameter(pp, 'VariableNames', "__auto__", @validate.list);
     addDateOptions(pp);
 end
-%)
 opt = parse(pp, fileName, varargin{:});
-fileName = cellstr(fileName);
+%}
+% <=R2019a
+
+
+fileName = textual.stringify(fileName);
+fileName = fileName(strlength(fileName)>0);
 
 % Check consistency of options AddToDatabank= and OutputFormat=
 outputDb = databank.backend.ensureTypeConsistency( ...
@@ -41,19 +88,21 @@ outputDb = databank.backend.ensureTypeConsistency( ...
     opt.OutputType ...
 );
 
+if isempty(fileName)
+    return
+end
+
 % Loop over all input databanks subcontracting `databank.fromCSV` and
 % merging the resulting databanks in one.
 if numel(fileName)>1
-    numFileNames = numel(fileName);
-    for i = 1 : numFileNames
+    cellOptions = namedargs2cell(opt);
+    for n = textual.stringify(fileName)
         outputDb = databank.fromCSV( ...
-            fileName(i), varargin{:}, ...
-            'AddToDatabank=', outputDb ...
+            n, cellOptions{:}, ...
+            "addToDatabank", outputDb ...
         );
     end
     return
-else
-    fileName = fileName{1};
 end
 
 
@@ -64,7 +113,6 @@ end
 % Preprocess options
 hereProcessOptions( );
 
-%--------------------------------------------------------------------------
 
 % Read the CSV file, and apply user-supplied function(s) to pre-process the
 % raw text file.
@@ -77,14 +125,14 @@ hereReadFile( );
 
 
 % Replace non-comma delimiter with comma; applies only to CSV files
-if ~strcmp(opt.Delimiter, ',')
-    file = replace(file, sprintf(opt.Delimiter), ',');
+if opt.Delimiter~=","
+    file = replace(file, sprintf(opt.Delimiter), ",");
 end
 
 % **Read Headers**
-nameRow = { };
+nameRow = string.empty(1, 0);
 classRow = { };
-cmtRow = { };
+commentRow = { };
 start = 1;
 databankUserDataValueString = '';
 databankUserDataFieldName = '';
@@ -102,13 +150,15 @@ if start>1
     file = file(start:end);
 end
 
-classRow = strtrim(classRow);
-cmtRow = strtrim(cmtRow);
+classRow = strip(classRow);
+commentRow = strip(commentRow);
+nameRow = strip(nameRow);
+
 if numel(classRow)<numel(nameRow)
     classRow(numel(classRow)+1:numel(nameRow)) = {''};
 end
-if numel(cmtRow)<numel(nameRow)
-    cmtRow(numel(cmtRow)+1:numel(nameRow)) = {''};
+if numel(commentRow)<numel(nameRow)
+    commentRow(numel(commentRow)+1:numel(nameRow)) = {''};
 end
 
 % Apply user selection, white out all names that user did not select
@@ -116,9 +166,10 @@ if ~isequal(opt.Select, @all)
     if ischar(opt.Select)
         opt.Select = regexp(opt.Select, '\w+', 'match');
     end
+    opt.Select = textual.stringify(opt.Select);
     for i = 1 : numel(nameRow)
-        if ~any(strcmp(nameRow{i}, opt.Select))
-            nameRow{i} = ''; %#ok<AGROW>
+        if nameRow(i)~=opt.Select
+            nameRow(i) = "";
         end
     end
 end
@@ -185,34 +236,35 @@ return
             func = {func};
         end
         for ii = 1 : numel(func)
-            file = func{ii}(file);
+            if isa(func{ii}, 'function_handle')
+                file = func{ii}(file);
+            end
         end
     end%
 
 
-
-
     function hereProcessOptions( )
         % Headers for rows to be skipped
-        if ischar(opt.SkipRows)
-            opt.SkipRows = {opt.SkipRows};
+        if validate.text(opt.SkipRows)
+            opt.SkipRows = textual.stringify(opt.SkipRows);
         end
         if ~isempty(opt.SkipRows) && ~isnumeric(opt.SkipRows)
             for ii = 1 : numel(opt.SkipRows)
-                if isempty(opt.SkipRows{ii})
+                n = opt.SkipRows(ii);
+                if isempty(n)
                     continue
                 end
-                if opt.SkipRows{ii}(1)~='^'
-                    opt.SkipRows{ii} = ['^', opt.SkipRows{ii}];
+                if ~startsWith(n, "^")
+                    n = "^" + n;
                 end
-                if opt.SkipRows{ii}(end)~='$'
-                    opt.SkipRows{ii} = [opt.SkipRows{ii}, '$'];
+                if ~endsWith(n, "$")
+                    n = n + "$";
                 end
             end
         end
         % Headers for comment rows
         if validate.text(opt.CommentsHeader)
-            opt.CommentsHeader = string(opt.CommentsHeader);
+            opt.CommentsHeader = textual.stringify(opt.CommentsHeader);
         end
     end%
 
@@ -225,8 +277,8 @@ return
         ident = '';
         rowCount = 0;
 
-        if ~isequal(opt.VariableNames, @auto)
-            nameRow = cellstr(opt.VariableNames);
+        if ~isequal(opt.VariableNames, "__auto__")
+            nameRow = textual.stringify(opt.VariableNames);
             isNameRowDone = true;
         end
 
@@ -259,6 +311,7 @@ return
                 ident = erase(tkn{1}, "->");
                 ident = strip(ident);
             end
+            ident
 
             if isnumeric(opt.SkipRows) && any(rowCount==opt.SkipRows)
                 hereMoveToNextEol( );
@@ -266,7 +319,7 @@ return
             end
 
             if hereTestNameRow( )
-                nameRow = tkn(2:end);
+                nameRow = textual.stringify(tkn(2:end));
                 isNameRowDone = true;
                 hereMoveToNextEol( );
                 continue
@@ -282,7 +335,7 @@ return
             % do this before anything else
             %
             if validate.text(opt.UserDataFieldList)
-                opt.UserDataFieldList = string(opt.UserDataFieldList);
+                opt.UserDataFieldList = textual.stringify(opt.UserDataFieldList);
             end
             opt.UserDataFieldList = reshape(opt.UserDataFieldList, 1, []);
 
@@ -318,12 +371,12 @@ return
                 classRow = tkn(2:end);
                 isDate = false;
             elseif hereTestCommentsHeader( )
-                cmtRow = tkn(2:end);
+                commentRow = tkn(2:end);
                 isDate = false;
             elseif contains(ident, "Units", "ignoreCase", true)
                 isDate = false;
-            elseif ~isnumeric(opt.SkipRows) ...
-                    && any(~cellfun(@isempty, regexp(ident, opt.SkipRows)))
+            elseif isstring(opt.SkipRows) ...
+                    && any(strlength(regexp(ident, opt.SkipRows, "match", "once"))>0)
                 isDate = false;
             end
 
@@ -349,10 +402,10 @@ return
                 if isNameRowDone
                     flag = false;
                     return
-                elseif isequal(opt.NamesHeader, rowCount)
+                elseif isnumeric(opt.NamesHeader) && isequal(opt.NamesHeader, rowCount)
                     flag = true;
                     return
-                elseif any(lower(opt.NamesHeader)==lower(opt.NamesHeader))
+                elseif validate.text(opt.NamesHeader) && any(lower(opt.NamesHeader)==lower(opt.NamesHeader))
                     flag = true;
                     return
                 end
@@ -361,10 +414,10 @@ return
 
 
             function flag = hereTestCommentsHeader( )
-                if isequal(opt.CommentsHeader, rowCount)
+                if isnumeric(opt.CommentsHeader) && any(opt.CommentsHeader==rowCount)
                     flag = true;
                     return
-                elseif any(lower(ident)==lower(opt.CommentsHeader))
+                elseif validate.text(opt.CommentsHeader) && any(lower(ident)==lower(opt.CommentsHeader))
                     flag = true;
                     return
                 end
@@ -424,11 +477,9 @@ return
         whiteSpace = sprintf(' \b\r\t');
 
         % Remove single and double quotes from the data part of the file
-        if ~isempty(opt.RemoveFromData)
-            for n = reshape(string(opt.RemoveFromData), 1, [])
-                if strlength(n)>0
-                    file = replace(file, n, "");
-                end
+        for n = textual.stringify(opt.RemoveFromData)
+            if strlength(n)>0
+                file = replace(file, n, "");
             end
         end
 
@@ -536,12 +587,12 @@ return
         seriesUserdataList = fieldnames(seriesUserdata);
         numSeriesUserData = numel(seriesUserdataList);
         while count<lenNameRow
-            name = nameRow{count+1};
+            name = nameRow(count+1);
             if numSeriesUserData>0
                 thisUserData = hereCreateSeriesUserdata( );
             end
-            if isempty(name)
-                % Skip columns with empty names.
+            if strlength(name)==0
+                % Skip columns with empty names
                 count = count + 1;
                 continue
             end
@@ -575,7 +626,7 @@ return
                     inxMissing__(posDates, :) = inxMissing(~inxNaNDates, count+(1:numColumns));
                     data__(inxMissing__) = NaN*unit;
                     data__ = reshape(data__, [numPeriods, tmpSize(2:end)]);
-                    comment__ = cmtRow(count+(1:numColumns));
+                    comment__ = commentRow(count+(1:numColumns));
                     comment__ = reshape(comment__, [1, tmpSize(2:end)]);
                     newEntry = replace(TEMPLATE_SERIES, data__, minDate, comment__);
                 else
@@ -626,13 +677,15 @@ return
             if ~iscell(func)
                 func = {func};
             end
-            for iname = 1 : numel(nameRow)
-                for ifunc = 1 : numel(func)
-                    nameRow{iname} = func{ifunc}(nameRow{iname});
+            for ii = 1 : numel(nameRow)
+                for jj = 1 : numel(func)
+                    if isa(func{jj}, 'function_handle')
+                        nameRow(ii) = func{jj}(nameRow(ii));
+                    end
                 end
             end
         end
-        if ~iscellstr(nameRow)
+        if ~isstring(nameRow)
             throw( exception.Base('Dbase:InvalidOptionNameFunc', 'error') );
         end
         if startsWith(opt.Case, "lower", "ignoreCase", true)
@@ -643,12 +696,10 @@ return
     end%
 
 
-
-
     function hereCheckNames( )
-        inxEmpty = cellfun(@isempty, nameRow);
+        inxEmpty = strlength(nameRow)==0;
         if isstruct(outputDb)
-            inxValid = cellfun(@isvarname, nameRow);
+            inxValid = strlength(regexp(nameRow, "^[a-zA-Z]\w*$", "once", "match"))>0;
         else
             inxValid = true(size(nameRow));
         end
@@ -663,9 +714,7 @@ return
             nameRow(inxToGenerate) = genvarname(nameRow(inxToGenerate), nameRow(inxToProtect));
         end
     end%
-
-
-
+s
 
     function hereCreateUserdataField( )
         if ischar(opt.DatabanUserData) || isempty(databankUserDataFieldName)

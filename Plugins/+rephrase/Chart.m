@@ -24,6 +24,7 @@ classdef Chart ...
 
 
         function build(this, varargin)
+            this = locallyResolveDates(this);
             build@rephrase.Container(this, varargin{:});
             if isfield(this.Settings, 'Highlight')
                 if isscalar(this.Settings.Highlight) && ~iscell(this.Settings.Highlight)
@@ -31,10 +32,12 @@ classdef Chart ...
                 end
             end
             if ~isfield(this.Settings, 'DateFormat')
-                this.Settings.DateFormat = locallyCreateDefaultDateFormat(this.Settings.StartDate);
+                try
+                    this.Settings.DateFormat = string(this.Parent.Settings.DateFormat);
+                catch
+                    this.Settings.DateFormat = locallyCreateDefaultDateFormat(this.Settings.StartDate);
+                end
             end
-            this.Settings.StartDate = dater.toIsoString(this.Settings.StartDate, "m");
-            this.Settings.EndDate = dater.toIsoString(this.Settings.EndDate, "m");
         end%
     end
 
@@ -70,3 +73,19 @@ function dateFormat = locallyCreateDefaultDateFormat(startDate)
 end%
 
 
+function this = locallyResolveDates(this)
+    %(
+    if isempty(this.Settings.StartDate) || isinf(this.Settings.StartDate)
+        try
+            this.Settings.StartDate = double(this.Parent.Settings.StartDate);
+        end
+    end
+    if isempty(this.Settings.EndDate) || isinf(this.Settings.EndDate)
+        try
+            this.Settings.EndDate = double(this.Parent.Settings.EndDate);
+        end
+    end
+    this.Settings.StartDate = dater.toIsoString(this.Settings.StartDate, "m");
+    this.Settings.EndDate = dater.toIsoString(this.Settings.EndDate, "m");
+    %)
+end%

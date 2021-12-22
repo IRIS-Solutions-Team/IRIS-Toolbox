@@ -22,7 +22,11 @@ classdef validate
         end%
 
 
-        function flag = databank(input)
+        function flag = databank(input, extra)
+            if nargin>1 && isequal(input, extra)
+                flag = true;
+                return
+            end
             flag = isstruct(input) || isa(input, 'Dictionary');
         end%
 
@@ -379,8 +383,8 @@ classdef validate
         end%
 
 
-        function mustBeDatabank(x)
-            if isequal(validate.databank(x), true)
+        function mustBeDatabank(x, varargin)
+            if isequal(validate.databank(x, varargin{:}), true)
                 return
             end
             error("Input value must be a databank (struct or Dictionary).");
