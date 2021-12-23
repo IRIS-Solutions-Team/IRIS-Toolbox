@@ -16,6 +16,8 @@ classdef Type
         PAGEBREAK
         TEXT
         MATRIX
+        CURVE
+        MARKER
     end
 end
 

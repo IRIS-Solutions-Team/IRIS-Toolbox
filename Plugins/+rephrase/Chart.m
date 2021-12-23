@@ -18,6 +18,7 @@ classdef Chart ...
         function this = Chart(title, startDate, endDate, varargin)
             this = this@rephrase.Element(title, varargin{:});
             this.Content = cell.empty(1, 0);
+            this.Settings.IsSeries = true;
             this.Settings.StartDate = double(startDate);
             this.Settings.EndDate = double(endDate);
         end%
