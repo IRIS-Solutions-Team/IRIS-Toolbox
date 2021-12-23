@@ -21,7 +21,7 @@ jobs:
         repository: OGResearch/rephrase
         ref: dist
         path: rephrase
-        token: ${{ secrets.PAT_ALL_SCOPES }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
         
     - name: Get short hash of latest rephrase commit
