@@ -41,6 +41,7 @@ arguments
     options.AppendInput (1, 1) logical = false
     options.AddParameters (1, 1) logical = true
     options.AddToDatabank = false
+    options.IncludeLog (1, 1) logical = false
 
     % Legacy options
     options.Initial = []
@@ -104,6 +105,7 @@ if isempty(pp)
     addParameter(pp, {"AppendInput", "AppendPostsample"}, false);
     addParameter(pp, "AddParameters", true);
     addParameter(pp, "AddToDatabank", false);
+    addParameter(pp, "IncludeLog", false);
 end
 options = parse(pp, varargin{:});
 %}
@@ -192,6 +194,12 @@ if options.Progress
     progress = ProgressBar('[IrisToolbox] @Model/simulate Progress');
 end
 
+
+% 
+% Update runningData.YXEPG once after running all pages/variants, storing
+% the individual results in a temporary cell array; this is much faster
+% than updating it in place in each run
+%
 
 %===========================================================================
 numRuns = runningData.NumPages;
@@ -633,6 +641,24 @@ function outputDb = locallyCreateOutputDb(this, YXEPG, startDate, options)
         , options.OutputType ...
         , options.AddToDatabank ...
     );
+
+    %
+    % Include log of log-variables with LOG_PREFIX
+    %
+    inxLog = this.Quantity.InxLog;
+    if options.IncludeLog && any(inxLog)
+        outputDb = databank.backend.fromDoubleArrayNoFrills( ...
+            log(YXEPG(inxLog, :, :)) ...
+            , string(this.Quantity.LOG_PREFIX) + textual.stringify(this.Quantity.Name(inxLog)) ...
+            , startDate ...
+            , "(Log) " + textual.stringify(comments(inxLog)) ...
+            , inxInclude(inxLog) ...
+            , timeSeriesConstructor ...
+            , options.OutputType ...
+            , outputDb ...
+        );
+    end
+
     if options.AddParameters
         outputDb = addToDatabank("default", this, outputDb);
     end
