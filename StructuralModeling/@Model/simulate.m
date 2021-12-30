@@ -195,12 +195,14 @@ end
 
 %===========================================================================
 numRuns = runningData.NumPages;
-for i = 1 : numRuns
-    simulateFrames(this, systemProperty, i);
+outputYXEPG = cell(1, numRuns);
+for run = 1 : numRuns
+    [~, outputYXEPG{run}] = simulateFrames(this, systemProperty, run, false);
     if options.Progress
-        update(progress, i/numRuns);
+        update(progress, run/numRuns);
     end
 end
+runningData.YXEPG = cat(3, outputYXEPG{:});
 %===========================================================================
 
 

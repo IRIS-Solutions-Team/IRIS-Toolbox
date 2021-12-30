@@ -6,7 +6,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function prepared = simulateFrames(this, systemProperty, run, prepareOnly)
+function [prepared, outputYXEPG] = simulateFrames(this, systemProperty, run, prepareOnly)
 
 if nargin<4
     prepareOnly = false;
@@ -16,11 +16,15 @@ runningData = systemProperty.CallerData;
 method = runningData.Method(min(run, end));
 deviation = runningData.Deviation(min(run, end));
 
+prepared = [];
+outputYXEPG = [];
+
+
 %
 % True if this is a regular call from @Model.simulate; false if this is a
 % SystemProperty preparation
 %
-regularCall = systemProperty.NumOfOutputs==0;
+isRegularCall = systemProperty.NumOfOutputs==0;
 
 baseRangeColumns = runningData.BaseRangeColumns;
 firstColumnToRun = baseRangeColumns(1);
@@ -211,10 +215,11 @@ data.YXEPG = locallyResetOutsideBaseRange( ...
     data.YXEPG, firstColumnToRun:lastColumnToRun, inxInitInPresample ...
 );
 
-if regularCall
+if isRegularCall
     % This is a call from @Model.simulate
-    % Update running data
-    runningData.YXEPG(:, :, run) = data.YXEPG;
+    % Return the data.YXEPG array and update runningData.YXEPG only in
+    % Model/simulate; this is much faster than update it in place
+    outputYXEPG = data.YXEPG;
     runningData.Success(run) = success;
     if runningData.PrepareOutputInfo
         runningData.FrameColumns{run} = framesFromTo;
