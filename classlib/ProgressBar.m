@@ -70,7 +70,7 @@ classdef ProgressBar < handle
             emptyBars = repmat(this.EMPTY_BAR, 1, this.NumProgress - numel(fullBars) - numel(partialBar));
             indicatorRow = [
                 this.LEFT_EDGE, fullBars, partialBar, emptyBars, this.RIGHT_EDGE ...
-                sprintf(' %g%%\n ', round(permille/10))
+                sprintf(' %g%% ', round(permille/10))
             ];
             if ~isequal(indicatorRow, this.LastIndicatorRow)
                 deleteLastIndicatorRow(this);
