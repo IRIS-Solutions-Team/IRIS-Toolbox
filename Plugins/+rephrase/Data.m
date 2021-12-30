@@ -26,6 +26,20 @@ classdef (Abstract) Data ...
             output.Dates = dates; %DateWrapper(dates);
             output.Values = reshape(values, 1, [ ]);
         end%
+
+        function output = buildCurveData(this, input)
+            if isstring(input) || ischar(input)
+                output = string(input);
+                this.DataRequests = [this.DataRequests, output];
+                return
+            end
+            minTick = min(this.Parent.Settings.Ticks);
+            maxTick = max(this.Parent.Settings.Ticks);
+            tickIndex = input.Ticks >= minTick & input.Ticks <= maxTick;
+            output = struct( );
+            output.Ticks = reshape(input.Ticks(tickIndex), 1, [ ]);
+            output.Values = reshape(input.Values(tickIndex), 1, [ ]);
+        end%
     end
 end
 
