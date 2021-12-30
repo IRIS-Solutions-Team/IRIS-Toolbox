@@ -18,18 +18,18 @@ arguments
     specs.Series_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Series_Span (1, :) { locallyValidateSpan(specs.Series_Span) } = double.empty(1, 0)
     specs.Series_ModelSpan (1, :) { locallyValidateSpan(specs.Series_ModelSpan) } = double.empty(1, 0)
-    specs.Series_Precision { mustBeInteger, validate.mustBeScalarOrEmpty, validate.mustBeInRange(specs.Series_Precision, 0, 5) } = 5
-    specs.Series_Decimals  { mustBeInteger, validate.mustBeScalarOrEmpty, validate.mustBeInRange(specs.Series_Decimals, 0, 5) } = 5
-    specs.Series_CompType string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Series_CompType, ["add", "sub", "mult", "div", "none"]) } = string.empty(1, 0)
+    specs.Series_Precision { locallyValidatePrecision } = 5
+    specs.Series_Decimals  { locallyValidatePrecision } = 5
+    specs.Series_CompType string { locallyValidateCompType } = string.empty(1, 0)
     specs.Series_CompWeight { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
     specs.Series_AppendBcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Series_AppendFcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Series_Type string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Series_Type, ["stock", "flow"]) } = string.empty(1, 0)
+    specs.Series_Type string { locallyValidateSeriesType } = string.empty(1, 0)
     specs.Series_Save (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
     specs.X11_Mode { validate.mustBeScalarOrEmpty, locallyValidateX11Mode } = @auto % string.empty(1, 0)
     specs.X11_SeasonalMA (1, :) string = string.empty(1, 0)
-    specs.X11_TrendMA { validate.mustBeScalarOrEmpty, mustBeInteger, validate.mustBeInRange(specs.X11_TrendMA, 3, 101) } = double.empty(1, 0)
+    specs.X11_TrendMA { locallyValidateTrendMA } = double.empty(1, 0)
     specs.X11_SigmaLim (1, :) { mustBeNumeric, mustBePositive } = double.empty(1, 0)
     specs.X11_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.X11_AppendFcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
@@ -40,9 +40,9 @@ arguments
     specs.X11_SaveLog (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
     specs.Transform logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Transform_Function string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Transform_Function, ["auto", "log", "sqrt", "inverse", "logistic", "none"]) } = string.empty(1, 0)
+    specs.Transform_Function string { locallyValidateFunction } = string.empty(1, 0)
     specs.Transform_Power { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
-    specs.Transform_Adjust string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Transform_Adjust, ["lom", "loq", "lpyear"]) } = string.empty(1, 0)
+    specs.Transform_Adjust string { locallyValidateAdjust } = string.empty(1, 0)
     specs.Transform_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Transform_AicDiff { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
     specs.Transform_Print (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
@@ -52,7 +52,7 @@ arguments
     specs.Estimate logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Estimate_Tol { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
     specs.Estimate_MaxIter { validate.mustBeScalarOrEmpty, mustBePositive, mustBeInteger } = double.empty(1, 0)
-    specs.Estimate_Exact string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Estimate_Exact, ["arma", "ma", "none"]) } = string.empty(1, 0)
+    specs.Estimate_Exact string { locallyValidateExact } = string.empty(1, 0)
     specs.Estimate_OutOfSample logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Estimate_Print (1, :) string = string.empty(1, 0)
     specs.Estimate_Save (1, :) string = string.empty(1, 0)
@@ -76,20 +76,20 @@ arguments
     specs.Arima_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
     specs.Force logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Force_Type string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Force_Type, ["none", "regress", "denton"]) } = string.empty(1, 0)
-    specs.Force_Lambda { validate.mustBeScalarOrEmpty, mustBeNumeric, validate.mustBeInRange(specs.Force_Lambda, -3, 3) } = double.empty(1, 0)
-    specs.Force_Rho { validate.mustBeScalarOrEmpty, mustBeNumeric, validate.mustBeInRange(specs.Force_Rho, 0, 1) } = double.empty(1, 0)
+    specs.Force_Type string { locallyValidateForceType } = string.empty(1, 0)
+    specs.Force_Lambda { locallyValidateForceLambda } = double.empty(1, 0)
+    specs.Force_Rho { locallyValidateForceRho } = double.empty(1, 0)
     specs.Force_Round logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Force_Start { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
-    specs.Force_Target string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.Force_Target, ["original", "caladjust", "permprioradj", "both"]) } = string.empty(1, 0)
+    specs.Force_Target string { locallyValidateForceTarget } = string.empty(1, 0)
     specs.Force_UseFcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Force_Print (1, :) string = string.empty(1, 0)
     specs.Force_Save (1, :) string = string.empty(1, 0)
 
     specs.Forecast logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Forecast_MaxLead { validate.mustBeScalarOrEmpty, mustBeInteger, validate.mustBeInRange(specs.Forecast_MaxLead, 0, 120) } = double.empty(1, 0)
-    specs.Forecast_MaxBack { validate.mustBeScalarOrEmpty, mustBeInteger, validate.mustBeInRange(specs.Forecast_MaxBack, 0, 120) } = double.empty(1, 0)
-    specs.Forecast_Exclude { validate.mustBeScalarOrEmpty, mustBeInteger, validate.mustBeInRange(specs.Forecast_Exclude, 0, 10000) } = double.empty(1, 0)
+    specs.Forecast_MaxLead { validate.mustBeScalarOrEmpty, mustBeInteger } = double.empty(1, 0) % 0 to 120
+    specs.Forecast_MaxBack { validate.mustBeScalarOrEmpty, mustBeInteger } = double.empty(1, 0) % 0 to 120
+    specs.Forecast_Exclude { validate.mustBeScalarOrEmpty, mustBeInteger } = double.empty(1, 0) % 0 to 1000
     specs.Forecast_LogNormal logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Forecast_Print (1, :) string = string.empty(1, 0)
     specs.Forecast_Save (1, :) string = string.empty(1, 0)
@@ -102,10 +102,10 @@ arguments
     specs.Regression_UserType (1, :) string = string.empty(1, 0)
     specs.Regression_AicTest (1, :) string = string.empty(1, 0)
     specs.Regression_AicDiff (1, :) { mustBeNumeric } = double.empty(1, 0)
-    specs.Regression_PVAicTest { validate.mustBeScalarOrEmpty, mustBeNumeric, validate.mustBeInRange(specs.Regression_PVAicTest, 0, 1) } = double.empty(1, 0)
+    specs.Regression_PVAicTest { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0) % 0 to 1
     specs.Regression_TLimit { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
     specs.Regression_Chi2Test logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Regression_Chi2TestCV { validate.mustBeScalarOrEmpty, mustBeNumeric, validate.mustBeInRange(specs.Regression_Chi2TestCV, 0, 1) } = double.empty(1, 0)
+    specs.Regression_Chi2TestCV { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0) % 0 to 1
     specs.Regression_Print (1, :) string = string.empty(1, 0)
     specs.Regression_Save (1, :) string = string.empty(1, 0)
     specs.Regression_SaveLog (1, :) string = string.empty(1, 0)
@@ -122,7 +122,7 @@ arguments
     specs.X11Regression_Span (1, :) { locallyValidateSpan(specs.X11Regression_Span) } = double.empty(1, 0)
     specs.X11Regression_Sigma { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
     specs.X11Regression_Critical { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
-    specs.X11Regression_OutlierMethod string { validate.mustBeScalarOrEmpty, validate.mustBeAnyStringOrEmpty(specs.X11Regression_OutlierMethod, ["addone", "addall"]) } = string.empty(1, 0)
+    specs.X11Regression_OutlierMethod string { locallyValidateOutlierMethod } = string.empty(1, 0)
     specs.X11Regression_OutlierSpan (1, :) { locallyValidateSpan(specs.X11Regression_OutlierSpan) } = double.empty(1, 0)
     specs.X11Regression_Print (1, :) string = string.empty(1, 0)
     specs.X11Regression_Save (1, :) string = string.empty(1, 0)
@@ -133,7 +133,7 @@ arguments
     specs.Seats_HpCycle logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Seats_NoAdmiss logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Seats_QMax { validate.mustBeScalarOrEmpty, mustBeNonnegative } = double.empty(1, 0)
-    specs.Seats_RMod { validate.mustBeScalarOrEmpty, mustBeNonnegative, validate.mustBeInRange(specs.Seats_RMod, 0, 1) } = double.empty(1, 0)
+    specs.Seats_RMod { validate.mustBeScalarOrEmpty, mustBeNonnegative } = double.empty(1, 0) % 0 to 1
     specs.Seats_Out { validate.mustBeScalarOrEmpty, mustBeMember(specs.Seats_Out, [0, 1, 2]) } = double.empty(1, 0)
     specs.Seats_StatSeas logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Seats_TabTables (1, :) string = string.empty(1, 0)
@@ -378,6 +378,158 @@ function locallyValidateSpan(x)
         return
     end
     error("Local:Validator", "Time span must be a 1-by-2 vector of dates.");
+end%
+
+
+function locallyValidatePrecision(x)
+    %(
+    if isnumeric(x) && isscalar(x) && any(x==[0, 1, 2, 3, 4, 5])
+        return
+    end
+    error("Input value must be 0, 1, 2, 3, 4, or 5.");
+    %)
+end%
+
+function locallyValidateCompType(x)
+    %(
+    if isstring(x) && isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["add", "sub", "mult", "div", "none"])
+        return
+    end
+    error("Input value must be empty or one of {""add"", ""sub"", ""mult"", ""div"", ""none""}.");
+    %)
+end%
+
+
+function locallyValidateSeriesType(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["stock", "flow"])
+        return
+    end
+    error("Input value must be empty or one of {""stock"", ""flow""}.");
+    %)
+end%
+
+
+function locallyValidateTrendMA(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isnumeric(x) && isscalar(x) && isinteger(x) && x>=3 && x<=101
+        return
+    end
+    error("Input value must be an integer between 3 and 101.");
+    %)
+end%
+
+
+function locallyValidateFunction(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["auto", "log", "sqrt", "inverse", "logistic", "none"])
+        return
+    end
+    error("Input value must be one of {""auto"", ""log"", ""sqrt"", ""inverse"", ""logistic"", ""none""}.");
+    %)
+end%
+
+
+function locallyValidateAdjust(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["lom", "loq", "lpyear"])
+        return
+    end
+    error("Input value must be one of {""lom"", ""loq"", ""lpyear""}.");
+    %)
+end%
+
+
+function locallyValidateExact(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["arma", "ma", "none"])
+        return
+    end
+    error("Input value must be one of {""arma"", ""ma"", ""none""}.");
+    %)
+end%
+
+
+function locallyValidateForceType(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["none", "regress", "denton"])
+        return
+    end
+    error("Input value must be one of {""none"", ""regress"", ""denton""}.");
+    %)
+end%
+
+
+function locallyValidateForceLambda(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isnumeric(x) && isscalar(x) && x>=-3 && x<=3
+        return
+    end
+    error("Input value must be a number between -3 and 3.");
+    %)
+end%
+
+
+function locallyValidateForceRho(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isnumeric(x) && isscalar(x) && x>=0 && x<=1
+        return
+    end
+    error("Input value must be a number between 0 and 1.");
+    %)
+end%
+
+
+function locallyValidateForceTarget(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["original", "caladjust", "permprioradj", "both"])
+        return
+    end
+    error("Input value must be one of {""original"", ""caladjust"", ""permprioradj"", ""both""}.");
+    %)
+end%
+
+
+function locallyValidateOutlierMethod(x)
+    %(
+    if isempty(x)
+        return
+    end
+    if isstring(x) && isscalar(x) && any(x==["addone", "adddall"])
+        return
+    end
+    error("Input value must be one of {""addone"", ""addall""}.");
+    %)
 end%
 
 
