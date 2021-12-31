@@ -311,7 +311,6 @@ return
                 ident = erase(tkn{1}, "->");
                 ident = strip(ident);
             end
-            ident
 
             if isnumeric(opt.SkipRows) && any(rowCount==opt.SkipRows)
                 hereMoveToNextEol( );
