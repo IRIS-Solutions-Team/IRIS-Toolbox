@@ -23,7 +23,7 @@ TIME_SERIES_TEMPLATE = Series( );
 %--------------------------------------------------------------------------
 
 numRows = size(array, 1);
-names = reshape(string(names), 1, [ ]);
+names = textual.stringify(names);
 
 if isempty(comments)
     comments = repmat({''}, 1, numRows);
