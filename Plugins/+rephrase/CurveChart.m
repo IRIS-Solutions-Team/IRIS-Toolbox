@@ -19,7 +19,7 @@ classdef CurveChart ...
         function this = CurveChart(title, ticks, tickLabels, varargin)
             this = this@rephrase.Element(title, varargin{:});
             this.Content = cell.empty(1, 0);
-            this.Settings.IsSeries = false;
+            this.Settings.ChartType = 'Curve';
             this.Settings.Ticks = ticks;
             this.Settings.TickLabels = tickLabels;
         end%
