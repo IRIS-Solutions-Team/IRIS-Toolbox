@@ -6,7 +6,7 @@
 
 function runningDb = ensureTypeConsistency(runningDb, outputType)
 
-if isequal(runningDb, [ ]) || isequal(runningDb, false)
+if isequal(runningDb, []) || isequal(runningDb, false)
     if isequal(outputType, "Dictionary")
         runningDb = Dictionary( );
     else

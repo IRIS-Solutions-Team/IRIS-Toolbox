@@ -55,6 +55,11 @@ classdef Dater < DateWrapper
         function t = ww(varargin)
             t = Dater(dater.ww(varargin{:}));
         end%
+
+
+        function t = fromSdmxString(varargin)
+            t = Dater(dater.fromSdmxString(varargin{:}));
+        end%
     end
 end
 

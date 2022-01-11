@@ -464,7 +464,7 @@ classdef Frequency < double
             switch upper(char(string))
                 case {'INTEGER', 'II', 'I'}
                     this = Frequency.INTEGER;
-                case {'DAILY', 'DAY', 'DD', 'D'}
+                case {'DAILY', 'DAY', 'DD', 'D', 'B', 'BUSINESS'}
                     this = Frequency.DAILY;
                 case {'WEEKLY', 'WEEK', 'WW', 'W'}
                     this = Frequency.WEEKLY;

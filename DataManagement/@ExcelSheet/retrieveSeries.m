@@ -70,9 +70,18 @@ else
     dataCutout = this.Buffer(dataRange, location);
 end
 
+
+for i = 1 : numel(dataCutout)
+   if isstring(dataCutout{i}) || ischar(dataCutout{i})
+       dataCutout{i} = double(string(dataCutout{i}));
+   end
+   if ~isnumeric(dataCutout{i})
+       dataCutout{i} = NaN;
+   end
+end
+
+
 data = nan(size(dataCutout));
-inxValid = cellfun(@isnumeric, dataCutout);
-dataCutout(~inxValid) = { NaN };
 for i = 1 : size(dataCutout, 2)
     data(:, i) = [dataCutout{:, i}];
 end

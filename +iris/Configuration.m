@@ -23,9 +23,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                Frequency.QUARTERLY
                                Frequency.MONTHLY
                                Frequency.WEEKLY ]
-
-        % Fred API 
-        FredApiKey = "951f01181da86ccb9045ce8716f82f43"
         %)
     end
         

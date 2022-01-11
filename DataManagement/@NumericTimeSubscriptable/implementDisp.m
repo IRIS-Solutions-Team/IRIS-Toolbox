@@ -30,7 +30,7 @@ textual.looseLine( );
 
 data = this.Data;
 dataNDim = ndims(data);
-dispND(start, data, this.Comment, [ ], name, disp2dFunc, dataNDim, config);
+dispND(start, data, this.Comment, this.Headers, [ ], name, disp2dFunc, dataNDim, config);
 
 end%
 
@@ -62,7 +62,7 @@ end%
 
 
 
-function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
+function dispND(start, data, comment, headers, pos, name, disp2dFunc, numDims, cfg)
     start = double(start);
     lastDimSize = size(data, numDims);
     numPeriods = size(data, 1);
@@ -72,8 +72,14 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
         subsref(1:numDims-1) = {':'};
         for i = 1 : lastDimSize
             subsref(numDims) = {i};
-            dispND( start, data(subsref{:}), comment(subsref{:}), ...
-                    [i, pos], name, disp2dFunc, numDims-1, cfg );
+            headers__ = [];
+            if ~isempty(headers)
+                headers__ = headers(subsref{:});
+            end
+            dispND( ...
+                start, data(subsref{:}), comment(subsref{:}), headers__ ...
+                , [i, pos], name, disp2dFunc, numDims-1, cfg ...
+            );
         end
     else
         if ~isempty(pos)
@@ -83,7 +89,7 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
         if numPeriods>0
             try
                 % Create and display 2D table
-                disp(Series.createTable(start, data, comment, true));
+                disp(Series.createTable(start, data, comment, headers, true));
             catch
                 % Legacy method
                 toCharFunc = @(x) numericToChar(x, cfg.SeriesFormat);

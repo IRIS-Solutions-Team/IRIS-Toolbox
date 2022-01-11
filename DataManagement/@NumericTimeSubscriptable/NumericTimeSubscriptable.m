@@ -13,6 +13,9 @@ NumericTimeSubscriptable ...
 
         % MissingValue  Representation of missing value
         MissingValue = NaN 
+
+        % Headers  Short titles for individual columns
+        Headers = []
     end
 
 

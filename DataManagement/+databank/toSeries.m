@@ -109,8 +109,9 @@ if isequal(dates, @all) || isequal(dates, Inf)
     end
 end
 
-[outputArray] = databank.toDoubleArray(inputDb, names, dates, columns);
+[outputArray, ~, ~, headers] = databank.toArray(inputDb, names, dates, columns);
 outputSeries = Series(dates, outputArray);
+outputSeries.Headers = headers;
 
 end%
 

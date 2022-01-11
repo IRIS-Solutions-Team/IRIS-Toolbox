@@ -1,15 +1,12 @@
 % ProgressBar  Display command line progress bar
 %
-% Backend [IrisToolbox] class
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 classdef ProgressBar < handle
     properties
-        Title = ''
-        TitleRow = ''
+        Title (1, 1) string = ""
+        TitleRow (1, 1) string = ""
         NumProgress = 40
         TotalCount = 0
         RunningCount = 0
@@ -46,9 +43,9 @@ classdef ProgressBar < handle
                 this.TitleRow(3+(1:length(this.Title))) = this.Title;
             end
             %}
-            this.TitleRow = [repmat(' ', 1, strlength(this.LEFT_EDGE)-1), this.Title];
+            this.TitleRow = string(repmat(' ', 1, strlength(this.LEFT_EDGE)-1)) + this.Title;
             textual.looseLine( );
-            fprintf('%s', this.TitleRow);
+            fprintf("%s", this.TitleRow);
             this.LastIndicatorRow = sprintf('%s%*s%s', this.LEFT_EDGE, this.NumProgress, ' ', this.RIGHT_EDGE);
             fprintf('\n');
             fprintf('%s', this.LastIndicatorRow);

@@ -5,7 +5,7 @@
 
 % >=R2019b
 %(
-function outputDb = fromCSV(fileName, opt)
+function [outputDb, info] = fromCSV(fileName, opt)
 
 arguments
     fileName (1, :) string 
@@ -22,7 +22,7 @@ arguments
     opt.OutputType (1, 1) string {mustBeMember(opt.OutputType, ["__auto__", "struct", "Dictionary"])} = "__auto__"
     opt.Preprocess = []
     opt.RemoveFromData (1, :) string = string.empty(1, 0)
-    opt.Select = @all
+    opt.Select (1, :) string = "__all__"
     opt.SkipRows (1, :) = string.empty(1, 0)
     opt.DatabankUserData = Inf, opt.UserData = []
     opt.UserDataField (1, 1) string = "."
@@ -32,6 +32,7 @@ arguments
     opt.EnforceFrequency = false, opt.Frequency = [], opt.Freq = [];
     opt.FreqLetters = @config
     opt.Months = @config
+    opt.Postprocess = []
 end
 
 x = struct();
@@ -66,12 +67,13 @@ if isempty(pp)
     addParameter(pp, 'OutputType', "__auto__", @(x) ismember(x, ["__auto__", "struct", "Dictionary"]));
     addParameter(pp, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
-    addParameter(pp, 'Select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
+    addParameter(pp, 'Select', "__all__", @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
     addParameter(pp, {'SkipRows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
     addParameter(pp, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
     addParameter(pp, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
     addParameter(pp, 'UserDataFieldList', [], @(x) isempty(x) || validate.text(x) || isnumeric(x));
     addParameter(pp, 'VariableNames', "__auto__", @validate.list);
+    addParameter(pp, 'Postprocess', []);
     addDateOptions(pp);
 end
 opt = parse(pp, fileName, varargin{:});
@@ -87,6 +89,8 @@ outputDb = databank.backend.ensureTypeConsistency( ...
     opt.AddToDatabank, ...
     opt.OutputType ...
 );
+
+info = struct();
 
 if isempty(fileName)
     return
@@ -120,7 +124,7 @@ file = '';
 
 
 %==========================================================================
-hereReadFile( );
+hereReadAndPreprocessFile();
 %==========================================================================
 
 
@@ -162,7 +166,7 @@ if numel(commentRow)<numel(nameRow)
 end
 
 % Apply user selection, white out all names that user did not select
-if ~isequal(opt.Select, @all)
+if ~isequal(opt.Select, "__all__")
     if ischar(opt.Select)
         opt.Select = regexp(opt.Select, '\w+', 'match');
     end
@@ -215,14 +219,19 @@ end
 % Create database
 % Populate the output databank with Series and numeric data
 %
-%==========================================================================
-herePopulateDatabank( );
-%==========================================================================
+[outputDb, info.NamesCreated] = herePopulateDatabank(outputDb);
+
+
+%
+% Apply postprocess function
+%
+outputDb = databank.backend.postprocess(outputDb, info.NamesCreated, opt.Postprocess);
+
 
 return
 
-
-    function hereReadFile( )
+    function hereReadAndPreprocessFile( )
+        %(
         % Read CSV file to char
         file = fileread(fileName);
         file = textual.removeUTFBOM(file);
@@ -240,6 +249,7 @@ return
                 file = func{ii}(file);
             end
         end
+        %)
     end%
 
 
@@ -324,7 +334,6 @@ return
                 continue
             end
 
-
             isDate = true;
 
             %
@@ -359,9 +368,7 @@ return
                 isDate = false;
             end
 
-            if startsWith(ident, "%") || isempty(ident) || strlength(ident)==0
-                isDate = false;
-            elseif contains(ident, "UserData", "ignoreCase", true)
+            if contains(ident, "UserData", "ignoreCase", true)
                 databankUserDataFieldName = getUserdataFieldName(tkn{1});
                 databankUserDataValueString = tkn{2};
                 isUserData = true;
@@ -376,6 +383,8 @@ return
                 isDate = false;
             elseif isstring(opt.SkipRows) ...
                     && any(strlength(regexp(ident, opt.SkipRows, "match", "once"))>0)
+                isDate = false;
+            elseif startsWith(ident, "%") || isempty(ident) || strlength(ident)==0
                 isDate = false;
             end
 
@@ -578,13 +587,14 @@ return
 
 
 
-    function herePopulateDatabank( )
+    function [outputDb, namesCreated] = herePopulateDatabank(outputDb)
         TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
         TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
         lenNameRow = numel(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
         numSeriesUserData = numel(seriesUserdataList);
+        namesCreated = string.empty(1, 0);
         while count<lenNameRow
             name = nameRow(count+1);
             if numSeriesUserData>0
@@ -647,6 +657,7 @@ return
                 newEntry = fnClass(data__);
             end
             outputDb.(char(name)) = newEntry;
+            namesCreated = [namesCreated, string(name)];
             count = count + numColumns;
         end
 
@@ -713,7 +724,6 @@ return
             nameRow(inxToGenerate) = genvarname(nameRow(inxToGenerate), nameRow(inxToProtect));
         end
     end%
-s
 
     function hereCreateUserdataField( )
         if ischar(opt.DatabanUserData) || isempty(databankUserDataFieldName)
@@ -729,27 +739,31 @@ s
     end%
 end%
 
-
-
+%
+% Local functions
+%
 
 function s = getSize(c)
 % Read the size string 1-by-1-by-1 etc. as a vector.
 % New style of saving size: [1-by-1-by-1].
 % Old style of saving size: [1][1][1].
-    c = strrep(c(2:end-1), '][', '-by-');
-    s = sscanf(c, '%g-by-');
-    s = s(:).';
+    %( 
+    c = char(c);
+    c = replace(c(2:end-1), '][', '-by-');
+    s = reshape(sscanf(c, '%g-by-'), 1, []);
+    %)
 end%
 
 
-
-
 function name = getUserdataFieldName(c)
+    %(
     name = regexp(c, '\[([^\]]+)\]', 'once', 'tokens');
     if ~isempty(name)
         name = name{1};
     else
         name = '';
     end
+    %)
 end%
+
 

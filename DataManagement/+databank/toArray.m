@@ -5,10 +5,9 @@
 
 % >=R2019b
 %(
-function [outputArray, names, dates] = toArray(inputDb, names, dates, column)
+function [outputArray, names, dates, headers] = toArray(inputDb, names, dates, column)
 
 arguments
-
     inputDb (1, 1) {validate.databank}
     names {locallyValidateNames} = @all
     dates {locallyValidateDates} = Inf
@@ -20,7 +19,6 @@ arguments
     % inconsistency
 
     column (1, 1) double {mustBeNonnegative} = 1 
-
 end
 %)
 % >=R2019b
@@ -28,7 +26,7 @@ end
 
 % <=R2019a
 %{
-function [outputArray, names, dates] = toArray(inputDb, varargin)
+function [outputArray, names, dates, headers] = toArray(inputDb, varargin)
 
 persistent inputParser
 if isempty(inputParser)
@@ -90,6 +88,15 @@ else
 end
 
 outputArray = [data{:}];
+
+headers = [];
+if nargout>3
+    for i = 1 : numel(data)
+        size__ = size(data{i});
+        size__(1) = 1;
+        headers = [headers, repmat(names(i), size__)];
+    end
+end
 
 end%
 

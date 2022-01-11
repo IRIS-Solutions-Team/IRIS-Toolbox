@@ -44,10 +44,12 @@ classdef Chart ...
 
 
     methods (Static)
-        function this = fromSeries(chartInputs, seriesInputs)
+        function this = fromSeries(chartInputs, varargin)
             this = rephrase.Chart(chartInputs{:});
-            series = rephrase.Series.fromMultivariate(seriesInputs{:});
-            add(this, series);
+            for i = 1 : numel(varargin)
+                series = rephrase.Series.fromMultivariate(varargin{i}{:});
+                add(this, series);
+            end
         end%
     end
 end 

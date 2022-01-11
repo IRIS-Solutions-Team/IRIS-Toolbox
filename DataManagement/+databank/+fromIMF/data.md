@@ -65,8 +65,9 @@ __`info`__ [ struct ]
 > Output information struct with the following fields:
 >
 > * `.Request` - the entire request string (including the URL)
+>
 > * `.Response` - a JSON struct with the IMF data portal response
-
+>
 
 # Options for HTTP Request
 

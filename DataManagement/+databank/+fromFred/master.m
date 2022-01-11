@@ -1,22 +1,16 @@
-function [outputDb, status, info] = fromFred(fredSeriesId, varargin)
+% Type `+databank/+fromFred/data.md` for help on this function
+%
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-exception.warning([
-    "Obsolete"
-    "Function databank.fromFred(...) is obsolete and will be removed from IrisT in the future. "
-    "Use databank.fromFred.data(...) and databank.fromFred.vintages(...)."
-]);
-
-FRED_API_KEY = databank.fromFred.Config.Key;
-REQUEST = "?series_id=%s&api_key=%s&file_type=json";
-FREQUENCY_CONVERSION = "&frequency=%s&aggregation_method=%s";
-VINTAGE = "&vintage_dates=%s";
+function [outputDb, status, info] = master(request, seriesId, varargin)
 
 %( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.fromFred');
     pp.KeepUnmatched = true;
-    addRequired(pp,  'fredSeriesId', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(pp,  'seriesId', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
 
     addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, "AggregationMethod", "avg", @(x) validate.anyString(x, ["avg", "sum", "eop"]));
@@ -24,19 +18,17 @@ if isempty(pp)
     addParameter(pp, 'MaxRequestAttempts', 3, @(x) validate.numericScalar(x, 1, Inf));
     addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.databankType(x));
     addParameter(pp, 'Progress', false, @validate.logicalScalar);
-    addParameter(pp, 'Request', "Observations", @(x) startsWith(x, ["Observation", "Vintage"], "IgnoreCase", true));
     addParameter(pp, {'Vintage', 'Vintages', 'VintageDate', 'VintageDates'}, "", @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x) || isnumeric(x));
-    addParameter(pp, 'URL', "https://api.stlouisfed.org/fred", @(x) validate.stringScalar(x) && strlength(x)>0);
+    addParameter(pp, 'URL', databank.fromFred.Config.URL, @(x) validate.stringScalar(x) && strlength(x)>0);
 end
 %)
-opt = parse(pp, fredSeriesId, varargin{:});
+opt = parse(pp, seriesId, varargin{:});
 
 outputDb = databank.backend.ensureTypeConsistency( ...
     opt.AddToDatabank, opt.OutputType ...
 );
 
-opt.Request = string(opt.Request);
-if startsWith(opt.Request, "Observation", "IgnoreCase", true)
+if request=="data"
     if isempty(opt.Vintage)
         opt.Vintage = "";
     elseif isnumeric(opt.Vintage)
@@ -61,6 +53,7 @@ opt.AggregationMethod = strip(string(opt.AggregationMethod));
 %--------------------------------------------------------------------------
 
 numVintages = numel(opt.Vintage);
+parameters = databank.fromFred.Config.Parameters;
 
 if isnumeric(opt.Frequency)
     opt.Frequency = Frequency.toFredLetter(opt.Frequency);
@@ -69,42 +62,43 @@ else
 end
 if opt.Frequency~=""
     opt.Frequency = extractBetween(opt.Frequency, 1, 1);
-    FREQUENCY_CONVERSION = sprintf( ...
-        FREQUENCY_CONVERSION, lower(opt.Frequency), lower(opt.AggregationMethod) ...
+    freqConversion = databank.fromFred.Config.FreqConversion;
+    freqConversion = sprintf( ...
+        freqConversion, lower(opt.Frequency), lower(opt.AggregationMethod) ...
     );
-    REQUEST = REQUEST + FREQUENCY_CONVERSION;
+    parameters = parameters + freqConversion;
 end
 
-fredSeriesId = string(fredSeriesId);
-numSeries = numel(fredSeriesId);
+seriesId = string(seriesId);
+numSeries = numel(seriesId);
 
 responseError = string.empty(1, 0);
 dataError = string.empty(1, 0);
 countAttempts = double.empty(1, 0);
 
 if opt.Progress
-    if startsWith(opt.Request, "Observation", "IgnoreCase", true)
+    if request=="data"
         numRuns = numSeries * numVintages;
     else
         numRuns = numSeries;
     end
-    progress = ProgressBar('[IrisToolbox] +databank/fromFred Progress', numRuns);
+    progress = ProgressBar("[IrisToolbox] databank.fromFred." + request + " progress", numRuns);
 end
 
 
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 for i = 1 : numSeries
-    fredSeriesId__ = fredSeriesId(i);
-    matches = regexp(fredSeriesId__, '\w+', 'match');
+    seriesId__ = seriesId(i);
+    matches = regexp(seriesId__, '\w+', 'match');
     if numel(matches)==1
         databankName__ = string(matches{1});
-        fredSeriesId__ = string(matches{1});
+        seriesId__ = string(matches{1});
     else
         databankName__ = string(matches{2});
-        fredSeriesId__ = string(matches{1});
+        seriesId__ = string(matches{1});
     end
 
-    if startsWith(opt.Request, "Observation", "IgnoreCase", true)
+    if request=="data"
         if opt.Vintage=="*"
             [opt.Vintage, responseError__, dataError__, countAttempts(end+1)] = hereRequestVintageDates( );
             if ~isempty(responseError__)
@@ -157,7 +151,7 @@ for i = 1 : numSeries
         outputDb.(databankName__) = x;
     end
 end
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 
 
 if ~isempty(responseError)
@@ -207,22 +201,22 @@ return
         responseError = string.empty(1, 0);
         dataError = string.empty(1, 0);
 
-        errorItem = fredSeriesId__;
+        errorItem = seriesId__;
         if v~=""
             errorItem = "[Vintage:" + v + "] " + errorItem;
         end
 
-        request__ = sprintf(REQUEST, fredSeriesId__, FRED_API_KEY);
+        parameters__ = sprintf(parameters, seriesId__, databank.fromFred.Config.Key);
         if strlength(v)>0
-            request__ = request__ + sprintf(VINTAGE, v);
+            parameters__ = parameters__ + sprintf("&vintage_dates=%s", v);
         end
         countAttempts = 1;
         success = false;
         while countAttempts<=opt.MaxRequestAttempts
             countAttempts = countAttempts + 1;
             try
-                jsonInfo = webread(URL_INFO + request__);
-                jsonData = webread(URL_OBSERVATIONS + request__);
+                jsonInfo = webread(URL_INFO + parameters__);
+                jsonData = webread(URL_OBSERVATIONS + parameters__);
                 success = true;
                 break
             end
@@ -248,26 +242,26 @@ return
         responseError = string.empty(1, 0);
         dataError = string.empty(1, 0);
 
-        request__ = sprintf(REQUEST, fredSeriesId__, FRED_API_KEY);
+        parameters__ = sprintf(parameters, seriesId__, databank.fromFred.Config.Key);
         countAttempts = 1;
         success = false;
         while countAttempts<=opt.MaxRequestAttempts
             countAttempts = countAttempts + 1;
             try
-                jsonVintages = webread(URL_VINTAGE_DATES + request__);
+                jsonVintages = webread(URL_VINTAGE_DATES + parameters__);
                 success = true;
                 break
             end
         end
         if ~success
-            responseError = "[Vintage Request] " + fredSeriesId__;
+            responseError = "[Vintage Request] " + seriesId__;
             return
         end
 
         try
             vintageDates = reshape(string(jsonVintages.vintage_dates), 1, [ ]);
         catch
-            dataError = "[Vintage Request] " + fredSeriesId__;
+            dataError = "[Vintage Request] " + seriesId__;
             return
         end
         %)
@@ -368,51 +362,56 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Test Plain Vanilla
 
-    db = databank.fromFred(["GDPC1", "PCE"]);
+    db = databank.fromFred.data(["GDPC1", "PCE"]);
     assertEqual(testCase, sort(keys(db)), sort(["GDPC1", "PCE"]));
     assertEqual(testCase, db.GDPC1.Frequency, Frequency.QUARTERLY);
     assertEqual(testCase, db.PCE.Frequency, Frequency.MONTHLY);
 
-    db = databank.fromFred(["GDPC1", "PCE"], "Frequency=", "Q");
+    db = databank.fromFred.data(["GDPC1", "PCE"], "Frequency", "Q");
     assertEqual(testCase, db.GDPC1.Frequency, Frequency.QUARTERLY);
     assertEqual(testCase, db.PCE.Frequency, Frequency.QUARTERLY);
 
-    db = databank.fromFred(["GDPC1->gdp", "PCE->pc"]);
+    db = databank.fromFred.data(["GDPC1", "PCE"], "Frequency", Frequency.QUARTERLY);
+    assertEqual(testCase, db.GDPC1.Frequency, Frequency.QUARTERLY);
+    assertEqual(testCase, db.PCE.Frequency, Frequency.QUARTERLY);
+
+
+    db = databank.fromFred.data(["GDPC1->gdp", "PCE->pc"]);
     assertEqual(testCase, sort(keys(db)), sort(["gdp", "pc"]));
 
 
 %% Test Alias
 
-    db = databank.fromFred(["GDPC1->gdp", "TB3MS->r3m"]);
+    db = databank.fromFred.data(["GDPC1->gdp", "TB3MS->r3m"]);
     assertEqual(testCase, sort(keys(db)), sort(["gdp", "r3m"]));
 
 
 %% Test Vintage Dates
 
-    db = databank.fromFred( ...
-        "GDPC1", "Vintage=", ["2001-09-11", "2019-12-30", "2019-12-31"] ...
+    db = databank.fromFred.data( ...
+        "GDPC1", "Vintage", ["2001-09-11", "2019-12-30", "2019-12-31"] ...
     );
     assertEqual(testCase, db.GDPC1(:, 2), db.GDPC1(:, 3));
 
 
 %% Test All Vintages
 
-    v = databank.fromFred(["GDPC1", "TB3MS"], "Request=", "VintageDates");
+    v = databank.fromFred.vintages(["GDPC1", "TB3MS"]);
 
-    db = databank.fromFred("GDPC1", "Vintage=", v.GDPC1(end-5:end));
+    db = databank.fromFred.data("GDPC1", "Vintage", v.GDPC1(end-5:end));
     assertEqual(testCase, size(db.GDPC1, 2), 6);
     assertTrue(testCase, all(startsWith(string(db.GDPC1.Comment), "[Vintage:")));
 
-    db = databank.fromFred("TB3MS", "Vintage=", v.TB3MS(end-5:end));
+    db = databank.fromFred.data("TB3MS", "Vintage", v.TB3MS(end-5:end));
     assertEqual(testCase, size(db.TB3MS, 2), 6);
     assertTrue(testCase, all(startsWith(string(db.TB3MS.Comment), "[Vintage:")));
 
 
 %% Test AddToDatabank
 
-    db1 = databank.fromFred(["GDPC1", "TB3MS"]);
-    db2 = databank.fromFred("GDPC1");
-    db2 = databank.fromFred("TB3MS", "AddToDatabank=", db2);
+    db1 = databank.fromFred.data(["GDPC1", "TB3MS"]);
+    db2 = databank.fromFred.data("GDPC1");
+    db2 = databank.fromFred.data("TB3MS", "AddToDatabank", db2);
     assertEqual(testCase, sort(keys(db1)), sort(keys(db2)));
     for k = keys(db1)
         assertEqual(testCase, db1.(k).Data, db2.(k).Data);
@@ -422,7 +421,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Progress Bar
 
     vintages = ["2001-09-11", "2005-11-15", "2007-05-31", "2008-09-15", "2011-03-09"];
-    db = databank.fromFred(["GDPC1", "TB3MS"], "Vintage=", vintages, "Progress=", true);
+    db = databank.fromFred.data(["GDPC1", "TB3MS"], "Vintage", vintages, "Progress", true);
 
 
 ##### SOURCE END #####

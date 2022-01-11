@@ -1,13 +1,9 @@
 % createTable  Create table from Series object
-
+% 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function outputTable = createTable(startDate, data, comments, padDates)
-
-try, padDates; catch, padDates = false; end
-
-%--------------------------------------------------------------------------
+function outputTable = createTable(startDate, data, comments, headers, padDates)
 
 if ndims(data)>2
     thisError = [
@@ -28,10 +24,16 @@ if padDates
     dates = pad(dates, "left", char(160));
 end
 dataColumns = mat2cell(data, numRows, ones(1, numColumns));
+
+printHeaders = compose("%g", 1:numColumns);
+if isstring(headers) && size(headers, 2)==numColumns
+    printHeaders = printHeaders + ":" + headers(1, :);
+end
+
 outputTable = table( ...
     dataColumns{:} ...
     , 'RowNames', dates ...
-    , 'VariableNames', compose('%g', 1:numColumns) ...
+    , 'VariableNames', printHeaders(1, :) ...
 );
 
 if nargin>=3
