@@ -1,4 +1,4 @@
-# Dates
+# Overview of IrisT dates and Dater objects
 
 IrisT dates are designed to provide convenience for handling dates spaced
 at regular intervals throughout a calendar year, with native support for
@@ -9,13 +9,13 @@ the following date frequencies:
 * quarterly
 * monthly
 * weekly
-* daily (with limited support to business daily)
+* daily (with support for business daily frequency)
 * integer (numbered observations)
 
 
-## Categorical List of Functions
+## Categorical list of functions
 
-### Creating Dates
+### Dater constructors
 
 | Function      | Description       |
 |---            |---                |
@@ -28,7 +28,7 @@ the following date frequencies:
 [`ii`](ii.md)                                                | Create integer dates (numbered observations)
 
 
-### Converting Dates
+### Converting dates
 
 | Function      | Description       |
 |---            |---                |

@@ -38,45 +38,36 @@ opt = parse(pp, sourceDb, varargin{:});
 % <=R2019a
 
 
-sourceNames = opt.SourceNames;
-targetNames = opt.TargetNames;
 transform = opt.Transform;
-if ~iscell(transform)
-    transform = {transform};
-end
 
 %
 % Resolve source names
 %
-sourceNames = hereResolveSourceNames( );
+sourceNames = hereResolveSourceNames();
 
 %
 % Resolve target databank
 %
-targetDb = hereResolveTargetDb( );
+targetDb = hereResolveTargetDb();
 
 %
 % Resolve target names
 %
-targetNames = hereResolveTargetNames( );
+targetNames = hereResolveTargetNames();
 
 numSourceNames = numel(sourceNames);
-hereCheckDimensions( );
+hereCheckDimensions();
 
 inxSuccess = true(1, numSourceNames);
 for i = 1 : numSourceNames
     sourceName__ = sourceNames(i);
     targetName__ = targetNames(i);
     value = sourceDb.(char(sourceName__));
-    if ~isempty(transform)
-        try
-            for f = reshape(transform, 1, [])
-                value = f{1}(value);
-            end
-        catch
-            inxSuccess(i) = false;
-            continue
-        end
+    try
+        value = iris.utils.applyFunctions(value, transform);
+    catch
+        inxSuccess(i) = false;
+        continue
     end
     if isa(targetDb, 'Dictionary')
         store(targetDb, targetName__, value);
@@ -86,55 +77,55 @@ for i = 1 : numSourceNames
 end
 
 if any(~inxSuccess)
-    hereThrowTransformFailed( );
+    hereThrowTransformFailed();
 end
 
 return
 
-    function sourceNames = hereResolveSourceNames( )
-        sourceNames = opt.SourceNames;
-        if isa(sourceNames, 'function_handle')
-            func = sourceNames;
-            if isa(sourceDb, 'Dictionary')
-                sourceNames = keys(sourceDb);
-            else
-                sourceNames = reshape(string(fieldnames(sourceDb)), 1, []);
-            end
-            if ~isequal(func, @all)
-                inxPass = func(sourceNames);
-                sourceNames = sourceNames(inxPass);
-            end
+    function sourceNames = hereResolveSourceNames()
+        %(
+        if isequal(opt.SourceNames, @all) || isequal(opt.SourceNames, "__all__")
+            sourceNames = databank.fieldNames(sourceDb);
+        elseif isa(opt.SourceNames, 'function_handle') 
+            sourceNames = databank.fieldNames(sourceDb);
+            inxPass = func(sourceNames);
+            sourceNames = sourceNames(inxPass);
         else
-            sourceNames = reshape(string(sourceNames), 1, []);
+            sourceNames = textual.stringify(opt.SourceNames);
         end
+        %)
     end%
 
 
-    function targetDb = hereResolveTargetDb( )
+    function targetDb = hereResolveTargetDb()
         targetDb = opt.TargetDb;
         if isequal(targetDb, @empty)
             if isa(sourceDb, 'Dictionary')
-                targetDb = Dictionary( );
+                targetDb = Dictionary();
             elseif isstruct(sourceDb)
-                targetDb = struct( );
+                targetDb = struct();
             end
         end
     end%
 
 
-    function targetNames = hereResolveTargetNames( )
-        targetNames = opt.TargetNames;
-        if isequal(targetNames, @auto)
+    function targetNames = hereResolveTargetNames()
+        %(
+        if isequal(opt.TargetNames, @auto) || isequal(opt.TargetNames, "__auto__")
             targetNames = sourceNames;
-        elseif isa(targetNames, 'function_handle')
-            targetNames = arrayfun(targetNames, sourceNames);
+        elseif isa(opt.TargetNames, 'function_handle') || iscell(opt.TargetNames)
+            targetNames = sourceNames;
+            for i = 1 : numel(targetNames)
+                targetNames(i) = iris.utils.applyFunctions(targetNames(i), opt.TargetNames);
+            end
         else
-            targetNames = string(targetNames);
+            targetNames = textual.stringify(opt.TargetNames);
         end
+        %)
     end%
 
 
-    function hereCheckDimensions( )
+    function hereCheckDimensions()
         numTargetNames = numel(targetNames);
         if numSourceNames~=numTargetNames
             thisError = [
@@ -147,7 +138,7 @@ return
     end%
 
 
-    function hereThrowTransformFailed( )
+    function hereThrowTransformFailed()
         thisError = [
             "Databank:TransformFailed"
             "Transformation function failed when applied to this source databank field: %s"
@@ -161,7 +152,7 @@ end%
 %
 
 function locallyValidateNames(input)
-    if isa(input, 'function_handle') || validate.list(input)
+    if isa(input, 'function_handle') || iscell(input) || validate.list(input)
         return
     end
     error("Validation:Failed", "Input value must be a string array");

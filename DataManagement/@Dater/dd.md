@@ -13,30 +13,33 @@
 
 ## Syntax for Dater objects
 
-    date = Dater.dd(...)
+    date = Dater.dd(___)
 
 
 ## Syntax for numeric date codes
 
-    date = dater.dd(...)
+    date = dater.dd(___)
 
 
 ## Input arguments
 
 `year` [ numeric ] 
-
+> 
 > Calendar year.
+> 
 
-
-`month=1` [ numeric ] 
-
-> Calendar month.
-
+`month=1` [ numeric | string ] 
+> 
+> Calendar month of the `year`; can be specified either as an integer
+> or as a string representing the English names of the months (resolved
+> from the first three letters).
+> 
 
 `day=1` [ numeric ]
-
-> Week of the year; "end" means the last day of the respective `month`
+>
+> Calendar day of the `month`; "end" means the last day of the respective `month`
 > (considering leap years for February).
+> 
 
 
 ## Output arguments

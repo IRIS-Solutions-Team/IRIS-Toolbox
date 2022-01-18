@@ -14,7 +14,7 @@ arguments
     opt.URL (1, 1) string = databank.fromECB.Config.URL
     opt.WebOptions = databank.fromECB.Config.WebOptions
 
-    nameOpt.NameFunc = []
+    nameOpt.NameFunc = {}
 end
 
 info = struct();
@@ -53,6 +53,10 @@ end%
 
 function [db, namesCreated] = locallyOutputFromResponse(db, response, opt, nameOpt)
     %(
+    if ~iscell(nameOpt.NameFunc) && ~isempty(nameOpt.NameFunc)
+        nameOpt.NameFunc = {nameOpt.NameFunc};
+    end
+
     refDates = reshape(string({response.structure.dimensions.observation.values.id}), [], 1);;
     refDates = dater.fromSdmxString([], refDates);
     if opt.Attributes
@@ -64,8 +68,10 @@ function [db, namesCreated] = locallyOutputFromResponse(db, response, opt, nameO
     for raw = textual.fields(data)
         x = data.(raw).observations;
         outputName = locallyDecodeSkey(raw, dimSeries, opt);
-        if ~isempty(nameOpt.NameFunc)
-            outputName = nameOpt.NameFunc(outputName);
+        for i = 1 : numel(nameOpt.NameFunc)
+            if ~isempty(nameOpt.NameFunc{i})
+                outputName = nameOpt.NameFunc{i}(outputName);
+            end
         end
         namesCreated = [namesCreated, outputName];
         values = struct2cell(x);

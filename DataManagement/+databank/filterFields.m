@@ -5,9 +5,9 @@ function outputNames = filterFields(inputDb, options)
 arguments
     inputDb (1, 1) {validate.databank(inputDb)}
     
-    options.Name (1, 1) function_handle = @all
+    options.Name = @all
     options.Class (1, :) {locallyValidateClass} = @all
-    options.Value (1, 1) function_handle = @all
+    options.Value = @all
 end
 %)
 % >=R2019b
@@ -31,9 +31,9 @@ options = pp.Results;
 
 stringify = @(x) reshape(string(x), 1, []);
 
-isNameFilter = ~isequal(options.Name, @all);
-isClassFilter = ~isequal(options.Class, @all);
-isValueFilter = ~isequal(options.Value, @all);
+isNameFilter = ~(isequal(options.Name, @all) || isequal(options.Name, "__all__"));
+isClassFilter = ~(isequal(options.Class, @all) || isequal(options.Class, "__all__"));
+isValueFilter = ~(isequal(options.Value, @all) || isequal(options.Value, "__all__"));
 
 allKeys = stringify(fieldnames(inputDb));
 if ~isNameFilter && ~isClassFilter && ~isValueFilter
@@ -46,7 +46,7 @@ shortlist = allKeys;
 if isNameFilter
     shortlistUpdate = string.empty(1, 0);
     for n = shortlist
-        if isequal(options.Name(n), true)
+        if isequal(iris.utils.applyFunctions(n, options.Name), true)
             shortlistUpdate(end+1) = n; 
         end
     end
@@ -81,7 +81,7 @@ if isValueFilter
         else
             value = inputDb.(n);
         end
-        if isequal(options.Value(value), true)
+        if isequal(iris.utils.applyFunctions(value, options.Value), true)
             shortlistUpdate(end+1) = n;
         end
     end
