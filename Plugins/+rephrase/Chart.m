@@ -15,32 +15,49 @@ classdef Chart ...
 
 
     methods
-        function this = Chart(title, startDate, endDate, varargin)
+        function this = Chart(title, range, varargin)
+            % >=R2019b
+            %(
+            arguments
+                title (1, :) string
+                range double
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+            %)
+            % >=R2019b
+
+            [startDate, endDate, varargin] = locallyParseInputDates(range, varargin);
+
             this = this@rephrase.Element(title, varargin{:});
             this.Content = cell.empty(1, 0);
-            this.Settings.ChartType = 'Series';
+
+            this.Settings.ChartType = "Series";
             this.Settings.StartDate = double(startDate);
             this.Settings.EndDate = double(endDate);
         end%
 
-
-        function build(this, varargin)
-            this = locallyResolveDates(this);
-            build@rephrase.Container(this, varargin{:});
-            if isfield(this.Settings, 'Highlight')
-                if isscalar(this.Settings.Highlight) && ~iscell(this.Settings.Highlight)
-                    this.Settings.Highlight = {this.Settings.Highlight};
+            function build(this, varargin)
+                build@rephrase.Container(this, varargin{:});
+                this = locallyResolveDates(this);
+                if isfield(this.Settings, 'Highlight')
+                    if isscalar(this.Settings.Highlight) && ~iscell(this.Settings.Highlight)
+                        this.Settings.Highlight = {this.Settings.Highlight};
+                    end
                 end
-            end
-            if ~isfield(this.Settings, 'DateFormat')
-                try
-                    this.Settings.DateFormat = string(this.Parent.Settings.DateFormat);
-                catch
-                    this.Settings.DateFormat = locallyCreateDefaultDateFormat(this.Settings.StartDate);
+                if ~isfield(this.Settings, 'DateFormat')
+                    try
+                        this.Settings.DateFormat = string(this.Parent.Settings.DateFormat);
+                    catch
+                        this.Settings.DateFormat = locallyCreateDefaultDateFormat(this.Settings.StartDate);
+                    end
                 end
-            end
-        end%
-    end
+                this.Settings.StartDate = dater.toIsoString(this.Settings.StartDate, "m");
+                this.Settings.EndDate = dater.toIsoString(this.Settings.EndDate, "m");
+            end%
+        end
 
 
     methods (Static)
@@ -88,7 +105,23 @@ function this = locallyResolveDates(this)
             this.Settings.EndDate = double(this.Parent.Settings.EndDate);
         end
     end
-    this.Settings.StartDate = dater.toIsoString(this.Settings.StartDate, "m");
-    this.Settings.EndDate = dater.toIsoString(this.Settings.EndDate, "m");
     %)
 end%
+
+
+function [startDate, endDate, repeating] = locallyParseInputDates(range, repeating)
+    %(
+    range = double(range);
+    if isempty(repeating) || ~isnumeric(repeating{1}) || isempty(repeating{1})
+        startDate = range(1);
+        endDate = range(end);
+    else
+        startDate = range(1);
+        endDate = double(repeating{1});
+        endDate = endDate(end);
+        repeating(1) = [];
+    end
+    %)
+end%
+
+

@@ -16,16 +16,19 @@ classdef (Abstract) Data ...
                 values = getDataFromTo(input, startDate, endDate);
                 dates = dater.colon(startDate, endDate);
                 dates = dater.toIsoString(dates, "m");
-            else
+            elseif any(parent.Type==[rephrase.Type.TABLE, rephrase.Type.DIFFTABLE])
                 dates = locallyReadDates(freq, parent.Settings.Dates);
                 values = getData(input, dates);
                 dates = NaN;
+            else
+                exception.error("Internal", "Invalid parent of SERIES element");
             end
             values = values(:, 1);
-            output = struct( );
+            output = struct();
             output.Dates = dates; %DateWrapper(dates);
             output.Values = reshape(values, 1, [ ]);
         end%
+
 
         function output = buildCurveData(this, input)
             if isstring(input) || ischar(input)
