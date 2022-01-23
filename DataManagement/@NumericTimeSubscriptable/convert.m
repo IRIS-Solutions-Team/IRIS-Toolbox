@@ -234,6 +234,8 @@ function method = locallyResolveSpecialAggregationMethods(method)
         method = "first";
     elseif startsWith(charMethod, "random", "ignoreCase", true)
         method = "random";
+    elseif startsWith(charMethod, "count", "ignoreCase", true)
+        method = "count";
     end
     %)
 end%
@@ -469,6 +471,11 @@ end%
 
 function data = last(data, varargin)
     data = data(end, :);
+end%
+
+
+function data = count(data, varargin)
+    data = nnz(~isnan(data));
 end%
 
 
