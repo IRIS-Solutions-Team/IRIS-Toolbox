@@ -1,0 +1,10 @@
+nav:
+    - Home: index.md
+    - "Install"
+    - "Structural Models"
+    - "Time Series Models"
+    - "Data Management"
+    - "Reporting and Visualization"
+    - "Distributions"
+    - "Utilities"
+

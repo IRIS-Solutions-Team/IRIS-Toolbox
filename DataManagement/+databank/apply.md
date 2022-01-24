@@ -1,14 +1,18 @@
-# databank.apply
+---
+title: apply
+---
+
+# `databank.apply`
 
 {== Apply function to a selection of databank fields ==}
 
 
 ## Syntax
 
-    [outputDb, appliedToNames, newNames] = apply(inputDb, func, ...) 
+    [outputDb, appliedToNames, newNames] = databank.apply(inputDb, func, ...) 
 
 
-## Input Arguments
+## Input arguments
 
 __`inputDb`__ [ struct | Dictionary ]
 > 
@@ -21,7 +25,7 @@ __`func`__ [ function_handle ]
 > the `inputDb`.
 > 
 
-## Output Arguments
+## Output arguments
 
 __`outputDb`__ [ struct | Dictionary ]
 > 

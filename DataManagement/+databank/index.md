@@ -32,13 +32,14 @@ handling tasks.
 
 | Function      | Description       |
 |---            |---                |
-[`databank.apply`](apply.md)                                 | Apply function to a selection of databank fields
-[`databank.clip`](clip.md)                                   | Clip all time series in databank to a new range
-[`databank.copy`](copy.md)                                   | Copy fields of source databank to target databank
-[`databank.eval`](eval.md)                                   | Evaluate an expression within a databank context
-[`databank.filterFields`](filterFields.md)                   | Get the names of databank fields that pass name or value tests
-[`databank.merge`](merge.md)                                 | Merge two or more databanks
-[`databank.retrieveColumns`](retrieveColumns.md)             | Retrieve selected columns from databank fields
+[`databank.addMissingFields`](addMissingFields.md) | 
+[`databank.apply`](apply.md) | Apply function to a selection of databank fields
+[`databank.clip`](clip.md) | Clip all time series in databank to a new range
+[`databank.copy`](copy.md) | Copy fields of source databank to target databank
+[`databank.eval`](eval.md) | Evaluate an expression within a databank context
+[`databank.filterFields`](filterFields.md) | Get the names of databank fields that pass name or value tests
+[`databank.merge`](merge.md) | Merge two or more databanks
+[`databank.retrieveColumns`](retrieveColumns.md) | Retrieve selected columns from databank fields
 
 
 ### Manipulating model databanks 
