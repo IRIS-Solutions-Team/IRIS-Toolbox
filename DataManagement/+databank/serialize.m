@@ -57,7 +57,7 @@ if isempty(pp)
     addParameter(pp, 'Format', '%.8e', @(x) validate.string(x) && startsWith(x, "%") && ~contains(x, ["$", "-"]));
     addParameter(pp, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(pp, 'Nan', 'NaN', @validate.string);
-    addParameter(pp, 'UserDataFields', cell.empty(1, 0), @validate.list);
+    addParameter(pp, 'UserDataFields', cell.empty(1, 0), @validate.namesToSave);
     addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'Delimiter', ',', @validate.string);
     addParameter(pp, 'QuoteStrings', true, @validate.logicalScalar);
@@ -115,24 +115,24 @@ o = struct( );
 o.Delimiter = opt.Delimiter;
 
 % Field names to save
-list = databank.fieldNames(inputDb);
+namesToSave = databank.fieldNames(inputDb);
 if ~isequal(opt.SourceNames, Inf) && ~isequal(opt.SourceNames, @all)
-    list = intersect(list, textual.stringify(opt.SourceNames), 'stable');
+    namesToSave = intersect(namesToSave, textual.stringify(opt.SourceNames), 'stable');
 end
 
 % Initialise the data matrix as a N-by-1 vector of NaNs to mimic the Dates.
 % This first column will fill in all entries.
-nList = numel(list);
-data = cell(1, nList); % nan(length(dates), 1);
+numNamesToSave = numel(namesToSave);
+data = cell(1, numNamesToSave); % nan(length(dates), 1);
 
 nameRow = { };
 classRow = { };
 commentRow = { };
 userDataFields = locallyInitializeUserDataFields(opt);
-inxSerialized = false(size(list));
+inxSerialized = false(size(namesToSave));
 
-for i = 1 : nList
-    x = inputDb.(list{i});
+for i = 1 : numNamesToSave
+    x = inputDb.(namesToSave{i});
     
     if isa(x, 'TimeSubscriptable')
         freq__ = x.FrequencyAsNumeric;
@@ -168,7 +168,7 @@ for i = 1 : nList
     inxSerialized(i) = true;
     % Add data, expand first dimension if necessary.
     data{i} = data__;
-    nameToAdd = list{i};
+    nameToAdd = namesToSave{i};
     if isa(opt.TargetNames, 'function_handle')
         nameToAdd = opt.TargetNames(nameToAdd);
     end
@@ -200,7 +200,7 @@ data = [ data{:} ];
 %
 % Report names of serialized fields
 %
-listSerialized = reshape(string(list(inxSerialized)), 1, []);
+listSerialized = reshape(string(namesToSave(inxSerialized)), 1, []);
 
 
 % We need to remove double quotes from the date format string because the

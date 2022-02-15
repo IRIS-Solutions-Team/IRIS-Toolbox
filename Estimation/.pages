@@ -1,0 +1,5 @@
+nav:
+    - "System priors": SystemPrior
+    - "Posterior": Posterior
+    - "Probabilistic distributions": +distribution
+

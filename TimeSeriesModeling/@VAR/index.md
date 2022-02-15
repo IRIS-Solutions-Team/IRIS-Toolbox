@@ -1,3 +1,2 @@
-# Vector Autoregressions
-
+# Overview of VAR models
 

@@ -1,12 +1,12 @@
-# Model file language
+# Overview of model source code language
 
-Model file language is a system of keywords that define the structure of
+The IrisT model source code language (Slang) is a system of keywords that define the structure of
 model source files. The model source files are plain text files (saved
 under any file name with any extension) that describe the model: its
 equations, variables, parameters, etc. The model files do not describe what
 tasks to do with the model. To run the tasks you want to perform with the
 model, you need first to load the model file into Matlab using the
-[`Model.fromFile`](../model/fromFile.md) function. This function creates a
+[`Model.fromFile`](../Model/fromFile.md) function. This function creates a
 model object. Then you write your own m-files using Matlab and IrisT
 functions to perform the desired tasks with the model object.
 
@@ -16,16 +16,16 @@ base and minimize repetitive model code writing tasks.
 
 You can get the model source files syntax highlighted in the Matlab editor
 to improve the readability of the files, and helps navigate the model more
-quickly; see the [setup instructions](../../install.md).
+quickly; see the [setup instructions](../../Install/index.md).
 
 
 ## Guidelines
 
 Reference | Description
 ---|---
-[`Model files`](model-files.md)                              | Guideline for writing and structuring model source files
-[`Names`](names.md)                                          | Declare model names: Variables, shocks, parameters
-[`Equations`](equations.md)                                  | Write model equations
+[`Creating model files`](model-files.md)                              | Guideline for writing and structuring model source files
+[`Declaring model names`](names.md)                                          | Declare model names: Variables, shocks, parameters
+[`Writing model equations`](equations.md)                                  | Write model equations
 
 
 ## Categorical list of keywords
@@ -102,7 +102,7 @@ Keyword | Description
 Keyword | Description 
 ---|---
 [`%`](line-comment.md)                                       | Line comments
-[`%{...%}`](block-comment.md)                                | Block comments
+[`%{ ... %}`](block-comment.md)                                | Block comments
 [`<...>`](interp.md)                                         | Interpolation.
 [`!export`](!export.md)                                      | Create exportable file to be saved in working directory.
 [`!for`](!for.md)                                            | For-loop control structure for automated creation of model source code
@@ -193,8 +193,8 @@ measurement shocks cannot occur in transition equations.
 
 * Exogenous variables can only occur in dtrends (deterministic trend
   equations), and must be always supplied as part of the input database to
-  commands like [`Model/simulate`](../model/simulate),
-  [`Model/filter`](../model/filter), [`Model/estimate`](../model/estimate),
+  commands like [`Model/simulate`](../Model/simulate),
+  [`Model/filter`](../Model/filter), [`Model/estimate`](../Model/estimate),
   etc. They are not returned in the output databases.
 
 * You can choose between linearisation and log-linearisation for each

@@ -1,4 +1,5 @@
 nav:
+    - index.md
     - Model.fromFile: fromFile.md
     - Model.fromString: fromString.md
     - Model.fromSnippet: fromSnippet.md

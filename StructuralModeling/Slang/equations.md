@@ -1,8 +1,6 @@
-# Model equations
+# Writing model equations
 
-{== Write model equations ==}
-
-Model source files can contain the following types of model equations
+Model source code can contain the following types of model equations
 
 Model equation type | Keyword | Remark
 ---|---|---

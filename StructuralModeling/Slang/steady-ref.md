@@ -1,4 +1,8 @@
-# & | $
+---
+title: "&"
+---
+
+# `&` 
 
 {== Reference to the steady-state level of a variable ==}
 
@@ -9,18 +13,11 @@
     &variableName{K}
 
 
-## Alternative syntax
-
-    $variableName
-    $variableName{K}
-
-
 ## Description
 
-Use either a `&` or `$` sign in front of a variable name to create a
+Use the `&` sign in front of a variable name to create a
 reference to that variable's steady-state level in transition or
-measurement equations. The two signs, `&` and `$`, are interchangeable.
-Steady-state references may only be used in nonlinear models.
+measurement equations. Steady-state references may only be used in nonlinear models.
 
 The steady-state reference can include a time shift (a lag or a lead),
 `K`. In that case, the steady-state value will be adjusted for

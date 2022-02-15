@@ -1,6 +1,8 @@
-# !switch...!case...!otherwise...!end
+
+# !switch
 
 {== Switch among several cases based on expression.==}
+
 
 ## Syntax with an otherwise clause
 

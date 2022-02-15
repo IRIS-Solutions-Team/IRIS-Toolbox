@@ -142,7 +142,7 @@ for j = 1 : numel(inputString)
     if contains(inputString__, "#")
         residualModelString__ = "#" + extractAfter(inputString__, "#");
         inputString__ = extractBefore(inputString__, "#");
-        residualModel = ParameterizedArmani.fromEviewsString(residualModelString__);
+        residualModel = ParamArmani.fromEviewsString(residualModelString__);
         this__.ResidualModel = residualModel;
     end
 

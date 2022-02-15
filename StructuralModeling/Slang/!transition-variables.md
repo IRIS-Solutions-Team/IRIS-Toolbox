@@ -1,4 +1,4 @@
-# !transition-variables | !variables
+# !transition-variables 
 
 {== Declare names of transition variables ==}
 

@@ -182,7 +182,7 @@ for q = find(inxToEstimate)
         end
 
 
-        if ~opt.ResidualsOnly && isa(residualModel, 'ParameterizedArmani') && residualModel.NumParameters>0
+        if ~opt.ResidualsOnly && isa(residualModel, 'ParamArmani') && residualModel.NumParameters>0
             if ~isLinear
                 exception.error([
                     "Explanatory:ArimaNonlinear"

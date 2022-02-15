@@ -1,2 +1,3 @@
-# Estimation with Prior Dummies
+# Overview of prior dummy observations: `+dummy` package
+
 

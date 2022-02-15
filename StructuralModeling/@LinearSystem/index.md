@@ -1,3 +1,3 @@
-# Overview of Linear Systems
+# Overview of linear state-space system objects
 
 

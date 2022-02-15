@@ -1,5 +1,6 @@
 nav:
+    - index.md
     - "Time series": Series
-    - "Databanks": +databank
+    - "Databank package": databank
     - "Dates": Dater
 

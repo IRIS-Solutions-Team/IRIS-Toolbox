@@ -1,10 +1,10 @@
 nav:
-    - Home: index.md
-    - "Install"
-    - "Structural Models"
-    - "Time Series Models"
-    - "Data Management"
-    - "Reporting and Visualization"
-    - "Distributions"
-    - "Utilities"
+    - "Home": index.md
+    - "Setup": Setup
+    - "Structural modeling": StructuralModeling
+    - "Time series modeling": TimeSeriesModeling
+    - "Data management": DataManagement
+    - "Reporting": Reporting
+    - "Estimation": Estimation
+    - "Utilities": Utilities
 

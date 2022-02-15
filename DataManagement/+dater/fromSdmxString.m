@@ -13,7 +13,7 @@ if any(inxYearly)
 end
 
 if any(inxHalfYearly)
-    temp = locallySplitToNumbers(sdmxDate(inxHalfYearly), "-B");
+    temp = locallySplitToNumbers(sdmxDate(inxHalfYearly), "-S");
     dates(inxHalfYearly) = dater.hh(temp(:, 1), temp(:, 2));
 end
 

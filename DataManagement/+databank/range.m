@@ -46,8 +46,6 @@ options = parse(pp, inputDb, varargin{:});
 % <=R2019a
 
 
-stringify = @(x) reshape(string(x), 1, []);
-
 listNames = hereFilterNames( );
 listFreq = hereFilterFreq( );
 
@@ -125,7 +123,7 @@ return
                 listNames = allInputEntries;
             end
         end
-        listNames = stringify(listNames);
+        listNames = textual.stringify(listNames);
         %)
     end%
 

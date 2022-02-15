@@ -5,7 +5,7 @@
 
 % >=R2019b
 %(
-function [outputArray, names, dates, headers] = toArray(inputDb, names, dates, column)
+function [outputArray, names, dates, headers, comments] = toArray(inputDb, names, dates, column)
 
 arguments
     inputDb (1, 1) {validate.databank}
@@ -60,8 +60,8 @@ end
 numData = numel(data);
 if isequal(column, Inf)
     numColumns = [];
-    for x = data
-        sizeData = size(x{:});
+    for i = 1 : numel(data)
+        sizeData = size(x{i});
         numColumns(end+1) = prod(sizeData(2:end));
     end
     maxColumns = max(numColumns);
@@ -90,12 +90,10 @@ end
 outputArray = [data{:}];
 
 headers = [];
-if nargout>3
-    for i = 1 : numel(data)
-        size__ = size(data{i});
-        size__(1) = 1;
-        headers = [headers, repmat(names(i), size__)];
-    end
+for i = 1 : numel(data)
+    size__ = size(data{i});
+    size__(1) = 1;
+    headers = [headers, repmat(names(i), size__)];
 end
 
 end%

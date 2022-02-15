@@ -1,8 +1,9 @@
-# Model names
+# Declaring model names
 
-{== Declare model names: Variables, shocks, parameters ==}
+{== Declare names of model quantities: Variables, shocks, parameters ==}
 
-Model source files can contain the following types of model names
+Each model quantity (variable, shock, parameter) needs to be declared, i.e.
+listed under an appropriate heading. Model source code can contain the following types of model names
 
 Model name type | Keyword | Remark
 ---|---|---

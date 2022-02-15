@@ -1,4 +1,5 @@
-# Overview of Explanatory objects
+# Overview of explanatory equation objects
+
 
 ## Categorical list of functions 
 

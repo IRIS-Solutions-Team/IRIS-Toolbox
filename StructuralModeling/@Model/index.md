@@ -1,4 +1,5 @@
-# Overview of Model objects
+
+# Overview of structural model objects
 
 
 ## Categorical list of functions 

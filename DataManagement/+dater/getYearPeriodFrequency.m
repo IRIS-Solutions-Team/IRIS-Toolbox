@@ -47,8 +47,6 @@
 
 function [year, per, freq] = getYearPeriodFrequency(dateCode)
 
-%--------------------------------------------------------------------------
-
 dateCode = double(dateCode);
 freq = dater.getFrequency(dateCode);
 serial = dater.getSerial(dateCode);

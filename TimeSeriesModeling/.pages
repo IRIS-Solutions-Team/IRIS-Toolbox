@@ -1,0 +1,11 @@
+nav:
+    - index.md
+    - "VAR models": VAR
+    - "Structural VAR models": SVAR
+    - "Panel VAR models": PanelVAR
+    - "Prior dummy estimation": dummy
+    - "Dynamic factor models": Dynafit
+    - "ARMA processes": Armani
+    - "Parameterized ARMA processes": ParamArmani
+    - "Interface to X13": x13
+

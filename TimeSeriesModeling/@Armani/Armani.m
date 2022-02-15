@@ -165,7 +165,7 @@ classdef Armani
 
 
     methods (Static)
-        function this = fromParameterizedArmani(pa, variant, varargin)
+        function this = fromParamArmani(pa, variant, varargin)
             gamma = pa.Parameters(1, :, variant);
             pa = update(pa, gamma);
             this = Armani(pa.AR, pa.MA, varargin{:});

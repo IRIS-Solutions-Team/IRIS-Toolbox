@@ -1,4 +1,4 @@
-classdef ParameterizedArmani ...
+classdef ParamArmani ...
     < Armani
 
     properties
@@ -9,7 +9,7 @@ classdef ParameterizedArmani ...
 
 
     methods
-        function this = ParameterizedArmani(numParameters, parameterizedAR, parameterizedMA, tolerance)
+        function this = ParamArmani(numParameters, parameterizedAR, parameterizedMA, tolerance)
             if nargin>=1
                 this.NumParameters = numParameters;
                 this.Parameters = nan(1, numParameters, 1);
@@ -30,8 +30,8 @@ classdef ParameterizedArmani ...
         function this = update(this, p)
             if numel(p)~=this.NumParameters
                 throw(exception.Base([
-                    "ParameterizedArmani:InvalidNumParameters"
-                    "Invalid number of parameters to update the ParameterizedArmani object. "
+                    "ParamArmani:InvalidNumParameters"
+                    "Invalid number of parameters to update the ParamArmani object. "
                     "The number of parameters required is %g but only %g are being passed in. "
                 ], 'error'), this.NumParameters, numel(p));
             end
@@ -47,7 +47,7 @@ classdef ParameterizedArmani ...
 
     methods (Static)
         function this = fromArmani(armani)
-            this = ParameterizedArmani(0, armani.AR, armani.MA);
+            this = ParamArmani(0, armani.AR, armani.MA);
         end%
 
 
@@ -100,14 +100,14 @@ classdef ParameterizedArmani ...
                 end
                 ma = str2func(['@(p)', ma]);
             end
-            this = ParameterizedArmani(numArParameters+numMaParameters, ar, ma);
+            this = ParamArmani(numArParameters+numMaParameters, ar, ma);
 
             return
 
                 function hereThrowError()
                     exception.error([
-                        "ParameterizedArmani:InvalidInputString"
-                        "This is not a valid input string for a ParameterizedArmani object: %s"
+                        "ParamArmani:InvalidInputString"
+                        "This is not a valid input string for a ParamArmani object: %s"
                     ], preserveInput);
                 end%
         end%
@@ -169,14 +169,14 @@ classdef ParameterizedArmani ...
             else
                 ma = [];
             end
-            this = ParameterizedArmani(numParameters, ar, ma);
+            this = ParamArmani(numParameters, ar, ma);
 
             return
 
                 function hereThrowError(preserveInput)
                     exception.error([
-                        "ParameterizedArmani:InvalidInputString"
-                        "This is not a valid input string for a ParameterizedArmani object: %s"
+                        "ParamArmani:InvalidInputString"
+                        "This is not a valid input string for a ParamArmani object: %s"
                     ], preserveInput);
                 end%
         end%

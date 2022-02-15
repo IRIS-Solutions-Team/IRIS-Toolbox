@@ -1,2 +1,0 @@
-# Panel VARs
- 

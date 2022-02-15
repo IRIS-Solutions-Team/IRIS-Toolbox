@@ -1,2 +1,2 @@
-# Interface to `rephrase.js` 
+# Overview of the `rephrase.js` reporting package
  

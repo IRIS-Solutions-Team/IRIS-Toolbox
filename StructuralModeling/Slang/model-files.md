@@ -1,5 +1,5 @@
-# Model source files
+# Creating model source code
 
-{== Guideline for writing and structuring model source files ==}
+{== Guideline for writing and structuring model source code ==}
 
 

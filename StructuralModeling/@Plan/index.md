@@ -1,4 +1,6 @@
-# Simulation plans
+
+# Overview of simulation plan objects
+
 
 ## Categorical list of functions 
 

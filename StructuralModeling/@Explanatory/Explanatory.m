@@ -62,7 +62,7 @@ classdef Explanatory ...
         LhsTransformNamePattern (1, 2) string = ["lhs_", ""]
 
 
-% ResidualModel  Armani or ParameterizedArmani object specifying an ARMA
+% ResidualModel  Armani or ParamArmani object specifying an ARMA
 % model for residuals
         ResidualModel = [ ]
     end
@@ -553,7 +553,7 @@ classdef Explanatory ...
                 this.ResidualModel = [ ];
                 return
             end
-            if isa(value, 'ParameterizedArmani')
+            if isa(value, 'ParamArmani')
                 this.ResidualModel = value;
                 return
             end
@@ -564,7 +564,7 @@ classdef Explanatory ...
             exception.error([
                 "Exception:InvalidResidualModel"
                 "Invalid ResidualModel assigned to an Explanatory object. "
-                "ResidualModel needs to be one of {empty, Armani, ParameterizedArmani}."
+                "ResidualModel needs to be one of {empty, Armani, ParamArmani}."
             ]);
             %)
         end%

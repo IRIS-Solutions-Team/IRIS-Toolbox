@@ -1,0 +1,8 @@
+nav:
+    - index.md
+    - "Model source file language": Slang
+    - "Structural models": Model
+    - "Simulation plans": Plan
+    - "Explanatory equations": Explanatory
+    - "Linear state-space systems": LinearSystem
+

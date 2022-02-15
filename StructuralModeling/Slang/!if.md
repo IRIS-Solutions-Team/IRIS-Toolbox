@@ -1,8 +1,8 @@
-# !if...!elseif...!else...!end
+# !if
 
-{== Choose block of code based on logical condition.==}
+{== Choose a branch of code based on logical condition ==}
 
-## Syntax with else and elseif clauses
+## Syntax with `else` and `elseif` clauses
 
     !if Condition1
         Block1
@@ -30,11 +30,11 @@
 
 ## Description
 
-The `!if...!elseif...!else...!end` command works the same way as its
+The `!if` command works the same way as its
 counterpart in the Matlab programming language.
 
-Use the `!if...!else...!end` command to create branches or versions of
-the model code. Whether a block of code in a particular branch is used or
+Use the command to create multiple branches or versions of
+the model source code. Whether a block of code in a particular branch is used or
 discarded, depends on the condition after the opening `!if` command and
 the conditions after subsequent `!elseif` commands if present. The
 condition must be a Matlab expression that evaluates to true or false.
