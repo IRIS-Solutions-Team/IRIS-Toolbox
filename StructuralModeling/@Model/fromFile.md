@@ -91,7 +91,7 @@ assigned) more than once in the model file.
 __`Optimal={ }`__ [ cell ]
 >
 > Specify optimal policy options, see Optimal for policy options models
-> below; only applicable when the keyword [`min`](../slang/min.md) is used
+> below; only applicable when the keyword [`min`](../Slang/min.md) is used
 > in the model source file.
 > 
 
@@ -154,7 +154,7 @@ __`Type="discretion"`__ [ `"commitment"` | `"discretion"` ]
 ### Loading a model file
 
 The `Model.fromFile` constructor can be used to read in a
-[model source file](../slang/index.md) named `fileNames`, and create a
+[model source file](../Slang/index.md) named `fileNames`, and create a
 model object `m` based on these. If `fileNames` is an array of more than
 one file names then all these files get combined together in order of
 appearance.
@@ -192,9 +192,9 @@ m = assign(m, p);
 
 unless some of the parameters passed in to the `Model.fromFile` constructor
 are needed to evaluate Matlab expressions inside the model source files,
-such as conditions in the [`!if`](../slang/!if.md) or
-[`!switch`](../slang/!switch.md) expressions, or angle bracket expressions
-[`<...>`](../slang/interp.md).
+such as conditions in the [`!if`](../Slang/!if.md) or
+[`!switch`](../Slang/!switch.md) expressions, or angle bracket expressions
+[`<...>`](../Slang/interp.md).
 
 
 

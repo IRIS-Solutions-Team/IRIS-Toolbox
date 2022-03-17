@@ -3,7 +3,7 @@
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [exc, args] = checkStructureAfter(this, quantity, equation, ~)
+function [exc, args] = checkStructureAfter(this, quantity, equation, opt)
 
 exc = [ ];
 args = { };
@@ -29,7 +29,7 @@ nt = sum(ixt);
 test = ~any(ind0(ixt, ixx), 1);
 if any(test)
     name = quantity.Name(ixx);
-    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_DYNAMIC', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_DYNAMIC', opt.ThrowErrorAs);
     args = name(test);
     return
 end
@@ -37,7 +37,7 @@ end
 test = ~any(ins0(ixt, ixx), 1);
 if any(test)
     name = quantity.Name(ixx);
-    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_STEADY', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_STEADY', opt.ThrowErrorAs);
     args = name(test);
     return
 end
@@ -48,7 +48,7 @@ end
 test = ~any(ind0(ixm, ixy), 1);
 if any(test)
     name = quantity.Name(ixy);
-    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_DYNAMIC', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_DYNAMIC', opt.ThrowErrorAs);
     args = name(test);
     return
 end
@@ -56,7 +56,7 @@ end
 test = ~any(ins0(ixm, ixy), 1);
 if any(test)
     name = quantity.Name(ixy);
-    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_STEADY', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_DATE_IN_STEADY', opt.ThrowErrorAs);
     args = name(test);
     return
 end
@@ -67,7 +67,7 @@ end
 test = any(indxs(ixt, ixx), 2);
 if any(~test)
     eqtn = equation.Input(ixt);
-    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE_IN_DYNAMIC', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE_IN_DYNAMIC', opt.ThrowErrorAs);
     args = eqtn(~test);
     return
 end
@@ -75,7 +75,7 @@ end
 test = any(insxs(ixt, ixx), 2);
 if any(~test)
     eqtn = equation.Input(ixt);
-    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE_IN_STEADY', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE_IN_STEADY', opt.ThrowErrorAs);
     args = eqtn(~test);
     return
 end
@@ -86,7 +86,7 @@ end
 test = any(indxs(ixm, ixy), 2);
 if any(~test)
     eqtn = equation.Input(ixm);
-    exc = exception.ParseTime('Model:Postparser:NO_MEASUREMENT_VARIABLE_IN_DYNAMIC', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_MEASUREMENT_VARIABLE_IN_DYNAMIC', opt.ThrowErrorAs);
     args = eqtn(~test);
     return
 end
@@ -94,7 +94,7 @@ end
 test = any(insxs(ixm, ixy), 2);
 if any(~test)
     eqtn = equation.Input(ixm);
-    exc = exception.ParseTime('Model:Postparser:NO_MEASUREMENT_VARIABLE_IN_STEADY', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_MEASUREMENT_VARIABLE_IN_STEADY', opt.ThrowErrorAs);
     args = eqtn(~test);
     return
 end
@@ -103,7 +103,7 @@ end
 % # transition equations ~= # transition variables
 %--------------------------------------------------
 if nt~=nx
-    exc = exception.ParseTime('Model:Postparser:NUMBER_TRANSITION_EQUATIONS_VARIABLES', 'error');
+    exc = exception.ParseTime('Model:Postparser:NUMBER_TRANSITION_EQUATIONS_VARIABLES', opt.ThrowErrorAs);
     args = {nt, nx};
     return
 end
@@ -111,7 +111,7 @@ end
 % # measurement equations ~= # measurement variables
 %----------------------------------------------------
 if nm~=ny
-    exc = exception.ParseTime('Model:Postparser:NUMBER_MEASUREMENT_EQUATIONS_VARIABLES', 'error');
+    exc = exception.ParseTime('Model:Postparser:NUMBER_MEASUREMENT_EQUATIONS_VARIABLES', opt.ThrowErrorAs);
     args = {nm, ny};
     return
 end

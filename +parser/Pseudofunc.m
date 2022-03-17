@@ -87,7 +87,7 @@ classdef Pseudofunc
                 numArgs = numel(posDelim) - 1;
                 args = cell(1, numArgs);
                 for i = 1 : numArgs
-                    args{i} = strtrim( temp(posDelim(i)+1:posDelim(i+1)-1) );
+                    args{i} = strip(temp(posDelim(i)+1:posDelim(i+1)-1));
                 end
                 args = resolveDefaultArg(this, args);
                 if isnan(args{2})
@@ -111,7 +111,11 @@ classdef Pseudofunc
             if numel(args)<2 || strlength(args{2})==0
                 args{2} = this.DefaultK;
             else
-                args{2} = sscanf(erase(args{2}, ["[", "]", ",", ";"]), "%g");
+                try
+                    args{2} = eval(args{2});
+                catch
+                    args{2} = NaN;
+                end
                 if isnumeric(args{2})
                     args{2} = reshape(args{2}, 1, [ ]);
                 else

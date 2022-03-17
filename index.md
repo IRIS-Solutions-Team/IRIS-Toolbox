@@ -1,10 +1,10 @@
 # Home
 
 The Iris Toolbox is a macroeconomic modeling package for
-[Matlab](www.mathworks.com) developed by the Iris Solutions Team since
+[Matlab](https://www.mathworks.com) developed by the Iris Solutions Team since
 2001.
 
-#### [:octicons-gear-24: Setup](Setup/index.md)
+#### [:octicons-gear-24: Setup](./+setup/index.md)
 
 
 IrisT provides tools to support the typical workflows in the theoretical development

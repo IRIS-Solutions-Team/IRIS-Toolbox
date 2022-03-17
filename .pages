@@ -1,10 +1,5 @@
 nav:
     - "Home": index.md
-    - "Setup": Setup
-    - "Structural modeling": StructuralModeling
-    - "Time series modeling": TimeSeriesModeling
-    - "Data management": DataManagement
-    - "Reporting": Reporting
-    - "Estimation": Estimation
-    - "Utilities": Utilities
+    - "Setup": "./+iris"
+    - "Structural modeling": "./StructuralModeling"
 

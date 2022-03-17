@@ -62,7 +62,7 @@ opt = parse(pp, this, inputDb, fittedRange, varargin{:});
 opt.AppendPresample = false;
 opt.AppendPostsample = false;
 
-[fittedRange, opt.MissingObservations] = locallyResolveRange(this, inputDb, fittedRange, opt.MissingObservations);
+[fittedRange, opt.MissingObservations] = local_resolveRange(this, inputDb, fittedRange, opt.MissingObservations);
 opt.BlackoutBefore = Explanatory.resolveBlackout(opt.BlackoutBefore);
 opt.BlackoutAfter = Explanatory.resolveBlackout(opt.BlackoutAfter);
 
@@ -167,7 +167,7 @@ for q = find(inxToEstimate)
 
         inxBaseRange__ = dataBlock.InxBaseRange;
         [lhs__, rhs__, subBlock__, inxBaseRange__] ...
-            = locallyBlackout( ...
+            = local_blackout( ...
                 lhs__, rhs__, subBlock__ ...
                 , maxLag, inxBaseRange__, extdRange ...
                 , opt.BlackoutBefore(min(q,end)) ...
@@ -192,7 +192,7 @@ for q = find(inxToEstimate)
             end
             indent(journal, "Residual Model");
             [gamma__, exitFlag__] ...
-                = locallyEstimateResidualModel(lhs__, rhs__, fixed__, residualModel, inxBaseRange__, opt.Optim);
+                = local_estimateResidualModel(lhs__, rhs__, fixed__, residualModel, inxBaseRange__, opt.Optim);
             residualModel.Parameters(1, :, v) = gamma__;
             residualModel = update(residualModel, gamma__);
             exitFlagsResidualModels(q, v) = exitFlag__;
@@ -214,7 +214,7 @@ for q = find(inxToEstimate)
         % Estimate parameters
         %
         [parameters__, varResiduals__, covParameters__, fitted__, res__, inxMissing__, exitFlag__, optimOutput__] ...
-            = locallyRegress(this__, lhs__, rhs__, subBlock__, F, fixed__, inxBaseRange__, v, opt.Optim, opt.Regularize);
+            = local_regress(this__, lhs__, rhs__, subBlock__, F, fixed__, inxBaseRange__, v, opt.Optim, opt.Regularize);
 
         exitFlagsParameters(q, v) = exitFlag__;
 
@@ -228,7 +228,7 @@ for q = find(inxToEstimate)
         inxMissingWithinBaseRange__ = inxBaseRange__ & inxMissing__;
         if any(inxMissingWithinBaseRange__) ...
                 && startsWith(opt.MissingObservations, ["warning", "error"], "ignoreCase", true)
-            hereReportMissing(inxMissingWithinBaseRange__, q);
+            here_reportMissing(inxMissingWithinBaseRange__, q);
         end
 
         if journal.IsActive
@@ -249,7 +249,7 @@ for q = find(inxToEstimate)
         % Evaluate fitted values and residuals on the entire regression
         % range
         %
-        [fitted, res] = hereEvaluateFittedAndResiduals(fitted, res);
+        [fitted, res] = here_evaluateFittedAndResiduals(fitted, res);
 
 
         if journal.IsActive
@@ -295,7 +295,7 @@ end
 
 
 if ~isempty(reportEmptyData)
-    hereReportEmptyData();
+    here_reportEmptyData();
 end
 
 
@@ -307,10 +307,10 @@ if lower(opt.WhenEstimationFails)=="silent"
     % Do nothing
 else
     if any(~isnan(exitFlagsResidualModels) & exitFlagsResidualModels<=0) 
-        locallyReportFailedEstimation(exitFlagsResidualModels, this, "Residual model", opt.WhenEstimationFails)
+        local_reportFailedEstimation(exitFlagsResidualModels, this, "Residual model", opt.WhenEstimationFails)
     end
     if any(~isnan(exitFlagsParameters) & exitFlagsParameters<=0)
-        locallyReportFailedEstimation(exitFlagsParameters, this, "Parameter", opt.WhenEstimationFails);
+        local_reportFailedEstimation(exitFlagsParameters, this, "Parameter", opt.WhenEstimationFails);
     end
 end
 
@@ -340,12 +340,12 @@ end
 this = runtime(this);
 
 if nargout>=3
-    info = herePopulateOutputInfo();
+    info = here_populateOutputInfo();
 end
 
 return
 
-    function [fitted, res] = hereEvaluateFittedAndResiduals(fitted, res)
+    function [fitted, res] = here_evaluateFittedAndResiduals(fitted, res)
         %(
         inx = dataBlock.InxBaseRange;
         columnsBaseRange = find(inx);
@@ -355,7 +355,7 @@ return
         %)
     end%
 
-    function hereReportEmptyData()
+    function here_reportEmptyData()
         %(
         reportEmptyData = cellstr(reportEmptyData);
         thisWarning = [ 
@@ -367,7 +367,7 @@ return
         %)
     end%
 
-    function hereReportMissing(inxMissing, qq)
+    function here_reportMissing(inxMissing, qq)
         %(
         if startsWith(opt.MissingObservations, "warning", "ignoreCase", true)
             action = 'adjusted to exclude';
@@ -387,7 +387,7 @@ return
     end%
 
 
-    function info = herePopulateOutputInfo()
+    function info = here_populateOutputInfo()
         %(
         info = struct();
         info.FittedPeriods = cell(numEquations, numPages);
@@ -405,7 +405,7 @@ end%
 % Local Functions
 %
 
-function [fittedRange, missingObservations] = locallyResolveRange(this, inputDb, fittedRange, missingObservations)
+function [fittedRange, missingObservations] = local_resolveRange(this, inputDb, fittedRange, missingObservations)
     %(
     fittedRange = double(fittedRange);
     from = fittedRange(1);
@@ -424,12 +424,9 @@ end%
 
 
 function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exitFlag, optimOutput] ...
-        = locallyRegress(this, y, X, subBlock, F, fixed, inxBaseRange, v, optim, regularize)
+        = local_regress(this, y, X, subBlock, F, fixed, inxBaseRange, v, optimOptions, regularize)
     %(
-    persistent DEFAULT_OPTIM
-    if isempty(DEFAULT_OPTIM)
-        DEFAULT_OPTIM = optimoptions("lsqnonlin", "display", "none");
-    end
+    persistent DEFAULT_OPTIM_OPTIONS
 
     inxFixed = ~isnan(fixed);
     numColumns = size(y, 2);
@@ -475,9 +472,12 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         %
         % Nonlinear (iterative) regression
         %
+        if isempty(DEFAULT_OPTIM_OPTIONS)
+            DEFAULT_OPTIM_OPTIONS = optimoptions("lsqnonlin", "display", "none");
+        end
 
-        if isempty(optim)
-            optim = DEFAULT_OPTIM;
+        if isempty(optimOptions)
+            optimOptions = DEFAULT_OPTIM_OPTIONS;
         end
 
         endogenizeResidualsFunc = this.EndogenizeResiduals;
@@ -497,7 +497,7 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 
         inxMissing = [];
         zTest = rand(1, numParametersEstimated);
-        [~, ~, objTest] = hereObjectiveFunc(zTest);
+        [~, ~, objTest] = here_objectiveFunc(zTest);
         inxMissing = ~isfinite(objTest);
 
 
@@ -505,8 +505,8 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         % Optimization Toolbox
 
         z0 = zeros(1, numParametersEstimated);
-        [z, ~, ~, exitFlag, optimOutput] = lsqnonlin(@hereObjectiveFunc, z0, [], [], optim);
-        [~, parameters] = hereObjectiveFunc(z);
+        [z, ~, ~, exitFlag, optimOutput] = lsqnonlin(@here_objectiveFunc, z0, [], [], optimOptions);
+        [~, parameters] = here_objectiveFunc(z);
         parameters(~inxToEstimate & ~inxFixed) = NaN;
 
 
@@ -532,7 +532,7 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 
     return
 
-        function [obj, p, objRegress, objRegularize] = hereObjectiveFunc(z)
+        function [obj, p, objRegress, objRegularize] = here_objectiveFunc(z)
             p = zeros(1, numParameters);
             p(inxFixed) = fixed(inxFixed);
             p(inxToEstimate) = z;
@@ -554,12 +554,16 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
 end%
 
 
-function [gamma, exitFlag] = locallyEstimateResidualModel(y, X, fixed, rm, inxObjectiveRange, optim)
+function [gamma, exitFlag] = local_estimateResidualModel(y, X, fixed, rm, inxObjectiveRange, optimOptions)
     %(
-    persistent DEFAULT_OPTIM
-    if isempty(DEFAULT_OPTIM)
-        DEFAULT_OPTIM = optimoptions("lsqnonlin", "display", "none");
+    persistent DEFAULT_OPTIM_OPTIONS
+    if isempty(DEFAULT_OPTIM_OPTIONS)
+        DEFAULT_OPTIM_OPTIONS = optimoptions("lsqnonlin", "display", "none");
     end
+    if isempty(optimOptions)
+        optimOptions = DEFAULT_OPTIM_OPTIONS;
+    end
+
     numObservations = size(y, 2);
     inxFixed = ~isnan(fixed);
 
@@ -576,19 +580,16 @@ function [gamma, exitFlag] = locallyEstimateResidualModel(y, X, fixed, rm, inxOb
     end
     yt = transpose(y);
     Xt = transpose(X);
-    if isempty(optim)
-        optim = DEFAULT_OPTIM;
-    end
     [gamma, ~, ~, exitFlag] = lsqnonlin( ...
-        @hereObjectiveFunc ...
+        @here_objectiveFunc ...
         , zeros(1, rm.NumParameters) ...
         , -ones(1, rm.NumParameters) ...
         , ones(1, rm.NumParameters) ...
-        , optim ...
+        , optimOptions ...
     );
     
     return
-        function obj = hereObjectiveFunc(p)
+        function obj = here_objectiveFunc(p)
             rm = update(rm, p);
             F = filterMatrix(rm, numObservations);
             Fyt = F\yt;
@@ -605,7 +606,7 @@ function [gamma, exitFlag] = locallyEstimateResidualModel(y, X, fixed, rm, inxOb
 end%
 
 
-function [lhs, rhs, subBlock, inxBaseRange] = locallyBlackout(lhs, rhs, subBlock, maxLag, inxBaseRange, extdRange, before, after, journal)
+function [lhs, rhs, subBlock, inxBaseRange] = local_blackout(lhs, rhs, subBlock, maxLag, inxBaseRange, extdRange, before, after, journal)
     %(
     if isinf(before) && isinf(after)
         return
@@ -638,7 +639,7 @@ function [lhs, rhs, subBlock, inxBaseRange] = locallyBlackout(lhs, rhs, subBlock
 end%
 
 
-function locallyReportFailedEstimation(exitFlags, this, context, whenEstimationFailed)
+function local_reportFailedEstimation(exitFlags, this, context, whenEstimationFailed)
     %(
     if lower(whenEstimationFailed)=="error"
         func = @exception.error;

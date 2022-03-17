@@ -1,15 +1,15 @@
-% checkStructureBefore  Check model structure before loss function.
+% checkStructureBefore  Check model structure before loss function
 %
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 function [exc, args] = checkStructureBefore(this, quantity, equation, options)
 
-exc = [ ];
-args = { };
+exc = [];
+args = {};
 
-ixy = quantity.Type==(1);
-ixx = quantity.Type==(2);
+inxY = quantity.Type==(1);
+inxX = quantity.Type==(2);
 ixey = quantity.Type==(31);
 ixex = quantity.Type==(32);
 ixe = ixey | ixex;
@@ -21,14 +21,14 @@ ixt = equation.Type==(2);
 ixd = equation.Type==(3);
 
 % __No Transition Variable__
-if ~any(ixx)
-    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE', 'error');
+if ~any(inxX)
+    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE', opt.ThrowErrorAs);
     return
 end
 
 % __No Transition Equation__
 if ~any(ixt)
-    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_EQUATION', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_EQUATION', opt.ThrowErrorAs);
     return
 end
 
@@ -42,9 +42,9 @@ ind0 = across(this.Incidence.Dynamic, 'Zero'); % At zero shift.
 ins0 = across(this.Incidence.Steady, 'Zero');
 
 % __Lags/Leads of Measurement Variables__
-test = any(indxl(:, ixy), 2) | any(insxl(:, ixy), 2);
+test = any(indxl(:, inxY), 2) | any(insxl(:, inxY), 2);
 if any(test)
-    exc = exception.ParseTime('Model:Postparser:MEASUREMENT_SHIFT', 'error');
+    exc = exception.ParseTime('Model:Postparser:MEASUREMENT_SHIFT', opt.ThrowErrorAs);
     args = equation.Input(test);
     return
 end
@@ -52,7 +52,7 @@ end
 % __Lags/Leads of Shocks__
 test = any(indxl(:, ixe), 2) | any(insxl(:, ixe), 2);
 if any(test)
-    exc = exception.ParseTime('Model:Postparser:SHOCK_SHIFT', 'error');
+    exc = exception.ParseTime('Model:Postparser:SHOCK_SHIFT', opt.ThrowErrorAs);
     args = equation.Input(test);
     return
 end
@@ -61,28 +61,28 @@ end
 % subscripts.
 
 % __Measurement Variables in Transition Equations__
-test = any(indxs(ixt, ixy), 2) | any(insxs(ixt, ixy), 2);
+test = any(indxs(ixt, inxY), 2) | any(insxs(ixt, inxY), 2);
 if any(test)
     eqtn = equation.Input(ixt);
-    exc = exception.ParseTime('Model:Postparser:MEASUREMENT_VARIABLE_IN_TRANSITION', 'error');
+    exc = exception.ParseTime('Model:Postparser:MEASUREMENT_VARIABLE_IN_TRANSITION', opt.ThrowErrorAs);
     args = eqtn(test);
     return
 end
 
 % __No Leads of Transition Variables in Measurement Equations__
-test = any(indxe(ixm, ixx), 2) | any(insxe(ixm, ixx), 2);
+test = any(indxe(ixm, inxX), 2) | any(insxe(ixm, inxX), 2);
 if any(test)
     eqtn = equation.Input(ixm);
-    exc = exception.ParseTime('Model:Postparser:LEAD_OF_TRANSITION_IN_MEASUREMENT', 'error');
+    exc = exception.ParseTime('Model:Postparser:LEAD_OF_TRANSITION_IN_MEASUREMENT', opt.ThrowErrorAs);
     args = eqtn(test);
     return
 end
 
 % __No Current Date of Measurement Variable in Some Measurement Equation__
-test = ~any(ind0(ixm, ixy), 2) | ~any(ins0(ixm, ixy), 2);
+test = ~any(ind0(ixm, inxY), 2) | ~any(ins0(ixm, inxY), 2);
 if any(test)
     eqtn = equation.Input(ixm);
-    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_MEASUREMENT', 'error');
+    exc = exception.ParseTime('Model:Postparser:NO_CURRENT_MEASUREMENT', opt.ThrowErrorAs);
     args = eqtn(test);
     return
 end
@@ -92,7 +92,7 @@ if any(ixe)
     test = any(ind0(ixm, ixex), 2) | any(ins0(ixm, ixex), 2);
     if any(test)
         eqtn = equation.Input(ixm);
-        exc = exception.ParseTime('Model:Postparser:TRANSITION_SHOCK_IN_MEASUREMENT', 'error');
+        exc = exception.ParseTime('Model:Postparser:TRANSITION_SHOCK_IN_MEASUREMENT', opt.ThrowErrorAs);
         args = eqtn(test);
         return
     end
@@ -100,7 +100,7 @@ if any(ixe)
     test = any(ind0(ixt, ixey), 1) | any(ins0(ixt, ixey));
     if any(test)
         eqtn = equation.Input(ixt);
-        exc = exception.ParseTime('Model:Postparser:MEASUREMENT_SHOCK_IN_TRANSITION', 'error');
+        exc = exception.ParseTime('Model:Postparser:MEASUREMENT_SHOCK_IN_TRANSITION', opt.ThrowErrorAs);
         args = eqtn(test);
         return
     end
@@ -110,7 +110,7 @@ end
 test = any(indxs(ixd, ~ixp & ~ixg), 2) | any(insxs(ixd, ~ixp & ~ixg), 2);
 if any(test)
     eqtn = equation.Input(ixd);
-    exc = exception.ParseTime('Model:Postparser:OTHER_THAN_PARAMETER_EXOGENOUS_IN_DTREND', 'error');
+    exc = exception.ParseTime('Model:Postparser:OTHER_THAN_PARAMETER_EXOGENOUS_IN_DTREND', opt.ThrowErrorAs);
     args = eqtn(test);
     return
 end
@@ -121,7 +121,7 @@ if ~options.AllowExogenous
     test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
     if any(test)
         eqtn = equation.Input(~ixd);
-        exc = exception.ParseTime('Model:Postparser:ExogenousInOtherThanDtrend', 'error');
+        exc = exception.ParseTime('Model:Postparser:ExogenousInOtherThanDtrend', opt.ThrowErrorAs);
         args = eqtn(test);
         return
     end

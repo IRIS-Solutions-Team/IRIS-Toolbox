@@ -10,6 +10,7 @@ if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
     addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
     addParameter(pp, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, "ThrowErrorAs", "error", @(x) ismember(lower(x), ["error", "warning"]));
     addParameter(pp, 'Comment', '', @(x) ischar(x) || isstring(x) || iscellstr(x));
     addParameter(pp, {'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
     addParameter(pp, 'Growth', false, @(x) isequal(x, true) || isequal(x, false));

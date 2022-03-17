@@ -91,7 +91,7 @@ return
 
     function stringOutput = hereDetermineOutputType( )
         temp = [{glue}, varargin];
-        anyString = any(cellfun('isclass', temp, 'string'));
+        anyString = any(cellfun(@isstring, temp));
         anyChar = any(cellfun(@(x) ischar(x) || iscellstr(x), temp));
         stringOutput = anyString || ~anyChar;
     end%
