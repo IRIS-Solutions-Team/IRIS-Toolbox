@@ -69,7 +69,7 @@ s.NumG  = ng;
 
 s.NeedsSimulate = ~isequal(opt.Simulate, false);
 
-% Out-of-lik params cannot be used with ~opt.DTrends
+% Out-of-lik params cannot be used with ~opt.EvalTrends
 numOutlik = length(opt.OutOfLik);
 
 % Struct with currently processed information. Initialise the invariant
@@ -115,7 +115,7 @@ end
 
 % Pre-allocate the non-hdata output arguments
 nObj = 1;
-if opt.ObjFuncContributions
+if opt.ReturnObjFuncContribs
     nObj = numExtendedPeriods;
 end
 obj = nan(nObj, numRuns);
@@ -231,7 +231,7 @@ for run = 1 : numRuns
 
     % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
-    if nz==0 && (numOutlik>0 || opt.DTrends)
+    if nz==0 && (numOutlik>0 || opt.EvalTrends)
         [s.D, s.X] = evalTrendEquations(this, opt.OutOfLik, s.g, run);
     else
         s.D = [ ];
@@ -273,12 +273,12 @@ for run = 1 : numRuns
     else
         init__ = opt.Initials;
     end
-    if isnumeric(opt.InitUnitRoot)
-        initUnit__ = double(opt.InitUnitRoot(:, :, min(end, run)));
+    if isnumeric(opt.UnitRootInitials)
+        initUnit__ = double(opt.UnitRootInitials(:, :, min(end, run)));
     else
-        initUnit__ = opt.InitUnitRoot;
+        initUnit__ = opt.UnitRootInitials;
     end
-    s = shared.Kalman.initialize(s, init__, initUnit__);
+    s = iris.mixin.Kalman.initialize(s, init__, initUnit__);
 
     %
     % Prediction step
@@ -286,7 +286,7 @@ for run = 1 : numRuns
 
     % Run prediction error decomposition and evaluate user-requested
     % objective function.
-    [obj(:, run), s] = shared.Kalman.predictErrorDecomposition(s, opt);
+    [obj(:, run), s] = iris.mixin.Kalman.predictErrorDecomposition(s, opt);
     inxValidFactor(run) = abs(s.V)>this.VARIANCE_FACTOR_TOLERANCE;
 
     % Return immediately if only the value of the objective function is

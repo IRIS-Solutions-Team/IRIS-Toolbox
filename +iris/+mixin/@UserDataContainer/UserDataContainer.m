@@ -21,7 +21,7 @@ classdef UserDataContainer
             if isempty(varargin)
                 return
             end
-            if isa(varargin{1}, 'shared.UserDataContainer')
+            if isa(varargin{1}, 'iris.mixin.UserDataContainer')
                 this = varargin{1};
             else
                 this.UserData = varargin{1};

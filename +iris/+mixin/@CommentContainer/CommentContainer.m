@@ -10,7 +10,7 @@ classdef CommentContainer
             if isempty(varargin)
                 return
             end
-            if isa(varargin{1}, 'shared.CommentContainer')
+            if isa(varargin{1}, 'iris.mixin.CommentContainer')
                 this = varargin{1};
             else
                 this.Comment = string(varargin{1});

@@ -1,5 +1,5 @@
 function [this, isValidRequest, isValidValue] = implementSet(this, query, value, varargin)
-% implementGet  Implement set method for shared.UserDataContainer objects
+% implementGet  Implement set method for iris.mixin.UserDataContainer objects
 %
 % Backend IRIS function
 % No help provided

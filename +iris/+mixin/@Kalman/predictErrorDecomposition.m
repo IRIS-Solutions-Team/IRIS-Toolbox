@@ -29,7 +29,7 @@ ZP = zeros(0, numB);
 
 % Objective function or its contributions
 obj = NaN;
-if opt.ObjFuncContributions
+if opt.ReturnObjFuncContribs
     obj = nan(1, numExtdPeriods);
 end
 
@@ -247,7 +247,7 @@ for t = 2 : numExtdPeriods
     if opt.CheckFmse
         % Only evaluate the cond number if the test is requested by the user
         condNumber = rcond(Fj);
-        if condNumber<opt.FmseCondTol || isnan(condNumber)
+        if condNumber<opt.FmseCondTol || ~isfinite(condNumber)
             status = 'condNumberFailed';
             break
         end
@@ -305,7 +305,7 @@ for t = 2 : numExtdPeriods
 
         if isEst
             if opt.ObjFunc==1
-                MtFi = Mx'/Fx;
+                MtFi = Mx' / Fx;
             elseif opt.ObjFunc==2
                 W = opt.Weighting(xy, xy);
                 MtFi = Mx'*W;

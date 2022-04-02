@@ -1,4 +1,6 @@
-classdef Frequency < double
+classdef Frequency ...
+    < double
+
     enumeration
         INTEGER           (Frequency__.Integer)
         Integer           (Frequency__.Integer)
@@ -22,12 +24,13 @@ classdef Frequency < double
         Daily             (Frequency__.Daily)
 
         NaN               (Frequency__.NaN)
+        Inf               (Frequency__.Inf)
     end
 
 
     methods
         function this = Frequency(varargin)
-            this = this@double(varargin{:});
+            this = this@double(varargin{:})
         end%
 
 
@@ -472,7 +475,7 @@ classdef Frequency < double
                     this = Frequency.MONTHLY;
                 case {'QUARTERLY', 'QUARTER', 'QQ', 'Q'}
                     this = Frequency.QUARTERLY;
-                case {'HALFYEARLY', 'HALFYEAR', 'SEMIANNUAL', 'SEMIANNUALLY', 'HH', 'H'}
+                case {'HALFYEARLY', 'HALFYEAR', 'SEMIANNUAL', 'SEMIANNUALLY', 'HH', 'H', 'B', 'S'}
                     this = Frequency.HALFYEARLY;
                 case {'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY', 'Y', 'A'}
                     this = Frequency.YEARLY;
@@ -595,7 +598,7 @@ classdef Frequency < double
 
         function c = toIMFLetter(this)
             %(
-            switch this
+            switch double(this)
                 case Frequency__.Yearly
                     c = "A";
                 case Frequency__.Quarterly
@@ -611,6 +614,31 @@ classdef Frequency < double
             end
             %)
         end%
+
+
+        function c = toSdmxLetter(this)
+            %(
+            switch double(this)
+                case Frequency__.Yearly
+                    c = "A";
+                case Frequency__.HalfYearly
+                    c = "S";
+                case Frequency__.Quarterly
+                    c = "Q";
+                case Frequency__.Monthly
+                    c = "M";
+                case Frequency__.Weekly
+                    c = "W";
+                case Frequency__.Daily
+                    c = "D";
+                case Frequency__.Integer
+                    c = "I";
+                otherwise
+                    c = "?";
+            end
+            %)
+        end%
+
 
         function checkMixedFrequency(varargin)
             %(

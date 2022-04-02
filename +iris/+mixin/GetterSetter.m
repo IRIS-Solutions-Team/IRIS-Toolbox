@@ -117,8 +117,8 @@ classdef GetterSetter
 
         function this = struct2obj(this, s)
             % struct2obj  Copy structure fields to object properties
-            propList = shared.GetterSetter.getPropList(this);
-            structList = shared.GetterSetter.getPropList(s);
+            propList = iris.mixin.GetterSetter.getPropList(this);
+            structList = iris.mixin.GetterSetter.getPropList(s);
             for i = 1 : length(propList)
                 ix = strcmp(structList, propList{i});
                 if ~any(ix)

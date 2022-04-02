@@ -13,7 +13,7 @@
 % ## Input Arguments ##
 %
 % **`obj`** [ model | tseries | VAR | SVAR | FAVAR | sstate ] -
-% IRIS object subclassed from shared.CommentContainer.
+% IRIS object subclassed from iris.mixin.CommentContainer.
 %
 % **`newComment`** [ char | string ] -
 % New user comment that will be attached to the object.

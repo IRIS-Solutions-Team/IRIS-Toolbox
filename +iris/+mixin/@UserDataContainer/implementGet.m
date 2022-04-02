@@ -1,5 +1,5 @@
 function [answ, flag, query] = implementGet(this, query, varargin)
-% implementGet  Implement get method for shared.UserDataContainer objects
+% implementGet  Implement get method for iris.mixin.UserDataContainer objects
 %
 % Backend IRIS function
 % No help provided

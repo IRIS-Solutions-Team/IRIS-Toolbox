@@ -58,7 +58,7 @@ classdef DataProcessor
             [minSh, maxSh] = getActualMinMaxShifts(processor);
             baseRange = 0 : 1;
             extRange = baseRange(1) + minSh : baseRange(end) + maxSh;
-            inputData = shared.DataBlock( );
+            inputData = iris.mixin.DataBlock( );
             [inputData.YXEPG, ~, inputData.Names] = createTrendArray(this, @all, true, @all, extRange);
             inputData.ExtendedRange = extRange;
             inputData.BaseRangeColumns = [false(1, abs(minSh)), true(1, 2), false(1, maxSh)];

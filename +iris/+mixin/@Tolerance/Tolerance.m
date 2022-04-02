@@ -1,11 +1,11 @@
 classdef Tolerance
     properties
-        Solve = shared.Tolerance.DEFAULT_SOLVE
-        Steady = shared.Tolerance.DEFAULT_STEADY
-        Eigen = shared.Tolerance.DEFAULT_EIGEN
-        Sevn2Patch = shared.Tolerance.DEFAULT_SEVN2PATCH
-        Mse = shared.Tolerance.DEFAULT_MSE
-        DiffStep = shared.Tolerance.DEFAULT_DIFF_STEP
+        Solve = iris.mixin.Tolerance.DEFAULT_SOLVE
+        Steady = iris.mixin.Tolerance.DEFAULT_STEADY
+        Eigen = iris.mixin.Tolerance.DEFAULT_EIGEN
+        Sevn2Patch = iris.mixin.Tolerance.DEFAULT_SEVN2PATCH
+        Mse = iris.mixin.Tolerance.DEFAULT_MSE
+        DiffStep = iris.mixin.Tolerance.DEFAULT_DIFF_STEP
     end
 
 
@@ -25,7 +25,7 @@ classdef Tolerance
 
     methods
         function this = reset(this)
-            this = shared.Tolerance( );
+            this = iris.mixin.Tolerance( );
         end%
     end
 

@@ -78,7 +78,7 @@ function [d, figH, axH, objH, likH, estH, bH] ...
 
 % Parse required input arguments.
 pp = inputParser( );
-pp.addRequired('M', @(x) isa(x, 'shared.Estimation'));
+pp.addRequired('M', @(x) isa(x, 'iris.mixin.Estimation'));
 pp.addRequired('Pos', @(x) isa(x, 'poster'));
 pp.addRequired('Pct', @isnumeric);
 pp.parse(this, pos, pct);

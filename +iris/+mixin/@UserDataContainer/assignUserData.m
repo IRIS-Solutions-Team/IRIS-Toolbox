@@ -52,7 +52,7 @@ for i = 1 : 2 : numel(varargin)
     field = varargin{i};
 
     % Remove dots, equal signs, etc from the field name
-    field = shared.UserDataContainer.preprocessFieldName(field);
+    field = iris.mixin.UserDataContainer.preprocessFieldName(field);
 
     % Assign user data field
     this.UserData.(field) = varargin{i+1};

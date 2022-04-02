@@ -56,7 +56,7 @@ if nargin<2
     return
 end
 
-field = shared.UserDataContainer.preprocessFieldName(field);
+field = iris.mixin.UserDataContainer.preprocessFieldName(field);
 
 % Access user data field
 if isstruct(this.UserData) && isfield(this.UserData, field)

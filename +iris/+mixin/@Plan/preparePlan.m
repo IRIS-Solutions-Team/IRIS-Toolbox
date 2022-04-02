@@ -30,7 +30,7 @@ end%
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Vanilla Test
-    f = model.File;
+    f = ModelSource;
     f.FileName = "";
     f.Code = join([ 
         "!variables x, y, z !shocks ex, ey, ez "
