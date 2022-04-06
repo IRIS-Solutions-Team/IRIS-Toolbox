@@ -13,14 +13,14 @@ end
 %)
 % >=R2019b
 
-stringify = @(x) reshape(string(x), 1, []);
-allNames = stringify(this.Name);
-ttrendName = stringify(this.RESERVED_NAME_TTREND);
+
+allNames = textual.stringify(this.Name);
+ttrendName = textual.stringify(this.RESERVED_NAME_TTREND);
 posTtrend = find(allNames==ttrendName);
 inx = allNames==ttrendName;
 
 if isempty(this.OriginalNames)
-    this.OriginalNames = stringify(this.Name);
+    this.OriginalNames = textual.stringify(this.Name);
 end
 
 if method=="func"
@@ -29,8 +29,8 @@ else
     if method=="pair"
         [oldNames, newNames] = locallyListsFromPairs(this, varargin{:});
     else
-        oldNames = stringify(varargin{1});
-        newNames = stringify(varargin{2});
+        oldNames = textual.stringify(varargin{1});
+        newNames = textual.stringify(varargin{2});
     end
     oldNames = strip(oldNames);
     newNames = strip(newNames);
@@ -72,8 +72,7 @@ end%
 
 function this = locallyApplyFunc(this, func)
     %(
-    stringify = @(x) reshape(string(x), 1, []);
-    allNames = stringify(this.Name);
+    allNames = textual.stringify(this.Name);
     allNames(1:end-1) = func(allNames(1:end-1));
     if iscell(this.Name)
         this.Name = cellstr(allNames);

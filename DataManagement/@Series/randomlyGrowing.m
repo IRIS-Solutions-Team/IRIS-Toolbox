@@ -1,17 +1,17 @@
 
 % >=R2019b
 %(
-function this = randomlyGrowing(range, params, options)
+function this = randomlyGrowing(range, params, opt)
 
 arguments
     range {mustBeNonempty, validate.mustBeProperRange(range)}
     params (1, 2) double = [0, 1]
 
-    options.Initial = 0
-    options.Exponentiate = true
-    options.Dimensions = 1
-    options.Comment = ""
-    options.UserData = []
+    opt.Initial = 0
+    opt.Exponentiate = true
+    opt.Dimensions = 1
+    opt.Comment = ""
+    opt.UserData = []
 end
 %)
 % >=R2019b
@@ -21,31 +21,31 @@ end
 %{
 function this = randomlyGrowing(range, params, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addParameter(pp, 'Initial', 0);
-    addParameter(pp, 'Exponentiate', true);
-    addParameter(pp, 'Dimensions', 1);
-    addParameter(pp, 'Comment', "");
-    addParameter(pp, 'UserData', []);
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "Initial", 0);
+    addParameter(ip, "Exponentiate", true);
+    addParameter(ip, "Dimensions", 1);
+    addParameter(ip, "Comment", "");
+    addParameter(ip, "UserData", []);
 end
-parse(pp, varargin{:});
-options = pp.Results;
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
 
 numPeriods = dater.rangeLength(range);
-data = params(1) + randn([numPeriods, options.Dimensions]) * params(2);
-data(1, :) = options.Initial;
+data = params(1) + randn([numPeriods, opt.Dimensions]) * params(2);
+data(1, :) = opt.Initial;
 data = cumsum(data, 1);
-if options.Exponentiate
+if opt.Exponentiate
     data = exp(data);
 end
 
 range = double(range);
-this = Series(range(1), data, options.Comment, options.UserData);
+this = Series(range(1), data, opt.Comment, opt.UserData);
 
 end%
 

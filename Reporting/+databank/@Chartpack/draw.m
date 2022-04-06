@@ -1,14 +1,69 @@
-function info = draw(this, inputDb, varargin)
+
+%{
+---
+title: draw
+---
+
+# `draw`
+
+{== Render charts defined in Chartpack ==}
+
+
+## Syntax
+
+    info = draw(ch, inputDb)
+
+
+## Input arguments
+
+__`ch`__ [ Chartpack ]
+>
+> Chartpack object whose charts will be rendered on the screen.
+>
+
+
+__`inputDb`__ [ struct | Dictionary ]
+>
+> Input databank within which the expressions defining the charts will be
+> evaluated, and the results plotted.
+>
+
+## Output arguments
+
+__`info`__ [ struct ]
+>
+> Output information structure with the following fields:
+>
+> * `.FigureHandles` - handles to all figure objects created;
+>
+> * `.AxesHandles` - cell array of handles to all axes objects created,
+>   grouped by figures;
+>
+> * `.PlotHandles` - cell array of cell arrays of handles to all objects
+>   plotted within axes, grouped by figures and by axes;
+>
+> * `.TitleHandles` - cell array of handles to all title objects created,
+>   grouped by figures;
+>
+> * `.SubtitleHandles` - cell array of handles to all subtitle objects
+>   created, grouped by figures;
+>
+
+## Description
+
+
+## Examples
+
+%}
+
+
+function info = draw(this, inputDb)
 
 % >=R2019b
 %(
 arguments
     this (1, 1) databank.Chartpack
     inputDb (1, 1) {validate.mustBeDatabank}
-end
-
-arguments (Repeating)
-    varargin
 end
 %)
 % >=R2019b
@@ -61,9 +116,9 @@ for x = this.Charts
     plotHandles{end}{end+1} = plotHandles__;
 
     [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
-        = locallyCreateTitle(x, currentAxes);
+        = local_createTitle(x, currentAxes);
 
-    locallyDrawBackground(x);
+    local_drawBackground(x);
 
     runAxesExtras(x, currentAxes);
 
@@ -98,7 +153,7 @@ end%
 % Local Functions
 %
 
-function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes)
+function [titleHandle, subtitleHandle] = local_createTitle(x, currentAxes)
     %(
     PLACEHOLDER = gobjects(1);
     parent = x.ParentChartpack;
@@ -121,7 +176,7 @@ function [titleHandle, subtitleHandle] = locallyCreateTitle(x, currentAxes)
 end%
 
 
-function locallyDrawBackground(x)
+function local_drawBackground(x)
     %(
     parent = x.ParentChartpack;
     if ~isempty(parent.Highlight)
@@ -138,3 +193,4 @@ end%
 
 
 %#ok<*AGROW>
+

@@ -63,6 +63,7 @@ end%
 
 
 function dispND(start, data, comment, headers, pos, name, disp2dFunc, numDims, cfg)
+    MAX_WHITE_SPACES = 5;
     start = double(start);
     lastDimSize = size(data, numDims);
     numPeriods = size(data, 1);
@@ -92,11 +93,11 @@ function dispND(start, data, comment, headers, pos, name, disp2dFunc, numDims, c
                 disp(Series.createTable(start, data, comment, headers, true));
             catch
                 % Legacy method
-                toCharFunc = @(x) numericToChar(x, cfg.SeriesFormat);
+                toCharFunc = @num2str;
                 range = dater.plus(start, 0:numPeriods-1);
                 temp = feval(disp2dFunc, start, data, cfg.DispIndent, sep, toCharFunc);
                 % Reduce the number of white spaces between numbers to 5 at most
-                temp = reduceSpaces(temp, cfg.SeriesMaxWSpace);
+                temp = reduceSpaces(temp, MAX_WHITE_SPACES);
                 % Print the dates and data
                 disp(temp);
             end
@@ -105,8 +106,6 @@ function dispND(start, data, comment, headers, pos, name, disp2dFunc, numDims, c
         disp(["Dates", string(comment)]);
     end
 end%
-
-
 
 
 function x = disp2d(start, data, indent, sep, toCharFunc)
@@ -126,8 +125,6 @@ function x = disp2d(start, data, indent, sep, toCharFunc)
 end%
 
 
-
-
 function c = reduceSpaces(c, maxn)
     inx = all(c==' ', 1);
     s = char(32*ones(size(inx)));
@@ -135,19 +132,6 @@ function c = reduceSpaces(c, maxn)
     s = regexprep(s, sprintf('(?<=S{%g})S', maxn), 'X');
     c(:, s=='X') = '';
 end%
-
-
-
-
-function c = numericToChar(x, format)
-    if isempty(format)
-        c = num2str(x);
-    else
-        c = num2str(x, format);
-    end
-end%
-
-
 
 
 function x = disp2dDaily(start, data, indent, sep, toCharFunc)

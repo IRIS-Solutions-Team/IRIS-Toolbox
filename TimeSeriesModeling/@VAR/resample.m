@@ -68,7 +68,18 @@ pp.addRequired('Range', @isnumeric);
 pp.addRequired('NDraw', @(x) isintscalar(x) && x >= 0);
 pp.parse(this, inp, range, numDraws);
 
-% Parse options.
+
+defaults = {
+    'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
+    'Deviation, Deviations', false, @islogicalscalar   
+    'method', 'montecarlo', @(x) isfunc(x) ...
+    || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'})))
+    'progress', false, @islogicalscalar
+    'randomise, randomize', false, @islogicalscalar
+    'wild', false, @islogicalscalar
+};
+
+
 opt = passvalopt('VAR.resample', varargin{:});
 
 if ischar(opt.method)

@@ -150,8 +150,8 @@ if isempty(pp)
     addParameter(pp, 'targetar', 0.234, @(x) validate.numericScalar(x, 0+eps, 0.5));
 	addParameter(pp, {'nstep', 'nsteps'}, 1, @(x) validate.roundScalar(x, 1, Inf));
 end
-parse(pp, this, numDraws, varargin{:});
-opt = pp.Options;
+opt = parse(pp, this, numDraws, varargin{:});
+
 
 %--------------------------------------------------------------------------
 

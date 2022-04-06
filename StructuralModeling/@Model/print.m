@@ -1,17 +1,17 @@
 
 % >=R2019b
 %(
-function code = print(modelObject, modelFile, options)
+function code = print(modelObject, modelFile, opt)
 
 arguments
     modelObject (1, 1) Model
     modelFile (1, :) string
 
-    options.SaveAs (1, 1) string = ""
-    options.Parameters (1, 1) logical = true
-    options.Steady (1, 1) logical = true
-    options.MarkdownCode (1, 1) = false
-    options.Braces (1, 2) string = ["<", ">"]
+    opt.SaveAs (1, 1) string = ""
+    opt.Parameters (1, 1) logical = true
+    opt.Steady (1, 1) logical = true
+    opt.Markdown (1, 1) logical = false
+    opt.Braces (1, 2) string = ["<", ">"]
 end
 %)
 % >=R2019b
@@ -21,17 +21,16 @@ end
 %{
 function code = print(modelObject, modelFile, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addParameter(pp, 'SaveAs', "");
-    addParameter(pp, 'Parameters', true);
-    addParameter(pp, 'Steady' , true);
-    addParameter(pp, 'MarkdownCode', false);
-    addParameter(pp, 'Braces', ["<", ">"]);
+persistent ip
+if isempty(ip)
+ip = inputParser();
+    addParameter(ip, 'SaveAs', "");
+    addParameter(ip, 'Parameters', true);
+    addParameter(ip, 'Steady' , true);
+    addParameter(ip, 'Markdown', false);
+    addParameter(ip, 'Braces', ["<", ">"]);
 end
-parse(pp, varargin{:});
-options = pp.Results;
+opt = parse(ip, varargin{:});
 %}
 % <=R2019a
 
@@ -57,10 +56,10 @@ names = string(modelObject.Quantity.Name);
 values = modelObject.Variant.Values;
 
 selectTypes = [];
-if options.Parameters
+if opt.Parameters
     selectTypes = [selectTypes, 4];
 end
-if options.Steady
+if opt.Steady
     selectTypes = [selectTypes, 1, 2];
 end
 inxSelect = ismember(types, selectTypes);
@@ -76,20 +75,16 @@ for i = find(inxSelect)
     else
         valueString = compose("%g", real(value)) + compose("%+gi", imag(value));
     end
-    valueString = options.Braces(1) + join(valueString, ", ") + options.Braces(2);
+    valueString = opt.Braces(1) + join(valueString, ", ") + opt.Braces(2);
     code = regexprep(code, "\<" + name + "\>(\{[^\}]*\})?", name + "$1" + valueString);
 end
 
-if ~isequal(options.MarkdownCode, false)
-    type = "";
-    if ischar(options.MarkdownCode) || isstring(options.MarkdownCode)
-        type = string(options.MarkdownCode);
-    end
-    code = "```" + type + newline + code + newline + "```" + newline;
+if ~isequal(opt.Markdown, false)
+    code = join(["```iris",  string(code), "```"], newline());
 end
 
-if ~isempty(options.SaveAs) && strlength(options.SaveAs)>0
-    textual.write(code, options.SaveAs);
+if ~isempty(opt.SaveAs) && strlength(opt.SaveAs)>0
+    textual.write(code, opt.SaveAs);
 end
 
 end%

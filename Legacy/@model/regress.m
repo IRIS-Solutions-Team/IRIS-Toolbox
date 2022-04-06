@@ -57,7 +57,12 @@ function [B,CovRes,R2] = regress(This,Lhs,Rhs,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-opt = passvalopt('model.regress',varargin{:});
+defaults = {
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
+    'acf', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
+};
+    
+opt = passvalopt(defaults, varargin{:});
 
 if ischar(Lhs)
     Lhs = regexp(Lhs,'[\w\(\)\{\}\d+\-]+','match');

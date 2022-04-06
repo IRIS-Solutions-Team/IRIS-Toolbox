@@ -147,7 +147,27 @@ if ~isempty(varargin)
     end
 end
 
-opt = passvalopt('grfun.plotpp', varargin{:});
+
+defaults = { 
+    'Axes', { }, @iscell
+    'Caption', [ ], @(x) isempty(x) || iscellstr(x)
+    'Describe, DescribePrior', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false)
+    'KsDensity', [ ], @(x) isempty(x) || isintscalar(x)
+    'Figure', { }, @iscell
+    'PlotInit', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotMode', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotPrior', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotPoster', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'PlotBounds', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto) || iscell(x)
+    'Sigma', 3, @(x) isnumeric(x) && isscalar(x) && x>0
+    'Subplot', @auto, validFn.subplot
+    'Tight', true, @(x) isequal(x, true) || isequal(x, false)
+    'Title', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
+    'XLim, XLims', [ ], @(x) isempty(x) || isstruct( )
+};
+
+opt = passvalopt(defaults, varargin{:});
+
 
 if isequal(opt.Describe, @auto)
     opt.Describe = ~isequal(opt.PlotPrior, false);

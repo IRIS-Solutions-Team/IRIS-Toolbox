@@ -22,7 +22,7 @@ s.IsDeviation = opt.Deviation;
 s.IsAddSstate = opt.AddSteady;
 s.IsContributions = opt.Contributions;
 s.IsAnticipate = opt.Anticipate;
-s.IsDeterministicTrends = opt.DTrends;
+s.IsDeterministicTrends = opt.EvalTrends;
 if isequal(s.IsDeterministicTrends, @auto)
     s.IsDeterministicTrends = ~s.IsDeviation;
 end

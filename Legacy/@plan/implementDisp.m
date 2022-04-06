@@ -32,8 +32,8 @@ fprintf('%sExogenized Data Points: [%g]\n', CONFIG.DispIndent, nx);
 fprintf('%sEndogenized Data Points [real imag]: [%g %g]\n', CONFIG.DispIndent, nnReal, nnImag);
 fprintf('%sConditioning Data Points: [%g]\n', CONFIG.DispIndent, nc);
 
-implementDisp@shared.CommentContainer(this);
-implementDisp@shared.UserDataContainer(this);
+implementDisp@iris.mixin.CommentContainer(this);
+implementDisp@iris.mixin.UserDataContainer(this);
 
 end%
 

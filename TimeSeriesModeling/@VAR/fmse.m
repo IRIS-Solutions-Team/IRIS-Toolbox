@@ -44,7 +44,13 @@ function [X, D, D1] = fmse(this, time, varargin)
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-opt = passvalopt('VAR.fmse', varargin{:});
+
+defaults = {
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
+};
+
+opt = passvalopt(defaults, varargin{:});
+
 
 % Tell whether time is nper or range.
 if length(time) == 1 && round(time) == time && time > 0

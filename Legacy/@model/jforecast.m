@@ -114,10 +114,14 @@ if isempty(pp)
     pp.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || validate.databank(x));
     pp.addParameter('Multiply', [ ], @(x) isempty(x) || validate.databank(x));
 
-    pp.addDeviationOptions(false);
+    pp.addParameter('Deviation', false, @validate.logicaScalar);
+    pp.addParameter('EvalTrends', logical.empty(1, 0));
 end
-pp.parse(this, inp, range, varargin{:});
-opt = pp.Options;
+opt = pp.parse(this, inp, range, varargin{:});
+
+if isempty(opt.EvalTrends)
+    opt.EvalTrends = ~opt.Deviation;
+end
 
 range = double(range);
 range = range(1) : range(end);
@@ -284,7 +288,7 @@ for iLoop = 1 : numOfRuns
     
     % Get exogenous data and compute deterministic trends if requested.
     g = G(:, :, min(iLoop, end));
-    if opt.DTrends
+    if opt.EvalTrends
         W = evalTrendEquations(this, [ ], g, iLoop);
     end
     
@@ -332,7 +336,7 @@ for iLoop = 1 : numOfRuns
     if isSwap
         % Tunes on measurement variables.
         y = inpY(:, 1:last, min(end, iLoop));
-        if opt.DTrends
+        if opt.EvalTrends
             y = y - W(:, 1:last);
         end
         % Tunes on transition variables.
@@ -391,7 +395,7 @@ for iLoop = 1 : numOfRuns
         if isCond
             Yd = Y(:, :, min(end, iLoop));
             Yd(~yAnchC) = NaN;
-            if opt.DTrends
+            if opt.EvalTrends
                 Yd = Yd - W(:, 1:last);
             end
             Xd = X(:, :, min(end, iLoop));
@@ -437,7 +441,7 @@ for iLoop = 1 : numOfRuns
     Pxb = [ ];
     
     % Add measurement detereministic trends.
-    if opt.DTrends
+    if opt.EvalTrends
         y = y + W;
     end
     

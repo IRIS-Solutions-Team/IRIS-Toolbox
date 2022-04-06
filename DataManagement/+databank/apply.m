@@ -12,57 +12,25 @@ arguments
     func (1, 1) {locallyValidateInputDbOrFunc}
 
     opt.StartsWith (1, 1) string = ""
-    opt.HasPrefix (1, 1) string = ""
-
+        opt.HasPrefix__StartsWith = []
     opt.EndsWith (1, 1) string = ""
-    opt.HasSuffix (1, 1) string = ""
-
-    opt.AddToStart (1, 1) string = ""
-    opt.AddPrefix (1, 1) string = ""
-
-    opt.AddToEnd (1, 1) string = ""
-    opt.AddSuffix (1, 1) string = ""
-
+        opt.HasSuffix__EndsWith = []
+    opt.Prepend (1, 1) string = ""
+        opt.AddToStart__Prepend = []
+        opt.AddPrefix__Prepend = []
+    opt.Append (1, 1) string = ""
+        opt.AddToEnd__Append = []
+        opt.AddSuffix__Append = []
     opt.RemoveStart (1, 1) logical = false
-    opt.RemovePrefix (1, 1) logical = false
-
+        opt.RemovePrefix__RemoveStart = []
     opt.RemoveEnd (1, 1) logical = false
-    opt.RemoveSuffix (1, 1) logical = false
-
+        opt.RemoveSuffix__RemoveEnd = []
     opt.RemoveSource (1, 1) logical = false
     opt.SourceNames {locallyValidateNames} = @all
     opt.TargetNames {locallyValidateNames} = @default
-    opt.AddToDatabank {locallyValidateDb} = @default
     opt.TargetDb {locallyValidateDb} = @default
+        opt.AddToDatabank__TargetDb = []
     opt.WhenError (1, 1) string {mustBeMember(opt.WhenError, ["keep", "remove", "error"])} = "keep"
-end
-
-if strlength(opt.HasPrefix)>0
-    opt.StartsWith = opt.HasPrefix;
-end
-
-if strlength(opt.HasSuffix)>0
-    opt.EndsWith = opt.HasSuffix;
-end
-
-if strlength(opt.AddPrefix)>0
-    opt.AddToStart = opt.AddPrefix;
-end
-
-if strlength(opt.AddSuffix)>0
-    opt.AddToEnd = opt.AddSuffix;
-end
-
-if opt.RemovePrefix
-    opt.RemoveStart = opt.RemovePrefix;
-end
-
-if opt.RemoveSuffix
-    opt.RemoveEnd = opt.RemoveSuffix;
-end
-
-if ~isequal(opt.TargetDb, @default)
-    opt.AddToDatabank = opt.TargetDb;
 end
 %)
 % >=R2019b
@@ -72,27 +40,37 @@ end
 %{
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('databank.apply');
-    pp.addRequired('inputDb', @locallyValidateInputDbOrFunc);
-    pp.addRequired('func', @locallyValidateInputDbOrFunc);
-
-    pp.addParameter({'StartsWith', 'HasPrefix'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'EndsWith', 'HasSuffix'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'AddToStart', 'AddPrefix', 'Prepend'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'AddToEnd', 'AddSuffix', 'Append'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    pp.addParameter({'RemoveStart', 'RemovePrefix'}, false, @validate.logicalScalar);
-    pp.addParameter({'RemoveEnd', 'RemoveSuffix'}, false, @validate.logicalScalar);
-    pp.addParameter('RemoveSource', false, @validate.logicalScalar);
-    pp.addParameter({'SourceNames', 'Names', 'Fields', 'InputNames'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
-    pp.addParameter({'TargetNames', 'OutputNames'}, @default, @(x) isequal(x, @default) || validate.list(x));
-    pp.addParameter({'AddToDatabank', 'TargetDb'}, @default, @(x) isequal(x, @default) || validate.databank(x));
-    pp.addParameter('WhenError', "keep", @(x) (isstring(x) || ischar(x)) && ismember(string(x), ["keep", "remove", "error"]));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "StartsWith", "");
+        addParameter(ip, "HasPrefix__StartsWith", []);
+    addParameter(ip, "EndsWith", "");
+        addParameter(ip, "HasSuffix__EndsWith", []);
+    addParameter(ip, "Prepend", "");
+        addParameter(ip, "AddToStart__Prepend", []);
+        addParameter(ip, "AddPrefix__Prepend", []);
+    addParameter(ip, "Append", "");
+        addParameter(ip, "AddToEnd__Append", []);
+        addParameter(ip, "AddSuffix__Append", []);
+    addParameter(ip, "RemoveStart", false);
+        addParameter(ip, "RemovePrefix__RemoveStart", []);
+    addParameter(ip, "RemoveEnd", false);
+        addParameter(ip, "RemoveSuffix__RemoveEnd", []);
+    addParameter(ip, "RemoveSource", false);
+    addParameter(ip, "SourceNames", @all);
+    addParameter(ip, "TargetNames", @default);
+    addParameter(ip, "TargetDb", @default);
+        addParameter(ip, "AddToDatabank__TargetDb", []);
+    addParameter(ip, "WhenError", "keep");
 end
-opt = pp.parse(inputDb, func, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
+
+
+opt = iris.utils.resolveAlias(opt, [], true);
 
 
 if validate.databank(func)

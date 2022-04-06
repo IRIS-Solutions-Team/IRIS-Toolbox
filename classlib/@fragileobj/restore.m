@@ -8,7 +8,15 @@ function C = restore(C,This,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-opt = passvalopt('fragileobj.restore',varargin{:});
+
+%(
+defaults = { ...
+    'delimiter,delimiters',true,@islogicalscalar, ...
+};
+%)
+
+
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

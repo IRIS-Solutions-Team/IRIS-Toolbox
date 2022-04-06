@@ -23,7 +23,7 @@ if isempty(pp)
     addRequired(pp, 'InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     addRequired(pp, 'NewFreq', @Frequency.validateProperFrequency);
 
-    addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || startsWith(x, "first", "ignoreCase", true) || startsWith(x, "last", "ignoreCase", true));
+    addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @iris.Configuration.validateConversionMonth);
     addParameter(pp, {'RemoveMissing', 'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, "RemoveWeekends", false, @validate.logicalScalar);
     addParameter(pp, 'Missing', @default, @(x) isequal(x, @default) || validate.anyString(x, ["previous", "next"]) || validate.numericScalar(x));

@@ -47,7 +47,11 @@ else
     freq = [ ];
 end
 
-opt = passvalopt('freqdom.xsf2phase',varargin{:});
+defaults = {
+    'unwrap',false,@islogicalscalar
+};
+
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

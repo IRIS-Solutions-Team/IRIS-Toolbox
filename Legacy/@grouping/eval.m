@@ -52,12 +52,11 @@ function [s, lg] = eval(this, s, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-pp = inputParser( );
-pp.addRequired('S', @isstruct);
-pp.addRequired('G', @(x) isa(x, 'grouping'));
-pp.parse(s, this);
+defaults = {
+    'append', true, @islogicalscalar
+};
 
-opt = passvalopt('grouping.eval', varargin{:});
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

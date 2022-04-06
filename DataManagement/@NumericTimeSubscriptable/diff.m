@@ -42,20 +42,24 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function this = diff(this, varargin)
+function this = diff(this, shift, varargin)
 
 if isempty(this.Data)
     return
 end
 
-if ~isempty(varargin) && isnumeric(varargin{1}) && numel(varargin{1})>1
-    for shift = reshape(varargin{1}, 1, [ ]);
-        this = diff(this, shift, varargin{2:end});
+try, shift;
+    catch, shift = -1;
+end
+
+if isnumeric(shift) && numel(shift)>1
+    for s = reshape(shift, 1, []);
+        this = diff(this, s, varargin{2:end});
     end
     return
 end
 
-[shift, power] = dater.resolveShift(getRangeAsNumeric(this), varargin{:});
+[shift, power] = dater.resolveShift(getRangeAsNumeric(this), shift, varargin{:});
 
 if isempty(this.Data)
     return

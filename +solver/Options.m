@@ -71,8 +71,8 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_FUNCTION_NORM = 2
         DEFAULT_MAX_ITERATIONS = 5000
         DEFAULT_MAX_FUNCTION_EVALUATIONS = @(inp) 200*inp.NumUnknowns
-        DEFAULT_FUNCTION_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
-        DEFAULT_STEP_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
+        DEFAULT_FUNCTION_TOLERANCE = iris.mixin.Tolerance.DEFAULT_STEADY
+        DEFAULT_STEP_TOLERANCE = iris.mixin.Tolerance.DEFAULT_STEADY
         DEFAULT_TRIM_OBJECTIVE_FUNCTION = false
 
         % Hybrid step lambda
@@ -161,12 +161,11 @@ classdef (CaseInsensitiveProperties=true) Options
             end
 
             optionsParser = getParser(this);
-            parse(optionsParser, varargin{:});
-            opt = optionsParser.Options;
+            opt = parse(optionsParser, varargin{:});
 
             list = fieldnames(opt);
-            for i = 1 : numel(list)
-                this.( list{i} ) = opt.( list{i} );
+            for n = textual.stringify(list)
+                this.(n) = opt.(n);
             end
 
             this.Display = resolveDisplayMode(this.Display, pp.Results.DisplayMode);
@@ -285,8 +284,8 @@ function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
         addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
         addParameter(pp, 'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
         addParameter(pp, 'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'})));
-        addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
-        addParameter(pp, {'StepTolerance', 'TolX'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
+        addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, iris.mixin.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
+        addParameter(pp, {'StepTolerance', 'TolX'}, iris.mixin.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
     end
 
     if iscell(solverOpt)

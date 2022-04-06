@@ -68,8 +68,7 @@ if isempty(pp)
     addParameter(pp, 'Omega', [ ], @isnumeric);
     addParameter(pp, 'Output', 'smooth', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
 end
-parse(pp, this, inputDatabank, range, varargin{:});
-opt = pp.Options;
+opt = parse(pp, this, inputDatabank, range, varargin{:});
 
 [isPred, isFilter, isSmooth] = hereProcessOptionOutput( );
 
@@ -141,7 +140,7 @@ for i = 1 : numRuns
         Omega__(~inx) = double(opt.Cross)*Omega__(~inx);
     end
 
-    % Use the `allobserved` option in `@shared.Kalman/smootherForVAR` only if the cov matrix is
+    % Use the `allobserved` option in `@iris.mixin.Kalman/smootherForVAR` only if the cov matrix is
     % full rank. Otherwise, there is singularity.
     s.allObs = rank(Omega__)==ny;
     
@@ -165,7 +164,7 @@ for i = 1 : numRuns
     
     % Run Kalman filter and smoother
     [~, ~, E2__, ~, Y2__, iPy2, ~, Y0__, Py0__, Y1__, iPy1] ...
-        = shared.Kalman.smootherForVAR(this, A__, B__, KJ__, Z, [ ], Omega__, [ ], Y__, [ ], yInit__, 0, s);
+        = iris.mixin.Kalman.smootherForVAR(this, A__, B__, KJ__, Z, [ ], Omega__, [ ], Y__, [ ], yInit__, 0, s);
     
     % Add pre-sample periods and assign hdata
     hereAssignOutput( );

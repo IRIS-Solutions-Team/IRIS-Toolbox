@@ -56,6 +56,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
+
 % >=R2019b
 %(
 function this = filter(this, armani, range, opt)
@@ -75,20 +76,13 @@ end
 %{
 function this = filter(this, armani, range, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(pp, 'model', @(x) isa(x, 'Armani'));
-    addRequired(pp, 'range', @validate.range);
-
-    addParameter(pp, 'FillMissing', 0);
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "FillMissing", 0);
 end
-
-[skipped, opt] = maybeSkip(pp, varargin{:});
-if ~skipped
-    opt = parse(pp, this, armani, range, varargin{:});
-end
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
@@ -96,19 +90,19 @@ end
 [data, startDate] = getDataFromTo(this, range);
 
 if ~isempty(opt.FillMissing)
-    data = locallyFillMissing(data, opt.FillMissing);
+    data = local_fillMissing(data, opt.FillMissing);
 end
 
 data = filter(armani, data);
-this = fill(this, data, startDate);;
+this = fill(this, data, startDate);
 
 end%
 
 %
-% Local Functions
+% Local functions
 %
 
-function data = locallyFillMissing(data, option)
+function data = local_fillMissing(data, option)
     %(
     if validate.numericScalar(option)
         data = fillmissing(data, "constant", option);

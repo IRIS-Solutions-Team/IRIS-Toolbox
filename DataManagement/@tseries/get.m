@@ -50,7 +50,7 @@ function varargout = get(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-[varargout{1:nargout}] = get@shared.GetterSetter(this, varargin{:});
+[varargout{1:nargout}] = get@iris.mixin.GetterSetter(this, varargin{:});
 
 end%
 

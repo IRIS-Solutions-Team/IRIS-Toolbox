@@ -42,7 +42,15 @@
 
 function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
 
-opt = passvalopt('model.chkmissing',varargin{:});
+
+%(
+defaults = { 
+    'error', true, @(x) isequal(x, true) || isequal(x, false)
+};
+%)
+
+
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

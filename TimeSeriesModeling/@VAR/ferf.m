@@ -45,7 +45,14 @@ function varargout = ferf(This,Time,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-opt = passvalopt('VAR.response',varargin{:});
+
+defaults = {
+    'presample', false, @islogicalscalar
+    'select', Inf, @(x) isequal(x, Inf) || islogical(x) || isnumeric(x) || ischar(x) || iscellstr(x)
+};
+
+opt = passvalopt(defaults, varargin{:});
+
 
 %--------------------------------------------------------------------------
 

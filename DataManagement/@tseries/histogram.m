@@ -47,11 +47,6 @@ function varargout = histogram(varargin)
 % * `DateFormat='YYYYFP'` [ char | cellstr | string ] - Date format string,
 % or array of format strings (possibly different for each date).
 %
-% * `FreqLetters='YHQMW` [ char | string ] - Five letters used to represent
-% the six possible frequencies of IRIS dates, in this order: yearly,
-% half-yearly, quarterly, monthly,  and weekly (such as the `'Q'` in
-% `'2010Q1'`).
-%
 % * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
 % strings representing the names of the twelve months.
 %

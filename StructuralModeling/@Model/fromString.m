@@ -5,31 +5,10 @@
 
 % >=R2019b
 %(
-function varargout = fromString(inputStrings, args)
-
-arguments
-    inputStrings (1, :) string {mustBeNonempty}
-end
-
-arguments (Repeating)
-    args
-end
-%)
-% >=R2019b
-
-
-% <=R2019a
-%{
 function varargout = fromString(inputStrings, varargin)
 
-args = varargin;
-%}
-% <=R2019a
-
-inputModelFile = model.File();
-inputModelFile.FileName = Model.FILE_NAME_WHEN_INPUT_STRING;
-inputModelFile.Code = char(join(inputStrings, sprintf("\n\n")));
-[varargout{1:nargout}] = Model(inputModelFile, args{:});
+source = ModelSource.fromString(inputString, varargin{:});
+[varargout{1:nargout}] = Model(source, varargin{:});
 
 end%
 

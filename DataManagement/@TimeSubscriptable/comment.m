@@ -86,6 +86,7 @@ function varargout = comment(this, newComment)
 %(
 arguments
     this TimeSubscriptable
+
     newComment {locallyValidateNewComment} = @get
 end
 %)
@@ -94,9 +95,15 @@ end
 
 % <=R2019a
 %{
-if nargin<2
-    newComment = @get;
+function varargout = comment(this, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addOptional(ip, "newComment", @get);
 end
+parse(ip, varargin{:});
+newComment = ip.Results.newComment;
 %}
 % <=R2019a
 

@@ -53,8 +53,14 @@ pp = inputParser( );
 pp.addRequired('Freq',@isnumeric);
 pp.parse(freq);
 
-% Parse options.
-opt = passvalopt('model.ifrf',varargin{:});
+
+defaults = {
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
+    'select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x)
+};
+
+opt = passvalopt(defaults, varargin{:});
+
 
 isSelect = ~isequal(opt.select,@all);
 isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');

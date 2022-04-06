@@ -9,16 +9,6 @@ end
 %)
 % >=R2019b
 
-% <=R2019a
-%{
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addRequired(pp, 'newComment', @(x) ischar(x) || (iscellstr(x) && isscalar(x)) || (isstring(x) || isscalar(x)));
-end
-parse(pp, newComment);
-%}
-% <=R2019a
 
 newComment = string(newComment);
 if isempty(newComment) || all(strlength(newComment)==0)

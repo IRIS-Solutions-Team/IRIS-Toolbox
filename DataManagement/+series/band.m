@@ -1,4 +1,4 @@
-function outputHandles = band(axesHandle, midLineHandle, midData, xCoor, lowerData, upperData, options)
+function outputHandles = band(axesHandle, midLineHandle, midData, xCoor, lowerData, upperData, opt)
 
 BACKGROUND_LEVEL = -1;
 
@@ -9,7 +9,7 @@ numMidLines = size(midData, 2);
 numLowerLines = size(lowerData, 2);
 numUpperLines = size(upperData, 2);
 numBands = max([numMidLines, numLowerLines, numUpperLines]);
-numWhites = numel(options.White);
+numWhites = numel(opt.White);
 
 nextPlot = get(axesHandle, 'nextPlot');
 
@@ -23,7 +23,7 @@ end
 
 for i = 1 : numBands
     if i<=numWhites
-        white = options.White(i);
+        white = opt.White(i);
     elseif i>numMidLines
         white = white.^2;
     end
@@ -31,7 +31,7 @@ for i = 1 : numBands
     % Retrieve current set of data
     midData__ = midData(:, min(i, end));
     lowerData__ = lowerData(:, min(i, end));
-    if options.Relative && all(lowerData__(:)>=0)
+    if opt.Relative && all(lowerData__(:)>=0)
         lowerData__ = -lowerData__;
     end
     upperData__ = upperData(:, min(i, end));
@@ -39,7 +39,7 @@ for i = 1 : numBands
     % Create x- and y-data for the patch function
     xData = [ xCoor; flipud(xCoor) ];
     yData = [ lowerData__; flipud(upperData__) ];
-    if options.Relative
+    if opt.Relative
         yData = yData + [midData__; flipud(midData__)];
     end
 
@@ -53,7 +53,7 @@ for i = 1 : numBands
 
     % Draw patch object, mix its face color.
     set(axesHandle, 'nextPlot', 'add');
-    p = patch(xData, yData, 'white');
+    p = patch(axesHandle, xData, yData, 'white');
     set(axesHandle, 'nextPlot', nextPlot);
 
     faceCol = col{min(i, end)}; % white*[1, 1, 1] + (1-white)*col{min(i, end)};
@@ -81,7 +81,7 @@ end
 visual.backend.moveToBackground(outputHandles);
 
 
-if options.ExcludeFromLegend
+if opt.ExcludeFromLegend
     visual.excludeFromLegend(outputHandles);
 end
 

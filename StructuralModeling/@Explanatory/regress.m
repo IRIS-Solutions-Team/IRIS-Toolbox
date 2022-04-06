@@ -21,7 +21,6 @@ arguments
     opt.ResidualsOnly (1, 1) logical = false
     opt.Regularize (1, 1) double = 0
     opt.WhenEstimationFails (1, 1) string {mustBeMember(opt.WhenEstimationFails, ["error", "warning", "silent"])} = "error"
-
     opt.Progress (1, 1) logical = false
     opt.Journal = false
 end
@@ -33,28 +32,23 @@ end
 %{
 function [this, outputDb, info] = regress(this, inputDb, fittedRange, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('Explanatory.regress');
-
-    addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
-    addRequired(pp, 'inputDb', @validate.databank);
-    addRequired(pp, 'fittedRange', @validate.range);
-
-    addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, []) || validate.databank(x));
-    addParameter(pp, "BlackoutBefore", -Inf, @Explanatory.validateBlackout);
-    addParameter(pp, "BlackoutAfter", Inf, @Explanatory.validateBlackout);
-    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
-    addParameter(pp, "MissingObservations", @auto, @(x) isequal(x, @auto) || validate.anyString(x, ["Error", "Warning", "Silent"]));
-    addParameter(pp, "Optim", [], @(x) isempty(x) || isa(x, 'optim.options.Lsqnonlin'));
-    addParameter(pp, "Regularize", 0, @validate.numericScalar);
-    addParameter(pp, 'ResidualsOnly', false, @validate.logicalScalar);
-    addParameter(pp, "WhenEstimationFails", "error", @(x) mustBeMember(x, ["error", "warning", "silent"]));
-
-    addParameter(pp, "Progress", false, @validate.logicalScalar);
-    addParameter(pp, "Journal", false);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "AddToDatabank", @auto);
+    addParameter(ip, "BlackoutBefore", -Inf);
+    addParameter(ip, "BlackoutAfter", Inf);
+    addParameter(ip, "OutputType", "struct");
+    addParameter(ip, "MissingObservations", @auto);
+    addParameter(ip, "Optim", []);
+    addParameter(ip, "ResidualsOnly", false);
+    addParameter(ip, "Regularize", 0);
+    addParameter(ip, "WhenEstimationFails", "error");
+    addParameter(ip, "Progress", false);
+    addParameter(ip, "Journal", false);
 end
-opt = parse(pp, this, inputDb, fittedRange, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

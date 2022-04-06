@@ -23,7 +23,12 @@ text = varargin{1};
 varargin(1) = [ ];
 
 
-[opt,varargin] = passvalopt('grfun.title',varargin{:});
+defaults = { 
+    'interpreter', 'latex', @(x) ischar(x) && any(strcmpi(x, {'latex', 'tex', 'none'}))
+};
+
+[opt,varargin] = passvalopt(defaults, varargin{:});
+
 
 %--------------------------------------------------------------------------
 

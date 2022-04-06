@@ -1,17 +1,17 @@
-% iris.reset  Reset IrisT configuration options to their default values
+% iris.reset  Reset IrisT configuration opt to their default values
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
 %(
-function irisConfig = reset(options)
+function irisConfig = reset(opt)
 
 arguments
-    options.Silent = false
-    options.SeriesConstructor = @Series
-    options.CheckId (1, 1) logical = true
-    options.TeX (1, 1) logical = false
+    opt.Silent = false
+    opt.SeriesConstructor = @Series
+    opt.CheckId (1, 1) logical = true
+    opt.TeX (1, 1) logical = false
 end
 %)
 % >=R2019b
@@ -21,28 +21,27 @@ end
 %{
 function irisConfig = reset(varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser("iris.reset");
-    addParameter(inputParser, "Silent", false, @validate.logicalScalar);
-    addParameter(inputParser, "SeriesConstructor", @Series, @(x) isa(x, 'function_handle'));
-    addParameter(inputParser, "CheckId", true, @validate.logicalScalar);
-    addParameter(inputParser, "TeX", false, @validate.logicalScalar);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Silent", false);
+    addParameter(ip, "SeriesConstructor", @Series);
+    addParameter(ip, "CheckId", true);
+    addParameter(ip, "TeX", false);
 end
-options = parse(inputParser, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
 
-passvalopt( );
-
 iris.Configuration.clear( );
 
-irisConfig = iris.Configuration(options);
-irisConfig.DefaultTimeSeriesConstructor = options.SeriesConstructor;
+irisConfig = iris.Configuration(opt);
+irisConfig.DefaultTimeSeriesConstructor = opt.SeriesConstructor;
 save(irisConfig);
 
-if options.CheckId
+if opt.CheckId
     hereCheckId( );
 end
 

@@ -54,9 +54,21 @@ function [HPos, HNeg, HNaNInf, HMax] = plotmat(X, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-X = X(:, :);
+defaults = { 
+    'colnames, colname', 'auto', @(x) isempty(x) || iscellstr(x) || ischar(x)
+    'rownames, rowname', 'auto', @(x) isempty(x) || iscellstr(x) || ischar(x)
+    'maxcircle', false, @(x) isequal(x, true) || isequal(x, false)
+    'naninf', 'X', @(x) ischar(x) && length(x)==1
+    'scale', 'auto', @(x) (ischar(x) && strcmpi(x, 'auto')) || (isnumeric(x) && isscalar(x) && x>0)
+    'showdiag', true, @(x) isequal(x, true) || isequal(x, false)
+    ... Bkw compatibility options:
+    'frame', [ ], @(x) isempty(x) || isequal(x, true) || isequal(x, false)
+};
 
-opt = passvalopt('grfun.plotmat', varargin{:});
+opt = passvalopt(defaults, varargin{:});
+
+
+X = X(:, :);
 
 if isa(X, 'namedmat')
     if ischar(opt.colnames) && strcmpi(opt.colnames, 'auto')

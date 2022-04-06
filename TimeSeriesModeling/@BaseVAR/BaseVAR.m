@@ -9,36 +9,36 @@
 classdef (CaseInsensitiveProperties=true) ...
     BaseVAR ...
     < matlab.mixin.CustomDisplay ...
-    & shared.UserDataContainer ...
-    & shared.CommentContainer ...
-    & shared.GetterSetter ...
-    & shared.DatabankPipe
+    & iris.mixin.UserDataContainer ...
+    & iris.mixin.CommentContainer ...
+    & iris.mixin.GetterSetter ...
+    & iris.mixin.DatabankPipe
 
     properties
         % Tolerance  Tolerance level object
-        Tolerance (1, 1) shared.Tolerance = shared.Tolerance( )
+        Tolerance (1, 1) iris.mixin.Tolerance = iris.mixin.Tolerance( )
 
         % EndogenousNames  Names of endogenous variables
-        EndogenousNames (1, :) string = string.empty(1, 0) 
+        EndogenousNames (1, :) string = string.empty(1, 0)
 
         % ResidualNames  Names of forecast errors
         ResidualNames (1, :) string = string.empty(1, 0)
 
         % ExogenouskNames  Names of exogenous variables
         ExogenousNames (1, :) string = string.empty(1, 0)
-        
+
         % ConditioningNames  Names of conditioning variables
-        ConditioningNames (1, :) string = string.empty(1, 0) 
+        ConditioningNames (1, :) string = string.empty(1, 0)
 
         % IEqtn  Expressions for conditioning variables
-        ConditiontingEquations (1, :) string = string.empty(1, 0) 
+        ConditiontingEquations (1, :) string = string.empty(1, 0)
 
         Intercept (1, 1) logical = true
 
         Order (1, 1) double = 1
 
         % A  Transition matrices with higher orders concatenated horizontally
-        A = double.empty(0) 
+        A = double.empty(0)
 
         % K  Vector of intercepts (constant terms)
         K = double.empty(0, 1)
@@ -56,30 +56,30 @@ classdef (CaseInsensitiveProperties=true) ...
         J = zeros(0)
 
         % Omega  Covariance matrix of reduced-form forecast errors
-        Omega = double.empty(0) 
+        Omega = double.empty(0)
 
         EigVal = double.empty(1, 0) % Eigenvalues
 
         % EigenStability  Stability indicator for each eigenvalue
-        EigenStability = int8.empty(1, 0) 
-        
+        EigenStability = int8.empty(1, 0)
+
         % Range  Estimation range entered by user
-        Range = double.empty(1, 0) 
+        Range = double.empty(1, 0)
 
         % IxFitted  Logical index of dates in estimation range acutally fitted
-        IxFitted = logical.empty(1, 0) 
-        
+        IxFitted = logical.empty(1, 0)
+
         GroupNames (1, :) string = string.empty(1, 0) % Groups in panel objects
 
         % IsIdentified  True for structural VAR models, false for reduced-form VAR models
         IsIdentified (1, 1) logical = false
     end
-    
+
 
     properties (Dependent)
         % EigenValues  Eigenvalues of VAR transition matrix
         EigenValues
-        
+
         % AllNames  List of all endogenous, residual, exogenous, conditioning and reporting names in VAR
         AllNames
 
@@ -90,7 +90,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
         % NumEndogenous  Number of endogenous variables
         NumEndogenous
-        
+
         % NumResiduals  Number of errors
         NumResiduals
 
@@ -102,7 +102,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
         % NumGroups  Number of groups in panel VARs
         NumGroups
-        
+
         % InxFitted  Logical index of dates in estimation range acutally fitted
         InxFitted
 
@@ -115,7 +115,7 @@ classdef (CaseInsensitiveProperties=true) ...
         PREFIX_ERRORS = 'res_'
     end
 
-    
+
     methods
         varargout = access(varargin)
         varargout = assign(varargin)
@@ -127,8 +127,8 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = schur(varargin)
         varargout = length(varargin)
     end
-    
-    
+
+
     methods (Hidden)
         function value = countVariants(this)
             value = size(this.A, 3);
@@ -136,19 +136,19 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
         function flag = checkConsistency(this)
-            flag = checkConsistency@shared.GetterSetter(this) ...
-                   && checkConsistency@shared.UserDataContainer(this);
+            flag = checkConsistency@iris.mixin.GetterSetter(this) ...
+                   && checkConsistency@iris.mixin.UserDataContainer(this);
         end%
 
-        
+
         varargout = myoutpdata(varargin)
         varargout = myselect(varargin)
         varargout = implementGet(varargin)
-        varargout = testCompatible(varargin)        
+        varargout = testCompatible(varargin)
         varargout = vertcat(varargin)
     end
-    
-    
+
+
     methods (Access=protected, Hidden)
         varargout = runGroups(varargin)
         varargout = preallocate(varargin)
@@ -163,13 +163,13 @@ classdef (CaseInsensitiveProperties=true) ...
         function implementDisp(varargin)
         end%
     end
-    
-    
+
+
     methods (Static, Hidden)
         varargout = mytelltime(varargin)
     end
-    
-    
+
+
     methods
         function this = BaseVAR(varargin)
             %( Input parser
@@ -191,12 +191,12 @@ classdef (CaseInsensitiveProperties=true) ...
             if isempty(varargin)
                 return
             end
-            
+
             if numel(varargin)==1 && isa(varargin, 'BaseVAR')
                 this = varargin{1};
                 return
             end
-            
+
             opt = pp.parse(varargin{:});
 
             this.EndogenousNames = pp.Results.EndogenousNames;
@@ -223,7 +223,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
         function names = get.AllNames(this)
-            names = [ 
+            names = [
                 this.EndogenousNames, ...
                 this.ExogenousNames, ...
                 this.ResidualNames, ...
@@ -305,14 +305,14 @@ classdef (CaseInsensitiveProperties=true) ...
             checkNames(this);
         end%
 
-            
+
         function this = set.ExogenousNames(this, newNames)
             newNames = beforeSettingNames(this, newNames, numel(this.ExogenousNames));
             this.ExogenousNames = newNames;
             checkNames(this);
         end%
 
-            
+
         function this = set.GroupNames(this, newNames)
             if isempty(newNames)
                 if size(this.InxFitted, 1)>1 || size(this.K, 2)>1 || size(this.X0, 2)>1 || size(this.J, 2)>this.NumExogenous
@@ -389,8 +389,8 @@ classdef (CaseInsensitiveProperties=true) ...
             end
         end%
     end
-    
-    
+
+
     methods % Legacy
         %(
         function value = get.YNames(this)
@@ -451,7 +451,7 @@ classdef (CaseInsensitiveProperties=true) ...
             x.Comment = string(this.Comment);
             x.UserData = this.UserData;
             groups = matlab.mixin.util.PropertyGroup(x);
-        end% 
+        end%
 
 
         function displayScalarObject(this)
@@ -487,10 +487,10 @@ classdef (CaseInsensitiveProperties=true) ...
     end % methods
 
 
-    methods % Implement shared.DatabankPipe
+    methods % Implement iris.mixin.DatabankPipe
         %(
         function appendables = nameAppendables(this)
-            appendables = [ 
+            appendables = [
                 this.EndogenousNames, ...
                 this.ExogenousNames, ...
                 this.ResidualNames, ...

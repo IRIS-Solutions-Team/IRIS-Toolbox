@@ -22,18 +22,17 @@ end
 %{
 function targetDb = copy(sourceDb, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser("databank.copy");
-    addRequired(pp, "sourceDb", @validate.databank);
-
-    addParameter(pp, "SourceNames", @all, @locallyValidateNames);
-    addParameter(pp, "TargetNames", @auto, @locallyValidateNames);
-    addParameter(pp, "TargetDb", @empty, @locallyValidateDb);
-    addParameter(pp, "Transform", cell.empty(1, 0), @locallyValidateTransform);
-    addParameter(pp, "WhenTransformFails", "error", @locallyValidateWhenTransformFails);
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "SourceNames", @all);
+    addParameter(ip, "TargetNames", @auto);
+    addParameter(ip, "TargetDb", @empty);
+    addParameter(ip, "Transform", cell.empty(1, 0));
+    addParameter(ip, "WhenTransformFails", "error");
 end
-opt = parse(pp, sourceDb, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

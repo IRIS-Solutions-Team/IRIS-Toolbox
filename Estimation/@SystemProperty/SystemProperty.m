@@ -25,7 +25,7 @@ classdef SystemProperty < handle
 
         CallerData = struct( )
 
-        Tolerance = shared.Tolerance( )
+        Tolerance = iris.mixin.Tolerance( )
     end
 
 

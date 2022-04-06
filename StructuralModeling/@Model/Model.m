@@ -6,8 +6,8 @@
 classdef Model ...
     < model ...
     & matlab.mixin.CustomDisplay ...
-    & shared.Plan ...
-    & shared.DataProcessor
+    & iris.mixin.Plan ...
+    & iris.mixin.DataProcessor
 
 
     properties (Constant)
@@ -23,7 +23,7 @@ classdef Model ...
 %
 %
 %     m = Model(fileName, ...)
-%     m = Model(modelFile, ...)
+%     m = Model(modelSource, ...)
 %     m = Model(m, ...)
 %
 %
@@ -36,9 +36,9 @@ classdef Model ...
 % object.
 %
 %
-% __`modelFile`__ [ model.File ]
+% __`modelSource`__ [ ModelSource ]
 % >
-% Object of model.File class.
+% Object of ModelSource class.
 %
 %
 % __`m`__ [ Model ]
@@ -229,25 +229,29 @@ classdef Model ...
 
             if nargin==0
                 return
-            % elseif nargin==1 && isa(varargin{1}, 'Model')
-                % this = varargin{1};
-            % elseif nargin==1 && isstruct(varargin{1})
-                % this = struct2obj(this, varargin{1});
-            elseif nargin>=1 && ( ...
-                ischar(varargin{1}) || iscellstr(varargin{1}) || isstring(varargin{1}) ...
-                || isa(varargin{1}, 'model.File') ...
-            )
-                modelFile = varargin{1};
-                varargin(1) = [];
-                [this, opt, parserOpt, optimalOpt] = processConstructorOptions(this, varargin{:});
-                [this, opt] = file2model(this, modelFile, opt, opt.Preparser, parserOpt, optimalOpt);
-                this = build(this, opt);
-            else
-                exeption.error([
-                    "Model:InvalidConstructorCall"
-                    "Invalid call to Model constructor."
-                ]);
             end
+
+            if isa(varargin{1}, 'Model')
+                this = varargin{1};
+                return
+            end
+
+            if ischar(varargin{1}) || isstring(varargin{1}) || iscellstr(varargin{1})
+                exception.warning([
+                    "IrisT:Deprecated"
+                    "Deprecated: When creating a Model object from a source file, "
+                    "use the Model.fromFile(___) constructor function instead."
+                ]);
+                this = Model.fromFile(varargin{:});
+                return
+            end
+
+            modelSource = varargin{1};
+            varargin(1) = [];
+
+            [opt, parserOpt, optimalOpt] = this.processConstructorOptions(varargin{:});
+            [this, opt] = file2model(this, modelSource, opt, opt.Preparser, parserOpt, optimalOpt);
+            this = build(this, opt);
         end%
     end % methods
 
@@ -370,6 +374,7 @@ classdef Model ...
         %(
         varargout = fromFile(varargin)
         varargout = fromSnippet(varargin)
+        varargout = fromSource(varargin)
         varargout = fromString(varargin)
         %)
     end
@@ -398,7 +403,7 @@ classdef Model ...
     end % methods
 
 
-    methods (Hidden) % Interface for shared.Plan
+    methods (Hidden) % Interface for iris.mixin.Plan
         %(
         function names = getEndogenousForPlan(this)
             names = getNamesByType(this.Quantity, 1, 2);

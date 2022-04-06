@@ -9,6 +9,7 @@ function [outputArray, names, dates, headers, comments] = toArray(inputDb, names
 
 arguments
     inputDb (1, 1) {validate.databank}
+
     names {locallyValidateNames} = @all
     dates {locallyValidateDates} = Inf
 
@@ -26,20 +27,19 @@ end
 
 % <=R2019a
 %{
-function [outputArray, names, dates, headers] = toArray(inputDb, varargin)
+function [outputArray, names, dates, headers, comments] = toArray(inputDb, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser("databank.toArray");
-    addRequired(inputParser, "inputDb", @(x) validate.databank(x) && isscalar(x)); 
-    addOptional(inputParser, "names", @all, @locallyValidateNames);
-    addOptional(inputParser, "dates", @all, @locallyValidateDates);
-    addOptional(inputParser, "column", 1, @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=0));
+persistent ip
+if isempty(ip)
+ip = inputParser();
+    addOptional(ip, "names", @all);
+    addOptional(ip, "dates", @all);
+    addOptional(ip, "column", 1);
 end
-parse(inputParser, inputDb, varargin{:});
-names =  inputParser.Results.names;
-dates = inputParser.Results.dates;
-column = inputParser.Results.column;
+parse(ip, varargin{:});
+names = ip.Results.names;
+dates = ip.Results.dates;
+column = ip.Results.column;
 %}
 % <=R2019a
 

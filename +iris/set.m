@@ -28,11 +28,6 @@ function set(varargin)
 % `DateFormat=` option is also found in many IRIS functions whenever it is
 % relevant, and can be used to overwrite the `iris.set` settings.
 %
-% * `FreqLetters='YHQMW'` [ char | string ] - Five letters used to
-% represent the six possible frequencies of IRIS dates, in this order:
-% yearly, half-yearly, quarterly, monthly, and weekly (such as the `'Q'` in
-% `'2010Q1'`).
-%
 % * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
 % strings representing the names of the twelve months; this option can be
 % used whenever you want to replace the default English names with your
@@ -45,12 +40,7 @@ function set(varargin)
 % following fields: `.yy`, `.hh`, `.qq`, `.bb`, `.mm`, `.ww`. Dates with
 % indeterminate frequency are printed as plain numbers.
 %
-% * `SeriesFormat=''` [ char | empty ] - Format string for displaying time
-% series data on the screen. See help on the Matlab `sprintf` function for
-% how to set up format strings. If empty the default format of the
-% `num2str` function is used.
-%
-% * `ConversionMonth='first'` [ numeric | `'first'` | `'last'` ] - Month
+% * `ConversionMonth=1` [ numeric | `'last'` ] - Month
 % that will represent a lower-than-monthly-frequency date if the month is
 % part of the date format string.
 %

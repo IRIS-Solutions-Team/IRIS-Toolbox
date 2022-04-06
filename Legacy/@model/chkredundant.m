@@ -47,7 +47,13 @@ function [lsRedShock, lsRedParam] = chkredundant(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-opt = passvalopt('model.chkredundant', varargin{:});
+defaults = {
+    'warning', true, @(x) isequal(x, true) || isequal(x, false)
+    'chkshock, chkshocks', true, @(x) isequal(x, true) || isequal(x, false)
+    'chkparam, chkparams, chkparameters', true, @(x) isequal(x, true) || isequal(x, false)
+};
+
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

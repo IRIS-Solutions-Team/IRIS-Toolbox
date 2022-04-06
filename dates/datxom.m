@@ -37,8 +37,8 @@ sizeDateCode = size(dateCode);
 dateCode = dateCode(:);
 
 freq = dater.getFrequency(dateCode);
-inxDaily = freq==Frequency__.Daily;
-inxMonthly = freq==Frequency__.Monthly;
+inxDaily = freq==frequency.DAILY;
+inxMonthly = freq==frequency.MONTHLY;
 
 xomDateCode = nan(size(dateCode));
 year = nan(size(dateCode));

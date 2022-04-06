@@ -12,36 +12,36 @@ arguments
 
     opt.AddToDatabank {validate.mustBeDatabank(opt.AddToDatabank, [])} = []
     opt.Case (1, 1) string {mustBeMember(opt.Case, ["", "lower", "upper"])} = ""
-    opt.CommentsHeader = ["CommentRow", "Comment", "Comments", "CommentsRow"], opt.CommentRow = []
+    opt.CommentsHeader = ["CommentRow", "Comment", "Comments", "CommentsRow"]
+        opt.CommentRow__CommentsHeader = []
     opt.Continuous = false
     opt.Delimiter (1, 1) string = ","
     opt.FirstDateOnly (1, 1) logical = false
-    opt.NamesHeader = ["", "Variables", "Time"], opt.NameRow = [], opt.NamesRow = [], opt.LeadingRow = []
-    opt.NameFunc = [], opt.NamesFunc = []
+    opt.NamesHeader = ["", "Variables", "Time"]
+        opt.NameRow__NamesHeader = []
+        opt.NamesRow__NamesHeader = []
+        opt.LeadingRow__NamesHeader = []
+    opt.NameFunc = []
+        opt.NamesFunc__NameFunc = []
     opt.NaN (1, 1) string = "NaN"
     opt.OutputType (1, 1) string {mustBeMember(opt.OutputType, ["__auto__", "struct", "Dictionary"])} = "__auto__"
     opt.Preprocess = []
     opt.RemoveFromData (1, :) string = string.empty(1, 0)
     opt.Select (1, :) string = "__all__"
     opt.SkipRows (1, :) = string.empty(1, 0)
-    opt.DatabankUserData = Inf, opt.UserData = []
+    opt.DatabankUserData = Inf
+        opt.UserData__DatabankUserData = []
     opt.UserDataField (1, 1) string = "."
     opt.UserDataFieldList (1, :) string = string.empty(1, 0)
     opt.VariableNames (1, :) string = "__auto__"
-    opt.DateFormat = @config
-    opt.EnforceFrequency = false, opt.Frequency = [], opt.Freq = [];
-    opt.FreqLetters = @config
-    opt.Months = @config
-    opt.Postprocess = []
-end
 
-x = struct();
-x.NamesHeader = ["NameRow", "NamesRow", "LeadingRow"];
-x.CommentsHeader = ["CommentRow"];
-x.NameFunc = ["NamesFunc"];
-x.DatabankUserData = ["UserData"];
-x.EnforceFrequency = ["Frequency", "Freq"];
-opt = iris.utils.resolveAlias(opt, x, []);
+    opt.Postprocess = []
+
+    opt.DateFormat = @config
+    opt.EnforceFrequency = false
+        opt.Frequency__EnforceFrequency = []
+    opt.Months = iris.Configuration.Months
+end
 %)
 % >=R2019b
 
@@ -50,35 +50,49 @@ opt = iris.utils.resolveAlias(opt, x, []);
 %{
 function outputDb = fromCSV(fileName, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('databank.fromCSV');
-    addRequired(pp, 'fileName', @validate.list);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
 
-    addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
-    addParameter(pp, {'Case', 'ChangeCase'}, "", @(x) isempty(x) || (validate.stringScalar(x) && any(lower(x)==["", "lower", "upper"])));
-    addParameter(pp, {'CommentsHeader', 'CommentRow'}, {'CommentRow', 'Comment', 'Comments', 'CommentsRow'}, @(x) validate.text(x) || validate.roundScalar(x, 1, Inf));
-    addParameter(pp, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
-    addParameter(pp, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
-    addParameter(pp, 'FirstDateOnly', false, @validate.logicalScalar);
-    addParameter(pp, {'NamesHeader', 'NameRow', 'NamesRow', 'LeadingRow'}, ["", "Variables", "Time"], @(x) validate.text(x) || validate.roundScalar(x, 1, Inf));
-    addParameter(pp, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
-    addParameter(pp, 'NaN', "NaN", @validate.stringScalar);
-    addParameter(pp, 'OutputType', "__auto__", @(x) ismember(x, ["__auto__", "struct", "Dictionary"]));
-    addParameter(pp, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
-    addParameter(pp, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
-    addParameter(pp, 'Select', "__all__", @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
-    addParameter(pp, {'SkipRows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
-    addParameter(pp, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
-    addParameter(pp, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
-    addParameter(pp, 'UserDataFieldList', [], @(x) isempty(x) || validate.text(x) || isnumeric(x));
-    addParameter(pp, 'VariableNames', "__auto__", @validate.list);
-    addParameter(pp, 'Postprocess', []);
-    addDateOptions(pp);
+    addParameter(ip, "AddToDatabank", []);
+    addParameter(ip, "Case", "");
+    addParameter(ip, "CommentsHeader", ["CommentRow", "Comment", "Comments", "CommentsRow"]);
+        addParameter(ip, "CommentRow__CommentsHeader", []);
+    addParameter(ip, "Continuous", false);
+    addParameter(ip, "Delimiter", ",");
+    addParameter(ip, "FirstDateOnly", false);
+    addParameter(ip, "NamesHeader", ["", "Variables", "Time"]);
+        addParameter(ip, "NameRow__NamesHeader", []);
+        addParameter(ip, "NamesRow__NamesHeader", []);
+        addParameter(ip, "LeadingRow__NamesHeader", []);
+    addParameter(ip, "NameFunc", []);
+        addParameter(ip, "NamesFunc__NameFunc", []);
+    addParameter(ip, "NaN", "NaN");
+    addParameter(ip, "OutputType", "__auto__");
+    addParameter(ip, "Preprocess", []);
+    addParameter(ip, "RemoveFromData", string.empty(1, 0));
+    addParameter(ip, "Select", "__all__");
+    addParameter(ip, "SkipRows", string.empty(1, 0));
+    addParameter(ip, "DatabankUserData", Inf);
+        addParameter(ip, "UserData__DatabankUserData", []);
+    addParameter(ip, "UserDataField", ".");
+    addParameter(ip, "UserDataFieldList", string.empty(1, 0));
+    addParameter(ip, "VariableNames", "__auto__");
+
+    addParameter(ip, "Postprocess", []);
+
+    addParameter(ip, "DateFormat", @config);
+    addParameter(ip, "EnforceFrequency", false);
+        addParameter(ip, "Frequency__EnforceFrequency", []);
+    addParameter(ip, "Months", iris.Configuration.Months);
 end
-opt = parse(pp, fileName, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
+
+
+opt = iris.utils.resolveAlias(opt, [], true);
 
 
 fileName = textual.stringify(fileName);
@@ -558,10 +572,9 @@ return
             else
                 dates(~inxEmptyDates) = str2dat( ...
                     datesColumn(~inxEmptyDates), ...
-                    "dateFormat", opt.DateFormat, ...
-                    "months", opt.Months, ...
-                    "enforceFrequency", opt.EnforceFrequency, ...
-                    "freqLetters", opt.FreqLetters ...
+                    , "dateFormat", opt.DateFormat ...
+                    , "months", opt.Months ...
+                    , "enforceFrequency", opt.EnforceFrequency ...
                 );
             end
 

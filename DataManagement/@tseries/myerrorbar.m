@@ -1,4 +1,3 @@
-function H = myerrorbar(X,Y,Lo,Hi,Opt,varargin)
 % myerrorbar  [Not a public function] Add error bars to an existing plot.
 %
 % Backend IRIS function.
@@ -9,71 +8,81 @@ function H = myerrorbar(X,Y,Lo,Hi,Opt,varargin)
 
 %--------------------------------------------------------------------------
 
-realSmall = 0; %getrealsmall( );
+function H = myerrorbar(axesHandle, X, Y, Lo, Hi, opt, varargin)
 
-if size(X,1) == 1
+if isfield(opt, 'excludefromlegend') && ~isfield(opt, 'ExcludeFromLegend')
+    opt.ExcludeFromLegend = opt.excludefromlegend;
+end
+
+if isfield(opt, 'relative') && ~isfield(opt, 'Relative')
+    opt.Relative = opt.relative;
+end
+
+if size(X, 1) == 1
     X = transpose(X);
 end
-[nPer,nx] = size(X);
+[nPer, nx] = size(X);
 
-if size(Y,1) == 1
+if size(Y, 1) == 1
     Y = transpose(Y);
 end
-ny = size(Y,2);
+ny = size(Y, 2);
 
-if size(Lo,1) == 1
+if size(Lo, 1) == 1
     Lo = transpose(Lo);
 end
-nLo = size(Lo,2);
+nLo = size(Lo, 2);
 
-if size(Hi,1) == 1
+if size(Hi, 1) == 1
     Hi = transpose(Hi);
 end
-nHi = size(Hi,2);
+nHi = size(Hi, 2);
 
-n = max(nx,ny);
+n = max(nx, ny);
 
-xData = nan(3*nPer,n);
-yData = nan(3*nPer,n);
+xData = nan(3*nPer, n);
+yData = nan(3*nPer, n);
 for i = 1 : n
     if i <= nx
-        iX = X(:,i);
+        iX = X(:, i);
     end
     if i <= ny
-        iY = Y(:,i);
+        iY = Y(:, i);
     end
     if i <= nLo
-        iLo = Lo(:,i);
+        iLo = Lo(:, i);
     end
     if i <= nHi
-        iHi = Hi(:,i);
+        iHi = Hi(:, i);
     end
-    if Opt.relative
-        inx = abs(iLo) <= realSmall & abs(iHi) <= realSmall;
+    if opt.Relative
+        inx = abs(iLo) <= 0 & abs(iHi) <= 0;
         iLo(inx) = NaN;
         iHi(inx) = NaN;
     end
-    tempXData = [iX,iX,nan(size(iX))].';
-    xData(:,i) = tempXData(:);
-    if Opt.relative
+    tempXData = [iX, iX, nan(size(iX))].';
+    xData(:, i) = tempXData(:);
+    if opt.Relative
         if all(iLo(:) >= 0 | isnan(iLo(:)))
             iLo = -iLo;
         end
-        tempYData = [iY+iLo,iY+iHi,nan(size(iY))].';
+        tempYData = [iY+iLo, iY+iHi, nan(size(iY))].';
     else
-        tempYData = [iLo,iHi,nan(size(iY))].';
+        tempYData = [iLo, iHi, nan(size(iY))].';
     end
-    yData(:,i) = tempYData(:);
+    yData(:, i) = tempYData(:);
 end
 
-H = plot(xData,yData);
+H = plot(axesHandle, xData, yData);
+
 if ~isempty(varargin)
-    set(H,varargin{:});
+    set(H, varargin{:});
 end
-set(H,'marker','+','linestyle',':');
+set(H, 'marker', '+', 'linestyle', ':');
 
-if Opt.excludefromlegend
+if opt.ExcludeFromLegend
     grfun.excludefromlegend(H);
 end
 
-end
+end%
+

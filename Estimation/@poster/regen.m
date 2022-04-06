@@ -52,8 +52,13 @@ pp.addRequired('Pos',@(x) isa(x,'poster'));
 pp.addRequired('NDraw',@isnumericscalar);
 pp.parse(This,NDraw);
 
-% Parse options.
-opt = passvalopt('poster.regen',varargin{:});
+
+defaults = {
+    'initialChainSize', 0.1, @(x) isnumericscalar(x) && x > 0
+};
+
+
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

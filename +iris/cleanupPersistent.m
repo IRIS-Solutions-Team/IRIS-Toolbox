@@ -16,10 +16,6 @@ try
 end
 
 try
-    rmappdata(0, 'IRIS_DefaultFunctionOptions')
-end
-
-try
     clear(container( ));
 end
 

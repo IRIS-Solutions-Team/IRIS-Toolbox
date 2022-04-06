@@ -1,12 +1,12 @@
-classdef File ...
+classdef ModelSource ...
     < matlab.mixin.Copyable
 
     %#ok<*NASGU>
     %#ok<*GTARG>
-    
+
     properties
         FileName (1, :) string = string.empty(1, 0)
-        Code = char.empty(1, 0)
+        Code (1, :) char = char.empty(1, 0)
         Preparsed (1, 1) logical = false
         ClonePattern (1, 2) string = ["", ""]
     end
@@ -26,35 +26,29 @@ classdef File ...
             "!measurement-equations", "!measurementequations"
         ];
         NAME_PATTERN = '(?<![!\?])\<[A-Za-z]\w*\>(?!\()'
+        CODE_SEPARATOR = string(repmat(char(newline()), 1, 2))
     end
 
 
     methods
-        function this = File(varargin)
+        function this = ModelSource(varargin)
             if nargin==0
                 return
             end
-            if nargin==1 && isa(varargin{1}, 'model.File')
+            if nargin==1 && isa(varargin{1}, 'ModelSource')
                 this = varargin{1};
                 return
             end
-            this.FileName = reshape(string(varargin{1}), 1, []);
-            this.Code = '';
-            for n = this.FileName
-                code = fileread(n);
-                code = model.File.removeUTF(code);
-                code = model.File.convertEOL(code);
-                code = model.File.addLineBreak(code);
-                this.Code = [this.Code, newline(), newline(), code];
-            end
+            % Legacy syntax
+            this = ModelSource.fromFile(varargin{:});
         end%
 
-            
+
         function that = clone(this, clonePattern, varargin)
             persistent pp
             if isempty(pp)
-                pp = extend.InputParser('@model.File/clone');
-                addRequired(pp, 'modelFile', @(x) isa(x, 'model.File'))
+                pp = extend.InputParser('@ModelSource/clone');
+                addRequired(pp, 'modelFile', @(x) isa(x, 'ModelSource'))
                 addRequired(pp, 'clonePattern', @(x) isstring(x) && isequal(size(x), [1, 2]));
                 addParameter(pp, 'NamesToKeep', string.empty(1, 0), @validate.mustBeText);
             end
@@ -72,17 +66,17 @@ classdef File ...
             that.Code = parser.Comment.parse(that.Code);
 
             code = that.Code;
-            [code, quotes] = model.File.protectQuotes(code);
-            code = model.File.protectKeywords(code); 
-             
+            [code, quotes] = ModelSource.protectQuotes(code);
+            code = ModelSource.protectKeywords(code);
+
             if isempty(opt.NamesToKeep)
-                code = model.File.cloneAllNames(code, clonePattern);
+                code = ModelSource.cloneAllNames(code, clonePattern);
             else
                 namesToKeep = string(opt.NamesToKeep);
-                code = model.File.cloneAllNames(code, @replaceFunction);
+                code = ModelSource.cloneAllNames(code, @replaceFunction);
             end
-            code = model.File.restoreQuotes(code, quotes);
-            code = model.File.restoreKeywords(code);
+            code = ModelSource.restoreQuotes(code, quotes);
+            code = ModelSource.restoreKeywords(code);
             that.Code = code;
             return
 
@@ -107,7 +101,7 @@ classdef File ...
                 clonePattern__ = this(i).ClonePattern;
                 outputTitle__ = clonePattern__(1) + outputTitle + clonePattern__(2);
                 outputFileName__ = fullfile(outputPath, outputTitle__ + outputExt);
-                model.File.write(this(i).Code, outputFileName__);
+                ModelSource.write(this(i).Code, outputFileName__);
             end
         end%
 
@@ -119,8 +113,8 @@ classdef File ...
             end
             names = names(test(names));
         end%
-        
-        
+
+
         function set.Code(this, value)
             this.Code = char(join(string(value), newline()));
         end%
@@ -133,8 +127,57 @@ classdef File ...
 
 
     methods (Static)
+        function this = fromFile(fileName, varargin)
+            persistent pp
+            if isempty(pp)
+                pp = inputParser();
+                pp.KeepUnmatched = true;
+                pp.addParameter("Markdown", @auto);
+            end
+            pp.parse(varargin{:});
+            opt = pp.Results;
+
+            this = ModelSource();
+            this.FileName = reshape(string(fileName), 1, []);
+            this.Code = '';
+            for n = this.FileName
+                currCode = fileread(n);
+                [~, ~, extension] = fileparts(string(n));
+                currCode = ModelSource.removeUTF(currCode);
+                currCode = ModelSource.convertEOL(currCode);
+                currCode = ModelSource.addLineBreak(currCode);
+                if isequal(opt.Markdown, true) || (isequal(opt.Markdown, @auto) && lower(extension)==".md")
+                    currCode = mdown.backend.toMatlab(currCode);
+                end
+                this.Code = [this.Code, char(ModelSource.CODE_SEPARATOR), char(currCode)];
+            end
+        end%
+
+
+        function this = fromString(inputString, varargin)
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser();
+                pp.KeepUnmatched = true;
+                pp.addParameter("Markdown", @auto);
+            end
+            pp.parse(varargin{:});
+            opt = pp.Results;
+
+            this = ModelSource();
+            this.FileName = ModelSource.FILE_NAME_WHEN_INPUT_STRING;
+            this.Code = '';
+            for code = textual.stringify(inputString)
+                if isequal(opt.Markdown, true) 
+                    code = mdown.backend.toMatlab(code);
+                end
+                this.Code = [this.Code, char(ModelSource.CODE_SEPARATOR), code];
+            end
+        end%
+
+
         function text = removeUTF(text)
-            if strncmp(text, model.File.UTF, length(model.File.UTF))
+            if strncmp(text, ModelSource.UTF, length(ModelSource.UTF))
                 text = text(length(UTF)+1:end);
             end
         end%
@@ -150,15 +193,15 @@ classdef File ...
             br = newline();
             if isempty(text) || text(end)~=br
                 text = [text, br];
-            end        
+            end
         end%
-        
+
 
         function write(text, outputFileName)
             fid = fopen(outputFileName, 'w+');
             if fid==-1
-                throw( exception.Base('Model:File:CannotOpenTextFile', 'error'), ...
-                       outputFileName ); 
+                throw( exception.Base('ModelSource:CannotOpenTextFile', 'error'), ...
+                       outputFileName );
             end
             text = join(string(text), newline());
             if strlength(text)>0
@@ -167,7 +210,7 @@ classdef File ...
             count = fwrite(fid, text, 'char');
             fclose(fid);
             if count~=strlength(text)
-                throw( exception.Base('Model:File:CannotWriteToTextFile', 'error'), ...
+                throw( exception.Base('ModelSource:CannotWriteToTextFile', 'error'), ...
                        outputFileName );
             end
         end%
@@ -176,18 +219,18 @@ classdef File ...
         function [code, quotes] = protectQuotes(code)
             quotes = string.empty(0, 2);
             replaceFunction = @storeAndReplace;
-            code = regexprep(code, '([''"]).*?\1', '${replaceFunction($0, $1)}');  
+            code = regexprep(code, '([''"]).*?\1', '${replaceFunction($0, $1)}');
             return
                 function x = storeAndReplace(s0, s1)
                     n = size(quotes, 1) + 1;
-                    x = sprintf(model.File.PROTECTED_QUOTE_PATTERN, s1, n, s1);
+                    x = sprintf(ModelSource.PROTECTED_QUOTE_PATTERN, s1, n, s1);
                     quotes(end+1, :) = [string(s0), string(x)];
                 end%
         end%
 
 
         function code = protectKeywords(code)
-            code = replace(code, model.File.PROTECTED_KEYWORDS(:, 1), model.File.PROTECTED_KEYWORDS(:, 2));
+            code = replace(code, ModelSource.PROTECTED_KEYWORDS(:, 1), ModelSource.PROTECTED_KEYWORDS(:, 2));
         end%
 
 
@@ -195,9 +238,9 @@ classdef File ...
             code = replace(code, quotes(:, 2), quotes(:, 1));
         end%
 
-        
+
         function code = restoreKeywords(code)
-            code = replace(code, model.File.PROTECTED_KEYWORDS(:, 2), model.File.PROTECTED_KEYWORDS(:, 1));
+            code = replace(code, ModelSource.PROTECTED_KEYWORDS(:, 2), ModelSource.PROTECTED_KEYWORDS(:, 1));
         end%
 
 
@@ -205,11 +248,11 @@ classdef File ...
             if isstring(replace)
                 if any(strlength(replace)>0)
                     clonePattern = replace;
-                    code = regexprep(code, model.File.NAME_PATTERN, clonePattern(1) + "$0" + clonePattern(2));
+                    code = regexprep(code, ModelSource.NAME_PATTERN, clonePattern(1) + "$0" + clonePattern(2));
                 end
             else
-                replaceFunc = replace; 
-                code = regexprep(code, model.File.NAME_PATTERN, "${replaceFunc($0)}");
+                replaceFunc = replace;
+                code = regexprep(code, ModelSource.NAME_PATTERN, "${replaceFunc($0)}");
             end
         end%
     end

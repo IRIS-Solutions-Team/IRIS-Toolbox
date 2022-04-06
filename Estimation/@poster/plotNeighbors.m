@@ -1,31 +1,62 @@
-function info = plotNeighbors(this, d, options)
+
+% >=R2019b
+%(
+function info = plotNeighbors(this, d, opt)
 
 arguments
     this (1, 1) poster
     d (1, 1) struct
 
-    options.PlotPosterior = cell.empty(1, 0)
-    options.PlotModeEstimate = cell.empty(1, 0)
-    options.PlotDataLik = cell.empty(1, 0)
-    options.PlotIndiePriors = cell.empty(1, 0)
-    options.PlotSystemPriors = cell.empty(1, 0)
-    options.PlotBounds = cell.empty(1, 0)
-    options.Figure (1, :) cell = cell.empty(1, 0)
-    options.Title = cell.empty(1, 0)
-    options.Tiles = @auto
-    options.Captions (1, :) string = string.empty(1, 0)
-    options.LinkYAxes (1, 1) logical = false
+    opt.PlotPosterior = cell.empty(1, 0)
+    opt.PlotModeEstimate = cell.empty(1, 0)
+    opt.PlotDataLik = cell.empty(1, 0)
+    opt.PlotIndiePriors = cell.empty(1, 0)
+    opt.PlotSystemPriors = cell.empty(1, 0)
+    opt.PlotBounds = cell.empty(1, 0)
+    opt.Figure (1, :) cell = cell.empty(1, 0)
+    opt.Title = cell.empty(1, 0)
+    opt.Tiles = @auto
+    opt.Captions (1, :) string = string.empty(1, 0)
+    opt.LinkYAxes (1, 1) logical = false
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function info = plotNeighbors(this, d, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "PlotPosterior", cell.empty(1, 0));
+    addParameter(ip, "PlotModeEstimate", cell.empty(1, 0));
+    addParameter(ip, "PlotDataLik", cell.empty(1, 0));
+    addParameter(ip, "PlotIndiePriors", cell.empty(1, 0));
+    addParameter(ip, "PlotSystemPriors", cell.empty(1, 0));
+    addParameter(ip, "PlotBounds", cell.empty(1, 0));
+    addParameter(ip, "Figure", cell.empty(1, 0));
+    addParameter(ip, "Title", cell.empty(1, 0));
+    addParameter(ip, "Tiles", @auto);
+    addParameter(ip, "Captions", string.empty(1, 0));
+    addParameter(ip, "LinkYAxes", false);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
 
 %#ok<*AGROW>
 
-needsPlotPosterior = ~isequal(options.PlotPosterior, false);
-needsPlotModeEstimate = ~isequal(options.PlotModeEstimate, false);
-needsPlotDataLik = ~isequal(options.PlotDataLik, false);
-needsPlotIndiePriors = ~isequal(options.PlotIndiePriors, false);
-needsPlotSystemPriors = ~isequal(options.PlotSystemPriors, false);
-needsPlotBounds = ~isequal(options.PlotBounds, false);
-needsTitle = ~isequal(options.Title, false);
+needsPlotPosterior = ~isequal(opt.PlotPosterior, false);
+needsPlotModeEstimate = ~isequal(opt.PlotModeEstimate, false);
+needsPlotDataLik = ~isequal(opt.PlotDataLik, false);
+needsPlotIndiePriors = ~isequal(opt.PlotIndiePriors, false);
+needsPlotSystemPriors = ~isequal(opt.PlotSystemPriors, false);
+needsPlotBounds = ~isequal(opt.PlotBounds, false);
+needsTitle = ~isequal(opt.Title, false);
 
 info = struct();
 info.FigureHandles = gobjects(1, 0);
@@ -42,15 +73,15 @@ info.TitleHandles = gobjects(1, 0);
 parameterNames = textual.stringify(this.ParameterNames);
 numParameters = numel(parameterNames);
 
-if isequal(options.Tiles, @auto)
+if isequal(opt.Tiles, @auto)
     [numRows, numColumns] = visual.backend.optimizeSubplot(numParameters);
-    options.Tiles = [numRows, numColumns];
+    opt.Tiles = [numRows, numColumns];
 end
-numTilesPerFigure = prod(options.Tiles);
+numTilesPerFigure = prod(opt.Tiles);
 
 
 %
-% Prepare plot options
+% Prepare plot opt
 %
 
 plotPosteriorOptions = cell.empty(1, 0);
@@ -76,10 +107,10 @@ for i = 1 : numParameters
 
     if count>numTilesPerFigure
         count = 1;
-        info.FigureHandles(end+1) = figure(options.Figure{:});
+        info.FigureHandles(end+1) = figure(opt.Figure{:});
     end
 
-    info.AxesHandles(end+1) = subplot(options.Tiles(1), options.Tiles(2), count); 
+    info.AxesHandles(end+1) = subplot(opt.Tiles(1), opt.Tiles(2), count); 
     hold all
 
     x = d.(parameterNames(i)){1}(:, 1);
@@ -163,7 +194,7 @@ for i = 1 : numParameters
     end
 end
 
-if options.LinkYAxes
+if opt.LinkYAxes
     % Sort ylims by the total coverage.
     [~, inx] = sort(yLim*[-1;1]); %#ok<*NOANS, *ASGLU>
     yLim = yLim(inx, :);
@@ -175,40 +206,40 @@ end
 return
 
     function herePreparePlotSettings( )
-        if iscell(options.PlotPosterior)
-            plotPosteriorOptions = options.PlotPosterior;
+        if iscell(opt.PlotPosterior)
+            plotPosteriorOptions = opt.PlotPosterior;
         end
 
-        if iscell(options.PlotModeEstimate)
-            plotModeEstimateOptions = options.PlotModeEstimate;
+        if iscell(opt.PlotModeEstimate)
+            plotModeEstimateOptions = opt.PlotModeEstimate;
         end
 
-        if iscell(options.PlotDataLik) 
-            plotDataLikOptions = options.PlotDataLik;
+        if iscell(opt.PlotDataLik) 
+            plotDataLikOptions = opt.PlotDataLik;
         end
 
-        if iscell(options.PlotIndiePriors) 
-            plotIndiePriorOptions = options.PlotIndiePriors;
+        if iscell(opt.PlotIndiePriors) 
+            plotIndiePriorOptions = opt.PlotIndiePriors;
         end
 
-        if iscell(options.PlotSystemPriors) 
-            plotSystemPriorOptions = options.PlotSystemPriors;
+        if iscell(opt.PlotSystemPriors) 
+            plotSystemPriorOptions = opt.PlotSystemPriors;
         end
 
-        if iscell(options.PlotBounds)
-            plotBoundsOptions = options.PlotBounds;
+        if iscell(opt.PlotBounds)
+            plotBoundsOptions = opt.PlotBounds;
         end
 
-        if iscell(options.Title) 
-            titleOptions = options.Title;
+        if iscell(opt.Title) 
+            titleOptions = opt.Title;
         end
     end%
 
 
     function captions = herePopulateCaptions()
         captions = parameterNames;
-        n = numel(options.Captions);
-        captions(1:n) = options.Captions(1:n);
+        n = numel(opt.Captions);
+        captions(1:n) = opt.Captions(1:n);
     end%
 end%
 

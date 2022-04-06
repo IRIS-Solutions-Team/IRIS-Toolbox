@@ -1,50 +1,55 @@
+
 % >=R2019b
 %(
-function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, options, legacy)
+function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, opt)
+
 
 arguments
     this
 
-    options.Eqtn = @all
-    options.ForceDiff (1, 1) logical = false
-    options.Normalize (1, 1) logical = true
-    options.MatrixFormat (1, 1) string = "NamedMatrix"
-    options.Sparse (1, 1) logical = false
-    options.Symbolic (1, 1) logical = true
+    opt.Eqtn = @all
+        opt.Equations__Eqtn = []
+    opt.ForceDiff (1, 1) logical = false
+    opt.Normalize (1, 1) logical = true
+    opt.MatrixFormat (1, 1) string = "NamedMatrix"
+    opt.Sparse (1, 1) logical = false
+    opt.Symbolic (1, 1) logical = true
 
-    legacy.Select (1, 1) logical = true 
-end
-
-if ~legacy.Select && ~options.ForceDiff
-    options.ForceDiff = true;
+    opt.Select (1, 1) logical = true 
 end
 %)
 % >=R2019b
+
 
 % <=R2019a
 %{
 function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('model.system');
-    pp.addRequired('Model', @(x) isa(x, 'model'));
-    pp.addParameter({'Eqtn', 'Equations'}, @all, @(x) isequal(x, @all) || ischar(x));
-    pp.addParameter({'Normalize', 'Normalise'}, true, @(x) isequal(x, true) || isequal(x, false));
-    pp.addParameter('Select', true, @(x) isequal(x, true) || isequal(x, false));
-    pp.addParameter('ForceDiff', false, @(x) isequal(x, true) || isequal(x, false));
-    pp.addParameter('MatrixFormat', 'NamedMatrix');
-    pp.addParameter('Sparse', false, @(x) isequal(x, true) || isequal(x, false));
-    pp.addParameter('Symbolic', true, @(x) isequal(x, true) || isequal(x, false));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Eqtn", @all);
+        addParameter(ip, "Equations__Eqtn", []);
+    addParameter(ip, "ForceDiff", false);
+    addParameter(ip, "Normalize", true);
+    addParameter(ip, "MatrixFormat", "NamedMatrix");
+    addParameter(ip, "Sparse", false);
+    addParameter(ip, "Symbolic", true);
+    addParameter(ip, "Select", true );
 end
-pp.parse(this, varargin{:});
-options = pp.Options;
-
-if ~options.Select && ~options.ForceDiff
-    options.ForceDiff = true;
-end
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
+
+
+opt = iris.utils.resolveAlias(opt, [], false);
+
+
+if ~opt.Select && ~opt.ForceDiff
+    opt.ForceDiff = true;
+end
+
 
 CONSTANT_COLUMN = "Constant";
 
@@ -52,16 +57,16 @@ numVariants = countVariants(this);
 numM = nnz(this.Equation.Type==1);
 numT = nnz(this.Equation.Type==2);
 
-if options.Sparse && numVariants>1
+if opt.Sparse && numVariants>1
     utils.warning('model:system', ...
         ['Cannot return system matrices as sparse matrices in models ', ...
         'with multiple parameterizations. Returning full matrices instead.']);
-    options.Sparse = false;
+    opt.Sparse = false;
 end
 
 % System matrices.
-if options.Sparse && numVariants==1
-    [syst, ~, deriv] = systemFirstOrder(this, 1, options);
+if opt.Sparse && numVariants==1
+    [syst, ~, deriv] = systemFirstOrder(this, 1, opt);
     F = syst.A{1}; %#ok<*AGROW>
     G = syst.B{1};
     H = syst.K{1};
@@ -72,7 +77,7 @@ if options.Sparse && numVariants==1
     D = syst.E{2};
 else
     for v = 1 : numVariants
-        [syst, ~, deriv] = systemFirstOrder(this, v, options);
+        [syst, ~, deriv] = systemFirstOrder(this, v, opt);
         F(:, :, v) = full(syst.A{1}); %#ok<*AGROW>
         G(:, :, v) = full(syst.B{1});
         H(:, 1, v) = full(syst.K{1});
@@ -96,7 +101,7 @@ list = {yVector, xVector1, eVector, mEquations, tEquations};
 % Number of forward-looking variables.
 numF = sum( imag(this.Vector.System{2})>=0 );
 
-if startsWith(string(options.MatrixFormat), "named", "ignoreCase", true)
+if startsWith(string(opt.MatrixFormat), "named", "ignoreCase", true)
     A = namedmat(A, tEquations, xVector1);
     B = namedmat(B, tEquations, xVector0);
     C = namedmat(C, tEquations, CONSTANT_COLUMN);

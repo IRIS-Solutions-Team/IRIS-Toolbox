@@ -42,32 +42,36 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+
 % >=R2019b
 %(
 function [y, range, freq, per] = fft(this, opt)
 
 arguments
     this NumericTimeSubscriptable
+
     opt.Range {validate.mustBeRange} = Inf
     opt.Full (1, 1) logical = false
 end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function [y, range, freq, per] = fft(this, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = inputParser();
-    addParameter(pp, 'Range', Inf);
-    addParameter(pp, 'Full', false);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'Range', Inf);
+    addParameter(ip, 'Full', false);
 end
-parse(pp, varargin{:});
-opt = pp.Results;
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
+
 
 sizeData = size(this.Data);
 

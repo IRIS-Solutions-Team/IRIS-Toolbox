@@ -44,8 +44,17 @@ pp.addRequired('List', @(x) ischar(x) || iscellstr(x));
 pp.addRequired('Range', @validate.date);
 pp.parse(List, range);
 
+
+%(
+defaults = { 
+    'acf', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
+    'order', 1, @isnumericscalar
+    'constant, const', true, @(x) isequal(x, true) || isequal(x, false)
+};
+%)
+
 % Parse options.
-opt = passvalopt('model.VAR', varargin{:});
+opt = passvalopt(defaults, varargin{:});
 
 % Convert char list to cellstr.
 if ischar(select)

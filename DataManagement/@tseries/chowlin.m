@@ -123,7 +123,7 @@ end
 nPer1 = dater.rangeLength(startDate1, endDate1);
 
 % Set up High-frequency range.
-startDate2 = dater.convert(startDate1, f2, 'ConversionMonth', 'first');
+startDate2 = dater.convert(startDate1, f2, 'ConversionMonth', 1);
 endDate2 = dater.convert(endDate1, f2, 'ConversionMonth', 'last');
 nPer2 = dater.rangeLength(startDate2, endDate2);
 

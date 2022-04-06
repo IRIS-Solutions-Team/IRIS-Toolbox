@@ -3,12 +3,12 @@
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function varargout = season(inputSeries, range, opt, specs)
-
 % >=R2019b
 %(
+function varargout = season(inputSeries, range, opt, specs)
+
 arguments
-    inputSeries Series { locallyValidateInputSeries(inputSeries) }
+    inputSeries Series { local_validateInputSeries(inputSeries) }
     range {validate.rangeInput} = Inf 
 
     opt.Output (1, :) string = "d11"
@@ -16,20 +16,20 @@ arguments
     opt.Cleanup (1, 1) logical = true
 
     specs.Series_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
-    specs.Series_Span (1, :) { locallyValidateSpan(specs.Series_Span) } = double.empty(1, 0)
-    specs.Series_ModelSpan (1, :) { locallyValidateSpan(specs.Series_ModelSpan) } = double.empty(1, 0)
-    specs.Series_Precision { locallyValidatePrecision } = 5
-    specs.Series_Decimals  { locallyValidatePrecision } = 5
-    specs.Series_CompType string { locallyValidateCompType } = string.empty(1, 0)
+    specs.Series_Span (1, :) { local_validateSpan(specs.Series_Span) } = double.empty(1, 0)
+    specs.Series_ModelSpan (1, :) { local_validateSpan(specs.Series_ModelSpan) } = double.empty(1, 0)
+    specs.Series_Precision { local_validatePrecision } = 5
+    specs.Series_Decimals  { local_validatePrecision } = 5
+    specs.Series_CompType string { local_validateCompType } = string.empty(1, 0)
     specs.Series_CompWeight { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
     specs.Series_AppendBcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Series_AppendFcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Series_Type string { locallyValidateSeriesType } = string.empty(1, 0)
+    specs.Series_Type string { local_validateSeriesType } = string.empty(1, 0)
     specs.Series_Save (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
-    specs.X11_Mode { validate.mustBeScalarOrEmpty, locallyValidateX11Mode } = @auto % string.empty(1, 0)
+    specs.X11_Mode { validate.mustBeScalarOrEmpty, local_validateX11Mode } = @auto 
     specs.X11_SeasonalMA (1, :) string = string.empty(1, 0)
-    specs.X11_TrendMA { locallyValidateTrendMA } = double.empty(1, 0)
+    specs.X11_TrendMA { local_validateTrendMA } = double.empty(1, 0)
     specs.X11_SigmaLim (1, :) { mustBeNumeric, mustBePositive } = double.empty(1, 0)
     specs.X11_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.X11_AppendFcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
@@ -40,9 +40,9 @@ arguments
     specs.X11_SaveLog (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
     specs.Transform logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Transform_Function string { locallyValidateFunction } = string.empty(1, 0)
+    specs.Transform_Function string { local_validateFunction } = string.empty(1, 0)
     specs.Transform_Power { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
-    specs.Transform_Adjust string { locallyValidateAdjust } = string.empty(1, 0)
+    specs.Transform_Adjust string { local_validateAdjust } = string.empty(1, 0)
     specs.Transform_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Transform_AicDiff { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
     specs.Transform_Print (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
@@ -52,7 +52,7 @@ arguments
     specs.Estimate logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Estimate_Tol { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
     specs.Estimate_MaxIter { validate.mustBeScalarOrEmpty, mustBePositive, mustBeInteger } = double.empty(1, 0)
-    specs.Estimate_Exact string { locallyValidateExact } = string.empty(1, 0)
+    specs.Estimate_Exact string { local_validateExact } = string.empty(1, 0)
     specs.Estimate_OutOfSample logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Estimate_Print (1, :) string = string.empty(1, 0)
     specs.Estimate_Save (1, :) string = string.empty(1, 0)
@@ -76,20 +76,20 @@ arguments
     specs.Arima_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
     specs.Force logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Force_Type string { locallyValidateForceType } = string.empty(1, 0)
-    specs.Force_Lambda { locallyValidateForceLambda } = double.empty(1, 0)
-    specs.Force_Rho { locallyValidateForceRho } = double.empty(1, 0)
+    specs.Force_Type string { local_validateForceType } = string.empty(1, 0)
+    specs.Force_Lambda { local_validateForceLambda } = double.empty(1, 0)
+    specs.Force_Rho { local_validateForceRho } = double.empty(1, 0)
     specs.Force_Round logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Force_Start { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
-    specs.Force_Target string { locallyValidateForceTarget } = string.empty(1, 0)
+    specs.Force_Target string { local_validateForceTarget } = string.empty(1, 0)
     specs.Force_UseFcst logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Force_Print (1, :) string = string.empty(1, 0)
     specs.Force_Save (1, :) string = string.empty(1, 0)
 
     specs.Forecast logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Forecast_MaxLead { validate.mustBeScalarOrEmpty, mustBeInteger } = double.empty(1, 0) % 0 to 120
-    specs.Forecast_MaxBack { validate.mustBeScalarOrEmpty, mustBeInteger } = double.empty(1, 0) % 0 to 120
-    specs.Forecast_Exclude { validate.mustBeScalarOrEmpty, mustBeInteger } = double.empty(1, 0) % 0 to 1000
+    specs.Forecast_MaxLead { validate.mustBeScalarOrEmpty, mustBeInteger, mustBeGreaterThanOrEqual(specs.Forecast_MaxLead, 0), mustBeLessThanOrEqual(specs.Forecast_MaxLead, 120) } = double.empty(1, 0)
+    specs.Forecast_MaxBack { validate.mustBeScalarOrEmpty, mustBeInteger, mustBeGreaterThanOrEqual(specs.Forecast_MaxBack, 0), mustBeLessThanOrEqual(specs.Forecast_MaxBack, 120) } = double.empty(1, 0)
+    specs.Forecast_Exclude { validate.mustBeScalarOrEmpty, mustBeInteger, mustBeGreaterThanOrEqual(specs.Forecast_Exclude, 0), mustBeLessThanOrEqual(specs.Forecast_Exclude, 100) } = double.empty(1, 0) % 0 to 100
     specs.Forecast_LogNormal logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Forecast_Print (1, :) string = string.empty(1, 0)
     specs.Forecast_Save (1, :) string = string.empty(1, 0)
@@ -102,10 +102,10 @@ arguments
     specs.Regression_UserType (1, :) string = string.empty(1, 0)
     specs.Regression_AicTest (1, :) string = string.empty(1, 0)
     specs.Regression_AicDiff (1, :) { mustBeNumeric } = double.empty(1, 0)
-    specs.Regression_PVAicTest { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0) % 0 to 1
+    specs.Regression_PVAicTest { validate.mustBeScalarOrEmpty, mustBeNumeric, mustBeGreaterThanOrEqual(specs.Regression_PVAicTest, 0), mustBeLessThanOrEqual(specs.Regression_PVAicTest, 1) } = double.empty(1, 0) 
     specs.Regression_TLimit { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
     specs.Regression_Chi2Test logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Regression_Chi2TestCV { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0) % 0 to 1
+    specs.Regression_Chi2TestCV { validate.mustBeScalarOrEmpty, mustBeNumeric, mustBeGreaterThanOrEqual(specs.Regression_Chi2TestCV 0), mustBeLessThanOrEqual(specs.Regression_Chi2TestCV, 1) } = double.empty(1, 0) 
     specs.Regression_Print (1, :) string = string.empty(1, 0)
     specs.Regression_Save (1, :) string = string.empty(1, 0)
     specs.Regression_SaveLog (1, :) string = string.empty(1, 0)
@@ -117,13 +117,13 @@ arguments
     specs.X11Regression_UserType (1, :) string = string.empty(1, 0)
     specs.X11Regression_AicTest (1, :) string = string.empty(1, 0)
     specs.X11Regression_AicDiff (1, :) { mustBeNumeric } = double.empty(1, 0)
-    specs.X11Regression_TDPrior (1, :) { mustBeNumeric, mustBeNonnegative, locallyValidateTDPrior(specs.X11Regression_TDPrior) } = double.empty(1, 0)
+    specs.X11Regression_TDPrior (1, :) { mustBeNumeric, mustBeNonnegative, local_validateTDPrior(specs.X11Regression_TDPrior) } = double.empty(1, 0)
     specs.X11Regression_Prior logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.X11Regression_Span (1, :) { locallyValidateSpan(specs.X11Regression_Span) } = double.empty(1, 0)
+    specs.X11Regression_Span (1, :) { local_validateSpan(specs.X11Regression_Span) } = double.empty(1, 0)
     specs.X11Regression_Sigma { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
     specs.X11Regression_Critical { validate.mustBeScalarOrEmpty, mustBePositive } = double.empty(1, 0)
-    specs.X11Regression_OutlierMethod string { locallyValidateOutlierMethod } = string.empty(1, 0)
-    specs.X11Regression_OutlierSpan (1, :) { locallyValidateSpan(specs.X11Regression_OutlierSpan) } = double.empty(1, 0)
+    specs.X11Regression_OutlierMethod string { local_validateOutlierMethod } = string.empty(1, 0)
+    specs.X11Regression_OutlierSpan (1, :) { local_validateSpan(specs.X11Regression_OutlierSpan) } = double.empty(1, 0)
     specs.X11Regression_Print (1, :) string = string.empty(1, 0)
     specs.X11Regression_Save (1, :) string = string.empty(1, 0)
     specs.X11Regression_SaveLog (1, :) string = string.empty(1, 0)
@@ -146,13 +146,162 @@ end
 % >=R2019b
 
 
+% <=R2019a
+%{
+function varargout = season(inputSeries, range, varargin)
+
+try, range;
+    catch, range = Inf; end
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+
+    addParameter(ip, "Output", "d11");
+    addParameter(ip, "Display", false);
+    addParameter(ip, "Cleanup", true);
+
+    addParameter(ip, "Series_Title", string.empty(1, 0));
+    addParameter(ip, "Series_Span", double.empty(1, 0));
+    addParameter(ip, "Series_ModelSpan", double.empty(1, 0));
+    addParameter(ip, "Series_Precision", 5);
+    addParameter(ip, "Series_Decimals", 5);
+    addParameter(ip, "Series_CompType", string.empty(1, 0));
+    addParameter(ip, "Series_CompWeight", double.empty(1, 0));
+    addParameter(ip, "Series_AppendBcst", logical.empty(1, 0));
+    addParameter(ip, "Series_AppendFcst", logical.empty(1, 0));
+    addParameter(ip, "Series_Type", string.empty(1, 0));
+    addParameter(ip, "Series_Save", string.empty(1, 0));
+
+    addParameter(ip, "X11_Mode", @auto % string.empty(1, 0));
+    addParameter(ip, "X11_SeasonalMA", string.empty(1, 0));
+    addParameter(ip, "X11_TrendMA", double.empty(1, 0));
+    addParameter(ip, "X11_SigmaLim", double.empty(1, 0));
+    addParameter(ip, "X11_Title", string.empty(1, 0));
+    addParameter(ip, "X11_AppendFcst", logical.empty(1, 0));
+    addParameter(ip, "X11_AppendBcst", logical.empty(1, 0));
+    addParameter(ip, "X11_Final", string.empty(1, 0));
+    addParameter(ip, "X11_Print", string.empty(1, 0));
+    addParameter(ip, "X11_Save", string.empty(1, 0));
+    addParameter(ip, "X11_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "Transform", logical.empty(1, 0));
+    addParameter(ip, "Transform_Function", string.empty(1, 0));
+    addParameter(ip, "Transform_Power", double.empty(1, 0));
+    addParameter(ip, "Transform_Adjust", string.empty(1, 0));
+    addParameter(ip, "Transform_Title", string.empty(1, 0));
+    addParameter(ip, "Transform_AicDiff", double.empty(1, 0));
+    addParameter(ip, "Transform_Print", string.empty(1, 0));
+    addParameter(ip, "Transform_Save", string.empty(1, 0));
+    addParameter(ip, "Transform_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "Estimate", logical.empty(1, 0));
+    addParameter(ip, "Estimate_Tol", double.empty(1, 0));
+    addParameter(ip, "Estimate_MaxIter", double.empty(1, 0));
+    addParameter(ip, "Estimate_Exact", string.empty(1, 0));
+    addParameter(ip, "Estimate_OutOfSample", logical.empty(1, 0));
+    addParameter(ip, "Estimate_Print", string.empty(1, 0));
+    addParameter(ip, "Estimate_Save", string.empty(1, 0));
+    addParameter(ip, "Estimate_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "Automdl", logical.empty(1, 0));
+    addParameter(ip, "Automdl_MaxOrder", double.empty(1, 0));
+    addParameter(ip, "Automdl_MaxDiff", double.empty(1, 0));
+    addParameter(ip, "Automdl_Diff", double.empty(1, 0));
+    addParameter(ip, "Automdl_AcceptDefault", logical.empty(1, 0));
+    addParameter(ip, "Automdl_CheckMu", logical.empty(1, 0));
+    addParameter(ip, "Automdl_LjungBoxLimit", double.empty(1, 0));
+    addParameter(ip, "Automdl_Mixed", logical.empty(1, 0));
+    addParameter(ip, "Automdl_Print", string.empty(1, 0));
+    addParameter(ip, "Automdl_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "Arima", logical.empty(1, 0));
+    addParameter(ip, "Arima_Model", string.empty(1, 0));
+    addParameter(ip, "Arima_AR", double.empty(1, 0));
+    addParameter(ip, "Arima_MA", double.empty(1, 0));
+    addParameter(ip, "Arima_Title", string.empty(1, 0));
+
+    addParameter(ip, "Force", logical.empty(1, 0));
+    addParameter(ip, "Force_Type", string.empty(1, 0));
+    addParameter(ip, "Force_Lambda", double.empty(1, 0));
+    addParameter(ip, "Force_Rho", double.empty(1, 0));
+    addParameter(ip, "Force_Round", logical.empty(1, 0));
+    addParameter(ip, "Force_Start", double.empty(1, 0));
+    addParameter(ip, "Force_Target", string.empty(1, 0));
+    addParameter(ip, "Force_UseFcst", logical.empty(1, 0));
+    addParameter(ip, "Force_Print", string.empty(1, 0));
+    addParameter(ip, "Force_Save", string.empty(1, 0));
+
+    addParameter(ip, "Forecast", logical.empty(1, 0));
+    addParameter(ip, "Forecast_MaxLead", double.empty(1, 0) % 0 to 120);
+    addParameter(ip, "Forecast_MaxBack", double.empty(1, 0) % 0 to 120);
+    addParameter(ip, "Forecast_Exclude", double.empty(1, 0) % 0 to 1000);
+    addParameter(ip, "Forecast_LogNormal", logical.empty(1, 0));
+    addParameter(ip, "Forecast_Print", string.empty(1, 0));
+    addParameter(ip, "Forecast_Save", string.empty(1, 0));
+
+    addParameter(ip, "Regression", logical.empty(1, 0));
+    addParameter(ip, "Regression_Variables", string.empty(1, 0));
+    addParameter(ip, "Regression_TestAllEaster", logical.empty(1, 0));
+    addParameter(ip, "Regression_Data", Series.empty(0));
+    addParameter(ip, "Regression_User", string.empty(1, 0));
+    addParameter(ip, "Regression_UserType", string.empty(1, 0));
+    addParameter(ip, "Regression_AicTest", string.empty(1, 0));
+    addParameter(ip, "Regression_AicDiff", double.empty(1, 0));
+    addParameter(ip, "Regression_PVAicTest", double.empty(1, 0) % 0 to 1);
+    addParameter(ip, "Regression_TLimit", double.empty(1, 0));
+    addParameter(ip, "Regression_Chi2Test", logical.empty(1, 0));
+    addParameter(ip, "Regression_Chi2TestCV", double.empty(1, 0) % 0 to 1);
+    addParameter(ip, "Regression_Print", string.empty(1, 0));
+    addParameter(ip, "Regression_Save", string.empty(1, 0));
+    addParameter(ip, "Regression_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "X11Regression", logical.empty(1, 0));
+    addParameter(ip, "X11Regression_Variables", string.empty(1, 0));
+    addParameter(ip, "X11Regression_Data", Series.empty(0));
+    addParameter(ip, "X11Regression_User", string.empty(1, 0));
+    addParameter(ip, "X11Regression_UserType", string.empty(1, 0));
+    addParameter(ip, "X11Regression_AicTest", string.empty(1, 0));
+    addParameter(ip, "X11Regression_AicDiff", double.empty(1, 0));
+    addParameter(ip, "X11Regression_TDPrior", double.empty(1, 0));
+    addParameter(ip, "X11Regression_Prior", logical.empty(1, 0));
+    addParameter(ip, "X11Regression_Span", double.empty(1, 0));
+    addParameter(ip, "X11Regression_Sigma", double.empty(1, 0));
+    addParameter(ip, "X11Regression_Critical", double.empty(1, 0));
+    addParameter(ip, "X11Regression_OutlierMethod", string.empty(1, 0));
+    addParameter(ip, "X11Regression_OutlierSpan", double.empty(1, 0));
+    addParameter(ip, "X11Regression_Print", string.empty(1, 0));
+    addParameter(ip, "X11Regression_Save", string.empty(1, 0));
+    addParameter(ip, "X11Regression_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "Seats", logical.empty(1, 0));
+    addParameter(ip, "Seats_AppendFcst", logical.empty(1, 0));
+    addParameter(ip, "Seats_HpCycle", logical.empty(1, 0));
+    addParameter(ip, "Seats_NoAdmiss", logical.empty(1, 0));
+    addParameter(ip, "Seats_QMax", double.empty(1, 0));
+    addParameter(ip, "Seats_RMod", double.empty(1, 0) % 0 to 1
+    addParameter(ip, "Seats_Out", double.empty(1, 0));
+    addParameter(ip, "Seats_StatSeas", logical.empty(1, 0));
+    addParameter(ip, "Seats_TabTables", string.empty(1, 0));
+    addParameter(ip, "Seats_PrintPhtrf", double.empty(1, 0));
+    addParameter(ip, "Seats_Print", string.empty(1, 0));
+    addParameter(ip, "Seats_Save", string.empty(1, 0));
+    addParameter(ip, "Seats_SaveLog", string.empty(1, 0));
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+specs = rmfield(opt, ["Output", "Display", "Cleanup"]);
+%}
+% <=R2019a
+
+
 if ~isequal(range, Inf)
     [from, to] = resolveRange(inputSeries, range);
     inputSeries = clip(inputSeries, from, to);
 end
 
 outputTables = x13.resolveOutputTables(opt.Output);
-specs = locallyWriteOutputTablesToSpecs(specs, outputTables);
+specs = local_writeOutputTablesToSpecs(specs, outputTables);
 
 numOutputTables = numel(outputTables);
 
@@ -160,13 +309,13 @@ sizeData = size(inputSeries);
 numColumns = prod(sizeData(2:end));
 
 outputData = cell(numColumns, numOutputTables); 
-outputInfo = [ ];
+outputInfo = [];
 inxError = false(1, numColumns);
 
-specs = locallyRemoveEmptySpecs(specs);
+specs = local_removeEmptySpecs(specs);
 x13.checkSpecsConflicts(specs);
-specs = locallyResolveDataAttributes(specs);
-specs = locallyRequestArimaForSeats(specs);
+specs = local_resolveDataAttributes(specs);
+specs = local_requestArimaForSeats(specs);
 
 [dataColumns, startDates, freq] = x13.splitDataColumns(inputSeries);
 
@@ -181,9 +330,9 @@ for i = find(~isnan(startDates))
     % attribute Data in Series ensures that Series will be always included
     % in the spc file
     %
-    [specs__, flipSign__] = locallyResolveAutoMode(data__, specs__);
+    [specs__, flipSign__] = local_resolveAutoMode(data__, specs__);
     data__ = flipSign__*data__;
-    data__ = locallyAdjustDataForNaNs(data__);
+    data__ = local_adjustDataForNaNs(data__);
     specs__.Series_Start = double(start__);
     specs__.Series_Period = double(freq);
     specs__.Series_Data = double(data__);
@@ -197,10 +346,20 @@ for i = find(~isnan(startDates))
     info__.InputFiles.spc = specsCode__;
 
     %
-    % Run the X13 exectuable on the code
+    % Run the X13 exectuable on the code, and capture the output files
     %
-    [info__.Path, info__.Message] = x13.run(specsCode__, info__, opt);
-    info__.OutputFiles = x13.captureOutputFiles(info__.Path, opt);
+    [info__.Path, info__.Message] = x13.run(specsCode__, info__);
+    if opt.Display
+        disp(info__.Message);
+    end
+
+    [info__.OutputFiles, cleanup] = x13.captureOutputFiles(info__.Path);
+    if opt.Cleanup
+        for n = cleanup
+            delete(n);
+        end
+    end
+
 
     %
     % Extract the contents of output files into the OutputFiles struct
@@ -250,7 +409,7 @@ end%
 % Local Functions
 %
 
-function specs = locallyWriteOutputTablesToSpecs(specs, outputTables)
+function specs = local_writeOutputTablesToSpecs(specs, outputTables)
     prefixes = extractBefore(outputTables, "_");
     attributes = extractAfter(outputTables, "_");
     for i = 1 : numel(outputTables)
@@ -259,7 +418,7 @@ function specs = locallyWriteOutputTablesToSpecs(specs, outputTables)
 end%
 
 
-function [specs, flipSign] = locallyResolveAutoMode(data, specs)
+function [specs, flipSign] = local_resolveAutoMode(data, specs)
     flipSign = 1;
     if isfield(specs, "X11_Mode") && isequal(specs.X11_Mode, @auto)
         inxNaN = ~isfinite(data);
@@ -275,14 +434,14 @@ function [specs, flipSign] = locallyResolveAutoMode(data, specs)
 end%
 
 
-function specs = locallyRemoveEmptySpecs(specs)
+function specs = local_removeEmptySpecs(specs)
     specsNames = reshape(string(fieldnames(specs)), 1, [ ]);
     inxRemove = structfun(@isempty, specs);
     specs = rmfield(specs, specsNames(inxRemove));
 end%
 
 
-function specs = locallyResolveDataAttributes(specs)
+function specs = local_resolveDataAttributes(specs)
     specsNames = reshape(string(fieldnames(specs)), 1, [ ]);
     inxData = endsWith(specsNames, "_Data");
     if ~any(inxData)
@@ -296,7 +455,7 @@ function specs = locallyResolveDataAttributes(specs)
             invalidDataSpecs(end+1) = n; %#ok<AGROW>
             continue
         end
-        specs.(n) = locallyAdjustDataForNaNs(series.Data);
+        specs.(n) = local_adjustDataForNaNs(series.Data);
         specs.(prefix + "_Start") = series.StartAsNumeric;
     end
 
@@ -309,13 +468,13 @@ function specs = locallyResolveDataAttributes(specs)
 end%
 
 
-function data = locallyAdjustDataForNaNs(data)
+function data = local_adjustDataForNaNs(data)
     standin = -99999;
     data(data==standin) = standin - 0.01;
     data(~isfinite(data)) = standin;
 end%
 
-function specs = locallyRequestArimaForSeats(specs)
+function specs = local_requestArimaForSeats(specs)
 % Does not make sense to run Seats without an ARIMA model; make sure either
 % Arima or Automdl is included when Seats is unless Automld=false by the
 % user.
@@ -346,7 +505,7 @@ end%
 % Local Validators
 %
 
-function locallyValidateInputSeries(x)
+function local_validateInputSeries(x)
     if any(x.FrequencyAsNumeric==[2, 4, 6, 12])
         return
     end
@@ -354,7 +513,7 @@ function locallyValidateInputSeries(x)
 end%
 
 
-function locallyValidateX11Mode(x)
+function local_validateX11Mode(x)
     if isequal(x, @auto)
         return
     end
@@ -362,7 +521,7 @@ function locallyValidateX11Mode(x)
 end%
 
 
-function locallyValidateTDPrior(x)
+function local_validateTDPrior(x)
     if isempty(x) || numel(x)==7
         return
     end
@@ -370,7 +529,7 @@ function locallyValidateTDPrior(x)
 end%
 
 
-function locallyValidateSpan(x)
+function local_validateSpan(x)
     if isempty(x) 
         return
     end
@@ -381,7 +540,7 @@ function locallyValidateSpan(x)
 end%
 
 
-function locallyValidatePrecision(x)
+function local_validatePrecision(x)
     %(
     if isnumeric(x) && isscalar(x) && any(x==[0, 1, 2, 3, 4, 5])
         return
@@ -390,7 +549,7 @@ function locallyValidatePrecision(x)
     %)
 end%
 
-function locallyValidateCompType(x)
+function local_validateCompType(x)
     %(
     if isstring(x) && isempty(x)
         return
@@ -403,7 +562,7 @@ function locallyValidateCompType(x)
 end%
 
 
-function locallyValidateSeriesType(x)
+function local_validateSeriesType(x)
     %(
     if isempty(x)
         return
@@ -416,7 +575,7 @@ function locallyValidateSeriesType(x)
 end%
 
 
-function locallyValidateTrendMA(x)
+function local_validateTrendMA(x)
     %(
     if isempty(x)
         return
@@ -429,7 +588,7 @@ function locallyValidateTrendMA(x)
 end%
 
 
-function locallyValidateFunction(x)
+function local_validateFunction(x)
     %(
     if isempty(x)
         return
@@ -442,7 +601,7 @@ function locallyValidateFunction(x)
 end%
 
 
-function locallyValidateAdjust(x)
+function local_validateAdjust(x)
     %(
     if isempty(x)
         return
@@ -455,7 +614,7 @@ function locallyValidateAdjust(x)
 end%
 
 
-function locallyValidateExact(x)
+function local_validateExact(x)
     %(
     if isempty(x)
         return
@@ -468,7 +627,7 @@ function locallyValidateExact(x)
 end%
 
 
-function locallyValidateForceType(x)
+function local_validateForceType(x)
     %(
     if isempty(x)
         return
@@ -481,7 +640,7 @@ function locallyValidateForceType(x)
 end%
 
 
-function locallyValidateForceLambda(x)
+function local_validateForceLambda(x)
     %(
     if isempty(x)
         return
@@ -494,7 +653,7 @@ function locallyValidateForceLambda(x)
 end%
 
 
-function locallyValidateForceRho(x)
+function local_validateForceRho(x)
     %(
     if isempty(x)
         return
@@ -507,7 +666,7 @@ function locallyValidateForceRho(x)
 end%
 
 
-function locallyValidateForceTarget(x)
+function local_validateForceTarget(x)
     %(
     if isempty(x)
         return
@@ -520,7 +679,7 @@ function locallyValidateForceTarget(x)
 end%
 
 
-function locallyValidateOutlierMethod(x)
+function local_validateOutlierMethod(x)
     %(
     if isempty(x)
         return

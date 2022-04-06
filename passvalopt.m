@@ -1,43 +1,15 @@
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
 function varargout = passvalopt(spec, varargin)
-% passvalopt  Pass in and validate optional arguments. Initialise and
-% permanently store default options for IRIS functions. If called with two
-% output arguments, it passes out unused option names-values and does not
-% throw a warning.
-%
-% Backend IRIS function
-% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
-
-% Force resetting the default options structure
-if (nargin==0 && nargout==0) 
-    defaultOptionsStruct = hereInitialize( );
-    setappdata(0, 'IRIS_DefaultFunctionOptions', defaultOptionsStruct);
-    return
-end
-
-defaultOptionsStruct = getappdata(0, 'IRIS_DefaultFunctionOptions');
-if isempty(defaultOptionsStruct)
-    defaultOptionsStruct = hereInitialize( );
-    setappdata(0, 'IRIS_DefaultFunctionOptions', defaultOptionsStruct);
-end
-
-if nargout==0
-    return
-elseif nargin==0
-    varargout{1} = defaultOptionsStruct;
-    return
-end
-
-%--------------------------------------------------------------------------
-
-if ischar(spec)
-    spl = strsplit(spec, '.');
-    spec = defaultOptionsStruct.(spl{1}).(spl{2});
-else
+if iscell(spec)
     spec = list2struct(spec);
+else
+    error('Invalid specs for default options and validators');
 end
+
 
 defaultName = spec.Name;
 defaultPrimaryName = spec.PrimaryName;
@@ -148,45 +120,12 @@ varargout = { opt, listUnused };
 end%
 
 
-function defaultOptionsStruct = hereInitialize( )
-    list = { 'dbase'
-             'dest'
-             'FAVAR'
-             'fragileobj'
-             'freqdom'
-             'Global'
-             'HData'
-             'grfun'
-             'grouping'
-             'IRIS'
-             'irisoptim'
-             'latex'
-             'model'
-             'poster'
-             'textfun'
-             'SVAR'
-             'tseries'
-             'VAR'          };
-    defaultOptionsStruct = struct( );
-    for ii = 1 : numel(list)
-        name = list{ii};
-        try
-            defaultOptionsStruct.(name) = iris.options.(name)( );
-            listOfFunctions = fieldnames(defaultOptionsStruct.(name));
-            for jj = 1 : numel(listOfFunctions)
-                func = listOfFunctions{jj};
-                defaultOptionsStruct.(name).(func) = list2struct(defaultOptionsStruct.(name).(func));
-            end
-        end
-    end
-end%
-
-
 function y = list2struct(x)
     y = struct( );
     if isempty(x)
         return
     end
+
     if size(x, 1)==1 && size(x, 2)>3
         x = reshape(x, 3, size(x, 2)/3).';
     end

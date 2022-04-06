@@ -78,13 +78,13 @@ end
 function dateFormat = locallyCreateDefaultDateFormat(startDate)
     %(
     switch dater.getFrequency(startDate)
-        case Frequency__.Yearly
+        case frequency.YEARLY
             dateFormat = "YYYY";
-        case Frequency__.Quarterly
+        case frequency.QUARTERLY
             dateFormat = "YYYY-Q";
-        case {Frequency__.HalfYearly, Frequency__.Monthly}
+        case {frequency.HALFYEARLY, frequency.MONTHLY}
             dateFormat = "YYYY-MM";
-        case Frequency__.Integer
+        case frequency.INTEGER
             dateFormat = "YY";
         otherwise
             dateFormat = "YYYY-MM-DD";

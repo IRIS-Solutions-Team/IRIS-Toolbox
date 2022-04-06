@@ -49,48 +49,39 @@ function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 arguments
     this TimeSubscriptable
     newStart {validate.mustBeDate(newStart)}
-    newEnd {validate.mustBeScalarOrEmpty, validate.mustBeDate(newEnd)} = []
-end
 
-newStart = double(newStart);
-newEnd = double(newEnd);
-if all(isinf(newStart)) && all(isinf(newEnd))
-    return
+    newEnd {validate.mustBeScalarOrEmpty, validate.mustBeDate(newEnd)} = []
 end
 %)
 % >=R2019b
+
 
 % <=R2019a
 %{
 function [this, newStart, newEnd] = clip(this, newStart, varargin)
 
-%
-% Fast track for `x = clip(x, Inf)`
-%
-if isempty(varargin) && nargout<2 && isequal(newStart, Inf)
-    return
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addOptional(ip, "newEnd", []);
 end
-
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('TimeSubscriptable.clip');
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    addRequired(pp, 'newStart', @validate.date);
-    addOptional(pp, 'newEnd', [ ], @(x) isempty(x) || (validate.date(x) && isscalar(x) && ~isequal(x, -Inf)));
-end
-parse(pp, this, newStart, varargin{:});
-newStart = double(newStart);
-newEnd = double(pp.Results.newEnd);
+parse(ip, varargin{:});
+newEnd = ip.Results.newEnd;
 %}
 % <=R2019a
 
+
+newStart = double(newStart);
+newEnd = double(newEnd);
+
+if all(isinf(newStart)) && (isempty(newEnd) || all(isinf(newEnd)))
+    return
+end
 
 if isempty(newEnd)
     newEnd = newStart(end);
 end
 newStart = newStart(1);
-
-%--------------------------------------------------------------------------
 
 thisStart = double(this.Start);
 thisEnd = this.EndAsNumeric;

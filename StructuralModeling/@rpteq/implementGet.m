@@ -9,7 +9,7 @@ function [answ, flag, query] = implementGet(this, query, varargin)
 
 %--------------------------------------------------------------------------
 
-[answ, flag, query] = implementGet@shared.UserDataContainer(this, query, varargin{:});
+[answ, flag, query] = implementGet@iris.mixin.UserDataContainer(this, query, varargin{:});
 if flag
     return
 end

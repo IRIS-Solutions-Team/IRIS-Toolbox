@@ -10,17 +10,17 @@ classdef Pseudofunc
         MOVAVG      ( 'avg',  '+', -4, '0', '',    ''  , ''   , '')
         MOVGEOM     ( 'avg',  '*', -4, '1', '',    ''  , ''   , '')
     end
-    
-    
-    
-    
+
+
+
+
     properties (SetAccess=immutable)
         Type
         Operator
         DefaultK
 
-        % EmptyReturn  Value to return if second (optional) input is zero  
-        EmptyReturn 
+        % EmptyReturn  Value to return if second (optional) input is zero
+        EmptyReturn
 
         Transform
         BetaOperator
@@ -28,10 +28,10 @@ classdef Pseudofunc
         ExtraTerm
         ExtraWrap
     end
-    
-    
-    
-    
+
+
+
+
     properties (Constant)
         TIME_SUBS_FORMAT_STRING = '%+.0f'
         NAME_WITH_SHIFT_PATTERN = '(\<[a-zA-Z][`\w]*\>\{[\d\+-]+)\}'
@@ -39,10 +39,10 @@ classdef Pseudofunc
         ARITHMETIC_AVG_FORMAT = '/%g';
         GEOMETRIC_AVG_FORMAT = '^(1/%g)';
     end
-    
-    
-    
-    
+
+
+
+
     methods
         function this = Pseudofunc(type, op, defaultK, emptyReturn, transform, betaOp, extraTerm, extraWrap)
             this.Type = type;
@@ -54,10 +54,10 @@ classdef Pseudofunc
             this.ExtraTerm = extraTerm;
             this.ExtraWrap = extraWrap;
         end%
-        
-        
-        
-        
+
+
+
+
         function c = parseKeyword(this, c)
             ptnKey = getPattern(this);
             wh = parser.White.whiteOutLabels(c);
@@ -103,10 +103,10 @@ classdef Pseudofunc
                 sh = [ sh(1:startKey-1), shRepl, sh(closeBracket+1:end) ];
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function args = resolveDefaultArg(this, args)
             if numel(args)<2 || strlength(args{2})==0
                 args{2} = this.DefaultK;
@@ -123,15 +123,15 @@ classdef Pseudofunc
                 end
             end
         end%%
-        
-        
-        
-        
+
+
+
+
         function body = expand(this, varargin)
             [body, diffops] = varargin{1:2};
             body = char(body);
             diffops = reshape(double(diffops), 1, [ ]);
-            if ~isnumeric(diffops) || any(diffops==0) 
+            if ~isnumeric(diffops) || any(diffops==0)
                 repl = this.EmptyReturn;
                 return
             end
@@ -140,7 +140,7 @@ classdef Pseudofunc
                 transform = i==1; % [^1]
                 enclose = i==numDiffops; % [^2]
                 % [^1]: Apply transformation, such as log( ), only when
-                % expanding the pseudofunction the first time 
+                % expanding the pseudofunction the first time
                 % [^2]: Wrap the expansion in an extra pair of parentheses
                 % only when expending the pseudofunction the last time
 
@@ -148,10 +148,10 @@ classdef Pseudofunc
                 body = concatenateTerms(this, list, beta, transform, enclose);
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function [list, beta] = createAllTerms(this, body, shift, varargin)
             beta = '';
             body(isstrprop(body, 'wspace')) = '';
@@ -165,7 +165,7 @@ classdef Pseudofunc
                         if ~isempty(beta) && isempty(regexp(beta, '^[\w\.]+$', 'once'))
                             beta = ['(', beta, ')'];
                         end
-                    end                    
+                    end
                     temp = this.shiftTimeSubs(body, shift);
                     list = { body, temp };
                 case {'mov', 'avg'}
@@ -182,10 +182,10 @@ classdef Pseudofunc
                     end
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function c = concatenateTerms(this, list, beta, transform, enclose)
             list = strcat('(', list, ')');
             if transform
@@ -215,30 +215,30 @@ classdef Pseudofunc
                         format = this.GEOMETRIC_AVG_FORMAT;
                 end
                 c = ['(', c, ')', sprintf(format, lenList)];
-            end            
+            end
             if enclose
                 c = ['(', c, ')'];
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function ptn = getPattern(this)
             ptn = ['\<', lower(char(this)), '\>\s*\('];
         end%
-        
-        
-        
-        
+
+
+
+
         function n = len(this)
             n = length(char(this));
         end%
     end
-    
-    
-    
-    
+
+
+
+
     methods (Static)
         function sh = createShadowCode(c)
             c = char(c);
@@ -248,9 +248,9 @@ classdef Pseudofunc
             sh(c=='[') = 1i;
             sh(c==']') = -1i;
         end%
-        
-        
-        
+
+
+
         function c = shiftTimeSubs(c, k)
             if isstring(k) || ischar(k)
                 s = char(k);

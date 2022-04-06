@@ -5,30 +5,26 @@
 
 % >=R2019b
 %(
-function varargout = implementFilter(order, inputSeries, range__, options)
+function varargout = implementFilter(order, inputSeries, range__, opt)
 
 arguments
     order (1, 1) double {mustBeInteger, mustBePositive}
     inputSeries NumericTimeSubscriptable
     range__ (1, :) double {validate.mustBeRange} = Inf
 
-    options.Range {validate.mustBeRange} = Inf
-    options.Change Series = Series.empty(0, 1)
-    options.Growth Series = Series.empty(0, 1)
-    options.Gamma = 1
-    options.Cutoff = []
-    options.CutoffYear = []
-    options.Drift (1, 1) double = 0
-    options.Gap = []
-    options.InfoSet {mustBeMember(options.InfoSet, [1, 2])} = 2
-    options.Lambda (1, 1) = @auto
-    options.Level Series = Series.empty(0, 1)
-    options.Log (1, 1) logical = false
-    options.Swap (1, 1) logical = false
-end
-
-if isempty(options.Change) && ~isempty(options.Growth)
-    options.Change = options.Growth;
+    opt.Range {validate.mustBeRange} = Inf
+    opt.Change Series = Series.empty(0, 1)
+        opt.Growth__Change Series = []
+    opt.Gamma = 1
+    opt.Cutoff = []
+    opt.CutoffYear = []
+    opt.Drift (1, 1) double = 0
+    opt.Gap = []
+    opt.InfoSet {mustBeMember(opt.InfoSet, [1, 2])} = 2
+    opt.Lambda (1, 1) = @auto
+    opt.Level Series = Series.empty(0, 1)
+    opt.Log (1, 1) logical = false
+    opt.Swap (1, 1) logical = false
 end
 %)
 % >=R2019b
@@ -38,33 +34,38 @@ end
 %{
 function varargout = implementFilter(order, inputSeries, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@NumericTimeSubscriptable/implementFilter');
-    addRequired(pp, 'order', @(x) validate.roundScalar(x, 0, Inf));
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addOptional(pp, 'range__', Inf, @validate.range);
+order = double(order);
 
-    addParameter(pp, 'Range', Inf, @validate.range);
-    addParameter(pp, {'Change', 'Growth'}, [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'Gamma', 1, @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x, 0, Inf));
-    addParameter(pp, 'Cutoff', [ ], @(x) isempty(x) || (isnumeric(x) && all(x(:)>0)));
-    addParameter(pp, 'CutoffYear', [ ], @(x) isempty(x) || (isnumeric(x) && all(x(:)>0)));
-    addParameter(pp, 'Drift', 0, @validate.numericScalar);
-    addParameter(pp, 'Gap', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'InfoSet', 2, @(x) isequal(x, 1) || isequal(x, 2));
-    addParameter(pp, 'Lambda', @auto, @(x) isequal(x, @auto) || isempty(x) || (isnumeric(x) && all(x(:)>0)));
-    addParameter(pp, 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'Log', false, @validate.logicalScalar);
-    addParameter(pp, 'Swap', false, @validate.logicalScalar);
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addOptional(ip, "range__", Inf, @isnumeric);
+
+    addParameter(ip, "Range", Inf);
+    addParameter(ip, "Change", Series.empty(0, 1));
+        addParameter(ip, "Growth__Change", []);
+    addParameter(ip, "Gamma", 1);
+    addParameter(ip, "Cutoff", []);
+    addParameter(ip, "CutoffYear", []);
+    addParameter(ip, "Drift", 0);
+    addParameter(ip, "Gap", []);
+    addParameter(ip, "InfoSet", 2);
+    addParameter(ip, "Lambda", @auto);
+    addParameter(ip, "Level", Series.empty(0, 1));
+    addParameter(ip, "Log", false);
+    addParameter(ip, "Swap", false);
 end
-options = parse(pp, order, inputSeries, varargin{:});
-range__ = pp.Results.range__;
+parse(ip, varargin{:});
+range__ = ip.Results.range__;
+opt = rmfield(ip, ["range__"]);
 %}
 % <=R2019a
 
 
-range = double(options.Range);
+opt = iris.utils.resolveAlias(opt, [], true);
+
+
+range = double(opt.Range);
 if isequal(range, Inf) && ~isequal(range__, Inf)
     range = double(range__);
 end
@@ -82,16 +83,16 @@ lambdaFunc = @(cutoff, order) (2*sin(pi./cutoff)).^(-2*order);
 cutoffFunc = @(lambda, order) pi./asin(0.5*lambda.^(-1/(2*order)));
 freq = dater.getFrequency(inputSeries.Start);
 
-if ~isempty(options.CutoffYear)
-    cutoff = options.CutoffYear * freq;
+if ~isempty(opt.CutoffYear)
+    cutoff = opt.CutoffYear * freq;
     lambda = lambdaFunc(cutoff, order);
-elseif ~isempty(options.Cutoff)
-    cutoff = options.Cutoff;
+elseif ~isempty(opt.Cutoff)
+    cutoff = opt.Cutoff;
     lambda = lambdaFunc(cutoff, order);
 else
-    if isequal(options.Lambda, @auto) ...
-            || isempty(options.Lambda) ...
-            || isequal(options.Lambda, 'auto')
+    if isequal(opt.Lambda, @auto) ...
+            || isempty(opt.Lambda) ...
+            || isequal(opt.Lambda, 'auto')
         if freq==Frequency.INTEGER || freq==Frequency.DAILY
             exception.error([
                 "NumericTimeSubscriptable:implementFilter"
@@ -102,7 +103,7 @@ else
             lambda = defaultLambdaFunc(freq, order);
         end
     else
-        lambda = options.Lambda;
+        lambda = opt.Lambda;
     end
     cutoff = cutoffFunc(lambda, order);
 end
@@ -120,7 +121,7 @@ end
 inputSeries = clip(inputSeries, inputStart, inputEnd);
 
 lambda = reshape(lambda, 1, [ ]);
-drift = reshape(options.Drift, 1, [ ]);
+drift = reshape(opt.Drift, 1, [ ]);
 
 % Determine the filter range
 [filterStart, filterEnd, levelStart, levelEnd, changeStart, changeEnd] = hereGetFilterRange( );
@@ -137,14 +138,14 @@ data = getDataFromTo(inputSeries, filterStart, filterEnd);
 levelData = [ ];
 changeData = [ ];
 if isLevel
-    levelData = getDataFromTo(options.Level, filterStart, filterEnd);
+    levelData = getDataFromTo(opt.Level, filterStart, filterEnd);
 end
 if isGrowth
-    changeData = getDataFromTo(options.Change, filterStart, filterEnd);
+    changeData = getDataFromTo(opt.Change, filterStart, filterEnd);
 end
 
 % Log data and tunes if requested by the user.
-if options.Log
+if opt.Log
     data = log(data);
     fnLogReal = @(x) log(real(x)) + 1i*imag(x);
     if isLevel
@@ -156,11 +157,11 @@ if options.Log
 end
 
 [tnd, gap] = numeric.clpf( ...
-    data, lambda, order, options.InfoSet, levelData, changeData, gamma, drift ...
+    data, lambda, order, opt.InfoSet, levelData, changeData, gamma, drift ...
 );
 
 % Delog data back
-if options.Log
+if opt.Log
     tnd = exp(tnd);
     gap = exp(gap);
 end
@@ -169,7 +170,7 @@ end
 varargout = cell(1, 4);
 
 % The option `'swap='` swaps the first two output arguments, trend and gap.
-if ~options.Swap
+if ~opt.Swap
     posLow = 1;
     posHigh = 2;
 else
@@ -193,16 +194,16 @@ varargout{4} = lambda;
 return
 
     function [filterStart, filterEnd, levelStart, levelEnd, changeStart, changeEnd] = hereGetFilterRange( )
-        if ~isempty(options.Level) && isa(options.Level, 'NumericTimeSubscriptable')
-            levelStart = options.Level.Start;
-            levelEnd = options.Level.Start + size(options.Level.Data, 1) - 1;
+        if ~isempty(opt.Level) && isa(opt.Level, 'NumericTimeSubscriptable')
+            levelStart = opt.Level.Start;
+            levelEnd = opt.Level.Start + size(opt.Level.Data, 1) - 1;
         else
             levelStart = [ ];
             levelEnd = [ ];
         end
-        if ~isempty(options.Change) && isa(options.Change, 'NumericTimeSubscriptable')
-            changeStart = options.Change.Start - 1;
-            changeEnd = options.Change.Start + size(options.Change.Data, 1) - 1;
+        if ~isempty(opt.Change) && isa(opt.Change, 'NumericTimeSubscriptable')
+            changeStart = opt.Change.Start - 1;
+            changeEnd = opt.Change.Start + size(opt.Change.Data, 1) - 1;
         else
             changeStart = [ ];
             changeEnd = [ ];
@@ -213,12 +214,12 @@ return
 
     
     function gamma = hereGetGamma( )
-        if isa(options.Gamma, 'NumericTimeSubscriptable')
-            gamma = getDataFromTo(options.Gamma, filterStart, filterEnd);
+        if isa(opt.Gamma, 'NumericTimeSubscriptable')
+            gamma = getDataFromTo(opt.Gamma, filterStart, filterEnd);
             gamma(isnan(gamma)) = 1;
             gamma = gamma(:, :);
         else
-            gamma = reshape(options.Gamma, 1, [ ]);
+            gamma = reshape(opt.Gamma, 1, [ ]);
         end
     end% 
 end%

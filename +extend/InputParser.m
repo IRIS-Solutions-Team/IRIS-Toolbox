@@ -1,13 +1,16 @@
-classdef InputParser < inputParser 
+classdef InputParser ...
+    < inputParser 
+
     properties
         PrimaryParameterNames = cell.empty(1, 0)
         Options = struct( )
         Aliases = struct( )
         Conditional = inputParser.empty(0)
+        ParameterArguments = struct()
+        Cast = struct()
 
         HasDateOptions (1, 1) logical = false
         DateOptionsContext = ''
-        HasDeviationOptions (1, 1) logical = false
         HasSwapFixOptions (1, 1) logical = false
         HasOptionalRangeStartEnd (1, 1) logical = false
         HasStartEndOptions (1, 1) logical = false
@@ -34,9 +37,11 @@ classdef InputParser < inputParser
         function this = InputParser(functionName)
             this = this@inputParser( );
             this.CaseSensitive = false;
-            if nargin>=1
-                this.FunctionName = char(functionName);
+            if nargin<1
+                stack = dbstack(1, '-completenames');
+                functionName = stack(1).file;
             end
+            this.FunctionName = char(functionName);
         end%
 
 
@@ -52,33 +57,30 @@ classdef InputParser < inputParser
             end
             
             parse@inputParser(this, varargin{:});
-            for i = 1 : numel(this.PrimaryParameterNames)
-                name__ = this.PrimaryParameterNames{i};
-                if isfield(this.Nested, name__)
-                    super__ = this.Nested.(name__)(1);
-                    nested__ = this.Nested.(name__)(2);
+
+            for n = textual.stringify(this.PrimaryParameterNames)
+                if isfield(this.Nested, n)
+                    super__ = this.Nested.(n)(1);
+                    nested__ = this.Nested.(n)(2);
                     if ~isfield(this.Options, super__)
                         this.Options.(super__) = struct( );
                     end
-                    this.Options.(super__).(nested__) = this.Results.(name__);
+                    this.Options.(super__).(nested__) = this.Results.(n);
                 else
-                    this.Options.(name__) = this.Results.(name__);
+                    this.Options.(n) = this.Results.(n);
                 end
             end
-            listAliases = fieldnames(this.Aliases);
-            for i = 1 : numel(listAliases)
-                alias__ = listAliases{i};
-                primaryName__ = this.Aliases.(alias__);
-                if any(strcmp(primaryName__, this.UsingDefaults)) ...
-                    && ~any(strcmp(alias__, this.UsingDefaults))
-                    this.Options.(primaryName__) = this.Results.(alias__);
+
+            for alias = textual.fields(this.Aliases)
+                currPrimaryName = this.Aliases.(alias);
+                if any(strcmp(currPrimaryName, this.UsingDefaults)) ...
+                    && ~any(strcmp(alias, this.UsingDefaults))
+                    this.Options.(currPrimaryName) = this.Results.(alias);
                 end
             end
+
             if this.HasDateOptions
                 this.Options = this.resolveDateOptions(this.Options, this.DateOptionsContext);
-            end
-            if this.HasDeviationOptions
-                resolveDeviationOptions(this);
             end
             if this.HasOptionalRangeStartEnd
                 resolveOptionalRangeStartEnd(this);
@@ -96,6 +98,16 @@ classdef InputParser < inputParser
                 args(1:2:end) = this.Conditional.Parameters;
                 args(2:2:end) = { this.Results };
                 parse(this.Conditional, args{:});
+            end
+
+            % Remove aliases from this.Options
+            allFields = textual.fields(this.Options);
+            fieldsToRemove = setdiff(allFields, textual.stringify(this.PrimaryParameterNames));
+            this.Options = rmfield(this.Options, fieldsToRemove);
+
+            % Cast options as user specified types
+            for n = textual.fields(this.Cast)
+                this.Options.(n) = this.Cast.(n)(this.Options.(n));
             end
 
             if nargout>=1
@@ -129,25 +141,60 @@ classdef InputParser < inputParser
 
 
         function addParameter(this, name, varargin)
-            if ischar(name) || (isstring(name) && numel(name)==1)
-                name = this.REPLACE(name);
-                addParameter@inputParser(this, name, varargin{:});
-                this.PrimaryParameterNames{end+1} = name;
+            name = textual.stringify(name);
+            if numel(name)==1
+                nameToRegister = name;
+                isPrimaryName = true;
+                aliases = [];
+            elseif numel(name)==2 && strlength(name(1))==0
+                nameToRegister = name(2);
+                isPrimaryName = false;
+                aliases = [];
+            else
+                nameToRegister = name(1);
+                isPrimaryName = true;
+                aliases = name(2:end);
+            end
+
+            cast = [];
+            if numel(varargin)>=3
+                cast = varargin{3};
+                varargin(3) = [];
+            end
+
+            nameToRegister = this.REPLACE(nameToRegister);
+            addParameter@inputParser(this, nameToRegister, varargin{:});
+
+            if isPrimaryName
+                this.ParameterArguments.(nameToRegister) = varargin;
+                this.PrimaryParameterNames{end+1} = char(nameToRegister);
                 if this.KeepDefaultOptions
-                    this.DefaultOptions.(name) = varargin{1};
+                    this.DefaultOptions.(nameToRegister) = varargin{1};
                 end
+                addCast(this, nameToRegister, cast);
+            end
+
+            if ~isempty(aliases)
+                addAlias(this, nameToRegister, aliases);
+            end
+        end%
+
+
+        function addCast(this, name, cast)
+            if isa(cast, 'function_handle')
+                this.Cast.(name) = cast;
+            end
+        end%
+
+
+        function addAlias(this, primaryName, aliases)
+            if nargin<3 || isempty(aliases)
                 return
             end
-            name = cellstr(name);
-            primaryName = this.REPLACE(name{1});
-            addParameter@inputParser(this, primaryName, varargin{:});
-            if this.KeepDefaultOptions
-                this.DefaultOptions.(primaryName) = varargin{1};
-            end
-            this.PrimaryParameterNames{end+1} = primaryName;
-            for i = 2 : numel(name)
-                this.Aliases.(name{i}) = primaryName;
-                addParameter@inputParser(this, name{i}, varargin{:});
+            args = this.ParameterArguments.(primaryName);
+            for n = textual.stringify(aliases)
+                this.Aliases.(n) = primaryName;
+                addParameter(this, ["", n], args{:});
             end
         end%
 
@@ -201,12 +248,11 @@ classdef InputParser < inputParser
         function addDateOptions(this, context)
             configStruct = iris.get( );
             addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime) || isequal(x, @default) || isequal(x, @iso));
-            addParameter(this, {'EnforceFrequency', 'Frequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
-            addParameter(this, {'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
-            addParameter(this, {'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
-            addParameter(this, {'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
-            addParameter(this, 'ConversionDay', @config, @iris.Configuration.validateConversionDay);
-            addParameter(this, 'WDay', @config, @iris.Configuration.validateWDay);
+            addParameter(this, {'EnforceFrequency', 'Frequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || isa(Frequency(x), 'Frequency'));
+            addParameter(this, {'Months', 'Month'}, iris.Configuration.Months, @iris.Configuration.validateMonths);
+            addParameter(this, {'ConversionMonth', 'StandInMonth'}, iris.Configuration.ConversionMonth, @iris.Configuration.validateConversionMonth);
+            addParameter(this, 'ConversionDay', iris.Configuration.ConversionDay, @iris.Configuration.validateConversionDay);
+            addParameter(this, 'WDay', iris.Configuration.WDay, @iris.Configuration.validateWDay);
             addParameter(this, 'DatePosition', 'c', @(x) (ischar(x) || isstring(x)) && startsWith(lower(string(x)), ["s", "e", "c"]));
 
             % Backward compatibility options for datxtick( )
@@ -223,13 +269,6 @@ classdef InputParser < inputParser
             addParameter(this, 'Function', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
             addParameter(this, 'Tight', false, @(x) isequal(x, true) || isequal(x, false));
             addParameter(this, 'XLimMargins', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
-        end%
-
-
-        function addDeviationOptions(this, deviationDefault)
-            addParameter(this, {'Deviation', 'Deviations'}, deviationDefault, @(x) isequal(x, true) || isequal(x, false));
-            addParameter(this, {'DTrends', 'DTrend', 'EvalTrends'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-            this.HasDeviationOptions = true;
         end%
 
 
@@ -269,13 +308,6 @@ classdef InputParser < inputParser
 
         function addDisplayOption(this, defaultDisplay)
             addParameter(this, 'Display', defaultDisplay, @solver.Options.validateDisplay);
-        end%
-
-
-        function resolveDeviationOptions(this)
-            if isequal(this.Options.DTrends, @auto)
-                this.Options.DTrends = ~this.Options.Deviation;
-            end
         end%
 
 
@@ -344,11 +376,6 @@ classdef InputParser < inputParser
                 pos = find(index, 1, 'last');
                 dateOptionsInCell = [dateOptionsInCell, {'DateFormat', opt.(listFields{pos})}];
             end
-            index = strncmpi(listFields, 'FreqLetter', 10);
-            if any(index)
-                pos = find(index, 1, 'last');
-                dateOptionsInCell = [dateOptionsInCell, {'FreqLetters', opt.(listFields{pos})}];
-            end
             index = strncmpi(listFields, 'Month', 5);
             if any(index)
                 pos = find(index, 1, 'last');
@@ -381,26 +408,6 @@ classdef InputParser < inputParser
                     otherwise
                         opt.DateFormat = configStruct.DateFormat;
                 end
-            end
-
-            if isequal(opt.FreqLetters, @config)
-                opt.FreqLetters = configStruct.FreqLetters;
-            end
-
-            if isequal(opt.Months, @config)
-                opt.Months = configStruct.Months;
-            end
-
-            if isequal(opt.ConversionMonth, @config)
-                opt.ConversionMonth = configStruct.ConversionMonth;
-            end
-
-            if isequal(opt.ConversionDay, @config)
-                opt.ConversionDay = configStruct.ConversionDay;
-            end
-
-            if isequal(opt.WDay, @config)
-                opt.WDay = configStruct.WDay;
             end
             %)
         end%

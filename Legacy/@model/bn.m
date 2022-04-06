@@ -52,10 +52,15 @@ if isempty(pp)
     pp.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
     pp.addRequired('InputDatabank', @isstruct);
     pp.addRequired('Range', @validate.date);
-    pp.addDeviationOptions(false);
+    pp.addParameter('Deviation', false, @validate.logicaScalar);
+    pp.addParameter('EvalTrends', logical.empty(1, 0));
 end
-pp.parse(this, inp, range, varargin{:});
-opt = pp.Options;
+
+opt = pp.parse(this, inp, range, varargin{:});
+
+if isempty(opt.EvalTrends)
+    opt.EvalTrends = ~opt.Deviation;
+end
 
 %--------------------------------------------------------------------------
 
@@ -111,7 +116,7 @@ for ithRun = 1 : numRuns
             Kf = repmat(Kf, 1, numPeriods);
             D = repmat(D, 1, numPeriods);
         end
-        if opt.DTrends
+        if opt.EvalTrends
             W = evalTrendEquations(this, [ ], g, ithRun);
         end
     end
@@ -143,7 +148,7 @@ for ithRun = 1 : numRuns
         xf = xf + Kf;
         y = y + D;
     end
-    if opt.DTrends
+    if opt.EvalTrends
         y = y + W;
     end
     

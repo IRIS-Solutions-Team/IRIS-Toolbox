@@ -22,8 +22,8 @@ end
 fprintf(DISP_INDENT);
 fprintf('Number of Equations: [%g]\n',length(this.EqtnRhs));
 
-implementDisp@shared.CommentContainer(this);
-implementDisp@shared.UserDataContainer(this);
+implementDisp@iris.mixin.CommentContainer(this);
+implementDisp@iris.mixin.UserDataContainer(this);
 implementDisp(this.Export);
 
 end%

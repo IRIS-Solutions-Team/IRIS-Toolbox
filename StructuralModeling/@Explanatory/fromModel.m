@@ -108,7 +108,7 @@ end%
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 % Set Up Once
-    f = model.File( );
+    f = ModelSource( );
     f.FileName = "test.model";
     f.Code = [
         "!variables"

@@ -1,19 +1,42 @@
-function [this, namesAssigned] = assignFromModel(this, rhs, options)
+
+% >=R2019b
+%(
+function [this, namesAssigned] = assignFromModel(this, rhs, opt)
 
 arguments
     this Model
     rhs Model
 
-    options.Names (1, :) = @all
-    options.CrossType (1, 1) logical = false
-    options.Level (1, 1) logical = true
-    options.Change (1, 1) logical = true
+    opt.Names (1, :) = @all
+    opt.CrossType (1, 1) logical = false
+    opt.Level (1, 1) logical = true
+    opt.Change (1, 1) logical = true
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [this, namesAssigned] = assignFromModel(this, rhs, varargin)
+
+persistent ip
+if isempty(ip)
+    addParameter(ip, "Names", @all);
+    addParameter(ip, "CrossType", false);
+    addParameter(ip, "Level", true);
+    addParameter(ip, "Change", true);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
 
 namesAssigned = string.empty(1, 0);
 clonePattern = ["", ""]; % TODO
 
-namesToAssign = options.Names;
+namesToAssign = opt.Names;
 if isequal(namesToAssign, @all) || isequal(namesToAssign, Inf)
     namesToAssign = [
         textual.stringify(this.Quantity.Name) ...
@@ -23,7 +46,7 @@ if isequal(namesToAssign, @all) || isequal(namesToAssign, Inf)
 end
 
 
-if isempty(namesToAssign) || (~options.Level && ~options.Change)
+if isempty(namesToAssign) || (~opt.Level && ~opt.Change)
     return
 end
 
@@ -58,7 +81,7 @@ for n = namesToAssign(~inxStdCorr)
 
     if rhs.Quantity.Type(inxRhs)~=this.Quantity.Type(inxThis)
         crossType(end+1) = n;
-        if ~options.CrossType
+        if ~opt.CrossType
             continue
         end
     end
@@ -67,7 +90,7 @@ for n = namesToAssign(~inxStdCorr)
     rhsValue = rhs.Variant.Values(1, inxRhs, :);
     type = this.Quantity.Type(1, inxThis);
     isLog = this.Quantity.InxLog(1, inxThis);
-    newValue = locallyCreateNewValue(oldValue, rhsValue, type, isLog, options);
+    newValue = locallyCreateNewValue(oldValue, rhsValue, type, isLog, opt);
     this.Variant.Values(1, inxThis, :) = newValue;
 
     assigned(end+1) = n;
@@ -75,7 +98,7 @@ end
 
 
 if ~isempty(crossType)
-    if options.CrossType
+    if opt.CrossType
         func = @exception.warning;
     else
         func = @exception.error;
@@ -115,18 +138,18 @@ end%
 % Local functions
 %
 
-function newValue = locallyCreateNewValue(oldValue, rhsValue, type, isLog, options)
+function newValue = locallyCreateNewValue(oldValue, rhsValue, type, isLog, opt)
     %(
     if type==31 || type==32
         newValue = 0;
         return
     end
-    if options.Level
+    if opt.Level
         newLevel = real(rhsValue);
     else
         newLevel = real(oldValue);
     end
-    if options.Change
+    if opt.Change
         newChange = imag(rhsValue);
     else
         newChange = imag(oldValue);

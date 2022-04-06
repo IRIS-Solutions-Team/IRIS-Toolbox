@@ -23,6 +23,7 @@ end
 %)
 % >=R2019b
 
+
 % <=R2019a
 %{
 function mainDb = merge(method, mainDb, varargin)
@@ -46,19 +47,17 @@ else
     varargin(1:posLastStruct) = [ ];
 end
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('databank.merge');
-    pp.addRequired("method", @(x) validate.anyString(string(x), ["horzcat", "vertcat", "replace", "discard", "error"]));
-    pp.addRequired("mainDb", @validate.databank);
-    pp.addRequired('MergeWith');
-    pp.addParameter('MissingField', @remove);
-    pp.addParameter({'Names', 'List'}, @all, @(x) isequal(x, @all) || validate.list(x));
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "MissingField", @remove);
+    addParameter(ip, "Names", @all);
 end
-parse(pp, method, mainDb, mergeWith, varargin{:});
-opt = pp.Options;
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
+
 
 numMergeWith = numel(mergeWith);
 method = char(method);

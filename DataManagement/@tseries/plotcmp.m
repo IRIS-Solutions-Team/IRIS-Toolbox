@@ -74,7 +74,20 @@ if size(X.data,2) < 2
       'The function plotcmp( ) requires multicolumn input time series.');
 end
 
-[opt,varargin] = passvalopt('tseries.plotcmp',varargin{:});
+
+%(
+defaults = { 
+    'compare', [-1;1], @isnumeric
+    'cmpcolor, diffcolor', [1, 0.75, 0.75], @(x) isnumeric(x) && length(x)==3 && all(x>=0) && all(x<=1)
+    'baseline', true, @(x) isequal(x, true) || isequal(x, false)
+    'rhsplotfunc', [ ], @(x) isempty(x) || isequal(x, @bar) || isequal(x, @area) 
+    'cmpplotfunc, diffplotfunc', @bar, @(x) isequal(x, @bar) || isequal(x, @area)
+};
+%)
+
+
+[opt,varargin] = passvalopt(defaults, varargin{:});
+
 
 if ~isempty(opt.rhsplotfunc)
     opt.compareplotfunc = opt.rhsplotfunc;

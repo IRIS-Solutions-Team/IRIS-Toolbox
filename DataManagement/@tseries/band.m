@@ -5,12 +5,12 @@ function [h, pt, range, cData, xCoor] = band(varargin)
 %
 %     [Ln, Bd, Range] = band(X, Low, High...)
 %     [Ln, Bd, Range] = band(Range, X, Low, High, ...)
-%     [Ln, Bd, Range] = band(Ax, Range, X, Low, High, ...)
+%     [Ln, Bd, Range] = band(axesHandle, Range, X, Low, High, ...)
 %
 %
 % __Input Arguments__
 %
-% * `Ax` [ numeric ] - Handle to axes in which the graph will be plotted;
+% * `axesHandle` [ numeric ] - Handle to axes in which the graph will be plotted;
 % if not specified, the current axes will used.
 %
 % * `Range` [ numeric | char ] - Date range; if not specified the entire
@@ -68,11 +68,6 @@ function [h, pt, range, cData, xCoor] = band(varargin)
 % * `DateFormat='YYYYFP'` [ char | cellstr | string ] - Date format string,
 % or array of format strings (possibly different for each date).
 %
-% * `FreqLetters='YHQMW` [ char | string ] - Five letters used to represent
-% the six possible frequencies of IRIS dates, in this order: yearly,
-% half-yearly, quarterly, monthly,  and weekly (such as the `'Q'` in
-% `'2010Q1'`).
-%
 % * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
 % strings representing the names of the twelve months.
 %
@@ -119,27 +114,62 @@ bandDefaults = { ...
     'White', 0.85, @(x) isnumeric(x) && all(x>=0) && all(x<=1), ...
 };
 
-[Ax, Rng, X, Lo, Hi, PlotSpec, varargin] = ...
-    irisinp.parser.parse('tseries.band', varargin{:});
+if all(isgraphics(varargin{1}, 'axes'))
+    axesHandle = varargin{1};
+    varargin(1) = [];
+else
+    axesHandle = gca();
+end
+
+if isnumeric(varargin{1})
+    range = varargin{1};
+    varargin(1) = [];
+else
+    range = Inf;
+end
+
+[X, Lo] = deal(varargin{1:2});
+varargin(1:2) = [];
+
+Hi = [];
+if ~isempty(varargin) 
+    if isa(varargin{1}, 'tseries')
+        Hi = varargin{1};
+        varargin(1) = [];
+    end
+end
+
+plotSpec = '';
+if ~isempty(varargin)
+    x = varargin{1};
+    if iscell(x)
+        plotSpec = x;
+        varargin(1) = [];
+    elseif (ischar(x) || isstring(x)) && mod(numel(varargin), 2)==1
+        plotSpec = x;
+        varargin(1) = [];
+    end
+end
+
 [bandOpt, varargin] = passvalopt(bandDefaults, varargin{:});
 
 %--------------------------------------------------------------------------
 
-if isempty(PlotSpec)
-    PlotSpec = '';
-else
-    PlotSpec = PlotSpec{1};
+if isempty(plotSpec)
+    plotSpec = '';
+elseif iscell(plotSpec)
+    plotSpec = plotSpec{1};
 end
-if isa(Ax, 'function_handle')
-    Ax = Ax( );
+if isa(axesHandle, 'function_handle')
+    axesHandle = axesHandle( );
 end
-[ax, h, range, cData, xCoor] = tseries.implementPlot(@plot, Ax, Rng, X, PlotSpec, varargin{:});
+[axesHandle, h, range, cData, xCoor] = tseries.implementPlot(@plot, axesHandle, range, X, plotSpec, varargin{:});
 
 loData = getData(Lo, range);
 hiData = getData(Hi, range);
-pt = series.band(ax, h, cData, xCoor, loData, hiData, bandOpt);
+pt = series.band(axesHandle, h, cData, xCoor, loData, hiData, bandOpt);
 
-set(ax, 'layer', bandOpt.Grid);
+set(axesHandle, 'layer', bandOpt.Grid);
 
 end%
 

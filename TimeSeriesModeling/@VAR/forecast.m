@@ -1,4 +1,3 @@
-function outp = forecast(this, inp, range, varargin)
 % forecast  Unconditional or conditional VAR forecasts.
 %
 % Syntax
@@ -56,6 +55,8 @@ function outp = forecast(this, inp, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
+function outp = forecast(this, inp, range, varargin)
+
 % Panel VAR
 if this.IsPanel
     outp = runGroups(@forecast, this, inp, range, varargin{:});
@@ -76,8 +77,25 @@ pp.addRequired('Range', @(x) isnumeric(x) && ~any(isinf(x(:))));
 pp.addRequired('Cond', @(x) isempty(x) || isstruct(x));
 pp.parse(this, inp, range, cond);
 
-% Parse options.
-opt = passvalopt('VAR.forecast', varargin{1:end});
+
+%(
+defaults = {
+    'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
+    'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
+    'dboverlay, dbextend', false, @islogicalscalar
+    'Deviation, Deviations', false, @islogicalscalar
+    'meanonly', false, @islogicalscalar
+    'omega', [ ], @isnumeric
+    'returninstruments, returninstrument', true, @islogicalscalar
+    'returnresiduals, returnresidual', true, @islogicalscalar
+    'E', [ ], @(x) isempty(x) || isnumeric(x) 
+    'Sigma', [ ], @isnumeric
+}
+%)
+
+
+opt = passvalopt(defaults, varargin{1:end});
+
 
 range = double(range);
 
@@ -207,7 +225,7 @@ for iLoop = 1 : numRuns
         Omega__(~inx) = double(opt.cross)*Omega__(~inx);
     end
     
-    % Use the `allObserved` option in `@shared.Kalman/smootherForVAR` only if the cov matrix is
+    % Use the `allObserved` option in `@iris.mixin.Kalman/smootherForVAR` only if the cov matrix is
     % full rank. Otherwise, there is singularity.
     s.allObs = rank(Omega__)==ny;
 
@@ -244,7 +262,7 @@ for iLoop = 1 : numRuns
     end
     
     % Run Kalman filter and smoother
-    [~, ~, E__, ~, iY, iP] = shared.Kalman.smootherForVAR( ...
+    [~, ~, E__, ~, iY, iP] = iris.mixin.Kalman.smootherForVAR( ...
         this, A__, B__, KK__, Z__, D__, Omega__, ...
         [ ], [condEndogenous__; condInstrument__], E__, y0__, 0, s ...
     );

@@ -1,8 +1,9 @@
 
-function outputData = moving(inputData, freq, window, func, missingValue, missingTest, periodByPeriod)
 
 % >=R2019b
 %(
+function outputData = moving(inputData, freq, window, func, missingValue, missingTest, periodByPeriod)
+
 arguments
     inputData double
     freq (1, 1) double
@@ -19,25 +20,23 @@ end
 
 % <=R2019a
 %{
-if nargin<3
-    window = @auto;
-end
+function outputData = moving(inputData, freq, varargin)
 
-if nargin<4
-    func = @mean;
+peristent ip
+if isempty(ip)
+    ip = inputParser();
+    addOptional(ip, "window", @auto);
+    addOptional(ip, "func", @mean);
+    addOptional(ip, "missingValue", NaN);
+    addOptional(ip, "missingTest", @isnan);
+    addOptional(ip, "periodByPeriod", false);
 end
-
-if nargin<5
-    missingValue = NaN;
-end
-
-if nargin<6
-    missingTest = @isnan;
-end
-
-if nargin<7
-    periodByPeriod = false;
-end
+parse(ip, varargin{:});
+window = ip.Results.window;
+func = ip.Results.func;
+missingValue = ip.Results.missingValue;
+missingTest = ip.Results.missingTest;
+periodByPeriod = ip.Results.periodByPeriod;
 %}
 % <=R2019a
 

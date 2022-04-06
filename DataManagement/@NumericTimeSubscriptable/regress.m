@@ -5,7 +5,7 @@
 
 % >=R2019b
 %(
-function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, dates, options, legacy)
+function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, dates, opt)
 
 arguments
     lhs NumericTimeSubscriptable
@@ -14,12 +14,10 @@ arguments
     % Legacy positional argument
     dates double = [] 
 
-    options.Dates double = Inf
-    options.Intercept (1, 1) logical = false
-    options.Weights {locallyValidateWeights} = []
-
-    % Legacy options
-    legacy.Constant = []
+    opt.Dates double = Inf
+    opt.Intercept (1, 1) logical = false
+        opt.Constant__Intercept = []
+    opt.Weights {local_validateWeights} = []
 end
 %)
 % >=R2019b
@@ -29,26 +27,24 @@ end
 %{
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addOptional(pp, 'Dates_', [], @isnumeric);
-    addParameter(pp, 'Dates', Inf);
-    addParameter(pp, 'Intercept', false);
-    addParameter(pp, 'Weights', []);
-    addParameter(pp, 'Constant', []);
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addOptional(ip, "dates__", [], @isnumeric);
+
+    addParameter(ip, "Dates", Inf);
+    addParameter(ip, "Intercept", false);
+        addParameter(ip, "Constant__Intercept", []);
+    addParameter(ip, "Weights", []);
 end
-parse(pp, varargin{:});
-options = pp.Results;
-options = rmfield(options, 'Constant');
-options = rmfield(options, 'Dates_');
-
-legacy = struct();
-legacy.Constant = pp.Results.Constant;
-
-dates = pp.Results.Dates_;
+parse(ip, varargin{:});
+dates = ip.Results.dates__;
+opt = rmfield(ip.Results, ["Constant", "dates__"]);
 %}
 % <=R2019a
+
+
+opt = iris.utils.resolveAlias(opt, [], true);
 
 
 %( Legacy input arguments
@@ -59,36 +55,27 @@ if ~isempty(dates) && isnumeric(dates)
         "is obsolete, and will be disallowed in a future release. "
         "Use the option Dates= instead."
     ]);
-    options.Dates = double(dates);
-end
-
-if islogical(legacy.Constant) && isscalar(legacy.Constant)
-    exception.warning([
-        "Obsolete:Option"
-        "Option Constant= is obsolete, and will be removed from this function "
-        "in a future release. Use Intercept= instead."
-    ]);
-    options.Intercept = legacy.Constant;
+    opt.Dates = double(dates);
 end
 %)
 
 
-dates = double(options.Dates);
+dates = double(opt.Dates);
 checkFrequency(lhs, dates);
 [dataY, dates] = getData(lhs, dates);
 dates = double(dates);
 checkFrequency(rhs, dates);
 dataX = getData(rhs, dates);
-if options.Intercept
+if opt.Intercept
     dataX(:, end+1) = 1;
 end
 
-if isempty(options.Weights)
+if isempty(opt.Weights)
     inxRows = all(~isnan([dataX, dataY]), 2);
     [b, stdB, eVar, covB] = lscov(dataX(inxRows, :), dataY(inxRows, :));
 else
-    checkFrequency(options.Weights, dates);
-    dataWeights = getData(options.Weights, dates);
+    checkFrequency(opt.Weights, dates);
+    dataWeights = getData(opt.Weights, dates);
     inxRows = all(~isnan([dataX, dataY, dataWeights]), 2);
     [b, stdB, eVar, covB] = lscov(dataX(inxRows, :), dataY(inxRows, :), dataWeights(inxRows, :));
 end
@@ -113,7 +100,7 @@ end%
 % Local validators
 %
 
-function locallyValidateWeights(x)
+function local_validateWeights(x)
     %(
     if isempty(x) || isa(x, 'NumericTimeSubscriptable')
         return

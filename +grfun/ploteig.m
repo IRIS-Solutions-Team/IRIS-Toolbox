@@ -42,7 +42,14 @@ function [H,HU,HQ] = ploteig(X,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-[opt,varargin] = passvalopt('grfun.ploteig',varargin{:});
+
+defaults = { 
+    'ucircle, unitcircle', true, @(x) isequal(x, true) || isequal(x, false)
+    'quadrants', true, @(x) isequal(x, true) || isequal(x, false)
+};
+
+[opt,varargin] = passvalopt(defaults, varargin{:});
+
 
 plotSpec = [ ...
     {'marker','x','markersize',8,'linestyle','none','linewidth',1.5}, ...

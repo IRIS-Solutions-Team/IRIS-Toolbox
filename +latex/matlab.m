@@ -1,9 +1,10 @@
 function matlab(fileName,D,varargin)
 
-default = { ...
+defaults = { ...
     'format','%g',@ischar, ...
-    };
-options = passvalopt(default,varargin{:});
+};
+
+options = passvalopt(defaults, varargin{:});
 
 try
     D; %#ok<VUNUS>

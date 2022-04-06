@@ -1,16 +1,36 @@
-function outputDb = generate(inputDb, valueFunc, targetNames, inputArgNames, options)
+
+% >=R2019b
+%(
+function outputDb = generate(inputDb, valueFunc, targetNames, inputArgNames, opt)
 
 arguments
     inputDb {validate.mustBeDatabank}
     valueFunc {mustBeA(valueFunc, "function_handle")}
-    targetNames {locallyValidateTargetNames}
-    inputArgNames {locallyValidateInputArgNames}
+    targetNames {local_validateTargetNames}
+    inputArgNames {local_validateInputArgNames}
 
-    options.TargetDb {validate.databank} = inputDb
+    opt.TargetDb {validate.databank} = inputDb
 end
+%)
+% >=R2019b
 
 
-outputDb = options.TargetDb;
+% <=R2019a
+%{
+function outputDb = generate(inputDb, valueFunc, targetNames, inputArgNames, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "TargetDb", inputDb);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
+
+outputDb = opt.TargetDb;
 
 isFunc = isa(targetNames, "function_handle");
 if ~isFunc
@@ -26,7 +46,7 @@ end
 for i = 1 : size(inputArgNames, 1)
     names = textual.stringify(inputArgNames(i, :));
     names = num2cell(names);
-    values = cell(names);
+    values = cell(size(names));
     for j = 1 : numel(names)
         values{j} = inputDb.(names{j});
     end
@@ -46,7 +66,7 @@ end%
 % Local functions
 %
 
-function locallyValidateInputArgNames(x)
+function local_validateInputArgNames(x)
     %(
     if isstring(x) 
         return
@@ -59,7 +79,7 @@ function locallyValidateInputArgNames(x)
 end%
 
 
-function locallyValidateTargetNames(x)
+function local_validateTargetNames(x)
     %(
     if isstring(x)
         return

@@ -14,7 +14,7 @@ removeFromLog = string.empty(1, 0);
 for processor = ["Preprocessor", "Postprocessor"]
     collector.(processor) = regexprep(collector.(processor), "\s+", "");
     if ~isempty(collector.(processor))
-        mf = model.File( );
+        mf = ModelSource( );
         mf.FileName = this.FileName;
         mf.Code = collector.(processor);
         mf.Preparsed = true;

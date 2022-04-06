@@ -303,7 +303,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
     methods (Hidden)
         varargout = trim(varargin)
-        varargout = resolveShift(varargin)
     end
 
 

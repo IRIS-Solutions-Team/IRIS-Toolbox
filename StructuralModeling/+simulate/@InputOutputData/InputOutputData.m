@@ -1,5 +1,5 @@
 classdef InputOutputData ...
-    < shared.DataBlock
+    < iris.mixin.DataBlock
 
     properties
         IsAsynchronous = false

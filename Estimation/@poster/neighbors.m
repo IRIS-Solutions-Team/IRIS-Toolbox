@@ -3,15 +3,36 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function d = neighbor(this, multiplicativeNeighbors, options)
+% >=R2019b
+%(
+function d = neighbor(this, multiplicativeNeighbors, opt)
 
 arguments
     this (1, 1) poster
     multiplicativeNeighbors (1, :) double
 
-    options.Neighbors (1, 1) struct = struct()
-    options.Min (1, 1) double = 1
+    opt.Neighbors (1, 1) struct = struct()
+    opt.Min (1, 1) double = 1
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function d = neighbor(this, multiplicativeNeighbors, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Neighbors", struct());
+    addParameter(ip, "Min", 1);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
 
 d = struct();
 
@@ -25,12 +46,12 @@ for i = 1 : numParams
 
     % `x{1}` is the vector of x-axis points at which the log posterior is
     % evaluated.
-    if isstruct(options.Neighbors) && isfield(options.Neighbors, pList{i})
-        n = numel(options.Neighbors.(pList{i}));
+    if isstruct(opt.Neighbors) && isfield(opt.Neighbors, pList{i})
+        n = numel(opt.Neighbors.(pList{i}));
         pp = cell(1, n);
         pp(:) = {pStar};
         for j = 1 : n
-            pp{j}(i) = options.Neighbors.(pList{i})(j);
+            pp{j}(i) = opt.Neighbors.(pList{i})(j);
             x{1}(end+1, 1) = pp{j}(i);
         end
     else
@@ -38,7 +59,7 @@ for i = 1 : numParams
         pp = cell(1, numNeighbors);
         pp(:) = {pStar};
         for j = 1 : numNeighbors
-            if pp{j}(i)>=options.Min
+            if pp{j}(i)>=opt.Min
                 pp{j}(i) = pStar(i)*multiplicativeNeighbors(j);
             else
                 pp{j}(i) = pStar(i) + (multiplicativeNeighbors(j)-1);

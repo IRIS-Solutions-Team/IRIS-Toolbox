@@ -1,17 +1,36 @@
-function [summaryTable, json, info] = datasets(options)
 
 % >=R2019b
 %(
+function [summaryTable, json, info] = datasets(opt)
+
 arguments
-    options.URL (1, 1) string = databank.fromIMF.Config.URL + "DataFlow"
-    options.WebOptions = databank.fromIMF.Config.WebOptions
-    options.WriteTable (1, 1) string = ""
+    opt.URL (1, 1) string = databank.fromIMF.Config.URL + "DataFlow"
+    opt.WebOptions = databank.fromIMF.Config.WebOptions
+    opt.WriteTable (1, 1) string = ""
 end
 %)
 % >=R2019b
 
+
+% <=R2019a
+%(
+function [summaryTable, json, info] = datasets(varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "URL", databank.fromIMF.Config.URL + "DataFlow");
+    addParameter(ip, "WebOptions", databank.fromIMF.Config.WebOptions);
+    addParameter(ip, "WriteTable", "");
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%)
+% <=R2019a
+
+
 [response, request] = databank.fromIMF.Config.request( ...
-    options.URL, "", options.WebOptions ...
+    opt.URL, "", opt.WebOptions ...
 );
 
 try
@@ -36,8 +55,8 @@ end % for
 summaryTable = table(datasetIds, datasetNames);
 summaryTable.Properties.VariableNames = {'ID', 'Description'};
 
-if strlength(options.WriteTable)>0
-    databank.fromIMF.Config.writeSummaryTable(options.WriteTable, summaryTable);
+if strlength(opt.WriteTable)>0
+    databank.fromIMF.Config.writeSummaryTable(opt.WriteTable, summaryTable);
 end
 
 info = struct();

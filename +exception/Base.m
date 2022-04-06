@@ -5,26 +5,26 @@ classdef Base
         Message = ''
         NeedsHighlight = false
     end
-    
-    
-    
-    
+
+
+
+
     properties (Constant)
         IRIS_IDENTIFIER = "IrisToolbox";
         HIGHLIGHT = '*** '
         BASE_ERROR_HEADER_FORMAT = '[IrisToolbox] Error'
         BASE_WARNING_HEADER_FORMAT = '[IrisToolbox] Warning'
         MAX_LEN = 40
-        ELLIPSIS = iris.get('Ellipsis')
-        
+        ELLIPSIS = char(8230)
+
         ALT2STR_FORMAT = '#%g';
         ALT2STR_FROM_TO_STRING = '-';
-        ALT2STR_DEFAULT_LABEL = 'Parameter Variant(s) ';        
+        ALT2STR_DEFAULT_LABEL = 'Parameter Variant(s) ';
     end
-    
-    
-    
-    
+
+
+
+
     methods
         function this = Base(specs, throwAs)
             if nargin==0
@@ -47,7 +47,7 @@ classdef Base
                 specs = specs(2:end);
                 specs(1) = string(this.HIGHLIGHT) + specs(1);
                 specs(2:end) = strcat(string(repmat(' ', 1, strlength(this.HIGHLIGHT))), specs(2:end));
-                this.Message = char(join(specs, newline( )));
+                this.Message = char(join(specs, newline()));
                 this.NeedsHighlight = false;
             else
                 [this.Identifier, this.Message] = exception.Base.lookupException(specs);
@@ -55,8 +55,8 @@ classdef Base
             end
             this.Identifier = join([this.IRIS_IDENTIFIER, string(this.Identifier)], ":");
         end%
-        
-        
+
+
         function assert(condition, this, varargin)
             if ~condition
                 raise(this, varargin{:});
@@ -108,10 +108,10 @@ classdef Base
                 exception.Base.throwAsWarning(this.Identifier, message);
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function header = createHeader(this)
             if this.ThrowAs=="error"
                 header = this.BASE_ERROR_HEADER_FORMAT;
@@ -121,18 +121,17 @@ classdef Base
                 header = '';
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function throwCode(this, varargin)
             BR = sprintf('\n');
             varargin = strrep(varargin, BR, ' '); % Replace line breaks with spaces.
             varargin = regexprep(varargin, '[ ]{2, }', ' '); % Replace multiple spaces with one space.
             for i = 1 : numel(varargin)
                 if numel(varargin{i})>this.MAX_LEN
-                    varargin{i} = [ varargin{i}(1:this.MAX_LEN), ...
-                                    this.ELLIPSIS ];
+                    varargin{i} = [varargin{i}(1:this.MAX_LEN), char(this.ELLIPSIS)];
                 end
             end
             varargin = strtrim(varargin);
@@ -144,12 +143,12 @@ classdef Base
             this.ThrowAs = lower(string(value));
         end%
     end
-    
-    
-    
-    
+
+
+
+
     methods (Static)
-        function stack = getStack( )
+        function stack = getStack()
             try
                 error("IrisToolbox:Exception", "Stack Reduction");
             catch exc
@@ -160,11 +159,8 @@ classdef Base
 
 
         function stack = reduceStack(adj)
-            stack = exception.Base.getStack( );
+            stack = exception.Base.getStack();
             [~, irisFolder] = fileparts( iris.get('irisroot') );
-            if isempty(irisFolder) || isequal(iris.get('DisplayFullStack'), true)
-                return
-            end
             irisFolder = lower(irisFolder);
             inxIris = cellfun(@(x) ~isempty(strfind(lower(x), irisFolder)), {stack.file});
             lastIris = find(inxIris, 1, 'last');
@@ -176,8 +172,8 @@ classdef Base
                 stack = stack([ ]);
             end
         end%
-        
-        
+
+
         function throwAsError(identifier, message)
             stack = exception.Base.reduceStack(0);
             errorStruct = struct( ...
@@ -187,8 +183,8 @@ classdef Base
             );
             error(errorStruct);
         end%
-        
-        
+
+
         function throwAsWarning(identifier, message)
             q = warning('query');
             warning('off', 'backtrace');
@@ -215,10 +211,10 @@ classdef Base
                 fprintf('\n');
             end
         end%
-        
-        
-        
-        
+
+
+
+
         function s = alt2str(altVec, label, numberFormat)
             % alt2str  Convert vector of alternative param numbers to string
             try
@@ -237,18 +233,18 @@ classdef Base
                 altVec = find(altVec);
             end
             altVec = altVec(:).';
-            
+
             s = '';
             if isempty(altVec)
                 return
             end
-            
+
             n = numel(altVec);
             c = cell(1, n);
             for i = 1 : n
                 c{i} = sprintf([' ',  numberFormat], altVec(i));
             end
-            
+
             % Find continuous ranges; these will be replace with FROM-TO
             ixDiff = diff(altVec)==1;
             ixDiff1 = [false, ixDiff];
@@ -257,18 +253,18 @@ classdef Base
             c(inx) = {'-'};
             s = [c{:}];
             s = regexprep(s, '-+ ', exception.Base.ALT2STR_FROM_TO_STRING);
-            
+
             % [P#1 #5-#10 #100].
             s = [ '[', label, strtrim(s), ']' ];
         end%
-        
-        
-        
-        
+
+
+
+
         function [id, msg] = lookupException(id)
             exceptionLookupTable = getappdata(0, 'IRIS_ExceptionLookupTable');
             if ~isa(exceptionLookupTable, 'table')
-                exceptionLookupTable = exception.Base.resetLookupTable( );
+                exceptionLookupTable = exception.Base.resetLookupTable();
             end
             id = exception.Base.underscore2capital(id);
             inx  = strcmpi(exceptionLookupTable(:, 1), id);
@@ -281,17 +277,17 @@ classdef Base
 
 
 
-        function exceptionLookupTable = resetLookupTable( )
+        function exceptionLookupTable = resetLookupTable()
             pathToHere = fileparts(mfilename('fullpath'));
             fileName = fullfile(pathToHere, 'LookupTable.csv');
-            exceptionLookupTable = exception.readLookupTable( );
+            exceptionLookupTable = exception.readLookupTable();
             setappdata(0, 'IRIS_ExceptionLookupTable', exceptionLookupTable);
         end%
-        
-        
-        
-        
-        function id = underscore2capital(id)        
+
+
+
+
+        function id = underscore2capital(id)
             posLast = find(id==':', 1, 'last');
             c = id(posLast+1:end);
             if any(c=='_')

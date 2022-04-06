@@ -44,11 +44,6 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % order of processing, i.e. the `'$'` signs, or left-justify flags, the
 % `'-'` signs.
 %
-% * `FreqLetters=@config` [ `@config` | char ] - Six letters to represent
-% the five possible date frequencies except daily and integer (annual,
-% semi-annual, quarterly, bimonthly, monthly, weekly); `@config` means the
-% frequency letters will be read from the current IRIS configuration.
-%
 % * `MatchFreq=false` [ `true` | `false` ] - Save only those time series
 % whose date frequencies match the input vector of dates, `Dates`.
 %

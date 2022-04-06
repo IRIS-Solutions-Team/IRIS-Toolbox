@@ -1,13 +1,14 @@
+
 % >=R2019b
 %(
-function outputNames = filterFields(inputDb, options)
+function outputNames = filterFields(inputDb, opt)
 
 arguments
     inputDb (1, 1) {validate.databank(inputDb)}
-    
-    options.Name = @all
-    options.Class (1, :) {locallyValidateClass} = @all
-    options.Value = @all
+
+    opt.Name = @all
+    opt.Class (1, :) {locallyValidateClass} = @all
+    opt.Value = @all
 end
 %)
 % >=R2019b
@@ -17,23 +18,24 @@ end
 %{
 function outputNames = filterFields(inputDb, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addParameter(pp, 'Name', @all);
-    addParameter(pp, 'Class', @all);
-    addParameter(pp, 'Value', @all);
+persistent ip
+if isempty(ip)
+ip = inputParser();
+    addParameter(ip, 'Name', @all);
+    addParameter(ip, 'Class', @all);
+    addParameter(ip, 'Value', @all);
 end
-parse(pp, varargin{:});
-options = pp.Results;
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
+
 stringify = @(x) reshape(string(x), 1, []);
 
-isNameFilter = ~(isequal(options.Name, @all) || isequal(options.Name, "__all__"));
-isClassFilter = ~(isequal(options.Class, @all) || isequal(options.Class, "__all__"));
-isValueFilter = ~(isequal(options.Value, @all) || isequal(options.Value, "__all__"));
+isNameFilter = ~(isequal(opt.Name, @all) || isequal(opt.Name, "__all__"));
+isClassFilter = ~(isequal(opt.Class, @all) || isequal(opt.Class, "__all__"));
+isValueFilter = ~(isequal(opt.Value, @all) || isequal(opt.Value, "__all__"));
 
 allKeys = stringify(fieldnames(inputDb));
 if ~isNameFilter && ~isClassFilter && ~isValueFilter
@@ -46,7 +48,7 @@ shortlist = allKeys;
 if isNameFilter
     shortlistUpdate = string.empty(1, 0);
     for n = shortlist
-        if isequal(iris.utils.applyFunctions(n, options.Name), true)
+        if isequal(iris.utils.applyFunctions(n, opt.Name), true)
             shortlistUpdate(end+1) = n; 
         end
     end
@@ -55,7 +57,7 @@ end
 
 
 if isClassFilter
-    options.Class = stringify(options.Class);
+    opt.Class = stringify(opt.Class);
     shortlistUpdate = string.empty(1, 0);
     for n = shortlist
         if isa(inputDb, 'Dictionary')
@@ -63,7 +65,7 @@ if isClassFilter
         else
             value = inputDb.(n);
         end
-        for c = options.Class
+        for c = opt.Class
             if isa(value, c)
                 shortlistUpdate(end+1) = n;
                 break
@@ -81,7 +83,7 @@ if isValueFilter
         else
             value = inputDb.(n);
         end
-        if isequal(iris.utils.applyFunctions(value, options.Value), true)
+        if isequal(iris.utils.applyFunctions(value, opt.Value), true)
             shortlistUpdate(end+1) = n;
         end
     end

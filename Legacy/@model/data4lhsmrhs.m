@@ -82,18 +82,16 @@ function [ ...
     , extdTimeTrend, dbInfo ...
 ] = data4lhsmrhs(this, inputDb, baseRange, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser("Model/data4lhsmrh");
-    addRequired(inputParser, "inputDb", @locallyValidateInputDb);
-    addRequired(inputParser, "baseRange", @validate.mustBeProperRange);
-
-    addParameter(inputParser, "DbInfo", struct(), @isstruct);
-    addParameter(inputParser, "IgnoreShocks", false, @validate.logicalScalar);
-    addParameter(inputParser, "ResetShocks", false, @validate.logicalScalar);
-    addParameter(inputParser, "NumDummyPeriods", 0, @(x) validate.roundScalar(x, 0, Inf));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "DbInfo", struct());
+    addParameter(ip, "IgnoreShocks", false);
+    addParameter(ip, "ResetShocks", false);
+    addParameter(ip, "NumDummyPeriods", 0);
 end
-opt = parse(inputParser, inputDb, baseRange, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

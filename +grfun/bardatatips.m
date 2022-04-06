@@ -9,7 +9,13 @@ if length(H) > 1
     return
 end
 
-[opt,varargin] = passvalopt('grfun.bardatatips',varargin{:});
+
+defaults = { 
+    'format', '%g', @ischar
+};
+
+[opt,varargin] = passvalopt(defaults, varargin{:});
+
 
 %--------------------------------------------------------------------------
 

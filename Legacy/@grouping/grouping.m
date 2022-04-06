@@ -38,9 +38,9 @@
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 
-classdef grouping < shared.UserDataContainer ...
-                  & shared.CommentContainer ...
-                  & shared.GetterSetter 
+classdef grouping < iris.mixin.UserDataContainer ...
+                  & iris.mixin.CommentContainer ...
+                  & iris.mixin.GetterSetter 
     properties (Hidden)
         Type = ''
         GroupNames = cell(1, 0)
@@ -112,8 +112,8 @@ classdef grouping < shared.UserDataContainer ...
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2021 IRIS Solutions Team.
             
-            this = this@shared.UserDataContainer( );
-            this = this@shared.GetterSetter( );
+            this = this@iris.mixin.UserDataContainer( );
+            this = this@iris.mixin.GetterSetter( );
             
             if isempty(varargin)
                 return
@@ -127,7 +127,12 @@ classdef grouping < shared.UserDataContainer ...
             m = varargin{1};
             type = varargin{2};
             varargin(1:2) = [ ];
-            opt = passvalopt('grouping.grouping', varargin{:});
+
+            defaults = {
+                'IncludeExtras', false, @islogicalscalar
+            };
+
+            opt = passvalopt(defaults, varargin{:});
             
             pp = inputParser( );
             pp.addRequired('m', @(x) isa(x, 'model'));
@@ -163,8 +168,8 @@ classdef grouping < shared.UserDataContainer ...
     
     methods (Hidden)
         function flag = checkConsistency(this)
-            flag = checkConsistency@shared.GetterSetter(this) ...
-                   && checkConsistency@shared.UserDataContainer(this);
+            flag = checkConsistency@iris.mixin.GetterSetter(this) ...
+                   && checkConsistency@iris.mixin.UserDataContainer(this);
         end
         
         

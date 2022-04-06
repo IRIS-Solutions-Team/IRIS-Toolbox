@@ -7,11 +7,11 @@
 %
 
 classdef LinearSystem ...
-    < shared.Kalman
+    < iris.mixin.Kalman
 
     properties
         % Tolerance  Tolerance level object
-        Tolerance = shared.Tolerance( )
+        Tolerance = iris.mixin.Tolerance( )
     end
 
 

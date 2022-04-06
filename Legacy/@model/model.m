@@ -1,11 +1,11 @@
 classdef (InferiorClasses={?table, ?timetable}) ...
-         model < shared.GetterSetter ...
-               & shared.UserDataContainer ...
-               & shared.CommentContainer ...
-               & shared.Estimation ...
-               & shared.LoadObjectAsStructWrapper ...
-               & shared.DatabankPipe ...
-               & shared.Kalman
+         model < iris.mixin.GetterSetter ...
+               & iris.mixin.UserDataContainer ...
+               & iris.mixin.CommentContainer ...
+               & iris.mixin.Estimation ...
+               & iris.mixin.LoadObjectAsStructWrapper ...
+               & iris.mixin.DatabankPipe ...
+               & iris.mixin.Kalman
 
 
     properties (GetAccess=public, SetAccess=protected)
@@ -22,7 +22,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         IsGrowth = false
 
         % Tolerance  Tolerance levels for different contexts
-        Tolerance = shared.Tolerance
+        Tolerance = iris.mixin.Tolerance
 
         % Reporting  [Legacy] Reporting equations
         Reporting = rpteq( )
@@ -67,7 +67,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         Behavior = model.component.Behavior( )
 
         % Export  Export files
-        Export = shared.Export.empty(1, 0)
+        Export = iris.mixin.Export.empty(1, 0)
 
         % TaskSpecific  Not used any more
         TaskSpecific = [ ]
@@ -513,32 +513,38 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-
             if nargin==0
-                % Empty model object
                 return
-            elseif nargin==1 && isa(varargin{1}, 'model')
-                % Copy model object
-                this = varargin{1};
-            elseif nargin==1 && isstruct(varargin{1})
-                % Convert struct (potentially based on old model object
-                % syntax) to model object
-                this = struct2obj(this, varargin{1});
-            elseif nargin>=1 && ( ...
-                ischar(varargin{1}) || iscellstr(varargin{1}) || isstring(varargin{1}) ...
-                || isa(varargin{1}, 'model.File') ...
-            )
-                modelFile = varargin{1};
-                varargin(1) = [ ];
-                [this, opt, parserOpt, optimalOpt] = processConstructorOptions(this, varargin{:});
-                [this, opt] = file2model(this, modelFile, opt, opt.Preparser, parserOpt, optimalOpt);
-                this = build(this, opt);
-            else
-                exeption.error([
-                    "Model:InvalidConstructorCall"
-                    "Invalid call to model constructor."
-                ]);
             end
+
+            exception.warning([
+                "IrisT:Deprecated"
+                "Deprecated: The 'model' object is deprecated and wil removed in the future. "
+                "Use the 'Model' object instead. "
+            ]);
+
+
+            if nargin==1 && isa(varargin{1}, 'model')
+                this = varargin{1};
+                return
+            end
+
+            if nargin==1 && isstruct(varargin{1})
+                this = struct2obj(this, varargin{1});
+                return
+            end
+
+            modelSource = varargin{1};
+            varargin(1) = [ ];
+
+            if ischar(modelSource) || isstring(modelSource) || iscellstr(modelSource)
+                modelSource = ModelSource(modelSource, varargin{:});
+            end
+
+            [opt, parserOpt, optimalOpt] = this.processConstructorOptions(varargin{:});
+            [this, opt] = file2model(this, modelSource, opt, opt.Preparser, parserOpt, optimalOpt);
+            this = build(this, opt);
         end%
     end
 end
+

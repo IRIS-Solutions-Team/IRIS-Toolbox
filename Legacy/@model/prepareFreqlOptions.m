@@ -12,14 +12,18 @@ if isempty(pp)
     pp = extend.InputParser('model.prepareFreqlOptions');
     addParameter(pp, 'Band', [2, Inf], @(x) isnumeric(x) && length(x)==2);
     addParameter(pp, 'InxToExclude', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || islogical(x));
-    addParameter(pp, {'ObjFuncContributions', 'ObjCont', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, {'ReturnObjFuncContribs', 'ObjCont', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     addParameter(pp, 'Relative', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Zero', true, @(x) isequal(x, true) || isequal(x, false));
-    addDeviationOptions(pp, false);
+    addParameter(pp, 'Deviation', false, @validate.logicalScalar);
+    addParameter(pp, 'EvalTrends', logical.empty(1, 0));
 end
-parser(pp, varargin{:});
-likOpt = pp.Options;
+likOpt = pp.parser(varargin{:});
+
+if isempty(likOpt.EvalTrends)
+    likOpt.EvalTrends = ~likOpt.Deviation;
+end
 
 %--------------------------------------------------------------------------
 
@@ -54,7 +58,7 @@ else
 end
 likOpt.OutOfLik = likOpt.OutOfLik(:).';
 npout = length(likOpt.OutOfLik);
-if npout>0 && ~likOpt.DTrends
+if npout>0 && ~likOpt.EvalTrends
     THIS_ERROR  = { 'Model:CannotEstimateOutOfLik'
                     'Cannot estimate out-of-likelihood parameters with the option DTrends=false' };
     throw( exception.Base(THIS_ERROR, 'error') );

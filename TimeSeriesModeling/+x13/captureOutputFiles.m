@@ -1,17 +1,16 @@
-function outputFiles = captureOutputFiles(specsFileTitle, opt)
+function [outputFiles, cleanup] = captureOutputFiles(specsFileTitle, opt)
 
+cleanup = string.empty(1, 0);
 outputFiles = struct( );
 list = dir(specsFileTitle + ".*");
 for i = 1 : numel(list)
     [~, ~, ext] = fileparts(list(i).name);
     ext = erase(ext, ".");
-    path = fullfile(list(i).folder, list(i).name);
+    currPath = fullfile(list(i).folder, list(i).name);
     if string(ext)~="spc"
-        outputFiles.(ext) = fileread(path);
+        outputFiles.(ext) = fileread(currPath);
     end
-    if opt.Cleanup
-        delete(path);
-    end
+    cleanup(end+1) = currPath;
 end
 
 end%

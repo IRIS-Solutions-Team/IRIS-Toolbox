@@ -1,26 +1,18 @@
+function [outputDates, varargout] = getDataFromMultiple(dates, context, varargin)
+
 % >=R2019b
 %(
-function [outputDates, varargout] = getDataFromMultiple(dates, context, inputSeries)
-
 arguments
     dates
     context (1, 1) string
 end
 
 arguments (Repeating)
-    inputSeries
+    varargin
 end
 %)
 % >=R2019b
 
-
-% <=R2019a
-%{
-function [outputDates, varargout] = getDataFromMultiple(dates, context, varargin)
-
-inputSeries = varargin;
-%}
-% <=R2019a
 
 if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
     dates = "unbalanced";

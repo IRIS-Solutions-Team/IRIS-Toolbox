@@ -49,7 +49,18 @@ function [C, Q] = acf(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-opt = passvalopt('VAR.acf', varargin{:});
+
+defaults = {
+    'ApplyTo', @all, @(x) isnumeric(x) || islogical(x) || isequal(x, @all) || iscellstr(x)
+    'Filter', '', @(x) ischar(x) || isstring(x)
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
+    'NFreq', 256, @isnumericscalar
+    'Order', 0, @isnumericscalar
+    'Progress', false, @islogicalscalar
+}; %#ok<*CCAT>
+
+opt = passvalopt(defaults, varargin{:});
+
 
 returnCorrelations = nargout>1;
 isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');

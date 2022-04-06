@@ -26,7 +26,7 @@ classdef Export < parser.control.ExternalFile
             contents = writeFinal(this.Body, p, varargin{:});
             contents = textfun.removeltel(contents);
             contents = completeFileContents(this, contents);
-            addExport = shared.Export(fileName, contents);
+            addExport = iris.mixin.Export(fileName, contents);
             p.Export = [p.Export, addExport];
         end%
 

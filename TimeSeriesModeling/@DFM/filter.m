@@ -146,7 +146,7 @@ s.reuse = opt.Persist;
 s.ahead = 1;
 
 [x, Px, ee, uu, y, Py, ixy] ...
-    = shared.Kalman.smootherForVAR(this, this.A, this.B, [ ], this.C, [ ], 1, Sgm, y, [ ], x0, P0, s);
+    = iris.mixin.Kalman.smootherForVAR(this, this.A, this.B, [ ], this.C, [ ], 1, Sgm, y, [ ], x0, P0, s);
 
 if opt.MeanOnly
     Px = Px(:, :, [ ], [ ]);

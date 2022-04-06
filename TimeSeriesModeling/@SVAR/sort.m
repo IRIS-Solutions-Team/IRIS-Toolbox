@@ -85,6 +85,13 @@ pp.addRequired('Data',@(x) isempty(x) || isstruct(x));
 pp.addRequired('SortBy',@ischar);
 pp.parse(This,Data,SortBy);
 
+
+Def.sort = {...
+    'output','auto',@(x) validate.anyString(x,{'auto','dbase','tseries','array'}), ...
+    'progress',false,@islogicalscalar, ...
+};
+
+
 opt = passvalopt('SVAR.sort',varargin{:});
 isData = nargout>1 && ~isempty(Data);
 

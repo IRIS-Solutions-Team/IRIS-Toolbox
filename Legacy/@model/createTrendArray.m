@@ -121,7 +121,7 @@ end%
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 % Set up Once
-mf = model.File( );
+mf = ModelSource( );
 mf.Code = char(join({
     '!variables'
     '    a, b, c, x, y, z'

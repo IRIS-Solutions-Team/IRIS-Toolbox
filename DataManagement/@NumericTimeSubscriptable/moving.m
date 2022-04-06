@@ -22,19 +22,18 @@ end
 %{
 function this = moving(this, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@Series/moving');
-    pp.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    pp.addOptional('range_', Inf, @validate.range);
-
-    pp.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
-    pp.addParameter('Window', @auto, @(x) isequal(x, @auto) || isnumeric(x));
-    pp.addParameter('Period', false, @validate.logicalScalar);
-    pp.addParameter('Range', Inf, @validate.range);
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addOptional(ip, "range__", Inf, @isnumeric);
+    addParameter(ip, "Window", @auto);
+    addParameter(ip, "Function", @mean);
+    addParameter(ip, "Period", false);
+    addParameter(ip, "Range", Inf);
 end
-opt = pp.parse(this, varargin{:});
-range = pp.Results.range_;
+ip.parse(this, varargin{:});
+range = ip.Results.range__;
+opt = rmfield(opt, "range__");
 %}
 % <=R2019a
 

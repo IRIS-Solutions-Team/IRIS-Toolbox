@@ -49,9 +49,6 @@ function d = dbload(varargin)
 % - Advise frequency of dates; if empty, frequency will be
 % automatically recognised.
 %
-% * `FreqLetters=@config` [ char | @config ] - Letters representing
-% frequency of dates in date column.
-%
 % * `InputFormat='auto'` [ `'auto'` | `'csv'` | `'xls'` ] - Format of input
 % data file; `'auto'` means the format will be determined by the file
 % extension.
@@ -205,7 +202,35 @@ if iscellstr(fileName)
     end
 end
 
-opt = passvalopt('dbase.dbload', varargin{1:end});
+
+%(
+defaults = {
+    'dateformat', @config, @iris.Configuration.validateDateFormat
+    'months, month', @config, @iris.Configuration.validateMonths
+    {'ConversionMonth', 'standinmonth'}, iris.Configuration.ConversionMonth, @iris.Configuration.validateConversionMonth
+    'Wday', iris.Configuration.WDay, @iris.Configuration.validateWDay
+    'case, changecase', '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'}))
+    'commentrow', {'comment', 'comments'}, @(x) ischar(x) || iscellstr(x)
+    'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'}))
+    'delimiter', ', ', @(x) ischar(x) && length(sprintf(x))==1
+    'firstdateonly', false, @islogicalscalar
+    'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2))
+    'namerow, namesrow, leadingrow', {'', 'variables'}, @(x) ischar(x) || iscellstr(x) || isnumericscalar(x)
+    'namefunc, namesFunc', [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x)))
+    'freq', [ ], @(x) isempty(x) || (ischar(x) && strcmpi(x, 'daily')) || (length(x)==1 && isnan(x)) || (isnumeric(x) && length(x)==1 && any(x==[0, 1, 2, 4, 6, 12, 52, 365]))
+    'nan', 'NaN', @(x) ischar(x)
+    'preprocess', [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x)))
+    'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string')
+    'select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x)
+    'skiprows, skiprow', '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x)
+    'userdata', Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x))
+    'userdatafield', '.', @(x) ischar(x) && length(x)==1
+    'userdatafieldlist', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x)
+}; 
+%)
+
+
+opt = passvalopt(defaults, varargin{:});
 opt = datdefaults(opt);
 
 if isequal(opt.firstdateonly, true)
@@ -587,10 +612,11 @@ return
         end
         % Convert date strings
         if ~isempty(dateCol) && ~all(inxEmptyDates)
-            dates(~inxEmptyDates) = str2dat(dateCol(~inxEmptyDates), ...
-                'DateFormat=', opt.dateformat, ...
-                'Freq=', opt.freq, ...
-                'FreqLetters=', opt.freqletters);
+            dates(~inxEmptyDates) = str2dat( ...
+                dateCol(~inxEmptyDates) ...
+                , 'DateFormat', opt.dateformat ...
+                , 'Freq', opt.freq ...
+            );
             if strcmpi(opt.Continuous, 'Ascending')
                 dates(2:end) = dates(1) + (1 : numDates-1);
             elseif strcmpi(opt.Continuous, 'Descending')

@@ -5,7 +5,33 @@
 
 function outputStats = stats(this, theta, logPost, varargin)
 
-opt = passvalopt('poster.stats', varargin{:});
+
+%(
+defaults = {
+    'hpdicover', 90, @(x) isnumericscalar(x) && x >= 0 && x <= 100
+    'histbins, histbin', 50, @(x) isintscalar(x) && x > 0
+    'mddgrid', 0.1:0.1:0.9, @(x) isnumeric(x) && all(x(:) > 0 & x(:) < 1)
+    'output', '', @(x) ischar(x) || iscellstr(x)
+    'progress', false, @islogicalscalar
+    ...
+    'chain', true, @islogicalscalar
+    'cov', false, @islogicalscalar
+    'mean', true, @islogicalscalar
+    'median', false, @islogicalscalar
+    'mode', false, @islogicalscalar
+    'mdd, lmdd', true, @islogicalscalar
+    'std', true, @islogicalscalar
+    'hpdi', false, @(x) islogicalscalar(x) || (isnumericscalar(x) && x > 0 && x < 100)
+    'hist', true, @(x) islogicalscalar(x) || (isintscalar(x) && x > 0)
+    'bounds', false, @islogicalscalar
+    'ksdensity', false, @(x) islogicalscalar(x) || isempty(x) || (isintscalar(x) && x > 0)
+    'prctile, pctile', [ ], @(x) isnumeric(x) && all(x(:) >= 0 & x(:) <= 100)
+};
+%)
+
+
+opt = passvalopt(defaults, varargin{:});
+
 
 herePreprocessOptions();
 

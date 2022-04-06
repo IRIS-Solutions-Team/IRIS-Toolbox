@@ -52,7 +52,11 @@ if length(varargin) == 1 && isnumericscalar(varargin{1})
     varargin = [{'level='},varargin];
 end
 
-opt = passvalopt('VAR.portest',varargin{:});
+defaults = {
+    'level', 0.05, @(x) isnumericscalar(x) && x > 0 && x < 1
+};
+
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

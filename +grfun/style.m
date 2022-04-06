@@ -102,8 +102,15 @@ function style(GS,H,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-% Parse options.
-opt = passvalopt('grfun.style', varargin{:});
+
+defaults = { 
+    'cascade', true, @(x) isequal(x, true) || isequal(x, false) 
+    'offset', 0, @(x) isnumeric(x) && isscalar(x)
+    'warning', true, @(x) isequal(x, true) || isequal(x, false)
+};
+
+opt = passvalopt(defaults, varargin{:});
+
 
 % Swap style struct and graphic handle if needed.
 if all(ishghandle(GS))

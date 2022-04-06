@@ -1,4 +1,4 @@
-classdef Regression < shared.UserDataContainer & shared.CommentContainer
+classdef Regression < iris.mixin.UserDataContainer & iris.mixin.CommentContainer
     properties
         OutputSeries = cell.empty(1, 0)
         InputSeries = cell.empty(1, 0)
@@ -252,7 +252,7 @@ classdef Regression < shared.UserDataContainer & shared.CommentContainer
                 end
                 temp = vecDat;
                 if xFreq>dateFreq
-                    temp = convert(temp, xFreq, 'ConversionMonth=', 'last');
+                    temp = convert(temp, xFreq, 'ConversionMonth', 'last');
                 end
                 for sh = vecSh(:).'
                     data = [data, x(temp+sh)];

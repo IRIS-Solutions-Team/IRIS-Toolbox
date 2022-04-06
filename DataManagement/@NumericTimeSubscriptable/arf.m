@@ -5,7 +5,7 @@
 
 % >=R2019b
 %(
-function this = arf(this, A, Z, range, options)
+function this = arf(this, A, Z, range, opt)
 
 arguments
     this 
@@ -13,29 +13,28 @@ arguments
     Z 
     range (1, :) {validate.mustBeProperRange} 
 
-    options.PrependInput (1, 1) logical = false
-    options.AppendInput (1, 1) logical = false
+    opt.PrependInput (1, 1) logical = false
+    opt.AppendInput (1, 1) logical = false
 end
 %)
 % >=R2019b
+
 
 % <=R2019a
 %{
 function this = arf(this, A, Z, range, varargin)
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser();
-    addRequired(parser, 'x', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(parser, 'A', @isnumeric);
-    addRequired(parser, 'Z', @(x) validate.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
-    addRequired(parser, 'Range', @validate.properRange);
-    addParameter(parser, 'PrependInput', false, @validate.logicalScalar);
-    addParameter(parser, 'AppendInput', false, @validate.logicalScalar);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "PrependInput", false);
+    addParameter(ip, "AppendInput", false);
 end%
-options = parse(parser, this, A, Z, range, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
+
 
 range = double(range);
 A = reshape(A, 1, []);
@@ -101,11 +100,11 @@ end
 
 newStart = extdRange(1);
 
-if options.PrependInput
+if opt.PrependInput
     [dataX, newStart] = herePrependData(dataX, newStart);
 end
 
-if options.AppendInput
+if opt.AppendInput
     dataX = hereAppendData(dataX);
 end
 

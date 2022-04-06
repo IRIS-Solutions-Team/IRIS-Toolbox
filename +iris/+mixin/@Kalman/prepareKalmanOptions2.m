@@ -5,11 +5,10 @@
 %
 
 % >=R2019b
-%{
+%(
 function [opt, timeVarying] = prepareKalmanOptions2(this, range, opt)
 
 arguments
-    %(
     this iris.mixin.Kalman
     range double
 
@@ -25,17 +24,27 @@ arguments
     opt.CheckFmse (1, 1) logical = false
     opt.FmseCondTol (1, 1) double = eps()
     opt.Initials {local_validateInitials} = "steady"
+
     opt.UnitRootInitials {local_validateUnitRootInitials} = "approxDiffuse"
+        opt.InitUnitRoot__UnitRootInitials = [];
+
     opt.LastSmooth (1, 1) double = Inf
     opt.OutOfLik (1, :) string = string.empty(1, 0)
 
     opt.ObjFunc (1, 1) string {mustBeMember(opt.ObjFunc, ["loglik", "prederr"])} = "loglik"
+        opt.Objective__ObjFunc = [];
+
     opt.ReturnObjFuncContribs (1, 1) logical = false
+        opt.ObjDecomp__ReturnObjFuncContribs = [];
+
     opt.ObjFuncRange {local_validateObjFuncRange} = @all
 
     opt.Progress (1, 1) logical = false
     opt.Deviation (1, 1) logical = false
+
     opt.EvalTrends (1, :) logical = logical.empty(1, 0)
+        opt.DTrends__EvalTrends = []
+
     opt.Relative (1, 1) logical = false
     opt.Simulate {local_validateSimulate} = false
     opt.Weighting double = []
@@ -46,10 +55,13 @@ arguments
     opt.ReturnMse (1, 1) logical = true
 
     opt.Override {validate.mustBeDatabankOrEmpty} = []
+        opt.TimeVarying__Override = []
+        opt.Vary__Override = []
+        opt.Std__Override = []
+
     opt.Multiply {validate.mustBeDatabankOrEmpty} = []
-    %)
 end
-%}
+%)
 % >=R2019b
 
 
@@ -59,47 +71,64 @@ function [opt, timeVarying] = prepareKalmanOptions2(this, range, varargin)
 
 persistent ip
 if isempty(ip)
-    %(
-    ip = extend.InputParser('@Kalman.prepareKalmanOptions');
+    ip = inputParser(); 
 
-    ip.addParameter('MatrixFormat', 'namedmat', @validate.matrixFormat);
-    ip.addParameter('OutputData', 'smooth', @validate.text);
-    ip.addAlias('OutputData', {'Data', 'Output'});
+    addParameter(ip, "FlatOutput", true);
+    addParameter(ip, "MatrixFormat", "namedMatrix");
+    addParameter(ip, "OutputData", "smooth");
+    addParameter(ip, "OutputDataAssignFunc", @hdataassign);
 
-    ip.addParameter('FlatOutput', true, @validate.logicalScalar);
+    addParameter(ip, "Anticipate", false);
+    addParameter(ip, "Ahead", 1);
+    addParameter(ip, "Contributions", false);
 
-    ip.addParameter('Anticipate', false, @validate.logicalScalar);
-    ip.addParameter('Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
-    ip.addParameter('OutputDataAssignFunc', @hdataassign, @(x) isa(x, 'function_handle'));
-    ip.addParameter({'CheckFmse', 'ChkFmse'}, false, @(x) isequal(x, true) || isequal(x, false));
-    ip.addParameter('Condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
-    ip.addParameter('FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
-    ip.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
-    ip.addParameter({'Initials', 'Init', 'InitCond'}, 'Steady', @local_validateInitials);
-    ip.addParameter({'UnitRootInitials', 'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'approxDiffuse', @local_validateUnitRootInitials);
-    ip.addParameter('LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
-    ip.addParameter('OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    ip.addParameter({'ReturnObjFuncContribs', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
-    ip.addParameter({'ObjFunc', 'Objective'}, 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'})));
-    ip.addParameter({'ObjFuncRange', 'ObjectiveSample'}, @all, @local_validateObjFuncRange);
-    ip.addParameter('Deviation', false, @validate.logicaScalar);
-    ip.addParameter({'EvalTrends', 'DTrends', 'DTrend'}, logical.empty(1, 0));
-    ip.addParameter('Progress', false, @validate.logicalScalar);
-    ip.addParameter('Relative', false, @validate.logicalScalar);
-    ip.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @validate.mustBeDatabankOrEmpty);
-    ip.addParameter('Multiply', [ ], @validate.mustBeDatabankOrEmpty);
-    ip.addParameter('Simulate', false, @local_validateSimulate);
-    ip.addParameter('Weighting', [ ], @isnumeric);
-    ip.addParameter('MeanOnly', false, @validate.logicalScalar);
-    ip.addParameter('MedianOnly', false, @validate.logicalScalar);
-    ip.addParameter('ReturnStd', true, @validate.logicalScalar);
-    ip.addParameter('ReturnMedian', logical.empty(1, 0));
-    ip.addParameter('ReturnMse', true, @validate.logicalScalar);
-    %)
+    addParameter(ip, "CheckFmse", false);
+    addParameter(ip, "FmseCondTol", eps());
+    addParameter(ip, "Initials", "steady");
+
+    addParameter(ip, "UnitRootInitials", "approxDiffuse");
+        addParameter(ip, "InitUnitRoot__UnitRootInitials", []);
+
+    addParameter(ip, "LastSmooth", Inf);
+    addParameter(ip, "OutOfLik", string.empty(1, 0));
+
+    addParameter(ip, "ObjFunc", "loglik");
+        addParameter(ip, "Objective__ObjFunc", [];);
+
+    addParameter(ip, "ReturnObjFuncContribs", false);
+        addParameter(ip, "ObjDecomp__ReturnObjFuncContribs", []);
+
+    addParameter(ip, "ObjFuncRange", @all);
+
+    addParameter(ip, "Progress", false);
+    addParameter(ip, "Deviation", false);
+
+    addParameter(ip, "EvalTrends", logical.empty(1, 0));
+        addParameter(ip, "DTrends__EvalTrends", []);
+
+    addParameter(ip, "Relative", false);
+    addParameter(ip, "Simulate", false);
+    addParameter(ip, "Weighting", []);
+    addParameter(ip, "MeanOnly", false);
+    addParameter(ip, "MedianOnly", false);
+    addParameter(ip, "ReturnStd", true);
+    addParameter(ip, "ReturnMedian", logical.empty(1, 0));
+    addParameter(ip, "ReturnMse", true);
+
+    addParameter(ip, "Override", []);
+        addParameter(ip, "TimeVarying__Override", []);
+        addParameter(ip, "Vary__Override", []);
+        addParameter(ip, "Std__Override", []);
+
+    addParameter(ip, "Multiply", []);
 end
-opt = parse(ip, varargin{:});
+parse(ip, varargin{:});
+opt = ip.parse(this, varargin{:});
 %}
 % <=R2019a
+
+
+opt = iris.utils.resolveAlias(opt, [], true);
 
 
 if isempty(opt.EvalTrends)

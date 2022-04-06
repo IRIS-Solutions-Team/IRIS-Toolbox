@@ -57,7 +57,7 @@ numRuns = max(nv, numPages);
 % Pre-allocate output data
 %
 numObjFuncs = 1;
-if argin.Options.ObjFuncContributions
+if argin.Options.ReturnObjFuncContribs
     numObjFuncs = numFreq + 1;
 end
 obj = nan(numObjFuncs, numRuns);
@@ -122,7 +122,7 @@ for i = 1 : numRuns
     % Fourier transform of deterministic trends
     isTrendEquations = false;
     numOutlik = 0;
-    if argin.Options.DTrends
+    if argin.Options.EvalTrends
         [W, M] = evalTrendEquations(this, argin.Options.OutOfLik, g, i);
         isTrendEquations = any(W(:)~=0);
         if isTrendEquations
@@ -144,7 +144,7 @@ for i = 1 : numRuns
     end
     
     % Subtract deterministic trends from observations.
-    if argin.Options.DTrends && isTrendEquations
+    if argin.Options.EvalTrends && isTrendEquations
         y = y - W;
     end
     

@@ -31,7 +31,7 @@
 % VAR methods:
 %
 %
-% Categorical List 
+% Categorical List
 % -----------------
 %
 % __Constructor__
@@ -134,7 +134,7 @@
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
-    
+
 classdef (CaseInsensitiveProperties=true) VAR ...
     < BaseVAR ...
     & matlab.mixin.CustomDisplay
@@ -204,8 +204,8 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = subsref(varargin)
         varargout = subsasgn(varargin)
     end
-    
-    
+
+
     methods (Hidden)
         varargout = hdatainit(varargin)
         varargout = end(varargin)
@@ -214,8 +214,8 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = SVAR(varargin)
         varargout = myresponse(varargin)
     end
-    
-    
+
+
     methods (Access=protected, Hidden)
         varargout = assignEst(varargin)
         varargout = getEstimationData(varargin)
@@ -228,15 +228,15 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = specdisp(varargin)
         varargout = stackData(varargin)
     end
-    
-    
+
+
     methods (Static, Hidden)
         varargout = generalizedLsq(varargin)
         varargout = restrict(varargin)
         varargout = smoother(varargin)
     end
 
-    
+
     methods
         function this = VAR(varargin)
 % VAR  Create new empty reduced-form VAR object.
@@ -264,7 +264,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
 %
 %
 % __`EndogenousNames`__ [ string ]
-% 
+%
 %>    Names of endogenous variables.
 %
 %
@@ -273,40 +273,40 @@ classdef (CaseInsensitiveProperties=true) VAR ...
 %>    Names of exogenous inputs.
 %
 %
-% __`GroupNames`__ [ string ] 
-% 
+% __`GroupNames`__ [ string ]
+%
 %>    Names of groups for panel VAR estimation.
 %
 %
 % Options
 %--------------------------------------------------------------------------
 %
-% __`Exogenous=[ ]` [ string ] 
-% 
+% __`Exogenous=[ ]` [ string ]
+%
 %>    Names of exogenous regressors; one of the names can be `!ttrend`, a
 %>    linear time trend, which will be created automatically each time
 %>    input data are required, and then included in the output database
 %>    under the name `ttrend`.
 %
 %
-% __`Groups=[ ]`__ [ string ] 
+% __`Groups=[ ]`__ [ string ]
 %
 %>    Names of groups for panel VAR estimation.
 %
 %
-% __`Intercept=true`___ [ `true` | `false` ] 
-% 
+% __`Intercept=true`___ [ `true` | `false` ]
+%
 %>    Include the intercept in the VAR model.
 %
 %
-% __`Order=1`__ [ numeric ] 
-% 
+% __`Order=1`__ [ numeric ]
+%
 %>    Order of the VAR model, i.e. the number of lags of endogenous
 %>    variables included in estimation.
 %
 %
 % Description
-%-------------------------------------------------------------------------- 
+%--------------------------------------------------------------------------
 %
 % Create a new empty VAR object. The VAR constructor is usually
 % followed by an [`estimate`](VAR/estimate) command to estimate
@@ -332,9 +332,9 @@ classdef (CaseInsensitiveProperties=true) VAR ...
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
-            
+
             this = this@BaseVAR(varargin{:});
-            
+
             if nargin==0
                 return
             elseif nargin==1 && isa(varargin{1}, 'VAR')

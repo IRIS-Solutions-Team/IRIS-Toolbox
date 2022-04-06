@@ -16,6 +16,7 @@
 [`add`](add.md)                                              | Add new chart to a databank.Chartpack object
 [`clear`](clear.md)                                          | Clear all charts from the chartpack
 
+
 ### Drawing the charts
 
 | Function | Description |

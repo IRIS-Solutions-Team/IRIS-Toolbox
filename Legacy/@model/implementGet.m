@@ -8,10 +8,10 @@
 
 function [response, flag, query] = implementGet(this, query, varargin)
 
-[response, flag] = implementGet@shared.UserDataContainer(this, query, varargin{:});
+[response, flag] = implementGet@iris.mixin.UserDataContainer(this, query, varargin{:});
 if flag, return, end
 
-[response, flag] = implementGet@shared.LoadObjectAsStructWrapper(this, query, varargin{:});
+[response, flag] = implementGet@iris.mixin.LoadObjectAsStructWrapper(this, query, varargin{:});
 if flag, return, end
 
 [response, flag] = implementGet(this.Export, query, varargin{:});

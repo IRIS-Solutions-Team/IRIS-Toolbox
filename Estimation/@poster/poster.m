@@ -1,4 +1,4 @@
-classdef poster < shared.GetterSetter
+classdef poster < iris.mixin.GetterSetter
 % poster  Posterior Simulator (poster Objects).
 %
 % Posterior simulator objects allow evaluating the behaviour of the

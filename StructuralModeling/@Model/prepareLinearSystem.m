@@ -182,7 +182,7 @@ return
 
         init = 'Steady';
         initUnit = 'ApproxDiffuse';
-        s = shared.Kalman.initialize(s, init, initUnit);
+        s = iris.mixin.Kalman.initialize(s, init, initUnit);
         initCond = {s.InitMean, s.InitMseReg, s.InitMseInf};
     end%
 end%

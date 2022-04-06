@@ -1,8 +1,35 @@
-function output = toMatlab(input)
 
-language = ["matlab", "iris"];
+% >=R2019b
+%(
+function output = toMatlab(input, opt)
 
-input = textual.stringify(split(input, newline));
+arguments
+    input (1, 1) string
+    opt.Language (1, :) string = ["matlab", "iris"]
+end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function output = toMatlab(input, varargin)
+
+input = string(input);
+
+persistent pp
+if isempty(pp)
+    pp = inputParser();
+    pp = addParameter("Language", ["matlab", "iris"]);
+end
+parse(pp, varargin{:});
+opt = pp.Results;
+%}
+% <=R2019a
+
+
+input = textual.stringify(split(input, newline()));
+opt.Language = reshape(string(opt.Language), 1, []);
 output = string.empty(1, 0);
 
 inCode = false;
@@ -24,7 +51,7 @@ for line = input
             line = extractAfter(line, 4);
             canBeIndentedCode = true;
             inxCode(end+1) = true;
-        elseif startsWith(line, "```"+language)
+        elseif startsWith(line, "```"+opt.Language)
             line = "";
             inCode = true;
             canBeIndentedCode = false;
@@ -52,7 +79,7 @@ for line = input
         %
         % In code
         %
-        if startsWith(line, "```") && ~startsWith(line, "```"+language)
+        if startsWith(line, "```") && ~startsWith(line, "```"+string(opt.Language))
             line = "";
             inCode = false;
         end

@@ -56,7 +56,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory.fromFile');
     pp.KeepUnmatched = true;
-    addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'model.File'));
+    addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'ModelSource'));
     addParameter(pp, {'Assigned', 'Assign'}, struct([ ]), @(x) isempty(x) || isstruct(x));
     addParameter(pp, 'Preparser', cell.empty(1, 0), @validate.nestedOptions);
 end
@@ -65,7 +65,7 @@ opt = parse(pp, sourceFiles, varargin{:});
 
 %--------------------------------------------------------------------------
 
-if isa(sourceFiles, 'model.File') && sourceFiles.Preparsed
+if isa(sourceFiles, 'ModelSource') && sourceFiles.Preparsed
     %
     % Model file already preparsed
     %
@@ -147,7 +147,7 @@ end%
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Test Single Source File
-    f = model.File( );
+    f = ModelSource( );
     f.FileName = 'test.model';
     f.Code = [
         "%% Model"
@@ -190,7 +190,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Source File with Comments
-    f = model.File( );
+    f = ModelSource( );
     f.FileName = 'test.model';
     f.Code = [
         " 'aaa' a = a{-1};"
@@ -206,7 +206,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Source File with Empty Equations
-    f = model.File( );
+    f = ModelSource( );
     f.FileName = 'test.model';
     f.Code = [
         " 'aaa' a = a{-1};"
@@ -231,7 +231,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Source File with Attributes
-    f = model.File( );
+    f = ModelSource( );
     f.FileName = 'test.model';
     f.Code = [
         ":first 'aaa' a = a{-1};"
@@ -252,7 +252,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Preparser For If
-    f1 = model.File( );
+    f1 = ModelSource( );
     f1.FileName = 'test.model';
     f1.Code = [
         "!for ?c = $[ list ]$ !do"
@@ -265,7 +265,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         "    ;"
         "!end"
     ];
-    f2 = model.File( );
+    f2 = ModelSource( );
     f2.FileName = 'test.model';
     f2.Code = [
         "!for ?c = $[ list ]$ !do"
@@ -304,7 +304,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Preparser Switch
-    f1 = model.File( );
+    f1 = ModelSource( );
     f1.FileName = 'test.model';
     f1.Code = [
         "!switch country"
@@ -333,7 +333,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Equations with Attributes
-    f = model.File( );
+    f = ModelSource( );
     f.FileName = "test.eqtn";
     f.Code = [
         "!equations(:aa, :bb)"

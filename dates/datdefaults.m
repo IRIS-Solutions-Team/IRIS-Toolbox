@@ -29,12 +29,13 @@ if ~isfield(opt,'months') || isequal(opt.months, @config)
     opt.months = irisConfig.months;
 end
 
-if ~isfield(opt, 'ConversionMonth') || isequal(opt.ConversionMonth, @config)
-    opt.ConversionMonth = irisConfig.ConversionMonth;
+if ~isfield(opt, 'ConversionMonth')
+    opt.ConversionMonth = iris.Configuration.ConversionMonth;
 end
 
-if ~isfield(opt, 'Wday') || isequal(opt.Wday, @config)
-    opt.Wday = irisConfig.Wday;
+if ~isfield(opt, 'Wday')
+    opt.Wday = iris.Configuration.WDay;
 end
 
-end
+end%
+

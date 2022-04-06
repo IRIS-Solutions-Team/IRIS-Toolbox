@@ -25,7 +25,7 @@ function db = retrieveColumns(db, refs, varargin)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser();
-    addParameter(pp, 'WhenFails', "remove");
+    addParameter(pp, "WhenFails", "remove");
 end
 parse(pp, varargin{:});
 opt = pp.Results;

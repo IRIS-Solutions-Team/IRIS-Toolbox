@@ -58,7 +58,14 @@ function [X, Y, XX, YY] = fevd(this, time, varargin)
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-opt = passvalopt('SVAR.fevd', varargin{:});
+
+
+defaults = { 
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
+}; 
+
+opt = passvalopt(defaults, varargin{:});
+
 
 % Tell whether time is `NPer` or `Range`.
 [range, numPeriods] = BaseVAR.mytelltime(time);

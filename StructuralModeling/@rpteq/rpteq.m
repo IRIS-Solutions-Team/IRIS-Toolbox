@@ -35,10 +35,10 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-classdef rpteq < shared.GetterSetter ...
-               & shared.UserDataContainer ...
-               & shared.CommentContainer ...
-               & shared.DatabankPipe
+classdef rpteq < iris.mixin.GetterSetter ...
+               & iris.mixin.UserDataContainer ...
+               & iris.mixin.CommentContainer ...
+               & iris.mixin.DatabankPipe
 
     properties
         FileName = char.empty(1, 0)
@@ -51,7 +51,7 @@ classdef rpteq < shared.GetterSetter ...
         Label = cell.empty(1, 0)
         MaxSh = 0
         MinSh = 0
-        Export = shared.Export.empty(1, 0)
+        Export = iris.mixin.Export.empty(1, 0)
     end
 
 

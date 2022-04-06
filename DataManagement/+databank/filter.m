@@ -3,26 +3,17 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+
 % >=R2019b
 %(
-function [listFields, tokens, outputDb] = filter(inputDb, options)
+function [listFields, tokens, outputDb] = filter(inputDb, opt)
 
 arguments
     inputDb {validate.mustBeDatabank}
 
-    options.Name {locallyValidateName} = @all
-    options.NameFilter {locallyValidateName} = @all
-    options.Class {locallyValidateClass} = @all
-    options.ClassFilter {locallyValidateClass} = @all
-    options.Filter {locallyValidateFilter} = []
-end
-
-if ~isequal(options.NameFilter, @all)
-    options.Name = options.NameFilter;
-end
-
-if ~isequal(options.ClassFilter, @all)
-    options.Class = options.ClassFilter;
+    opt.Name {local_validateName} = @all
+    opt.Class {local_validateClass} = @all
+    opt.Filter {local_validateFilter} = []
 end
 %)
 % >=R2019b
@@ -32,20 +23,15 @@ end
 %{
 function [listFields, tokens, outputDb] = filter(inputDb, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser("~databank/filter");
-    pp.KeepDefaultOptions = true;
-    addRequired(pp, 'Database', @validate.databank);
-    addParameter(pp, {'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x) || isa(x, 'Rxp'));
-    addParameter(pp, {'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
-    addParameter(pp, 'Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "Name", @all);
+    addParameter(ip, "Class", @all);
+    addParameter(ip, "Filter", []);
 end
-
-[skip, options] = maybeSkip(pp, varargin{:});
-if ~skip
-    options = parse(pp, inputDb, varargin{:});
-end
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
@@ -60,18 +46,18 @@ listFields = reshape(cellstr(listFields), 1, [ ]);
 %
 % Filter field names
 %
-[listFields, tokens] = locallyFilterNames(listFields, options);
+[listFields, tokens] = local_filterNames(listFields, opt);
 
 
 %
 % Filter field classes
 %
-[listFields, tokens] = locallyFilterClass(inputDb, listFields, tokens, options);
+[listFields, tokens] = local_filterClass(inputDb, listFields, tokens, opt);
 
 %
 % Run user filter
 %
-[listFields, tokens] = locallyRunUserFilter(inputDb, listFields, tokens, options);
+[listFields, tokens] = local_runUserFilter(inputDb, listFields, tokens, opt);
 
 listFields = string(listFields);
 if nargout>=3
@@ -86,33 +72,33 @@ end%
 %
 
 
-function [listFields, tokens] = locallyFilterNames(listFields, options)
+function [listFields, tokens] = local_filterNames(listFields, opt)
     %(
     tokens = repmat({string.empty(1, 0)}, size(listFields));
-    if isequal(options.Name, @all) || isequal(options.Name, "--all")
+    if isequal(opt.Name, @all) || isequal(opt.Name, "--all")
         return
     end
     isRegular = false;
-    if isa(options.Name, 'Rxp')
+    if isa(opt.Name, 'Rxp')
         isRegular = true;
-        options.Name = options.Name.String;
+        opt.Name = opt.Name.String;
     else
-        if ~isa(options.Name, 'string')
-            options.Name = string(options.Name);
+        if ~isa(opt.Name, 'string')
+            opt.Name = string(opt.Name);
         end
-        if isscalar(options.Name) 
-            if startsWith(options.Name, "--rexp:")
+        if isscalar(opt.Name) 
+            if startsWith(opt.Name, "--rexp:")
                 isRegular = true;
-                options.Name = erase(options.Name, "--rexp:");
+                opt.Name = erase(opt.Name, "--rexp:");
             end
         end
     end
     if isRegular
-        [start, tokens] = regexp(listFields, options.Name, 'start', 'tokens', 'once');
+        [start, tokens] = regexp(listFields, opt.Name, 'start', 'tokens', 'once');
         inxName = ~cellfun('isempty', start);
     else
-        options.Name = reshape(options.Name, 1, [ ]);
-        inxName = ismember(listFields, options.Name);
+        opt.Name = reshape(opt.Name, 1, [ ]);
+        inxName = ismember(listFields, opt.Name);
     end
     inxName = reshape(inxName, 1, [ ]);
     listFields = listFields(inxName);
@@ -121,23 +107,23 @@ function [listFields, tokens] = locallyFilterNames(listFields, options)
 end%
 
 
-function [listFields, tokens] = locallyFilterClass(inputDb, listFields, tokens, options)
+function [listFields, tokens] = local_filterClass(inputDb, listFields, tokens, opt)
     %(
-    if isempty(listFields) || isequal(options.Class, @all) || isequal(options.Class, "--all")
+    if isempty(listFields) || isequal(opt.Class, @all) || isequal(opt.Class, "--all")
         return
     end
     numFields = numel(listFields);
-    options.Class = reshape(string(options.Class), 1, [ ]);
+    opt.Class = reshape(string(opt.Class), 1, [ ]);
     inxClass = false(1, numFields);
     if isa(inputDb, 'Dictionary')
         for i = 1 : numFields
             class__ = string(class(retrieve(inputDb, listFields{i})));
-            inxClass(i) = any(class__==options.Class);
+            inxClass(i) = any(class__==opt.Class);
         end
     else
         for i = 1 : numFields
             class__ = string(class(inputDb.(listFields{i})));
-            inxClass(i) = any(class__==options.Class);
+            inxClass(i) = any(class__==opt.Class);
         end
     end
     listFields = listFields(inxClass);
@@ -146,20 +132,20 @@ function [listFields, tokens] = locallyFilterClass(inputDb, listFields, tokens, 
 end%
 
 
-function [listFields, tokens] = locallyRunUserFilter(inputDb, listFields, tokens, options)
+function [listFields, tokens] = local_runUserFilter(inputDb, listFields, tokens, opt)
     %(
-    if isempty(listFields) || isempty(options.Filter)
+    if isempty(listFields) || isempty(opt.Filter)
         return
     end
     numFields = numel(listFields);
     inxFilter = false(1, numFields);
     if isa(inputDb, 'Dictionary')
         for i = 1 : numFields
-            inxFilter(i) = logical(options.Filter(retrieve(inputDb, listFields{i})));
+            inxFilter(i) = logical(opt.Filter(retrieve(inputDb, listFields{i})));
         end
     else
         for i = 1 : numFields
-            inxFilter(i) = logical(options.Filter(inputDb.(listFields{i})));
+            inxFilter(i) = logical(opt.Filter(inputDb.(listFields{i})));
         end
     end
     listFields = listFields(inxFilter);
@@ -171,7 +157,7 @@ end%
 % Local validators
 %
 
-function locallyValidateName(x)
+function local_validateName(x)
     %(
     if isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x) || isa(x, 'Rxp') 
         return
@@ -180,7 +166,7 @@ function locallyValidateName(x)
     %)
 end%
 
-function locallyValidateClass(x)
+function local_validateClass(x)
     %(
     if isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x)
         return
@@ -189,7 +175,7 @@ function locallyValidateClass(x)
     %)
 end%
 
-function locallyValidateFilter(x)
+function local_validateFilter(x)
     %(
     if isempty(x) || isa(x, 'function_handle')
         return

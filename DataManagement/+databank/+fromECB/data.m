@@ -1,4 +1,4 @@
-function [outputDb, info] = data(dataset, skeys, opt, nameOpt)
+function [outputDb, info] = data(dataset, skeys, opt)
 
 arguments
     dataset (1, 1) string
@@ -14,8 +14,34 @@ arguments
     opt.URL (1, 1) string = databank.fromECB.Config.URL
     opt.WebOptions = databank.fromECB.Config.WebOptions
 
-    nameOpt.NameFunc = {}
+    opt.NameFunc = {}
 end
+
+
+% <=R2019a
+%{
+function [outputDb, info] = data(dataset, skeys, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "Attributes", true);
+    addParameter(ip, "AddToDatabank", []);
+    addParameter(ip, "OutputType", "__auto__");
+    addParameter(ip, "DimensionSeparator", "_");
+    addParameter(ip, "CommentFrom", "TITLE");
+    addParameter(ip, "Postprocess", []);
+
+    addParameter(ip, "URL", databank.fromECB.Config.URL);
+    addParameter(ip, "WebOptions", databank.fromECB.Config.WebOptions);
+
+    addParameter(ip, "NameFunc", {});
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
 
 info = struct();
 
@@ -36,7 +62,7 @@ outputDb = databank.backend.ensureTypeConsistency( ...
 %
 % Parse JSON to output databank
 %
-[outputDb, info.NamesCreated] = locallyOutputFromResponse(outputDb, info.Response, opt, nameOpt);
+[outputDb, info.NamesCreated] = local_outputFromResponse(outputDb, info.Response, opt);
 
 
 %
@@ -51,10 +77,10 @@ end%
 % Local functions
 %
 
-function [db, namesCreated] = locallyOutputFromResponse(db, response, opt, nameOpt)
+function [db, namesCreated] = local_outputFromResponse(db, response, opt)
     %(
-    if ~iscell(nameOpt.NameFunc) && ~isempty(nameOpt.NameFunc)
-        nameOpt.NameFunc = {nameOpt.NameFunc};
+    if ~iscell(opt.NameFunc) && ~isempty(opt.NameFunc)
+        opt.NameFunc = {opt.NameFunc};
     end
 
     refDates = reshape(string({response.structure.dimensions.observation.values.id}), [], 1);;
@@ -67,10 +93,10 @@ function [db, namesCreated] = locallyOutputFromResponse(db, response, opt, nameO
     namesCreated = string.empty(1, 0);
     for raw = textual.fields(data)
         x = data.(raw).observations;
-        outputName = locallyDecodeSkey(raw, dimSeries, opt);
-        for i = 1 : numel(nameOpt.NameFunc)
-            if ~isempty(nameOpt.NameFunc{i})
-                outputName = nameOpt.NameFunc{i}(outputName);
+        outputName = local_decodeSkey(raw, dimSeries, opt);
+        for i = 1 : numel(opt.NameFunc)
+            if ~isempty(opt.NameFunc{i})
+                outputName = opt.NameFunc{i}(outputName);
             end
         end
         namesCreated = [namesCreated, outputName];
@@ -81,11 +107,11 @@ function [db, namesCreated] = locallyOutputFromResponse(db, response, opt, nameO
         end
         values = [values{:}];
         values = reshape(values(1, :), [], 1);
-        dates = locallyDecodeDates(textual.fields(x, [], 1), refDates);
+        dates = local_decodeDates(textual.fields(x, [], 1), refDates);
         comment = "";
         userData = [];
         if opt.Attributes
-            [comment, userData] = locallyDecodeAttribs(data.(raw).attributes, refAttribs, opt);
+            [comment, userData] = local_decodeAttribs(data.(raw).attributes, refAttribs, opt);
         end
         db.(outputName) = Series(dates, values, comment, userData);
     end
@@ -93,7 +119,7 @@ function [db, namesCreated] = locallyOutputFromResponse(db, response, opt, nameO
 end%
 
 
-function skey = locallyDecodeSkey(raw, dimSeries, opt)
+function skey = local_decodeSkey(raw, dimSeries, opt)
     %(
     raw = 1 + double(split(extractAfter(raw, 1), "_"));
     skey = "";
@@ -105,13 +131,13 @@ function skey = locallyDecodeSkey(raw, dimSeries, opt)
 end%
 
 
-function dates = locallyDecodeDates(raw, refDates)
+function dates = local_decodeDates(raw, refDates)
     raw = 1 + double(extractAfter(raw, 1));
     dates = refDates(raw);
 end%
 
 
-function [comment, userData] = locallyDecodeAttribs(raw, refAttribs, opt)
+function [comment, userData] = local_decodeAttribs(raw, refAttribs, opt)
     %(
     raw = 1 + raw;
     userData = struct();

@@ -1,4 +1,3 @@
-function epstopdf(List,CmdArgs,varargin)
 % epstopdf  [Not a public function] Run EPSTOPDF to convert EPS graphics to PDF.
 %
 % Backend IRIS function.
@@ -7,20 +6,24 @@ function epstopdf(List,CmdArgs,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
+function epstopdf(List,CmdArgs,varargin)
+
 try
     CmdArgs; %#ok<VUNUS>
 catch %#ok<CTCH>
     CmdArgs = '';
 end
 
-% Parse inputarguments.
-pp = inputParser( );
-pp.addRequired('List',@(x) ischar(x) || iscellstr(x));
-pp.addRequired('CmdArgs',@(x) ischar(x) || isempty(x));
-pp.parse(List,CmdArgs);
 
-% Parse options.
-opt = passvalopt('latex.epstopdf',varargin{:});
+%(
+defaults = {
+    'display', false, @(x) isequal(x, true) || isequal(x, false)
+};
+%)
+
+
+opt = passvalopt(defaults, varargin{:});
+
 
 %--------------------------------------------------------------------------
 

@@ -1,38 +1,38 @@
+
 % >=R2019b
 %(
-function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, options)
+function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, opt)
+
 
 arguments
     axesHandle (1, 1) {mustBeA(axesHandle, "handle")}
     time 
     data (:, :) double
 
-    options.ErrorBarSettings (1, :) cell = cell.empty(1, 0)
-    options.PlotSettings (1, :) cell = cell.empty(1, 0)
-    options.LinkColor = true
+    opt.ErrorBarSettings (1, :) cell = cell.empty(1, 0)
+    opt.PlotSettings (1, :) cell = cell.empty(1, 0)
+    opt.LinkColor = true
 end
 %)
 % >=R2019b
+
 
 % <=R2019a
 %{
 function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('numeric.errorbar');
-
-    pp.addRequired('Axes', @(x) isscalar(x) && isgraphics(x, 'Axes'));
-    pp.addRequired('Time', @(x) isnumeric(x) || isa(x, 'datetime'));
-    pp.addRequired('Data', @(x) isnumeric(x) && any(size(x, 2)==[2, 3]));
-
-    pp.addParameter('ErrorBarSettings', cell.empty(1, 0), @iscell);
-    pp.addParameter('PlotSettings', cell.empty(1, 0), @iscell);
-    pp.addParameter('LinkColor', true);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    ip.addParameter('ErrorBarSettings', cell.empty(1, 0));
+    ip.addParameter('PlotSettings', cell.empty(1, 0));
+    ip.addParameter('LinkColor', true);
 end
-options = pp.parse(axesHandle, time, data, varargin{:});
+ip.parse(axesHandle, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
+
 
 DEFAULT_ERRORBAR_SETTINGS = {
     "marker"; "+"
@@ -45,7 +45,7 @@ isHold = ishold(axesHandle);
 hold(axesHandle, "on");
 
 time = reshape(time, [], 1);
-lineHandle = plot(axesHandle, time, data(:, 1), options.PlotSettings{:});
+lineHandle = plot(axesHandle, time, data(:, 1), opt.PlotSettings{:});
 
 numPeriods = size(data, 1);
 negativeError = data(:, 2);
@@ -61,12 +61,12 @@ colorIndex = get(axesHandle, "colorOrderIndex");
 errorHandle = plot( ...
     axesHandle, errorXData, errorYData ...
     , DEFAULT_ERRORBAR_SETTINGS{:} ...
-    , options.ErrorBarSettings{:} ...
+    , opt.ErrorBarSettings{:} ...
 );
 
 set(axesHandle, "colorOrderIndex", colorIndex);
 
-if options.LinkColor
+if opt.LinkColor
     obj = linkprop([lineHandle, errorHandle], "color");
     setappdata(axesHandle, 'IRIS_ErrorBarLinkPropObject', obj);
 end

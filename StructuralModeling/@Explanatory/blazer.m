@@ -84,7 +84,7 @@ function [blocks, variableBlocks, equationBlocks, period] = blazer(this, opt)
 
 arguments
     this Explanatory
-    
+
     opt.Reorder (1, 1) logical = true
     opt.SaveAs (1, 1) string = ""
     opt.Period (1, 1) = @auto
@@ -97,16 +97,15 @@ end
 %{
 function [blocks, variableBlocks, equationBlocks, period] = blazer(this, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('Explanatory.blazer');
-    addRequired(pp, 'equations', @(x) isa(x, 'Explanatory'));
-
-    addParameter(pp, 'Reorder', true, @(x) validate.logicalScalar(x) || (iscell(x) && all(cellfun(@(y) isnumeric(y), x))));
-    addParameter(pp, "SaveAs", "", @validate.stringScalar);
-    addParameter(pp, 'Period', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    addParameter(ip, "Reorder", true);
+    addParameter(ip, "SaveAs", "");
+    addParameter(ip, "Period", @auto);
 end
-opt = parse(pp, this, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

@@ -3,17 +3,22 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [outputDb, this, info] = kalmanFilter(this, inputDb, baseRange, options)
 
+function [outputDb, this, info] = kalmanFilter(this, inputDb, baseRange, varargin)
+
+% >=R2019b
+%(
 arguments
     this Model
-    inputDb {locallyValidateInputDb}
+    inputDb {local_validateInputDb}
     baseRange (1, :) double {validate.mustBeProperRange}
 end
 
 arguments (Repeating)
-    options
+    varargin
 end
+%)
+% >=R2019b
 
 
 baseRange = double(baseRange);
@@ -24,11 +29,10 @@ info = struct();
 
 
 %
-% Resolve Kalman filter options and create a time-varying LinearSystem if
+% Resolve Kalman filter opt and create a time-varying LinearSystem if
 % necessary
 %
-[options, timeVarying] ...
-    = prepareKalmanOptions2(this, baseRange, options{:});
+[opt, timeVarying] = prepareKalmanOptions2(this, baseRange, varargin{:});
 
 
 %
@@ -58,12 +62,7 @@ end
 numPages = size(inputArray, 3);
 
 % Check option conflicts
-hereCheckConflicts( );
-
-% Set up data sets for Rolling=
-if ~isequal(options.Rolling, false)
-    hereSetupRolling( );
-end
+here_checkConflicts( );
 
 nz = nnz(this.Quantity.IxObserved);
 extendedStart = dater.plus(baseRange(1), -1);
@@ -80,13 +79,13 @@ if any(inxNaData)
     );
 end
 
-options = locallyResolveReturnOptions(options);
+opt = local_resolveReturnOptions(opt);
 
 %
 % Pre-allocate requested output data
 %
 outputData = struct( );
-[returnsPredict, returnsUpdate, returnsSmooth] = herePreallocOutputData( );
+[returnsPredict, returnsUpdate, returnsSmooth] = here_preallocOutputData( );
 
 
 
@@ -95,7 +94,7 @@ argin = struct( ...
     'InputData', inputArray, ...
     'OutputData', outputData, ...
     'OutputDataAssignFunc', @hdataassign, ...
-    'Options', options ...
+    'Options', opt ...
 );
 if isempty(timeVarying)
     [minusLogLik, regOutp, outputData] = implementKalmanFilter(this, argin); %#ok<ASGLU>
@@ -108,7 +107,7 @@ end
 
 % If needed, expand the number of model parameterizations to include
 % estimated variance factors and/or out-of=lik parameters.
-if nv<regOutp.NLoop && (options.Relative || ~isempty(regOutp.Delta))
+if nv<regOutp.NLoop && (opt.Relative || ~isempty(regOutp.Delta))
     this = alter(this, regOutp.NLoop);
 end
 
@@ -120,7 +119,7 @@ end
     info.MsePredictErrors, info.PredictError, info.VarScale ...
     , info.OutLikParams, info.MseOutLikParams ...
     , info.Initials, this ...
-] = postprocessFilterOutput(this, regOutp, extRange, options);
+] = postprocessFilterOutput(this, regOutp, extRange, opt);
 
 info.TriangularInitials = regOutp.Init;
 info.MinusLogLik = minusLogLik;
@@ -128,58 +127,39 @@ info.MinusLogLik = minusLogLik;
 %
 % Post-process hdata output arguments
 %
-outputDb = hdataobj.finalize(outputData, options);
-if options.FlattenOutput
-    outputDb = locallyFlattenOutput(outputDb);
+outputDb = hdataobj.finalize(outputData, opt);
+if opt.FlatOutput
+    outputDb = local_flatOutput(outputDb);
 end
 
 return
 
-    function hereCheckConflicts( )
+    function here_checkConflicts( )
         %(
         multiple = numPages>1 || nv>1;
-        if options.Ahead>1 && multiple
+        if opt.Ahead>1 && multiple
             error( ...
                 'Kalman:IllegalAhead', ...
                 'Cannot use option Ahead= with multiple data sets or parameter variants.' ...
             );
         end
-        if ~isequal(options.Rolling, false) && multiple
-            error( ...
-                'Kalman:IllegalRolling', ...
-                'Cannot use option Rolling= with multiple data sets or parameter variants.' ...
-            );
-        end
-        if options.ReturnBreakdown && any(options.Condition)
+        if opt.Contributions && any(opt.Condition)
             error( ...
                 'Kalman:IllegalCondition', ...
-                'Cannot combine options ReturnBreakdown= and Condition=.' ...
+                'Cannot combine opt Contributions and Condition.' ...
             );
         end
         %)
     end%
 
 
-    function hereSetupRolling( )
+    function [isPred, isUpdate, isSmooth] = here_preallocOutputData( )
         %(
-        % No multiple data sets or parameter variants guaranteed here.
-        numRolling = numel(options.RollingColumns);
-        inputArray = repmat(inputArray, 1, 1, numRolling);
-        for i = 1 : numRolling
-            inputArray(:, options.RollingColumns(i)+1:end, i) = NaN;
-        end
-        numPages = size(inputArray, 3);
-        %)
-    end%
-
-
-    function [isPred, isUpdate, isSmooth] = herePreallocOutputData( )
-        %(
-        isPred = any(contains(options.OutputData, "pred", "ignoreCase", true));
-        isUpdate = any(contains(options.OutputData, ["update", "filter"], "ignoreCase", true));
-        isSmooth = any(contains(options.OutputData, "smooth", "ignoreCase", true));
+        isPred = any(contains(opt.OutputData, "pred", "ignoreCase", true));
+        isUpdate = any(contains(opt.OutputData, ["update", "filter"], "ignoreCase", true));
+        isSmooth = any(contains(opt.OutputData, "smooth", "ignoreCase", true));
         numRuns = max(numPages, nv);
-        numPredictions = max(numRuns, options.Ahead);
+        numPredictions = max(numRuns, opt.Ahead);
         numContributions = max(ny, nz);
         xbVector = access(this, "transition-vector");
         xbVector = xbVector(nf+1:end);
@@ -192,23 +172,23 @@ return
                 this, extRange, numPredictions ...
                 , "IncludeLag", true ...
             );
-            if options.ReturnMedian
+            if opt.ReturnMedian
                 outputData.N0 = [];
             end
-            if options.ReturnStd
+            if opt.ReturnStd
                 outputData.S0 = hdataobj( ...
                     this, extRange, numRuns ...
                     , 'IncludeLag', false ...
                     , 'IsVar2Std', true ...
                 );
             end
-            if options.ReturnMSE
+            if opt.ReturnMse
                 outputData.Mse0 = hdataobj( );
                 outputData.Mse0.Data = nan(nb, nb, numExtPeriods, numRuns);
                 outputData.Mse0.Range = extRange;
                 outputData.Mse0.XbVector = xbVector;
             end
-            if options.ReturnBreakdown
+            if opt.Contributions
                 outputData.C0 = hdataobj( ...
                     this, extRange, numContributions ....
                     , 'IncludeLag', false ...
@@ -225,23 +205,23 @@ return
                 this, extRange, numRuns ...
                 , 'IncludeLag', true ...
             );
-            if options.ReturnMedian
+            if opt.ReturnMedian
                 outputData.N1 = [];
             end
-            if options.ReturnStd
+            if opt.ReturnStd
                 outputData.S1 = hdataobj( ...
                     this, extRange, numRuns ...
                     , 'IncludeLag', false ...
                     , 'IsVar2Std', true ...
                 );
             end
-            if options.ReturnMSE
+            if opt.ReturnMse
                 outputData.Mse1 = hdataobj( );
                 outputData.Mse1.Data = nan(nb, nb, numExtPeriods, numRuns);
                 outputData.Mse1.Range = extRange;
                 outputData.Mse1.XbVector = xbVector;
             end
-            if options.ReturnBreakdown
+            if opt.Contributions
                 outputData.C1 = hdataobj( ...
                     this, extRange, numContributions ...
                     , 'IncludeLag', false ...
@@ -255,22 +235,22 @@ return
         %
         if isSmooth
             outputData.M2 = hdataobj(this, extRange, numRuns);
-            if options.ReturnMedian
+            if opt.ReturnMedian
                 outputData.N2 = [];
             end
-            if options.ReturnStd
+            if opt.ReturnStd
                 outputData.S2 = hdataobj( ...
                     this, extRange, numRuns ...
                     , 'IsVar2Std', true ...
                 );
             end
-            if options.ReturnMSE
+            if opt.ReturnMse
                 outputData.Mse2 = hdataobj( );
                 outputData.Mse2.Data = nan(nb, nb, numExtPeriods, numRuns);
                 outputData.Mse2.Range = extRange;
                 outputData.Mse2.XbVector = xbVector;
             end
-            if options.ReturnBreakdown
+            if opt.Contributions
                 outputData.C2 = hdataobj( ...
                     this, extRange, numContributions ...
                     , 'Contributions', @measurement ...
@@ -285,17 +265,17 @@ end%
 % Local functions
 %
 
-function options = locallyResolveReturnOptions(options)
+function opt = local_resolveReturnOptions(opt)
     %(
-    options.ReturnStd = options.ReturnStd && ~options.MeanOnly && ~options.MedianOnly;
-    options.ReturnMSE = options.ReturnMSE && ~options.MeanOnly && ~options.MedianOnly;
-    options.ReturnBreakdown = options.ReturnBreakdown && ~options.MeanOnly && ~options.MedianOnly;
-    options.ReturnMedian = options.ReturnMedian && ~options.MeanOnly;
+    opt.ReturnStd = opt.ReturnStd && ~opt.MeanOnly && ~opt.MedianOnly;
+    opt.ReturnMse = opt.ReturnMse && ~opt.MeanOnly && ~opt.MedianOnly;
+    opt.Contributions = opt.Contributions && ~opt.MeanOnly && ~opt.MedianOnly;
+    opt.ReturnMedian = opt.ReturnMedian && ~opt.MeanOnly;
     %)
 end%
 
 
-function outputDb = locallyFlattenOutput(outputDb)
+function outputDb = local_flatOutput(outputDb)
     %(
     for p = databank.fieldNames(outputDb)
         fields = databank.fieldNames(outputDb.(p));
@@ -317,7 +297,7 @@ end%
 % Local validators
 %
 
-function locallyValidateInputDb(x)
+function local_validateInputDb(x)
     %(
     if isempty(x) || validate.databank(x)
         return

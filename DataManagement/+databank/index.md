@@ -47,5 +47,6 @@ handling tasks.
 | Function      | Description       |
 |---            |---                |
 [`databank.minusControl`](minusControl.md)                   | Create simulation-minus-control database
+[`databank.plusControl`](plusControl.md)                     | Create simulation-plus-control database
 
 

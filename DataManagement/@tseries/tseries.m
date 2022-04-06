@@ -282,7 +282,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Access=protected, Hidden)
         function implementDisp(varargin)
             implementDisp@NumericTimeSubscriptable(varargin{:});
-            implementDisp@shared.UserDataContainer(varargin{:});
+            implementDisp@iris.mixin.UserDataContainer(varargin{:});
         end%
     end
 

@@ -5,23 +5,22 @@
 
 % >=R2019b
 %(
-function options = prepareSolve(this, options)
+function opt = prepareSolve(this, opt)
 
 arguments
     this %#ok<INUSA>
 
-    options.Run (1, 1) logical = true
-
-    options.Silent (1, 1) logical = false
-    options.Equations = ""
-    options.Normalize (1, 1) logical = true
-    options.PreferredSchur (1, 1) string {mustBeMember(options.PreferredSchur, ["schur", "qz"])} = "qz"
-    options.ForceDiff (1, 1) logical = false
-    options.MatrixFormat = "plain"
-    options.Symbolic (1, 1) logical = true
-    options.Error (1, 1) logical = false
-    options.Progress (1, 1) logical = false
-    options.Warning (1, 1) logical = true
+    opt.Run (1, 1) logical = true
+    opt.Silent (1, 1) logical = false
+    opt.Equations = ""
+    opt.Normalize (1, 1) logical = true
+    opt.PreferredSchur (1, 1) string {mustBeMember(opt.PreferredSchur, ["schur", "qz"])} = "qz"
+    opt.ForceDiff (1, 1) logical = false
+    opt.MatrixFormat = "plain"
+    opt.Symbolic (1, 1) logical = true
+    opt.Error (1, 1) logical = false
+    opt.Progress (1, 1) logical = false
+    opt.Warning (1, 1) logical = true
 end
 %)
 % >=R2019b
@@ -29,31 +28,32 @@ end
 
 % <=R2019a
 %{
-function options = prepareSolve(this, varargin)
+function opt = prepareSolve(this, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser("Model/prepareSolve");
-    addParameter(pp, "Run", true, @validate.logicalScalar);
-    addParameter(pp, "Silent", false, @validate.logicalScalar);
-    addParameter(pp, "Equations", "");
-    addParameter(pp, "Normalize", true, @validate.logicalScalar);
-    addParameter(pp, "PreferredSchur", "qz", @(x) mustBeMember(x, ["schur", "qz"]));
-    addParameter(pp, "ForceDiff", false, @validate.logicalScalar);
-    addParameter(pp, "MatrixFormat", "plain");
-    addParameter(pp, "Symbolic", true, @validate.logicalScalar);
-    addParameter(pp, "Error", false, @validate.logicalScalar);
-    addParameter(pp, "Progress", false, @validate.logicalScalar);
-    addParameter(pp, "Warning", true, @validate.logicalScalar);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Run", true);
+    addParameter(ip, "Silent", false);
+    addParameter(ip, "Equations", "");
+    addParameter(ip, "Normalize", true);
+    addParameter(ip, "PreferredSchur", "qz");
+    addParameter(ip, "ForceDiff", false);
+    addParameter(ip, "MatrixFormat", "plain");
+    addParameter(ip, "Symbolic", true);
+    addParameter(ip, "Error", false);
+    addParameter(ip, "Progress", false);
+    addParameter(ip, "Warning", true);
 end
-options = parse(pp, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
 
-if options.Silent
-    options.Progress = false;
-    options.Warning = false;
+if opt.Silent
+    opt.Progress = false;
+    opt.Warning = false;
 end
 
 end%

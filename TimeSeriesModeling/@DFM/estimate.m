@@ -1,4 +1,5 @@
-function [this, D, CC, FF, U, E, ctf, range] = estimate(this, d, range, crit, varargin)
+
+%{
 % estimate  Estimate DFM using static principal components.
 %
 % __Syntax__
@@ -59,29 +60,32 @@ function [this, D, CC, FF, U, E, ctf, range] = estimate(this, d, range, crit, va
 %
 % __Example__
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function [this, D, CC, FF, U, E, ctf, range] = estimate(this, d, range, crit, varargin)
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('DFM.estimate');
-    inputParser.addRequired('DFM', @(x) isa(x, 'DFM'));
-    inputParser.addRequired('InputData', @isstruct);
-    inputParser.addRequired('Range', @validate.range);
-    inputParser.addRequired('RQ', ...
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('DFM.estimate');
+    ip.addRequired('DFM', @(x) isa(x, 'DFM'));
+    ip.addRequired('InputData', @isstruct);
+    ip.addRequired('Range', @validate.range);
+    ip.addRequired('RQ', ...
         @(x) isnumeric(x) && numel(x)==2 && x(1)>0 && x(1)<=1 && x(2)==round(x(2)) && x(2)>=1);
-    inputParser.addParameter('Cross', true, ...
+    ip.addParameter('Cross', true, ...
         @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
-    inputParser.addParameter('Method', 'auto', @(x) isequal(x, 'auto') || isequal(x, 1) || isequal(x, 2));
-    inputParser.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x))
-    inputParser.addParameter('Rank', Inf, @(x) isnumeric(x) && isscalar(x));
+    ip.addParameter('Method', 'auto', @(x) isequal(x, 'auto') || isequal(x, 1) || isequal(x, 2));
+    ip.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x))
+    ip.addParameter('Rank', Inf, @(x) isnumeric(x) && isscalar(x));
 end
-inputParser.parse(this, d, range, crit, varargin{:});
-opt = inputParser.Options;
+opt = ip.parse(this, d, range, crit, varargin{:});
+
 
 % Get input data.
 [y, range] = getEstimationData(this, d, range);

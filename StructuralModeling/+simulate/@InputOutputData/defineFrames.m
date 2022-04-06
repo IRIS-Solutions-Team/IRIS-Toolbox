@@ -24,7 +24,7 @@ for page = 1 : this.NumPages
         frameDates(frame, :) = [startFrame, endFrame];
     end
     this.FrameDates{page} = DateWrapper(frameDates);
-    this.FrameData{page} = shared.DataBlock;
+    this.FrameData{page} = iris.mixin.DataBlock;
 end
 
 checkDeficiency(this);

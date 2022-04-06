@@ -43,12 +43,14 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+
 % >=R2019b
 %(
 function [outputSeries, names, dates] = toSeries(inputDb, names, dates, columns)
 
 arguments
     inputDb (1, 1) {validate.databank(inputDb)}
+
     names {locallyValidateNames(names)} = @all
     dates {locallyValidateDates(dates)} = @all
     columns (1, :) {mustBeInteger, mustBePositive} = 1
@@ -61,18 +63,17 @@ end
 %{
 function [outputSeries, names, dates] = toSeries(inputDb, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser("+databank/toSeries");
-    addRequired(pp, "inputDb", @(x) validate.databank(x) && isscalar(x)); 
-    addOptional(pp, "names", @all, @locallyValidateNames);
-    addOptional(pp, "dates", @all, @locallyValidateDates);
-    addOptional(pp, 'columns', 1, @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addOptional(ip, "names", @all);
+    addOptional(ip, "dates", @all);
+    addOptional(ip, 'columns', 1);
 end
-parse(pp, inputDb, varargin{:});
-names = pp.Results.names;
-dates = pp.Results.dates;
-columns = pp.Results.columns;
+parse(ip, varargin{:});
+names = ip.Results.names;
+dates = ip.Results.dates;
+columns = ip.Results.columns;
 %}
 % <=R2019a
 

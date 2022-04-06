@@ -83,8 +83,17 @@ pp.addRequired('Pos', @(x) isa(x, 'poster'));
 pp.addRequired('Pct', @isnumeric);
 pp.parse(this, pos, pct);
 
-% Parse options.
-[opt, varargin] = passvalopt('model.neighbourhood', varargin{:});
+
+%(
+defaults = {
+    'plot', true, @(x) isequal(x, true) || isequal(x, false)
+    'progress', false, @(x) isequal(x, true) || isequal(x, false)
+    'neighbourhood', [ ], @(x) isempty(x) || isstruct(x)
+};
+%)
+
+
+[opt, varargin] = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

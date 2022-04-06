@@ -43,7 +43,12 @@ function [phi, list] = vma(this, nPer, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-opt = passvalopt('model.vma',varargin{:});
+defauls = {
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
+    'select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x)
+};
+
+opt = passvalopt(defauls, varargin{:});
 
 isSelect = ~isequal(opt.select,@all);
 isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');

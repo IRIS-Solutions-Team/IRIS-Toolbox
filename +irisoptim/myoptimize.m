@@ -14,7 +14,6 @@ hess = {zeros(np), zeros(np), zeros(np)};
 lmb = [ ];
 
 if ischar(opt.Solver)
-    % k
     % __Optimization toolbox__
     if strncmpi(opt.Solver, 'fmin', 4)
         % Unconstrained minimization.

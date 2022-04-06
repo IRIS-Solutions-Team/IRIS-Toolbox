@@ -1,4 +1,3 @@
-function tabular(this)
 % tabular  Display time series in tabular view
 %{
 % ## Syntax ##
@@ -52,15 +51,15 @@ function tabular(this)
 %         User Data: empty
 %}
     
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function tabular(this)
 
 switch this.Frequency
-    case {Frequency__.Integer, Frequency__.Yearly}
+    case {frequency.INTEGER, frequency.YEARLY}
         disp(this);
-    case {Frequency__.Daily}
+    case {frequency.DAILY}
         disp(this, '', 'disp2dDaily');
     otherwise
         disp(this, '', 'disp2dYearly');

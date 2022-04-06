@@ -49,11 +49,11 @@ optionalNames = unique(optionalNames, "stable");
 allNames = unique([variableNames, residualNames], "stable");
 
 
-data = shared.DataBlock( );
+data = iris.mixin.DataBlock( );
 data.Names = allNames;
 data.ExtendedRange = extdRange;
 
-if isa(inputData, 'shared.DataBlock')
+if isa(inputData, 'iris.mixin.DataBlock')
     data.YXEPG = hereGetDataFromDataBlock( );
 else
     data.YXEPG = hereGetDataFromDatabank( );

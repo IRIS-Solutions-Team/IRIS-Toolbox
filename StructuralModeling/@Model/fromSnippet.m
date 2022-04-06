@@ -3,41 +3,13 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-% >=R2019b
-%(
-function varargout = fromSnippet(snippetNames, args)
-
-arguments
-    snippetNames (1, :) string {mustBeNonempty}
-end
-
-arguments (Repeating)
-    args
-end
-%)
-% >=R2019b
-
-
-% <=R2019a
-%{
 function varargout = fromSnippet(snippetNames, varargin)
 
-args = varargin;
-%}
-% <=R2019a
-
 [snippets, snippetNames, callerFileName] = textual.readSnippet(snippetNames);
-
-inputModelFiles = model.File.empty(1, 0);
-for i = 1 : numel(snippets)
-    mf = model.File;
-    mf.FileName = callerFileName + "#" + snippetNames(i);
-    mf.Code = char(snippets(i));
-    inputModelFiles(end+1) = mf;
-end
-
-% [varargout{1:nargout}] = Model(inputModelFiles, args{:});
-[varargout{1:nargout}] = Model.fromFile(inputModelFiles, args{:});
+source = ModelSource();
+source.FileName = string(callerFileName) + "#" + snippetNames;
+source.Code = char(join(snippets, ModelSource.CODE_SEPARATOR));
+[varargout{1:nargout}] = Model(source, varargin{:});
 
 end%
 

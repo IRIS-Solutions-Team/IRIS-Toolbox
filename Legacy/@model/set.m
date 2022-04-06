@@ -79,7 +79,7 @@ function this = set(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-this = set@shared.GetterSetter(this, varargin{:});
+this = set@iris.mixin.GetterSetter(this, varargin{:});
 
 end%
 

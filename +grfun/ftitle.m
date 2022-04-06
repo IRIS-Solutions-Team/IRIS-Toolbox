@@ -76,7 +76,13 @@ switch length(string)
         string = [string, {''}];
 end
 
-[opt, varargin] = passvalopt('grfun.ftitle', varargin{:});
+
+defaults = { 
+    'location', 'north', @(x) isanystri(x, {'north', 'west', 'east', 'south'})
+};
+
+[opt, varargin] = passvalopt(defaults, varargin{:});
+
 
 %--------------------------------------------------------------------------
 %#ok<*AGROW>

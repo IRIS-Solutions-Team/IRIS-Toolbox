@@ -81,21 +81,13 @@ function varargout = plot(varargin)
 % configuration will be used.
 %
 %
-% __`FreqLetters=@config`__ [ char | string | `@config` ] 
-% >
-% Six letters used to represent the six possible frequencies of IRIS dates,
-% in this order: yearly, half-yearly, quarterly, bi-monthly, monthly,  and
-% weekly (such as the `'Q'` in `'2010Q1'`); `@config` means the frequence
-% letters from the current IRIS configuration will be used.
-%
-%
 % __`Months={'January', ..., 'December'}`__ [ cellstr | string | `@config` ] 
 % >
 % Twelve strings representing the names of the twelve months; `@config`
 % means the month names from the current IRIS configuration will be used.
 %
 %
-% __`ConversionMonth=@config`__ [ numeric | `'last'` | `@config` ] 
+% __`ConversionMonth=1`__ [ numeric | `'last'` ] 
 % >
 % Month that will represent a lower-than-monthly-frequency date if the
 % month is part of the date format string; `@config` means the conversion

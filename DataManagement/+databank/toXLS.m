@@ -1,3 +1,6 @@
+
+% >=R2019b
+%(
 function namesSaved = toXLS(inputDb, fileName, opt)
 
 arguments
@@ -8,6 +11,26 @@ arguments
     opt.Column (1, 1) double = 1
     opt.Range (1, 1) string = "A1"
 end
+%)
+% >=R2019b
+
+
+% >=R2019b
+%{
+function namesSaved = toXLS(inputDb, fileName, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Frequency", @all);
+    addParameter(ip, "Column", 1);
+    addParameter(ip, "Range", "A1");
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% >=R2019b
+
 
 [filePath, fileTitle, fileExt] = fileparts(fileName);
 fileName = fullfile(string(filePath), string(fileTitle)+".xlsx");

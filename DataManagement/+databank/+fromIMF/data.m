@@ -3,46 +3,72 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-function [outputDb, info] = data(dataset, freq, areas, items, counters, options, nameOptions)
-
 % >=R2019b
 %(
+function [outputDb, info] = data(dataset, freq, areas, items, counters, opt)
+
 arguments
     dataset (1, 1) string
-    freq (1, 1) Frequency {locallyValidateFrequency}
+    freq (1, 1) Frequency {local_validateFrequency}
     areas (1, :) string
     items (1, :) 
     counters (1, :) string = string.empty(1, 0)
 
-    options.AddToDatabank (1, 1) {validate.mustBeDatabank} = struct( )
-    options.StartDate (1, 1) double {locallyValidateDate(options.StartDate, freq)} = -Inf
-    options.EndDate (1, 1) double {locallyValidateDate(options.EndDate, freq)} = Inf
-    options.URL (1, 1) string = databank.fromIMF.Config.URL + "CompactData/"
-    options.WebOptions = databank.fromIMF.Config.WebOptions
-    options.ApplyMultiplier (1, 1) logical = true
-    options.WhenEmpty (1, 1) string {mustBeMember(options.WhenEmpty, ["error", "warning", "silent"])} = "warning" 
+    opt.AddToDatabank (1, 1) {validate.mustBeDatabank} = struct( )
+    opt.StartDate (1, 1) double {local_validateDate(opt.StartDate, freq)} = -Inf
+    opt.EndDate (1, 1) double {local_validateDate(opt.EndDate, freq)} = Inf
+    opt.URL (1, 1) string = databank.fromIMF.Config.URL + "CompactData/"
+    opt.WebOptions = databank.fromIMF.Config.WebOptions
+    opt.ApplyMultiplier (1, 1) logical = true
+    opt.WhenEmpty (1, 1) string {mustBeMember(opt.WhenEmpty, ["error", "warning", "silent"])} = "warning" 
 
-    nameOptions.IncludeArea (1, 1) logical = true
-    nameOptions.IncludeCounter (1, 1) logical = true
-    nameOptions.Separator (1, 1) string = "_"
-    nameOptions.NameFunc = [ ]
+    opt.IncludeArea (1, 1) logical = true
+    opt.IncludeCounter (1, 1) logical = true
+    opt.Separator (1, 1) string = "_"
+    opt.NameFunc = [ ]
 end
 %)
 % >=R2019b
 
 
-if ~endsWith(options.URL, "/")
-    options.URL = options.URL + "/";
+% <=R2019a
+%(
+function [outputDb, info] = data(dataset, freq, areas, items, counters, varargin{:})
+
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "AddToDatabank", struct( ));
+    addParameter(ip, "StartDate", -Inf);
+    addParameter(ip, "EndDate", Inf);
+    addParameter(ip, "URL", databank.fromIMF.Config.URL + "CompactData/");
+    addParameter(ip, "WebOptions", databank.fromIMF.Config.WebOptions);
+    addParameter(ip, "ApplyMultiplier", true);
+    addParameter(ip, "WhenEmpty", "warning" );
+
+    addParameter(ip, "IncludeArea", true);
+    addParameter(ip, "IncludeCounter", true);
+    addParameter(ip, "Separator", "_");
+    addParameter(ip, "NameFunc", [ ]);
+end
+parse(ip, varargin{:});
+opt = parse(ip, varargin{:});
+%)
+% <=R2019a
+
+
+if ~endsWith(opt.URL, "/")
+    opt.URL = opt.URL + "/";
 end
 
-[areas, areaMap, areasString] = locallyCreateNameMap(areas);
+[areas, areaMap, areasString] = local_createNameMap(areas);
 
 if iscell(items)
     items(cellfun(@isempty, items)) = {""};
     itemsString = cellfun(@(x) join(x, "+"), items);
     itemMap = [];
 else
-    [items, itemMap, itemsString] = locallyCreateNameMap(items);
+    [items, itemMap, itemsString] = local_createNameMap(items);
 end
 
 if isempty(counters) || counters==""
@@ -50,27 +76,27 @@ if isempty(counters) || counters==""
     counterMap = [];
     countersString = [];
 else
-    [counters, counterMap, countersString] = locallyCreateNameMap(counters);
+    [counters, counterMap, countersString] = local_createNameMap(counters);
 end
 
 dimensions = join([Frequency.toIMFLetter(freq), areasString, itemsString, countersString], ".");
 request = upper(dataset + "/" + dimensions + "?");
 
-if ~isinf(options.StartDate) 
-    request = request + "&startPeriod=" + DateWrapper.toIMFString(options.StartDate);
+if ~isinf(opt.StartDate) 
+    request = request + "&startPeriod=" + DateWrapper.toIMFString(opt.StartDate);
 end
 
-if ~isinf(options.EndDate) 
-    request = request + "&endPeriod=" + DateWrapper.toIMFString(options.EndDate);
+if ~isinf(opt.EndDate) 
+    request = request + "&endPeriod=" + DateWrapper.toIMFString(opt.EndDate);
 end
 
-outputDb = options.AddToDatabank;
+outputDb = opt.AddToDatabank;
 
-request = options.URL + request;
-response = webread(request, options.WebOptions);
+request = opt.URL + request;
+response = webread(request, opt.WebOptions);
 
-outputDb = locallyCreateSeriesFromResponse( ...
-    outputDb, freq, response, request, areaMap, itemMap, counterMap, options, nameOptions ...
+outputDb = local_createSeriesFromResponse( ...
+    outputDb, freq, response, request, areaMap, itemMap, counterMap, opt, ...
 );
 
 info = struct( );
@@ -83,14 +109,14 @@ end%
 % Local functions
 %
 
-function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, counterMap, options, nameOptions)
+function outputDb = local_createSeriesFromResponse(outputDb, freq, response, request, areaMap, itemMap, counterMap, opt)
     %(
     try
         allResponseData = response.CompactData.DataSet.Series;
     catch
-        if lower(options.WhenEmpty)==lower("silent")
+        if lower(opt.WhenEmpty)==lower("silent")
             return
-        elseif lower(options.WhenEmpty)==lower("error")
+        elseif lower(opt.WhenEmpty)==lower("error")
             func = @exception.error;
         else
             func = @exception.warning;
@@ -137,7 +163,7 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
             responseFields = textual.stringify(fieldnames(responseData));
 
             area = string.empty(1, 0);
-            if nameOptions.IncludeArea  
+            if opt.IncludeArea  
                 area = string(responseData.x_REF_AREA);
                 try
                     area = areaMap.(area);
@@ -162,7 +188,7 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
             end
 
             counter = string.empty(1, 0);
-            if nameOptions.IncludeCounter
+            if opt.IncludeCounter
                 try
                     counter = string(responseData.x_COUNTERPART_AREA);
                     try
@@ -171,10 +197,10 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
                 end
             end
 
-            name = join([area, item, counter], nameOptions.Separator); 
+            name = join([area, item, counter], opt.Separator); 
 
-            if isa(nameOptions.NameFunc, 'function_handle')
-                name = nameOptions.NameFunc(name);
+            if isa(opt.NameFunc, 'function_handle')
+                name = opt.NameFunc(name);
             end
         end%
 
@@ -217,14 +243,14 @@ function outputDb = locallyCreateSeriesFromResponse(outputDb, freq, response, re
             end
             dates = DateWrapper.fromIMFString(freq, string(dates));
             values = double(string(values));
-            if options.ApplyMultiplier && multiplier~=1
+            if opt.ApplyMultiplier && multiplier~=1
                 values = values * 10^multiplier;
             end
         end%
 end%
 
 
-function [list, map, requestString] = locallyCreateNameMap(list)
+function [list, map, requestString] = local_createNameMap(list)
     if isempty(list)
         map = list;
         requestString = "";
@@ -248,7 +274,7 @@ end%
 % Local Validators
 %
 
-function locallyValidateFrequency(freq)
+function local_validateFrequency(freq)
     %(
     if any(freq==[Frequency.YEARLY, Frequency.QUARTERLY, Frequency.MONTHLY])
         return
@@ -258,7 +284,7 @@ function locallyValidateFrequency(freq)
 end%
 
 
-function locallyValidateDate(date, freq)
+function local_validateDate(date, freq)
     %(
     if isinf(date)
         return

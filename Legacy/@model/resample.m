@@ -98,10 +98,15 @@ if isempty(pp)
     addParameter(pp, {'Override', 'TimeVarying', 'Vary'}, [ ], @(x) isempty(x) || validate.databank(x));
     addParameter(pp, 'Multiply', [ ], @(x) isempty(x) || validate.databank(x));
     
-    addDeviationOptions(pp, false);
+    addParameter(pp, 'Deviation', false, @validate.logicalScalar);
+    addParameter(pp, 'EvalTrends', logical.empty(1, 0));
 end
-parse(pp, this, inputDb, range, numDraws, varargin{:});
-opt = pp.Options;
+
+opt = pp.parse(this, inputDb, range, numDraws, varargin{:});
+
+if isempty(opt.EvalTrends)
+    opt.EvalTrends = ~opt.Deviation;
+end
 
 % `numInit` is the number of pre-sample periods used to resample the initial
 % condition if user does not wish to factorise the covariance matrix.
@@ -129,7 +134,7 @@ numPeriods = numel(range);
 extendedRange = range(1)-1 : range(end);
 
 ixd = this.Equation.Type==3;
-isTrendEquations = opt.DTrends && any(ixd);
+isTrendEquations = opt.EvalTrends && any(ixd);
 [ny, nxx, nb, nf, ne, ng] = sizeSolution(this.Vector);
 [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, 1, false);
 if opt.Deviation

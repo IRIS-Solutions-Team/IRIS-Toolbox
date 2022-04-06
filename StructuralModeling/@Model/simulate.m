@@ -1,69 +1,223 @@
-% Type `web Model/simulate.md` for help on this function
-%
+% Type `web Model/simulate` for help on this function
+
+%{
+---
+title: simulate
+---
+
+# `simulate`
+
+{== Run a model simulation ==}
+
+
+## Syntax 
+
+    [outputDb, outputInfo, frameDb] = simulate(model, inputDb, range, ___)
+
+
+## Input arguments 
+
+__`model`__ [ Model ]
+> 
+> Model object with a valid solution avalaible for each of its parameter
+> variants.
+> 
+
+__`inputDb`__ [ struct | Dictionary ]
+> 
+> Input databank from which the following data will be retrieved:
+>  
+> * initial conditions for the lags of transition variables; use
+>   `access(model, "initials")` to get the list of the necessary initial
+>   conditions;
+>  
+> * shocks within the simulation range; if shocks are missing, the default
+>   zero value is used in the simulation;
+>  
+> * data points for the transition variables exogenized in the simulation
+>   `Plan` (entered optionally through the `plan=` option);
+>  
+> * initial paths for transition variables in nonlinear simulations
+>   (`method="stacked"` or `method="period"`) when the initial iteration is
+>   requested to be taken from the input data and not the default
+>   first-order simulation, `startIterationsFrom="data"`.
+> 
+
+__`range`__ [ DateWrapper | numeric ]
+> 
+> Simulation range; the simulation range is always from the first date to
+> the last date specified in the `range`.
+> 
+
+
+## Output arguments 
+
+__`outputDb`__ [ struct | Dictionary ]
+> 
+> Databank (struct or Dictionary) with the simulation results; if options
+> `prependInput=` or `appendInput=` are not used, the time series in
+> `outputDb` span the simulation `range` plus all necessary initial
+> conditions for those variables that have lags in the model.
+> 
+
+__`outputInfo`__ [ struct ]
+> 
+> Info struct with details on the simulation; the `outputInfo` struct
+> contains the following fields:
+>  
+> * `.FrameColumns`
+> * `.FrameDates` 
+> * `.BaseRange` 
+> * `.ExtendedRange` 
+> * `.Success` 
+> * `.ExitFlags` 
+> * `.DiscrepancyTables` 
+> * `.ProgressBar` 
+> 
+
+__`frameDb`__ [ cell ]
+> 
+> Only returned nonempty when `method="stacked"`: Nested cell arrays with
+> databanks containing the simulation results of each individual frame; the
+> `frameDb{i}{j}` element is the output databank from simulating the j-th
+> frame in the i-th variant or data page.
+> 
+
+
+## Options 
+
+__`method="firstOrder"`__ [ "firstOrder" | "stacked" | "period" ]
+> 
+> Simulation method:
+>  
+> * `method="firstOrder"` - use a first-order approximate solution;
+>  
+> * `method="stacked"` - solve the model numerically as a
+>   stacked-time system of nonlinear-equations using a quasi-Newton method.
+>  
+> * `method="period"` - solve the model numerically as a system of
+>   nonlinear-equations period by period using a quasi-Newton method; in
+>   forward-looking models, the model-consistent expectations are replaced
+>   with the values found in the `inputDb`
+>  
+> The nonlinear simulation methods also further use the `solver=` option to
+> specify the settings for the nonlinear solver.
+> 
+
+__`deviation=false`__ [ `true` | `false` ]
+> 
+> If true, both the input data and the output data are (and are expected
+> to be) in the form of deviations from steady state:
+>
+> * for variables not declared as `log-variables`, the deviations from
+> steady state are calculated as a plain difference: $x_t - \bar x_t$
+>
+> * for variables declared as `log-variables`, the deviations from
+> steady state are calculated as a ratio: $x_t / \bar x_t$.
+> 
+
+__`prependInput=false`__ [ `true` | `false` ]
+> 
+> If `true`, the data from `inputDb` preceding the simulation range
+> will be included in the output time series returned in `outputDb`.
+> 
+
+__`appendInput=false`__ [ `true` | `false` ]
+> 
+> If `true`, the data from `inputDb` succeeding the simulation range
+> will be included in the output time series returned in `outputDb`.
+> 
+
+__`solver=@auto`__ [ `@auto` | string | cell ] 
+>  
+> The name of the numerical solver to use for solving nonlinear simulations
+> (`method="stacked"` or `method="period"`), optionally also with solver
+> settings; see Description.
+> 
+
+## Description 
+
+
+### Numerical solver settings in nonlinear simulations
+
+When `method="stacked"` or `method="period"`, the model is solved as a
+nonlinear system of equations using an IrisT quasi-Newton solver. There are two
+basic varieties of the numerical solver in IrisT:
+
+* a quasi-Newton, called `"iris-newton"`; this is a traditional Newton
+  algorithm with optional step size optimization;
+
+* a quasi-Newton-steepest-descent, called `"iris-qnsd"`; this solver
+  combines the quasi-Newton step with a Cauchy (steepest descent) step and
+  regularizes the Jacobian matrix in the process.
+
+For most simulations, the `"iris-newton"` (which is the default choice) is
+the appropriate choice; however, you can still modify some of the settings
+by specifying a cell array whose first element is the name of the solver
+(`"newton"` or `"qnsd"`) followed by any number of name-value
+pairs for the individual settings; for instance:
+
+```matlab
+outputDb = simulate( ...
+    model, inputDb, range ...
+    , method="stacked" ...
+    , solver={"iris-newton", "maxIterations", 100, "functionTolerance", 1e-5} ...
+);
+```
+
+See [Numerical solver settings](../../numerical-utilities/solver/index.md)
+for the description of all settings.
+
+
+## Example 
+%}
+
+%---8<---
+
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
 %(
-function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, options)
+function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, opt)
 
 arguments
     this Model {validate.mustBeA(this, "Model")}
-    inputDb (1, 1) {locallyValidateInputDb}
-    baseRange (1, :) {locallyValidateBaseRange}
+    inputDb (1, 1) {local_validateInputDb}
+    baseRange (1, :) {local_validateBaseRange}
 
-    options.Anticipate {locallyValidateAnticipateOption} = []
-    options.Deviation (1, 1) logical = false
-    options.EvalTrends = @auto
-    options.Contributions (1, 1) logical = false
-    options.IgnoreShocks (1, 1) logical = false
-    options.MaxFrames (1, 1) double {mustBeInteger, mustBeNonnegative} = intmax()
-    options.Plan {locallyValidatePlanOption} = []
-    options.Progress (1, 1) logical = false
-    options.Solver {locallyValidateSolverOption} = @auto
-    options.SparseShocks (1, 1) logical = false
-    options.SystemProperty {locallyValidateSystemPropertyOption} = false
+    opt.Anticipate {local_validateAnticipateOption} = []
+    opt.Deviation (1, 1) logical = false
+    opt.EvalTrends (1, :) logical = logical.empty(1, 0)
+    opt.Contributions (1, 1) logical = false
+    opt.IgnoreShocks (1, 1) logical = false
+    opt.MaxFrames (1, 1) double {mustBeInteger, mustBeNonnegative} = intmax()
+    opt.Plan {local_validatePlanOption} = []
+    opt.Progress (1, 1) logical = false
+    opt.Solver {local_validateSolverOption} = @auto
+    opt.SparseShocks (1, 1) logical = false
+    opt.SystemProperty {local_validateSystemPropertyOption} = false
 
-    options.SuccessOnly (1, 1) logical = false
-    options.Blocks (1, 1) logical = false
-    options.Log {locallyValidateLogOption} = []
-    options.Unlog {locallyValidateLogOption} = []
+    opt.SuccessOnly (1, 1) logical = false
+    opt.Blocks (1, 1) logical = false
+    opt.Log {local_validateLogOption} = []
+    opt.Unlog {local_validateLogOption} = []
 
-    options.Method {locallyValidateMethodOption} = solver.Method.FIRSTORDER
-    options.Window {locallyValidateWindowOption} = @auto
-    options.Terminal (1, 1) string {mustBeMember(options.Terminal, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
-    options.StartIterationsFrom (1, 1) string {mustBeMember(options.StartIterationsFrom, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
-    options.PrepareGradient (1, 1) logical = true
-
-    options.OutputData (1, 1) string {mustBeMember(options.OutputData, ["databank", "simulate.Data"])} = "databank"
-    options.OutputType (1, 1) {validate.mustBeOutputType} = @auto
-    options.PrependInput (1, 1) logical = false
-    options.AppendInput (1, 1) logical = false
-    options.AddParameters (1, 1) logical = true
-    options.AddToDatabank = false
-    options.IncludeLog (1, 1) logical = false
-
-    % Legacy options
-    options.Initial = []
-    options.AppendPresample = []
-    options.AppendPostsample = []
-end
-
-legacy = [
-    "Initial", "StartIterationsFrom"
-    "AppendPresample", "PrependInput"
-    "AppendPostsample", "AppendInput"
-];
-
-for i = 1 : size(legacy, 2)
-    if ~isempty(options.(legacy(i, 1)))
-        options.(legacy(i, 2)) = string(options.(legacy(i, 1)));
-        exception.warning([
-            "Legacy:Option"
-            "Option %s= is obsolete and will be removed from IrisT in the future. "
-            "Use %s= instead. "
-        ], legacy(i, :));
-    end
+    opt.Method {local_validateMethodOption} = solver.Method.FIRSTORDER
+    opt.Window {local_validateWindowOption} = @auto
+    opt.Terminal (1, 1) string {mustBeMember(opt.Terminal, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
+    opt.StartIterationsFrom (1, 1) string {mustBeMember(opt.StartIterationsFrom, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
+        opt.Initial__StartIterationsFrom = [];
+    opt.PrepareGradient (1, 1) logical = true
+    opt.OutputData (1, 1) string {mustBeMember(opt.OutputData, ["databank", "simulate.Data"])} = "databank"
+    opt.OutputType (1, 1) {validate.mustBeOutputType} = @auto
+    opt.PrependInput (1, 1) logical = false
+        opt.AppendPresample__PrependInput = []
+    opt.AppendInput (1, 1) logical = false
+        opt.AppendPostsample__AppendInput = []
+    opt.AddParameters (1, 1) logical = true
+    opt.AddToDatabank = false
+    opt.IncludeLog (1, 1) logical = false
 end
 %)
 % >=R2019b
@@ -73,56 +227,63 @@ end
 %{
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addParameter(pp, "Anticipate", []);
-    addParameter(pp, "Deviation", false);
-    addParameter(pp, "EvalTrends", @auto);
-    addParameter(pp, "Contributions", false);
-    addParameter(pp, "IgnoreShocks", false);
-    addParameter(pp, "MaxFrames", intmax());
-    addParameter(pp, "Plan", []);
-    addParameter(pp, "Progress", false);
-    addParameter(pp, "Solver", @auto);
-    addParameter(pp, "SparseShocks", false);
-    addParameter(pp, "SystemProperty", false);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Anticipate", []);
+    addParameter(ip, "Deviation", false);
+    addParameter(ip, "EvalTrends", logical.empty(1, 0))
+    addParameter(ip, "Contributions", false);
+    addParameter(ip, "IgnoreShocks", false);
+    addParameter(ip, "MaxFrames", intmax());
+    addParameter(ip, "Plan", []);
+    addParameter(ip, "Progress", false);
+    addParameter(ip, "Solver", @auto);
+    addParameter(ip, "SparseShocks", false);
+    addParameter(ip, "SystemProperty", false);
 
-    addParameter(pp, "SuccessOnly", false);
-    addParameter(pp, "Blocks", false);
-    addParameter(pp, "Log", []);
-    addParameter(pp, "Unlog", []);
+    addParameter(ip, "SuccessOnly", false);
+    addParameter(ip, "Blocks", false);
+    addParameter(ip, "Log", []);
+    addParameter(ip, "Unlog", []);
 
-    addParameter(pp, "Method", solver.Method.FIRSTORDER);
-    addParameter(pp, "Window", @auto);
-    addParameter(pp, "Terminal", "firstOrder");
-    addParameter(pp, {"StartIterationsFrom", "Initial"}, "firstOrder");
-    addParameter(pp, "PrepareGradient", true);
+    addParameter(ip, "Method", solver.Method.FIRSTORDER);
+    addParameter(ip, "Window", @auto);
+    addParameter(ip, "Terminal", "firstOrder");
+    addParameter(ip, "StartIterationsFrom", "firstOrder");
+        addParameter(ip, "Initial__StartIterationsFrom", []);
+    addParameter(ip, "PrepareGradient", true);
 
-    addParameter(pp, "OutputData", "databank");
-    addParameter(pp, "OutputType", @auto);
-    addParameter(pp, {"PrependInput", "AppendPresample"}, false);
-    addParameter(pp, {"AppendInput", "AppendPostsample"}, false);
-    addParameter(pp, "AddParameters", true);
-    addParameter(pp, "AddToDatabank", false);
-    addParameter(pp, "IncludeLog", false);
+    addParameter(ip, "OutputData", "databank");
+    addParameter(ip, "OutputType", @auto);
+    addParameter(ip, "PrependInput", false);
+        addParameter(ip, "AppendPresample__PrependInput", []);
+    addParameter(ip, "AppendInput", false);
+        addParameter(ip, "AppendPostsample__AppendInput", []);
+    addParameter(ip, "AddParameters", true);
+    addParameter(ip, "AddToDatabank", false);
+    addParameter(ip, "IncludeLog", false);
 end
-options = parse(pp, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
 
-if isequal(options.EvalTrends, @auto)
-    options.EvalTrends = ~options.Deviation;
+opt = iris.utils.resolveAlias(opt, [], true);
+
+
+if isempty(opt.EvalTrends)
+    opt.EvalTrends = ~opt.Deviation;
 end
 
 if ~isequal(baseRange, @auto)
     baseRange = double(baseRange);
 end
 
-options.Method = solver.Method(options.Method);
-if options.Method==solver.Method.SELECTIVE && ~any(this.Equation.InxHashEquations)
-    options.Method = solver.Method.FIRSTORDER;
+opt.Method = solver.Method(opt.Method);
+if opt.Method==solver.Method.SELECTIVE && ~any(this.Equation.InxHashEquations)
+    opt.Method = solver.Method.FIRSTORDER;
     exception.warning([
         "Model:FirstOrderInsteadSelective"
         "The model has no hash equations; switching from Method=Selective "
@@ -131,12 +292,12 @@ if options.Method==solver.Method.SELECTIVE && ~any(this.Equation.InxHashEquation
 end
 
 
-[options.Window, baseRange, options.Plan] = resolveWindowAndBaseRange(options.Window, options.Method, baseRange, options.Plan);
-plan = locallyResolvePlan(this, baseRange, options.Plan, options.Anticipate);
+[opt.Window, baseRange, opt.Plan] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange, opt.Plan);
+plan = local_resolvePlan(this, baseRange, opt.Plan, opt.Anticipate);
 isAsynchronous = isequal(inputDb, "asynchronous");
 numVariants = countVariants(this);
-options.Solver = locallyParseSolverOption(options.Solver, options.Method);
-options.Terminal = locallyResolveTerminal(options.Terminal, options.Method);
+opt.Solver = local_parseSolverOption(opt.Solver, opt.Method);
+opt.Terminal = local_resolveTerminal(opt.Terminal, opt.Method);
 
 
 % Maintain a clean copy of input data if there are more than sequential
@@ -145,7 +306,7 @@ needsCleanCopy = false;
 
 
 % All simulation methods except PERIOD require a solved Model
-locallyCheckSolvedModel(this, options.Method, options.StartIterationsFrom, options.Terminal);
+local_checkSolvedModel(this, opt.Method, opt.StartIterationsFrom, opt.Terminal);
 
 
 % Prepare running data
@@ -164,7 +325,7 @@ hereResolveContributionsConflicts();
 
 hereCopyOptionsToRunningData();
 
-if options.Contributions
+if opt.Contributions
     % Expand and set up YXEPG to prepare contributions simulation
     herePrepareContributions();
 end
@@ -180,17 +341,17 @@ hereSetupDefaultBlazers();
 
 % Define time frames and check for deficiency of simulation plans; can be
 % done only after we expand the data for contributions
-defineFrames(runningData, options);
+defineFrames(runningData, opt);
 
 
 systemProperty = hereSetupSystemProperty();
-if ~isequal(options.SystemProperty, false)
+if ~isequal(opt.SystemProperty, false)
     outputDb = systemProperty;
     return
 end
 
 progress = [ ];
-if options.Progress
+if opt.Progress
     progress = ProgressBar('[IrisToolbox] @Model/simulate Progress');
 end
 
@@ -206,7 +367,7 @@ numRuns = runningData.NumPages;
 outputYXEPG = cell(1, numRuns);
 for i = 1 : numRuns
     [~, outputYXEPG{i}] = simulateFrames(this, systemProperty, i, false);
-    if options.Progress
+    if opt.Progress
         update(progress, i/numRuns);
     end
 end
@@ -214,7 +375,7 @@ runningData.YXEPG = cat(3, outputYXEPG{:});
 %===========================================================================
 
 
-if options.Contributions
+if opt.Contributions
     herePostprocessContributions();
 end
 
@@ -236,13 +397,13 @@ return
 
     function hereResolveContributionsConflicts()
         %(
-        if options.Contributions && plan.NumOfExogenizedPoints>0
+        if opt.Contributions && plan.NumOfExogenizedPoints>0
             exception.error([
                 "Model:CannotEvalContributionsWithExogenized"
                 "Option Contributions=true cannot be used in simulations with exogenized variables." 
             ]);
         end
-        if options.Contributions && runningData.NumPages>1
+        if opt.Contributions && runningData.NumPages>1
             exception.error([
                 "Model:CannotEvalContributionsWithMultipleDataSets"
                 "Option Contributions=true cannot be used in simulations "
@@ -257,13 +418,13 @@ return
         %(
         numRuns = runningData.NumPages;
         runningData.Plan = plan;
-        runningData.Window = options.Window;
-        runningData.SuccessOnly = options.SuccessOnly;
-        runningData.SparseShocks = options.SparseShocks;
-        runningData.Method = repmat(options.Method, 1, numRuns);
-        runningData.Deviation = repmat(options.Deviation, 1, numRuns);
-        runningData.NeedsEvalTrends = repmat(options.EvalTrends, 1, numRuns);
-        runningData.SolverOptions = options.Solver;
+        runningData.Window = opt.Window;
+        runningData.SuccessOnly = opt.SuccessOnly;
+        runningData.SparseShocks = opt.SparseShocks;
+        runningData.Method = repmat(opt.Method, 1, numRuns);
+        runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
+        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
+        runningData.SolverOptions = opt.Solver;
         %)
     end%
 
@@ -300,7 +461,7 @@ return
                 this, inputDb, baseRangePlusDummy ...
                 , "dbInfo", dbInfo ...
                 , "resetShocks", true ...
-                , "ignoreShocks", options.IgnoreShocks ...
+                , "ignoreShocks", opt.IgnoreShocks ...
                 , "numDummyPeriods", numDummyPeriods ...
             );
 
@@ -322,9 +483,9 @@ return
         end
         numRuns = runningData.NumPages;
         runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
-        runningData.Method = repmat(options.Method, 1, numRuns);
-        runningData.Deviation = repmat(options.Deviation, 1, numRuns);
-        runningData.NeedsEvalTrends = repmat(options.EvalTrends, 1, numRuns);
+        runningData.Method = repmat(opt.Method, 1, numRuns);
+        runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
+        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
         %)
     end%
 
@@ -349,7 +510,7 @@ return
         % Zero out all shocks in init+const contributions
         runningData.YXEPG(inxE, firstColumnToSimulate:end, end-1) = 0;
 
-        if options.Method==solver.Method.FIRSTORDER 
+        if opt.Method==solver.Method.FIRSTORDER 
             % Assign zero contributions of nonlinearities right away if
             % this is a first order simulation
             runningData.YXEPG(inxLog, :, end) = 1;
@@ -357,37 +518,37 @@ return
         end
 
         runningData.Method = repmat(solver.Method.FIRSTORDER, 1, numRuns);
-        if options.Method==solver.Method.FIRSTORDER 
+        if opt.Method==solver.Method.FIRSTORDER 
             % Assign zero contributions of nonlinearities right away if
             % this is a first order simulation
             runningData.Method(end) = solver.Method.NONE;
         else
-            runningData.Method(end) = options.Method;
+            runningData.Method(end) = opt.Method;
         end
         runningData.Deviation = true(1, numRuns);
-        runningData.Deviation(end-1:end) = options.Deviation;
+        runningData.Deviation(end-1:end) = opt.Deviation;
         runningData.NeedsEvalTrends = false(1, numRuns);
-        runningData.NeedsEvalTrends(end-1:end) = options.EvalTrends;
+        runningData.NeedsEvalTrends(end-1:end) = opt.EvalTrends;
         %)
     end%
 
 
     function hereSetupDefaultBlazers()
         %(
-        switch options.Method
+        switch opt.Method
             case solver.Method.STACKED
-                defaultBlazer = solver.blazer.Stacked.forModel(this, options);
+                defaultBlazer = solver.blazer.Stacked.forModel(this, opt);
                 run(defaultBlazer);
-                if options.Blocks
-                    exogenizedBlazer = solver.blazer.Stacked.forModel(this, options);
+                if opt.Blocks
+                    exogenizedBlazer = solver.blazer.Stacked.forModel(this, opt);
                 else
                     exogenizedBlazer = [ ];
                 end
             case solver.Method.PERIOD
-                defaultBlazer = solver.blazer.Period.forModel(this, options);
+                defaultBlazer = solver.blazer.Period.forModel(this, opt);
                 run(defaultBlazer);
-                if options.Blocks
-                    exogenizedBlazer = solver.blazer.Period.forModel(this, options);
+                if opt.Blocks
+                    exogenizedBlazer = solver.blazer.Period.forModel(this, opt);
                 else
                     exogenizedBlazer = [ ];
                 end
@@ -412,10 +573,10 @@ return
         systemProperty.NamedReferences = cell(1, 1);
         systemProperty.NamedReferences{1} = this.Quantity.Name;
         systemProperty.CallerData = runningData;
-        if isequal(options.SystemProperty, false)
+        if isequal(opt.SystemProperty, false)
             systemProperty.OutputNames = cell(1, 0);
         else
-            systemProperty.OutputNames = options.SystemProperty;
+            systemProperty.OutputNames = opt.SystemProperty;
         end
         %)
     end%
@@ -436,8 +597,8 @@ return
 
     function numDummyPeriods = hereCalculateNumDummyPeriods()
         %(
-        numDummyPeriods = options.Window - 1;
-        if ~strcmpi(options.Method, 'FirstOrder')
+        numDummyPeriods = opt.Window - 1;
+        if ~strcmpi(opt.Method, 'FirstOrder')
             [~, maxShift] = getActualMinMaxShifts(this);
             numDummyPeriods = numDummyPeriods + maxShift;
         end
@@ -450,12 +611,12 @@ return
 
     function outputDb = hereCreateOutputData()
         %(
-        if startsWith(options.OutputData, "databank", "ignoreCase", true)
+        if startsWith(opt.OutputData, "databank", "ignoreCase", true)
             columns = 1 : runningData.BaseRangeColumns(end);
             startDate = runningData.ExtendedRange(1);
-            outputDb = locallyCreateOutputDb(this, runningData.YXEPG(:, columns, :), startDate, options);
+            outputDb = local_createOutputDb(this, runningData.YXEPG(:, columns, :), startDate, opt);
             if validate.databank(inputDb)
-                outputDb = appendData(this, inputDb, outputDb, baseRange, options);
+                outputDb = appendData(this, inputDb, outputDb, baseRange, opt);
             end
         else
             outputDb = runningData.YXEPG;
@@ -469,8 +630,8 @@ return
         outputInfo = struct();
         outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
         outputInfo.ExtendedRange = DateWrapper(runningData.ExtendedRange);
-        outputInfo.StartIterationsFrom = options.StartIterationsFrom;
-        outputInfo.Terminal = options.Terminal;
+        outputInfo.StartIterationsFrom = opt.StartIterationsFrom;
+        outputInfo.Terminal = opt.Terminal;
         outputInfo.FrameColumns = runningData.FrameColumns;
         outputInfo.FrameDates = runningData.FrameDates;
         outputInfo.Success =  runningData.Success;
@@ -487,7 +648,7 @@ return
         for i = 1 : numRuns
             numFrames = size(runningData.FrameColumns{i}, 1);
             startDate = runningData.ExtendedRange(1);
-            frameDb{i} = locallyCreateOutputDb(this, runningData.FrameData{i}.YXEPG, startDate, options);
+            frameDb{i} = local_createOutputDb(this, runningData.FrameData{i}.YXEPG, startDate, opt);
         end
         %)
     end%
@@ -511,10 +672,10 @@ end%
 % Local Functions
 %
 
-function flag = locallyValidateSolverOption(x)
+function flag = local_validateSolverOption(x)
     %(
-    flag = isequal(x, @auto) || isa(x, 'solver.Options') || locallyValidateSolverName(x) ...
-           || (iscell(x) && locallyValidateSolverName(x{1}) && validate.nestedOptions(x(2:2:end)));
+    flag = isequal(x, @auto) || isa(x, 'solver.Options') || local_validateSolverName(x) ...
+           || (iscell(x) && local_validateSolverName(x{1}) && validate.nestedOptions(x(2:2:end)));
     if flag
         return
     end
@@ -523,7 +684,7 @@ function flag = locallyValidateSolverOption(x)
 end%
 
 
-function flag = locallyValidateSolverName(x)
+function flag = local_validateSolverName(x)
     %(
     if ~ischar(x) && ~isstring(x) && ~isa(x, 'function_handle')
         flag = false;
@@ -584,9 +745,9 @@ function [windowOption, baseRange, plan] = resolveWindowAndBaseRange(windowOptio
 end%
 
 
-function solverOption = locallyParseSolverOption(solverOption, methodOption)
+function solverOption = local_parseSolverOption(solverOption, methodOption)
     %(
-    if isa(solverOption, 'solver.Options') || isa(solverOption, 'optim.options.SolverOptions')
+    if isa(solverOption, 'solver.Options') || isa(solverOption, 'optim.opt.SolverOptions')
         return
     end
 
@@ -606,7 +767,7 @@ function solverOption = locallyParseSolverOption(solverOption, methodOption)
 end%
 
 
-function locallyCheckSolvedModel(this, method, initial, terminal)
+function local_checkSolvedModel(this, method, initial, terminal)
     %(
     if ~needsFirstOrderSolution(method, this, initial, terminal) ...
         || all(beenSolved(this))
@@ -615,15 +776,15 @@ function locallyCheckSolvedModel(this, method, initial, terminal)
     exception.error([
         "Model:NeedsFirstOrderSolution"
         "Model simulation needs a valid first-order solution to be "
-        "available given the options Method, Initial and Terminal. "
+        "available given the opt Method, Initial and Terminal. "
     ]);
     %)
 end%
 
 
-function outputDb = locallyCreateOutputDb(this, YXEPG, startDate, options)
+function outputDb = local_createOutputDb(this, YXEPG, startDate, opt)
     %(
-    if options.Contributions
+    if opt.Contributions
         comments = getLabelsForShockContributions(this.Quantity);
     else
         comments = getLabelsOrNames(this.Quantity);
@@ -638,15 +799,15 @@ function outputDb = locallyCreateOutputDb(this, YXEPG, startDate, options)
         , comments ...
         , inxInclude ...
         , timeSeriesConstructor ...
-        , options.OutputType ...
-        , options.AddToDatabank ...
+        , opt.OutputType ...
+        , opt.AddToDatabank ...
     );
 
     %
     % Include log of log-variables with LOG_PREFIX
     %
     inxLog = this.Quantity.InxLog;
-    if options.IncludeLog && any(inxLog)
+    if opt.IncludeLog && any(inxLog)
         outputDb = databank.backend.fromDoubleArrayNoFrills( ...
             log(YXEPG(inxLog, :, :)) ...
             , string(this.Quantity.LOG_PREFIX) + textual.stringify(this.Quantity.Name(inxLog)) ...
@@ -654,19 +815,19 @@ function outputDb = locallyCreateOutputDb(this, YXEPG, startDate, options)
             , "(Log) " + textual.stringify(comments(inxLog)) ...
             , inxInclude(inxLog) ...
             , timeSeriesConstructor ...
-            , options.OutputType ...
+            , opt.OutputType ...
             , outputDb ...
         );
     end
 
-    if options.AddParameters
+    if opt.AddParameters
         outputDb = addToDatabank("default", this, outputDb);
     end
     %)
 end%
 
 
-function terminal = locallyResolveTerminal(terminal, method)
+function terminal = local_resolveTerminal(terminal, method)
     %(
     if method==solver.Method.STACKED 
         return
@@ -679,7 +840,7 @@ function terminal = locallyResolveTerminal(terminal, method)
 end%
 
 
-function plan = locallyResolvePlan(this, baseRange, plan, anticipate)
+function plan = local_resolvePlan(this, baseRange, plan, anticipate)
     %(
     if isa(plan, 'Plan')
         if ~isempty(anticipate)
@@ -711,7 +872,7 @@ function plan = locallyResolvePlan(this, baseRange, plan, anticipate)
 end%
 
 
-function locallyValidateAnticipateOption(x)
+function local_validateAnticipateOption(x)
     %(
     if isempty(x) || isequal(x, true) || isequal(x, false)
         return
@@ -721,7 +882,7 @@ function locallyValidateAnticipateOption(x)
 end%
 
 
-function locallyValidatePlanOption(x)
+function local_validatePlanOption(x)
     %(
     if isempty(x) || isequal(x, true) || isequal(x, false) || isa(x, 'Plan')
         return
@@ -731,7 +892,7 @@ function locallyValidatePlanOption(x)
 end%
 
 
-function locallyValidateSystemPropertyOption(x)
+function local_validateSystemPropertyOption(x)
     %(
     if isequal(x, false) || validate.list(x)
         return
@@ -741,7 +902,7 @@ function locallyValidateSystemPropertyOption(x)
 end%
 
 
-function locallyValidateLogOption(x)
+function local_validateLogOption(x)
     %(
     if isempty(x) || isequal(x, @all) || validate.list(x)
         return
@@ -751,7 +912,7 @@ function locallyValidateLogOption(x)
 end%
 
 
-function locallyValidateMethodOption(x)
+function local_validateMethodOption(x)
     %(
     try
         solver.Method(string(x));
@@ -762,7 +923,7 @@ function locallyValidateMethodOption(x)
 end%
 
 
-function locallyValidateWindowOption(x)
+function local_validateWindowOption(x)
     %(
     if isequal(x, @auto) || validate.roundScalar(x, 1, Inf)
         return
@@ -772,7 +933,7 @@ function locallyValidateWindowOption(x)
 end%
 
 
-function locallyValidateInputDb(x)
+function local_validateInputDb(x)
     if validate.databank(x)
         return
     end
@@ -783,7 +944,7 @@ function locallyValidateInputDb(x)
 end%
 
 
-function locallyValidateBaseRange(x)
+function local_validateBaseRange(x)
     if isequal(x, @auto)
         return
     end

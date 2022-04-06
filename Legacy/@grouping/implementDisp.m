@@ -43,8 +43,8 @@ if ~isempty(this.Type)
     fprintf('\n');
 end
 
-implementDisp@shared.CommentContainer(this);
-implementDisp@shared.UserDataContainer(this);
+implementDisp@iris.mixin.CommentContainer(this);
+implementDisp@iris.mixin.UserDataContainer(this);
 
 end%
 

@@ -8,7 +8,7 @@ function X = fixcov(X, tolerance)
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 if nargin<2
-    tolerance = shared.Tolerance.DEFAULT_MSE;
+    tolerance = iris.mixin.Tolerance.DEFAULT_MSE;
 end
     
 %--------------------------------------------------------------------------

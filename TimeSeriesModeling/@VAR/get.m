@@ -111,6 +111,6 @@ function varargout = get(This,varargin)
 
 %--------------------------------------------------------------------------
 
-[varargout{1:nargout}] = get@shared.GetterSetter(This,varargin{:});
+[varargout{1:nargout}] = get@iris.mixin.GetterSetter(This,varargin{:});
 
 end

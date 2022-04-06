@@ -1,16 +1,11 @@
-function outputDb = load(fileName, items)
 
-arguments
-    fileName (1, 1) string
-    items (1, :) string = "--all"
+function outputDb = load(fileName, varargin)
+
+if numel(varargin)==1 && iscellstr(varargin{1})
+    varargin = varargin{1};
 end
 
-if isequal(items, "--all")
-    items = cell.empty(1, 0);
-else
-    items = cellstr(items);
-end
-
-outputDb = load(fileName, items{:});
+outputDb = load(fileName, varargin{:});
 
 end%
+

@@ -1,37 +1,40 @@
-classdef (CaseInsensitiveProperties=true) Configuration 
+classdef (CaseInsensitiveProperties=true) Configuration
+
+    properties (Constant)
+        Months = { 
+            'January'
+            'February'
+            'March'
+            'April'
+            'May'
+            'June'
+            'July'
+            'August'
+            'September'
+            'October'
+            'November'
+            'December' 
+        }
+
+        ConversionMonth (1, 1) double = 1
+
+        ConversionDay (1, 1) double = 1
+
+        WDay = 'Thu'
+    end
+
 
     properties (SetAccess=protected)
-        %(
         % IrisRoot  IrisToolbox root folder (not customizable)
-        IrisRoot = iris.Configuration.getIrisRoot( )
+        IrisRoot = iris.Configuration.getIrisRoot()
 
         % Release  IrisToolbox release (not customizable)
-        Release = iris.Configuration.getIrisRelease( )
-
-        % Ellipsis  Ellipsis character
-        Ellipsis = char(8230)
-
-        % Freq  Numeric representation of date frequencies (not customizable)
-        Freq = iris.Configuration.DEFAULT_FREQ
-
-        % FreqNames  Names of date frequencies (not customizable)
-        FreqNames = containers.Map(uint8(iris.Configuration.DEFAULT_FREQ), iris.Configuration.DEFAULT_FREQ_NAMES)
-
-        % RegularFrequencies  Vector of regular frequencies
-        RegularFrequencies = [ Frequency.YEARLY
-                               Frequency.HALFYEARLY
-                               Frequency.QUARTERLY
-                               Frequency.MONTHLY
-                               Frequency.WEEKLY ]
-        %)
+        Release = iris.Configuration.getIrisRelease()
     end
-        
+
 
     properties
         %(
-        % FreqLetters  One-letter representation of each regular frequency
-        FreqLetters = iris.Configuration.DEFAULT_FREQ_LETTERS
-
         % DateFormat  Default date format
         DateFormat = iris.Configuration.DEFAULT_DATE_FORMAT
 
@@ -44,26 +47,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % BaseYear  Base year for linear trends
         BaseYear = iris.Configuration.DEFAULT_BASE_YEAR
 
-        % Months  Names of calendar months
-        Months = iris.Configuration.DEFAULT_MONTHS
-
-        % ConversionMonth  Month representing a low-frequency date when being converted to higher-frequency date
-        ConversionMonth = iris.Configuration.DEFAULT_CONVERSION_MONTH
-
-        % ConversionDay  Day representing a low-frequency date when being converted to daily dates
-        ConversionDay = iris.Configuration.DEFAULT_CONVERSION_DAY
-
-        % WDay  Day of the week representing a weekly date
-        WDay = iris.Configuration.DEFAULT_WEEK_DAY
-
         % DispIndent  Indentation at the beginning of class display
         DispIndent = iris.Configuration.DEFAULT_DISP_INDENT
-
-        % SeriesFormat  Format for displaying numeric time series data
-        SeriesFormat = iris.Configuration.DEFAULT_SERIES_FORMAT
-
-        % SeriesMaxWSpace  Maximum number of spaces between time series columns when being displayed
-        SeriesMaxWSpace = iris.Configuration.DEFAULT_SERIES_MAX_WSPACE
 
         % X13Path  Path to the X13 executable
         X13Path = @auto
@@ -72,58 +57,32 @@ classdef (CaseInsensitiveProperties=true) Configuration
         PdfLatexPath = [ ]
 
         % EpsToPdfpath  Path to the EPSTOPDF executable
-        EpsToPdfPath = [ ] 
+        EpsToPdfPath = [ ]
 
         % PsToPdfPath  Path to the PSTOPDF executable
-        PsToPdfPath = [ ] 
+        PsToPdfPath = [ ]
 
         % GhostscriptPath  Path to the GS executable
         GhostscriptPath = [ ]
 
         % DefaultTimeSeriesConstructor  Function handle to default time series constructor
         DefaultTimeSeriesConstructor = @Series
-
-        % DisplayFullStack  Display full stack in error and warning messages thrown by IrisToolbox
-        DisplayFullStack = false
-
-        % UserData  Any kind of user data
-        UserData = [ ]
         %)
     end
 
 
-    properties (Dependent, Hidden)
+    properties (Dependent)
         Version
-        TSeriesFormat
     end
 
 
     properties (Dependent)
-        NumOfFrequencies
         ConvertPsToPdf
     end
 
 
     properties (Constant, Hidden)
         %(
-        DEFAULT_FREQ = [ Frequency.INTEGER
-                         Frequency.YEARLY
-                         Frequency.HALFYEARLY
-                         Frequency.QUARTERLY
-                         Frequency.MONTHLY
-                         Frequency.WEEKLY
-                         Frequency.DAILY ]
-
-        DEFAULT_FREQ_NAMES = { 'Integer'
-                               'Yearly'
-                               'Half-Yearly'
-                               'Quarterly'
-                               'Monthly'
-                               'Weekly'
-                               'Daily'       } 
-
-        DEFAULT_FREQ_LETTERS = 'YHQMW'
-
         DEFAULT_DATE_FORMAT = struct( 'ii', 'P', ...
                                       'yy', 'YF', ...
                                       'hh', 'YFP', ...
@@ -132,7 +91,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                       'ww', 'YFP', ...
                                       'dd', '$YYYY-Mmm-DD' )
 
-        DEFAULT_PLOT_DATE_FORMAT = struct( 'ii','P', ...    
+        DEFAULT_PLOT_DATE_FORMAT = struct( 'ii','P', ...
                                            'yy', 'Y', ...
                                            'hh', 'Y:P', ...
                                            'qq', 'Y:P', ...
@@ -140,7 +99,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                            'ww', 'Y:P', ...
                                            'dd', '$YYYY-Mmm-DD' )
 
-        DEFAULT_PLOT_DATETIME_FORMAT = struct( 'INTEGER', '', ...    
+        DEFAULT_PLOT_DATETIME_FORMAT = struct( 'INTEGER', '', ...
                                                'YEARLY', 'uuuu''Y''', ...
                                                'HALFYEARLY', 'uuuu''M''MM', ...
                                                'QUARTERLY', 'uuuu:Q', ...
@@ -150,32 +109,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         DEFAULT_BASE_YEAR = 2020
 
-        DEFAULT_MONTHS = { 'January'
-                           'February'
-                           'March'
-                           'April'
-                           'May'
-                           'June'
-                           'July'
-                           'August'
-                           'September'
-                           'October'
-                           'November'
-                           'December' } 
-        
-        DEFAULT_CONVERSION_MONTH = 1
-        
-        DEFAULT_CONVERSION_DAY = 1
-
-        DEFAULT_WEEK_DAY = 'Thu'
-
         DEFAULT_DISP_INDENT = '    '
-
-        DEFAULT_SERIES_FORMAT = ''
-
-        DEFAULT_SERIES_MAX_WSPACE = 5
-
-        NUM_FREQUENCIES = numel(iris.Configuration.DEFAULT_FREQ)
 
         DATE_FORMAT_STRUCT_FIELDS = { 'ii'
                                       'yy'
@@ -193,11 +127,15 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods function this = Configuration(varargin)
+            if nargin==0
+                return
+            end
+
             if ~isempty(varargin) && isa(varargin{1}, 'struct') ...
                 && (isfield(varargin{1}, "TeX") && isequal(varargin{1}.TeX, true))
-                paths = iris.Configuration.findTexFiles( );
+                paths = iris.Configuration.findTexFiles();
                 [this.PdfLatexPath, this.EpsToPdfPath, this.PsToPdfPath] = paths{:};
-                this.GhostscriptPath = iris.Configuration.findGhostscript( );
+                this.GhostscriptPath = iris.Configuration.findGhostscript();
             end
         end%
 
@@ -209,10 +147,11 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods (Static)
-        function this = load( )
+        function this = load()
             try
                 this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
             catch
+                warning("IrisT:Configuration", "Cannot load iris.Configuration from app data");
                 this = [];
             end
             if ~isa(this, 'iris.Configuration')
@@ -221,7 +160,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
-        function clear( )
+        function clear()
             try
                 rmappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
             end
@@ -230,20 +169,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods
-        function this = set.FreqLetters(this, newValue)
-            try
-                flag = iris.Configuration.validateFreqLetters(newValue);
-            catch
-                flag = false;
-            end
-            if ~flag
-                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                       'Value being assigned to this [IrisToolbox] configuration option is invalid: FreqLetters' );
-            end
-            this.FreqLetters = newValue;
-        end%
-
-
         function this = set.DateFormat(this, newValue)
             try
                 flag = iris.Configuration.validateDateFormat(newValue);
@@ -256,7 +181,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
             end
             this.DateFormat = newValue;
         end%
-     
+
 
         function this = set.PlotDateFormat(this, newValue)
             try
@@ -270,7 +195,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
             end
             this.PlotDateFormat = newValue;
         end%
-     
+
 
         function this = set.BaseYear(this, newValue)
             try
@@ -284,91 +209,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
             end
             this.BaseYear = newValue;
         end%
-     
 
-        function this = set.Months(this, newValue)
-            try
-                flag = iris.Configuration.validateMonths(newValue);
-            catch
-                flag = false;
-            end
-            if ~flag
-                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                       'Value being assigned to this [IrisToolbox] configuration option is invalid: Months' );
-            end
-            this.Months = newValue;
-        end%
-     
-
-        function this = set.ConversionMonth(this, newValue)
-            try
-                flag = iris.Configuration.validateConversionMonth(newValue);
-            catch
-                flag = false;
-            end
-            if ~flag
-                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                       'Value being assigned to this [IrisToolbox] configuration option is invalid: ConversionMonth' );
-            end
-            this.ConversionMonth = newValue;
-        end%
-     
-
-        function this = set.ConversionDay(this, newValue)
-            try
-                flag = iris.Configuration.validateConversionDay(newValue);
-            catch
-                flag = false;
-            end
-            if ~flag
-                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                       'Value being assigned to this [IrisToolbox] configuration option is invalid: ConversionDay' );
-            end
-            this.ConversionDay = newValue;
-        end%
-     
-
-        function this = set.WDay(this, newValue)
-            try
-                flag = iris.Configuration.validateWDay(newValue);
-            catch
-                flag = false;
-            end
-            if ~flag
-                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                       'Value being assigned to this [IrisToolbox] configuration option is invalid: WDay' );
-            end
-            this.WDay = newValue;
-        end%
-     
-
-        function this = set.SeriesFormat(this, newValue)
-            try
-                if iris.Configuration.validateSeriesFormat(newValue)
-                    this.SeriesFormat = newValue;
-                    return
-                end
-            end
-            error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                   'Value being assigned to this [IrisToolbox] configuration option is invalid: SeriesFormat' );
-        end%
-
-
-        function this = set.TSeriesFormat(this, value)
-            this.SeriesFormat = value;
-        end%
-     
-
-        function this = set.SeriesMaxWSpace(this, newValue)
-            try
-                if iris.Configuration.validateSeriesMaxWSpace(newValue)
-                    this.SeriesMaxWSpace = newValue;
-                end
-            end
-            error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                   'Value being assigned to this [IrisToolbox] configuration option is invalid: SeriesMaxWSpace' );
-        end%
-     
 
         function this = set.X13Path(this, value)
             try
@@ -403,7 +244,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
             error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
                    'Value being assigned to this [IrisToolbox] configuration option is invalid: PdfLatexPath' );
         end%
-     
+
 
         function this = set.EpsToPdfPath(this, newValue)
             try
@@ -419,23 +260,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
-        function this = set.DisplayFullStack(this, value)
-            if validate.logicalScalar(value)
-                this.DisplayFullStack = value;
-                return
-            end
-            error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
-                   'Value assigned to this [IrisToolbox] configuration option is invalid: DisplayFullStack' );
-        end%
-     
-
         function value = get.Version(this)
             value = this.Release;
-        end%
-
-
-        function n = get.NumOfFrequencies(this)
-            n = numel(iris.Configuration.DEFAULT_FREQ);
         end%
 
 
@@ -472,7 +298,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods (Static)
-        function paths = findTexFiles( )
+        function paths = findTexFiles()
             [pdfLatexPath, folder] = iris.Configuration.findTexMf('pdflatex');
             epstopdfPath = iris.Configuration.findPath(folder, 'epstopdf');
             pstopdfPath = iris.Configuration.findPath(folder, 'pstopdf');
@@ -484,12 +310,12 @@ classdef (CaseInsensitiveProperties=true) Configuration
             path = '';
             folder = '';
             try
-                if ispc( )
+                if ispc()
                     % __Windows__
                     [flag, path] = system(['findtexmf ', file, '.exe']);
                     if flag~=0
                         [flag, path] = system(['findtexmf --file-type=exe ', file]);
-                    end       
+                    end
                     if flag==0
                         path = strtrim(path);
                         lastEOL = find(path==char(10) | path==char(13), 1, 'last');
@@ -537,7 +363,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
         function fPath = findPath(folder, whatToFind)
-            if ispc( )
+            if ispc()
                 list = dir(fullfile(folder, [whatToFind, '.exe']));
             else
                 list = dir(fullfile(folder, whatToFind));
@@ -550,10 +376,10 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
-        function ghostscriptPath = findGhostscript( )
+        function ghostscriptPath = findGhostscript()
             ghostscriptPath = '';
             try
-                if ispc( )
+                if ispc()
                     list = dir('C:\Program Files\gs');
                     if numel(list)<3
                         list = dir('C:\Program Files (x86)\gs');
@@ -608,13 +434,13 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
-        function irisRoot = getIrisRoot( )
+        function irisRoot = getIrisRoot()
             irisRoot = fileparts(which('irisping.m'));
         end%
 
 
-        function irisRelease = getIrisRelease( )
-            x = ver( );
+        function irisRelease = getIrisRelease()
+            x = ver();
             inxIris = startsWith(strip(string({x.Name})), '[IrisToolbox]');
             numIris = nnz(inxIris);
             if numIris==1
@@ -642,7 +468,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                         irisContentsFolders(end+1, 1) = "    * " + string(fileparts(fileName)); %#ok<AGROW>
                     end
                 end
-                
+
                 disp(' ');
                 thisError = [
                     "IrisToolbox:ConflictingVersionsOrFolders"
@@ -654,15 +480,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 ];
                 error(thisError(1), join(thisError(2:end), string(newline)));
             end
-        end%
-
-
-        function flag = validateFreqLetters(x)
-            numFrequencies = iris.Configuration.NUM_FREQUENCIES;
-            numX = numel(x);
-            flag = isequal(x, @config) || ( ...
-                ((ischar(x) || isstring(x)) && isequal(x, unique(x, 'stable')) ) && numX==numFrequencies-2 ...
-            );
         end%
 
 
@@ -697,31 +514,21 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
         function flag = validateConversionMonth(x)
-            flag = isequal(x, @config) ...
-                || (isnumeric(x) && isscalar(x)  && x==round(x) && x>0) ...
+            flag = ...
+                (isnumeric(x) && isscalar(x)  && x==round(x) && x>0) ...
                 || strcmpi(x, 'first') || strcmpi(x, 'last');
         end%
 
 
         function flag = validateConversionDay(x)
-            flag = isequal(x, @config) ...
-                || (isnumeric(x) && isscalar(x)  && x==round(x) && x>0) ...
+            flag = ...
+                (isnumeric(x) && isscalar(x)  && x==round(x) && x>0) ...
                 || strcmpi(x, 'first') || strcmpi(x, 'last');
         end%
 
 
         function flag = validateWDay(x)
             flag = any(strcmpi(x, {'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'}));
-        end%
-
-
-        function flag = validateSeriesFormat(x)
-            flag = ischar(x) || isstring(x);
-        end%
-
-
-        function flag = validateSeriesMaxWSpace(x)
-            flag = isnumeric(x) && isscalar(x) && x==round(x) && x>0;
         end%
 
 

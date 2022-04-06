@@ -1,3 +1,4 @@
+
 % >=R2019b
 %(
 function [this, datesMissing] = fillMissing(this, range, method)
@@ -18,15 +19,6 @@ end
 %{
 function [this, datesMissing] = fillMissing(this, range, varargin)
 
-%( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser("NumericTimeSubscriptable/fillMissing");
-    addRequired(pp, "inputSeries", @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(pp, "range", @validate.range);
-end
-%)
-opt = parse(pp, this, range, varargin);
 method = varargin;
 %}
 % <=R2019a

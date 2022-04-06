@@ -17,7 +17,7 @@ classdef Comodel ...
     end
 
 
-    methods % Interface for shared.Plan
+    methods % Interface for iris.mixin.Plan
         %(
         function slackPairs = getSlackPairsForPlan(this)
             stringify = @(x) reshape(string(x), 1, []);

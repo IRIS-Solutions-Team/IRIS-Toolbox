@@ -20,16 +20,16 @@ end
 %{
 function [success, info] = compareFields(d1, d2, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addParameter(pp, 'AbsTol', 1e-12);
-    addParameter(pp, 'Keys', @all);
-    addParameter(pp, 'Error', false);
-    addParameter(pp, 'Warning', false);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'AbsTol', 1e-12);
+    addParameter(ip, 'Keys', @all);
+    addParameter(ip, 'Error', false);
+    addParameter(ip, 'Warning', false);
 end
-parse(pp, varargin{:});
-opt = pp.Results;
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

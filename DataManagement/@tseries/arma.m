@@ -1,4 +1,4 @@
-function X = arma(varargin)
+function X = arma(X, E, AR, MA, Range)
 % arma  Apply ARMA model to input series.
 %
 %
@@ -71,30 +71,29 @@ function X = arma(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-[X, E, AR, MA, Range, varargin] = ...
-    irisinp.parser.parse('tseries.arma', varargin{:}); %#ok<ASGLU>
+validate.mustBeProperRange(Range);
 
-AR = AR(:).';
+AR = reshape(AR, 1, []);
 if isempty(AR)
     AR = 1;
 elseif AR(1)~=1
     AR = AR / AR(1);
 end
 
-MA = MA(:).';
+MA = reshape(MA, 1, []);
 if isempty(MA)
     MA = 1;
 end
 
 %--------------------------------------------------------------------------
 
-pa = length(AR) - 1;
-pm = length(MA) - 1;
+pa = numel(AR) - 1;
+pm = numel(MA) - 1;
 p = max(pa, pm);
 
-nPer = length(Range);
+nPer = numel(Range);
 xRange = Range(1)-p : Range(end);
-nXPer = length(xRange);
+nXPer = numel(xRange);
 
 XData = getDataFromTo(X, xRange);
 EData = getDataFromTo(E, xRange);

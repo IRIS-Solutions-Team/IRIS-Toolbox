@@ -38,7 +38,13 @@ function H = plotcircle(x,y,radius,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-[opt,varargin] = passvalopt('grfun.plotcircle',varargin{:});
+
+defaults = { 
+    'fill', false, @(x) isequal(x, true) || isequal(x, false)
+};
+
+[opt,varargin] = passvalopt(defaults, varargin{:});
+
 
 %--------------------------------------------------------------------------
 

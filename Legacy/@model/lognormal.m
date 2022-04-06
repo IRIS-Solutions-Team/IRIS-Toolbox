@@ -62,7 +62,21 @@ pp.addRequired('D', ...
     @(x) isstruct(x) && isfield(x, 'mean') && isfield(x, 'std'));
 pp.parse(db);
 
-Opt = passvalopt('model.lognormal', varargin{:});
+
+%(
+defaults = {
+    'fresh', false, @islogicalscalar
+    'mean', true, @islogicalscalar
+    'median', true, @islogicalscalar
+    'mode', true, @islogicalscalar
+    'prctile, pctile, pct', [5, 95], @(x) isnumeric(x) && all(round(x(:))>0 & round(x(:))<100)
+    'prefix', 'lognormal', @(x) ischar(x) && ~isempty(x)
+    'std', true, @islogicalscalar
+};
+%)
+
+
+Opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

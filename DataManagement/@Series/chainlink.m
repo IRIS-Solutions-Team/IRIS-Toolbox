@@ -1,16 +1,16 @@
 
 % >=R2019b
 %(
-function [aggregateLevel, aggregateRate, info] = chainlink(levels, weights, options)
+function [aggregateLevel, aggregateRate, info] = chainlink(levels, weights, opt)
 
 arguments
     levels Series
     weights Series
 
-    options.Range = Inf
-    options.RebaseDates = []
-    options.NormalizeWeights (1, 1) logical = true
-    options.WhenMissing (1, 1) string {mustBeMember(options.WhenMissing, ["error", "warning", "silent"])} = "error"
+    opt.Range = Inf
+    opt.RebaseDates = []
+    opt.NormalizeWeights (1, 1) logical = true
+    opt.WhenMissing (1, 1) string {mustBeMember(opt.WhenMissing, ["error", "warning", "silent"])} = "error"
 end
 %)
 % >=R2019b
@@ -20,22 +20,23 @@ end
 %{
 function [aggregateLevel, aggregateRate, info] = chainlink(levels, weights, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addParameter(pp, 'Range', Inf);
-    addParameter(pp, 'RebaseDates', []);
-    addParameter(pp, 'NormalizeWeights', true);
+persistent ip
+if isempty(ip)
+ip = inputParser(); 
+    addParameter(ip, "Range", Inf);
+    addParameter(ip, "RebaseDates", []);
+    addParameter(ip, "NormalizeWeights", true);
+    addParameter(ip, "WhenMissing", "error");
 end
-parse(pp, varargin{:});
-options = pp.Results;
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
 
-if ~isequal(options.Range, Inf)
-    levels = clip(levels, options.Range);
-    weights = clip(weights, options.Range);
+if ~isequal(opt.Range, Inf)
+    levels = clip(levels, opt.Range);
+    weights = clip(weights, opt.Range);
     hereCheckMissing();
 end
 
@@ -43,7 +44,7 @@ end
 %
 % Normalize weights
 %
-if options.NormalizeWeights
+if opt.NormalizeWeights
     weights = weights / sum(weights, 2);
 end
 
@@ -68,8 +69,8 @@ growRange = dater.colon(dater.plus(rateRange(1), -1), rateRange(end));
 aggregateLevel = Series(growRange, 1);
 aggregateLevel = grow(aggregateLevel, "roc", aggregateRate, getRange(aggregateRate), "EoPY");
 
-if ~isempty(options.RebaseDates)
-    aggregateLevel = 100 * normalize(aggregateLevel, options.RebaseDates);
+if ~isempty(opt.RebaseDates)
+    aggregateLevel = 100 * normalize(aggregateLevel, opt.RebaseDates);
 end
 
 if nargout>=3
@@ -82,15 +83,15 @@ return
 
     function hereCheckMissing()
         %(
-        if options.WhenMissing=="error"
+        if opt.WhenMissing=="error"
             func = @exception.error;
-        elseif options.WhenMissing=="warning"
+        elseif opt.WhenMissing=="warning"
             func = @exception.warning;
         else
             return
         end
-        levelsData = getDataFromTo(levels, options.Range);
-        weightsData = getDataFromTo(weights, options.Range);
+        levelsData = getDataFromTo(levels, opt.Range);
+        weightsData = getDataFromTo(weights, opt.Range);
         inxLevelMissing = any(~isfinite(levelsData(:)));
         inxWeightMissing = any(~isfinite(weightsData(:)));
         if any(inxLevelMissing)

@@ -9,8 +9,8 @@ function flag = checkConsistency(this)
 
 %--------------------------------------------------------------------------
 
-flag = checkConsistency@shared.GetterSetter(this) ...
-       && checkConsistency@shared.UserDataContainer(this);
+flag = checkConsistency@iris.mixin.GetterSetter(this) ...
+       && checkConsistency@iris.mixin.UserDataContainer(this);
 
 end%
 

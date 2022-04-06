@@ -1,15 +1,15 @@
 
 % >=R2019b
 %(
-function [flag, listMissing, listSuspect] = checkInitials(this, inputDb, range, options)
+function [flag, listMissing, listSuspect] = checkInitials(this, inputDb, range, opt)
 
 arguments
     this Model
     inputDb {validate.mustBeDatabank}
     range {validate.mustBeProperRange}
 
-    options.Error (1, 1) logical = true
-    options.Warning (1, 1) logical = true
+    opt.Error (1, 1) logical = true
+    opt.Warning (1, 1) logical = true
 end
 %)
 % >=R2019b
@@ -19,24 +19,22 @@ end
 %{
 function [flag, listMissing, listSuspect] = checkInitials(this, inputDb, range, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser("Model/checkInitials");
-    addRequired(pp, 'model', @(x) isa(x, 'Model'));
-    addRequired(pp, 'inputDb', @validate.databank);
-    addRequired(pp, 'range', @validate.properRange);
-    addParameter(pp, 'Error', true, @validate.logicalScalar);
-    addParameter(pp, 'Warning', true, @validate.logicalScalar);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'Error', true);
+    addParameter(ip, 'Warning', true);
 end
-parse(pp, this, inputDb, range, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
 
 messageFunc = @(varargin) [];
-if options.Error
+if opt.Error
     messageFunc = @exception.error;
-elseif options.Warning
+elseif opt.Warning
     messageFunc = @exception.warning;
 end
 logStyle = "none";

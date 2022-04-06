@@ -10,7 +10,7 @@ function [this, isValidRequest, isValidValue] = implementSet(this, query, value,
 %--------------------------------------------------------------------------
 
 [this, isValidRequest, isValidValue] = ...
-    implementSet@shared.UserDataContainer(this, query, value, varargin{:});
+    implementSet@iris.mixin.UserDataContainer(this, query, value, varargin{:});
 if isValidRequest
     return
 end

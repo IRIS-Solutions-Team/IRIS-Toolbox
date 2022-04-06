@@ -56,7 +56,7 @@ else
     objFunc = sumPeFiPe / 2;
 end
 
-if ~opt.ObjFuncContributions
+if ~opt.ReturnObjFuncContribs
     return
 end
 

@@ -8,11 +8,11 @@
 function this = grow(this, operator, change, dates, shift, opt)
 
 arguments
-    this {locallyValidateLevelInput}
+    this {local_validateLevelInput}
     operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "difflog", "roc", "pct"])}
-    change {locallyValidateGrowthInput(change)}
+    change {local_validateGrowthInput(change)}
     dates {validate.properDates(dates)}
-    shift {locallyValidateShift(shift)} = -1
+    shift {local_validateShift(shift)} = -1
 
     opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
 end
@@ -22,29 +22,18 @@ end
 
 % <=R2019a
 %{
-function this = grow(this, operator, change, dates, varargin)
+function this = grow(this, operator, change, dates, shift, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@Series/grow');
-    addRequired(pp, 'level', @locallyValidateLevelInput);
-    addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, 'function_handle'));
-    addRequired(pp, 'change', @locallyValidateGrowthInput);
-    addRequired(pp, 'dates', @validate.properDate);
-    addOptional(pp, 'shift', -1, @locallyValidateShift);
+try, shift;
+    catch, shift = -1; end
 
-    addParameter(pp, "Direction", "Forward", @(x) any(strcmpi(x, ["Forward", "Backward"])));
-
-    % Legacy option
-    addParameter(pp, 'BaseShift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, -intmax( ), -1));
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "Direction", "forward");
 end
-opt = parse(pp, this, operator, change, dates, varargin{:});
-if isequal(opt.BaseShift, @auto)
-    shift = pp.Results.shift;
-else
-    % Legacy option
-    shift = opt.BaseShift;
-end
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
@@ -55,7 +44,7 @@ end
 
 %--------------------------------------------------------------------------
 
-func = locallyChooseFunction(operator, opt.Direction);
+func = local_chooseFunction(operator, opt.Direction);
 
 dates = reshape(double(dates), 1, [ ]);
 shift = dater.resolveShift(dates, shift);
@@ -140,7 +129,7 @@ end%
 % Local Functions
 %
 
-function func = locallyChooseFunction(operator, direction)
+function func = local_chooseFunction(operator, direction)
     %(
     if isa(operator, 'function_handle')
         func = operator;
@@ -176,7 +165,7 @@ function func = locallyChooseFunction(operator, direction)
 end%
 
 
-function locallyValidateGrowthInput(input)
+function local_validateGrowthInput(input)
     %(
     if isa(input, 'NumericTimeSubscriptable') || validate.numericScalar(input)
         return
@@ -186,7 +175,7 @@ function locallyValidateGrowthInput(input)
 end%
 
 
-function locallyValidateShift(input)
+function local_validateShift(input)
     %(
     if validate.roundScalar(input, -Inf, -1) || validate.anyString(input, ["YoY", "EoPY", "BoY"])
         return
@@ -199,7 +188,7 @@ end%
 % Local Validators
 %
 
-function locallyValidateLevelInput(input)
+function local_validateLevelInput(input)
     if isa(input, 'NumericTimeSubscriptable') || validate.numericScalar(input)
         return
     end

@@ -37,7 +37,14 @@ function This = integrate(This,varargin)
 ny = size(This.A,1);
 nAlt = size(This.A,3);
 
-opt = passvalopt('VAR.integrate',varargin{:});
+
+defaults = {
+    'applyto', Inf, @(x) isnumeric(x) || islogical(x)
+};
+
+
+opt = passvalopt(defaults, varargin{:});
+
 
 % Make options.applyto logical index.
 if isnumeric(opt.applyto)

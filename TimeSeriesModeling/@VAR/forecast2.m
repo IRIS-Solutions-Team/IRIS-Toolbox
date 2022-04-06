@@ -76,8 +76,24 @@ pp.addRequired('Range', @(x) isnumeric(x) && ~any(isinf(x(:))));
 pp.addRequired('Cond', @(x) isempty(x) || isstruct(x));
 pp.parse(this, inp, range, cond);
 
-% Parse options.
-opt = passvalopt('VAR.forecast',varargin{1:end});
+
+%(
+defaults = {
+    'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
+    'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
+    'dboverlay, dbextend', false, @islogicalscalar
+    'Deviation, Deviations', false, @islogicalscalar
+    'meanonly', false, @islogicalscalar
+    'omega', [ ], @isnumeric
+    'returninstruments, returninstrument', true, @islogicalscalar
+    'returnresiduals, returnresidual', true, @islogicalscalar
+    'E', [ ], @(x) isempty(x) || isnumeric(x) 
+    'Sigma', [ ], @isnumeric
+}
+%)
+
+
+opt = passvalopt(defaults, varargin{1:end});
 
 %--------------------------------------------------------------------------
 

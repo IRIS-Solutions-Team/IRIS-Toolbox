@@ -1,4 +1,3 @@
-function [range, freqList] = dbrange(varargin)
 % dbrange  Find a range that encompasses the ranges of the listed tseries objects
 %{
 % ## Syntax ##
@@ -54,8 +53,24 @@ function [range, freqList] = dbrange(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-[d, list, varargin] = irisinp.parser.parse('dbase.dbrange', varargin{:});
-opt = passvalopt('dbase.dbrange', varargin{:});
+function [range, freqList] = dbrange(d, varargin)
+
+exception.warning([
+    "Deprecated"
+    "Function 'dbrange' is deprecated and will be removed in the future."
+    "Use 'databank.range instead"
+]);
+
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('inputDb', @validate.databank);
+    ip.addOptional('list', @all, @(x) ischar(x) || iscellstr(x) || isstring(x) || isequal(x, @all));
+    ip.addParameter('StartDate', 'maxRange', @(x) (ischar(x) || isstring(x)) && ismember(lower(x), {'maxrange', 'minrange', 'unbalanced', 'balanced'}));
+    ip.addParameter('EndDate', 'maxRange', @(x) (ischar(x) || isstring(x)) && ismember(lower(x), {'maxrange', 'minrange', 'unbalanced', 'balanced'}));
+end
+opt = ip.parse(d, varargin{:});
+list = ip.Results.list;
 
 if ischar(list)
     list = regexp(list, '\w+', 'match');
@@ -65,15 +80,13 @@ elseif isa(list, 'rexp')
     list = f(inxMatched);
 elseif isequal(list, @all)
     list = fieldnames(d);
-elseif isstring(list)
-    list = cellstr(list);
 end
-list = reshape(list, 1, [ ]);
 
-%--------------------------------------------------------------------------
+list = reshape(cellstr(list), 1, [ ]);
 
-freqList = iris.get('freq');
-numFreq = length(freqList);
+
+freqList = frequency.ALL_FREQUENCIES;
+numFreq = numel(freqList);
 startDates = cell(1, numFreq);
 endDates = cell(1, numFreq);
 range = cell(1, numFreq);
@@ -81,7 +94,7 @@ numEntries = numel(list);
 for i = 1 : numEntries
     if isfield(d, list{i}) && isa(d.(list{i}), 'TimeSubscriptable')
         x = d.(list{i});
-        inxFreq = freq(x)==freqList;
+        inxFreq = getFrequency(x)==freqList;
         if any(inxFreq)
             startDates{inxFreq}(end+1) = x.Start;
             endDates{inxFreq}(end+1) = x.End;
@@ -89,13 +102,13 @@ for i = 1 : numEntries
     end
 end
 
-if any(strcmpi(opt.startdate, {'maxrange', 'unbalanced'}))
+if any(strcmpi(opt.StartDate, {'maxrange', 'unbalanced'}))
     startDates = cellfun(@min, startDates, 'uniformOutput', false);
 else
     startDates = cellfun(@max, startDates, 'uniformOutput', false);
 end
 
-if any(strcmpi(opt.enddate, {'maxrange', 'unbalanced'}))
+if any(strcmpi(opt.EndDate, {'maxrange', 'unbalanced'}))
     endDates = cellfun(@max, endDates, 'uniformOutput', false);
 else
     endDates = cellfun(@min, endDates, 'uniformOutput', false);

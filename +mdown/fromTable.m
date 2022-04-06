@@ -1,27 +1,56 @@
-function code = fromTable(t, options)
+
+% >=R2019b
+%(
+function code = fromTable(t, opt)
 
 arguments
     t table
 
-    options.NaN (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
-    options.Zero (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
-    options.RowNamesHeader (1, 1) string = "Name"
-    options.RowNamesPattern (1, 2) string = ["`", "`"]
-    options.NumericFormat (1, 1) string = "%g"
-    options.Round (1, 1) double = Inf
-    options.Title (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
-    options.SaveAs (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
-    options.AppendTo (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
+    opt.NaN (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
+    opt.Zero (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
+    opt.RowNamesHeader (1, 1) string = "Name"
+    opt.RowNamesPattern (1, 2) string = ["`", "`"]
+    opt.NumericFormat (1, 1) string = "%g"
+    opt.Round (1, 1) double = Inf
+    opt.Title (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
+    opt.SaveAs (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
+    opt.AppendTo (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function code = fromTable(t, opt)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "NaN", string.empty(1, 0));
+    addParameter(ip, "Zero", string.empty(1, 0));
+    addParameter(ip, "RowNamesHeader", "Name");
+    addParameter(ip, "RowNamesPattern", ["`", "`"]);
+    addParameter(ip, "NumericFormat", "%g");
+    addParameter(ip, "Round", Inf);
+    addParameter(ip, "Title", string.empty(1, 0));
+    addParameter(ip, "SaveAs", string.empty(1, 0));
+    addParameter(ip, "AppendTo", string.empty(1, 0));
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
 
 s = table2struct(t, "toScalar", true);
 columnNames = textual.stringify(t.Properties.VariableNames);
 
 rowNames = textual.stringify(t.Properties.RowNames);
 if ~isempty(rowNames)
-    columnNames = [options.RowNamesHeader, columnNames];
-    rowNames = options.RowNamesPattern(1) + rowNames + options.RowNamesPattern(2);
-    s.(options.RowNamesHeader) = reshape(rowNames, [], 1);
+    columnNames = [opt.RowNamesHeader, columnNames];
+    rowNames = opt.RowNamesPattern(1) + rowNames + opt.RowNamesPattern(2);
+    s.(opt.RowNamesHeader) = reshape(rowNames, [], 1);
 end
 
 numColumns = numel(columnNames);
@@ -32,13 +61,13 @@ numRows = numel(s.(columnNames(1)));
 %
 p = struct();
 for n = columnNames
-    p.(n) = locallyStringify(s.(n), options);
+    p.(n) = locallyStringify(s.(n), opt);
 end
 
 
 title = string(newline());
-if ~isempty(options.Title)
-    title = title + join(options.Title, newline);
+if ~isempty(opt.Title)
+    title = title + join(opt.Title, newline);
 elseif ~isempty(t.Properties.Description)
     title = title + join(textual.stringify(t.Properties.Description), newline());
 end
@@ -69,17 +98,17 @@ end
 
 code = code + newline();
 
-if ~isempty(options.SaveAs)
-    textual.write(code, options.SaveAs);
+if ~isempty(opt.SaveAs)
+    textual.write(code, opt.SaveAs);
 end
 
-if ~isempty(options.AppendTo)
+if ~isempty(opt.AppendTo)
     try
-        existing = fileread(options.AppendTo);
+        existing = fileread(opt.AppendTo);
     catch
         existing = "";
     end
-    textual.write(existing + code, options.AppendTo);
+    textual.write(existing + code, opt.AppendTo);
 end
 
 end%
@@ -88,7 +117,7 @@ end%
 % Local functions
 %
 
-function output = locallyStringify(values, options)
+function output = locallyStringify(values, opt)
     %(
     if isstring(values)
         output = values;
@@ -97,18 +126,18 @@ function output = locallyStringify(values, options)
         output(values) = "`true`";
         output(~values) = "`false`";
     elseif isnumeric(values)
-        if ~isequal(options.Round, Inf)
-            values = round(values, options.Round);
+        if ~isequal(opt.Round, Inf)
+            values = round(values, opt.Round);
             values(values==0) = 0;
         end
-        output = compose(options.NumericFormat, values);
-        if ~isempty(options.NaN)
-            nanString = sprintf(options.NumericFormat, NaN);
-            output = replace(output, nanString, options.NaN);
+        output = compose(opt.NumericFormat, values);
+        if ~isempty(opt.NaN)
+            nanString = sprintf(opt.NumericFormat, NaN);
+            output = replace(output, nanString, opt.NaN);
         end
-        if ~isempty(options.Zero)
-            zeroString = sprintf(options.NumericFormat, 0);
-            output = replace(output, zeroString, options.Zero);
+        if ~isempty(opt.Zero)
+            zeroString = sprintf(opt.NumericFormat, 0);
+            output = replace(output, zeroString, opt.Zero);
         end
     elseif iscellstr(values)
         output = string(values);

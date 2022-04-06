@@ -1,189 +1,193 @@
-function [s, field] = dat2str(dat, varargin)
-% dat2str  Convert IRIS dates to cell array of strings
+
 %{
-% ## Syntax ##
-%
-%     S = dat2str(Dat, ...)
-%
-%
-% ## Input Arguments ##
-%
-% __`Dat`__ [ numeric ] - 
-% IRIS serial date number(s).
-%
-%
-% ## Output Arguments ##
-%
-% __`S`__ [ cellstr ] - 
-% Cellstr with strings representing the input dates.
-%
-%
-% ## Options ##
-%
-% __`DateFormat='YYYYFP'`__ [ char | cellstr | string ] - 
-% Date format string,
-% or array of format strings (possibly different for each date).
-%
-% __`FreqLetters='YHQMW'`__ [ char | string ] - 
-% Five letters used to
-% represent the six possible frequencies of IRIS dates, in this order:
-% yearly, half-yearly, quarterly, monthly, and weekly (such as the `'Q'` in
-% `'2010Q1'`).
-%
-% __`Months={'January', ..., 'December'}`__ [ cellstr | string ] - 
-% Twelve
-% strings representing the names of the twelve months.
-%
-% __`ConversionMonth=1`__ [ numeric | `'last'` ] - 
-% Month that will represent
-% a lower-than-monthly-frequency date if the month is part of the date
-% format string.
-%
-% __`WWDay='Thu'`__ [ `'Mon'` | `'Tue'` | `'Wed'` | `'Thu'` | `'Fri'` |
-% `'Sat'` | `'Sun'` ] - 
-% Day of week that will represent weeks.
-%
-%
-% ## Description ##
-%
-% There are two types of date strings in IRIS: year-period strings and
-% calendar date strings. The year-period strings can be printed for dates
-% with yearly, half-yearly, quarterly, bimonthly, monthly, weekly, and
-% indeterminate frequencies. The calendar date strings can be printed for
-% dates with weekly and daily frequencies. Date formats for calendar date
-% strings must start with a dollar sign, `$`.
-%
-% ### Year-Period Date Strings ###
-%
-% Regular date formats can include any combination of the following
-% fields:
-%
-% * `'Y'` - One- to four-digit numeral representing a year.
-%
-% * `'YYYY'` - Four-digit numeral representing a year; padded with leading
-% zeros if necessary.
-%
-% * `'YY'` - Two-digit numeral representing the last two digits of a year.
-%
-% * `'P'` - One- to two-digit numeral representing the period within the
-% year (half-year, quarter, month, week).
-%
-% * `'PP'` - Two-digit numeral representing the period within the year,
-% padded with leaading zeros if necessary.
-%
-% * `'R'` - Upper-case roman numeral for the period within the year.
-%
-% * `'r'` - Lower-case roman numeral for the period within the year.
-%
-% * `'M'` - One- to two-digit numeral representing a month.
-%
-% * `'MM'` - Two-digit numeral representing a month; padded with leading
-% zeros if needed.
-%
-% * `'MMMM'`, `'Mmmm'`, `'mmmm'` - Case-sensitive full name of a month.
-%
-% * `'MMM'`, `'Mmm'`, `'mmm'` - Case-sensitive three-letter abbreviation of
-% a month.
-%
-% * `'D'` - One- to two-digit numeral representing a day.
-%
-% * `'DD'` - Two-digit numeral representing a day; padded with zeros if
-% necessary.
-%
-% * `'Q'` - Upper-case roman numeral representing a month or conversion month.
-%
-% * `'q'` - Lower-case roman numeral representing a month or conversion month.
-%
-% * `'F'` - Upper-case letter representing the date frequency.
-%
-% * `'f'` - Lower-case letter representing the date frequency.
-%
-% * `'EE'` - Two-digit numeral representing an end-of-month day; conversion
-% month used for non-monthly dates; padded with zeros if necessary.
-%
-% * `'E'` - One- to two-digit numeral representing an end-of-month day;
-% conversion month used for non-monthly dates; padded with zeros if
-% necessary.
-%
-%
-% ### Calendar Date Strings ###
-%
-% Calendar date formats must start with a dollar sign, `$`, and can include
-% any combination of the following fields:
-%
-% * `'Y'` - Year.
-%
-% * `'YYYY'` - Four-digit year.
-%
-% * `'YY'` - Two-digit year.
-%
-% * `'DD'` - Two-digit day numeral; daily and weekly dates only.
-%
-% * `'D'` - Day numeral; daily and weekly dates only.
-%
-% * `'M'` - Month numeral.
-%
-% * `'MM'` - Two-digit month numeral.
-%
-% * `'MMMM'`, `'Mmmm'`, `'mmmm'` - Case-sensitive name of month.
-%
-% * `'MMM'`, `'Mmm'`, `'mmm'` - Case-sensitive three-letter abbreviation of
-% month.
-%
-% * `'Q'` - Upper-case roman numeral for the month.
-%
-% * `'q'` - Lower-case roman numeral for the month.
-%
-% * `'DD'` - Two-digit day numeral.
-%
-% * `'D'` - Day numeral.
-%
-% * `'Aaa'`, `'AAA'` - Three-letter English name of the day of week
-% (`'Mon'`, ..., `'Sun'`).
-%
-%
-% ### Escaping Control Letters ###
-%
-% To get the format letters printed literally in the date string, use a
-% percent sign as an escape character: `'%Y'`, `'%P'`, `'%F'`, `'%f'`, 
-% `'%M'`, `'%m'`, `'%R'`, `'%r'`, `'%Q'`, `'%q'`, `'%D'`, `'%E'`, `'%D'`.
-%
-%
-% ## Example ##
-%
+
+# `dat2str`
+
+{== Convert IRIS dates to cell array of strings ==}
+
+## Syntax ##
+
+    S = dat2str(Dat, ...)
+
+
+## Input Arguments ##
+
+__`Dat`__ [ numeric ] - 
+IRIS serial date number(s).
+
+
+## Output Arguments ##
+
+__`S`__ [ cellstr ] - 
+Cellstr with strings representing the input dates.
+
+
+## Options ##
+
+__`DateFormat='YYYYFP'`__ [ char | cellstr | string ] - 
+Date format string,
+or array of format strings (possibly different for each date).
+
+__`Months={'January', ..., 'December'}`__ [ cellstr | string ] - 
+Twelve
+strings representing the names of the twelve months.
+
+__`ConversionMonth=1`__ [ numeric | `'last'` ] - 
+Month that will represent
+a lower-than-monthly-frequency date if the month is part of the date
+format string.
+
+__`WDay='Thu'`__ [ `'Mon'` | `'Tue'` | `'Wed'` | `'Thu'` | `'Fri'` |
+`'Sat'` | `'Sun'` ] - 
+Day of week that will represent weeks.
+
+
+## Description ##
+
+There are two types of date strings in IRIS: year-period strings and
+calendar date strings. The year-period strings can be printed for dates
+with yearly, half-yearly, quarterly, bimonthly, monthly, weekly, and
+indeterminate frequencies. The calendar date strings can be printed for
+dates with weekly and daily frequencies. Date formats for calendar date
+strings must start with a dollar sign, `$`.
+
+### Year-Period Date Strings ###
+
+Regular date formats can include any combination of the following
+fields:
+
+* `'Y'` - One- to four-digit numeral representing a year.
+
+* `'YYYY'` - Four-digit numeral representing a year; padded with leading
+zeros if necessary.
+
+* `'YY'` - Two-digit numeral representing the last two digits of a year.
+
+* `'P'` - One- to two-digit numeral representing the period within the
+year (half-year, quarter, month, week).
+
+* `'PP'` - Two-digit numeral representing the period within the year,
+padded with leaading zeros if necessary.
+
+* `'R'` - Upper-case roman numeral for the period within the year.
+
+* `'r'` - Lower-case roman numeral for the period within the year.
+
+* `'M'` - One- to two-digit numeral representing a month.
+
+* `'MM'` - Two-digit numeral representing a month; padded with leading
+zeros if needed.
+
+* `'MMMM'`, `'Mmmm'`, `'mmmm'` - Case-sensitive full name of a month.
+
+* `'MMM'`, `'Mmm'`, `'mmm'` - Case-sensitive three-letter abbreviation of
+a month.
+
+* `'D'` - One- to two-digit numeral representing a day.
+
+* `'DD'` - Two-digit numeral representing a day; padded with zeros if
+necessary.
+
+* `'Q'` - Upper-case roman numeral representing a month or conversion month.
+
+* `'q'` - Lower-case roman numeral representing a month or conversion month.
+
+* `'F'` - Upper-case letter representing the date frequency.
+
+* `'f'` - Lower-case letter representing the date frequency.
+
+* `'EE'` - Two-digit numeral representing an end-of-month day; conversion
+month used for non-monthly dates; padded with zeros if necessary.
+
+* `'E'` - One- to two-digit numeral representing an end-of-month day;
+conversion month used for non-monthly dates; padded with zeros if
+necessary.
+
+
+### Calendar Date Strings ###
+
+Calendar date formats must start with a dollar sign, `$`, and can include
+any combination of the following fields:
+
+* `'Y'` - Year.
+
+* `'YYYY'` - Four-digit year.
+
+* `'YY'` - Two-digit year.
+
+* `'DD'` - Two-digit day numeral; daily and weekly dates only.
+
+* `'D'` - Day numeral; daily and weekly dates only.
+
+* `'M'` - Month numeral.
+
+* `'MM'` - Two-digit month numeral.
+
+* `'MMMM'`, `'Mmmm'`, `'mmmm'` - Case-sensitive name of month.
+
+* `'MMM'`, `'Mmm'`, `'mmm'` - Case-sensitive three-letter abbreviation of
+month.
+
+* `'Q'` - Upper-case roman numeral for the month.
+
+* `'q'` - Lower-case roman numeral for the month.
+
+* `'DD'` - Two-digit day numeral.
+
+* `'D'` - Day numeral.
+
+* `'Aaa'`, `'AAA'` - Three-letter English name of the day of week
+(`'Mon'`, ..., `'Sun'`).
+
+
+### Escaping Control Letters ###
+
+To get the format letters printed literally in the date string, use a
+percent sign as an escape character: `'%Y'`, `'%P'`, `'%F'`, `'%f'`, 
+`'%M'`, `'%m'`, `'%R'`, `'%r'`, `'%Q'`, `'%q'`, `'%D'`, `'%E'`, `'%D'`.
+
+
+## Example ##
+
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-persistent parser configStruct
-if isempty(parser)
-    configStruct = iris.get( );
-    parser = extend.InputParser('dates.dat2str');
-    parser.addRequired('InputDate', @(x) isa(x, 'DateWrapper') || isnumeric(x));
-    parser.addDateOptions( );
+
+function [s, field] = dat2str(dat, varargin)
+
+persistent ip configStruct
+if isempty(ip)
+    configStruct = iris.get();
+    ip = extend.InputParser();
+    ip.addRequired('InputDate', @(x) isa(x, 'DateWrapper') || isnumeric(x));
+    ip.addDateOptions( );
 end
 
 % Bkw compatibility, called from within mydatxtick( ) and dbsave( )
 if ~isempty(varargin) && isstruct(varargin{1})
     varargin = extend.InputParser.extractDateOptionsFromStruct(varargin{1});
 end
-parser.parse(dat, varargin{:});
-opt = parser.Options;
+ip.parse(dat, varargin{:});
+opt = ip.Options;
 
-upperRomans = { 'I', 'II', 'III', 'IV', 'V', 'VI', ...
-                'VII', 'VIII', 'IX', 'X', 'XI', 'XII' };
-lowerRomans = lower(upperRomans);
+UPPER_ROMANS = { 
+    'I', 'II', 'III', 'IV', 'V', 'VI' ...
+    , 'VII', 'VIII', 'IX', 'X', 'XI', 'XII' 
+};
 
-daysOfWeek = { 'Sunday', 'Monday', 'Tuesday', 'Wednesday', ...
-               'Thursday', 'Friday', 'Saturday' };
+LOWER_ROMANS = lower(UPPER_ROMANS);
 
-%--------------------------------------------------------------------------
+DAYS_OF_WEEK = {
+    'Sunday', 'Monday', 'Tuesday', 'Wednesday' ...
+    , 'Thursday', 'Friday', 'Saturday' 
+};
+    
+[year, per, freq] = dater.getYearPeriodFrequency(dat);
 
-[year, per, freq] = dat2ypf(dat);
-
-inxWeekly = freq==Frequency__.Weekly;
-inxDaily = freq==Frequency__.Daily;
+inxWeekly = freq==frequency.WEEKLY;
+inxDaily = freq==frequency.DAILY;
 inxMatlabSerial = inxWeekly | inxDaily;
 
 % Matlab serial date numbers (daily or weekly dates only), calendar years, 
@@ -202,60 +206,60 @@ end
 
 s = cell(size(year));
 s(:) = {''};
-nDat = numel(year);
+numDates = numel(year);
 nFmt = numel(opt.DateFormat);
 prevFreq = NaN;
 
-for iDat = 1 : nDat
-    ithDoubleDate = double(dat(iDat));
-    if isequal(ithDoubleDate, Inf)
-        s{iDat} = 'Inf';
+
+%==========================================================================
+for i = 1 : numDates
+
+    currDoubleDate = double(dat(i));
+    if isequal(currDoubleDate, Inf)
+        s{i} = 'Inf';
         continue
-    elseif isequal(ithDoubleDate, -Inf)
-        s{iDat} = '-Inf';
+    elseif isequal(currDoubleDate, -Inf)
+        s{i} = '-Inf';
+        continue
+    elseif isequaln(currDoubleDate, NaN)
+        s{i} = 'NaD';
         continue
     end
 
-    ithFreq = freq(iDat);
-
-    if iDat<=nFmt || ~isequaln(ithFreq, prevFreq)
-        fmt = DateWrapper.chooseFormat(opt.DateFormat, ithFreq, min(iDat, nFmt));
-        [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt);
-        numOfFields = length(field);
-    end
+    currFreq = freq(i);
     
-    if ~any(ithFreq==configStruct.Freq)
-        s{iDat} = 'Not-A-Date';
+    if isnan(currFreq)
+        s{i} = '?';
         continue
     end
 
-    %{
-    if ithFreq==Frequency__.Daily && ~isCalendar
-        throw( exception.Base('Dates:CalendarFormatForDaily', 'error') );
+    if i<=nFmt || ~isequaln(currFreq, prevFreq)
+        fmt = DateWrapper.chooseFormat(opt.DateFormat, currFreq, min(i, nFmt));
+        [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt);
+        numFields = length(field);
     end
-    %}
 
-    subs = cell(1, numOfFields);
+    subs = cell(1, numFields);
     subs(:) = {''};
     
     % Year-period
-    iYear = year(iDat);
-    iPer = per(iDat);
-    iMsd = msd(iDat);
+    iYear = year(i);
+    iPer = per(i);
+    iMsd = msd(i);
     iMon = NaN;
 
     % Calendar.
-    iYearC = yearC(iDat);
-    iMonC = monC(iDat);
-    iDayC = dayC(iDat);
-    iDowC = dowC(iDat);
+    iYearC = yearC(i);
+    iMonC = monC(i);
+    iDayC = dayC(i);
+    iDowC = dowC(i);
     
     if ~isCalendar && isMonthNeeded
         % Calculate non-calendar month
         iMon = calculateMonth( );
     end
     
-    for j = 1 : numOfFields
+    for j = 1 : numFields
         switch field{j}(1)
             case {'Y', 'y'}
                 if isCalendar
@@ -271,8 +275,10 @@ for iDat = 1 : nDat
                 end
             case {'P', 'R', 'r'}
                 subs{j} = doPer( );
-            case {'F', 'f'}
-                subs{j} = subsFreqLetter( );
+            case 'F'
+                subs{j} = upper(char(frequency.toLetter(currFreq)));
+            case 'f'
+                subs{j} = lower(char(frequency.toLetter(currFreq)));
             case 'D'
                 if isCalendar
                     subs{j} = doDay( );
@@ -298,9 +304,12 @@ for iDat = 1 : nDat
         end
     end
     
-    s{iDat} = sprintf(fmt, subs{:});
-    prevFreq = ithFreq;
+    s{i} = sprintf(fmt, subs{:});
+    prevFreq = currFreq;
+
 end
+%==========================================================================
+
 
 return
 
@@ -390,20 +399,20 @@ return
             case 'PP'
                 s = sprintf('%02g', iPer);
             case 'P'
-                if ithFreq<Frequency__.Monthly
+                if currFreq<frequency.MONTHLY
                     s = sprintf('%g', iPer);
-                elseif ithFreq<Frequency__.Daily
+                elseif currFreq<frequency.DAILY
                     s = sprintf('%02g', iPer);
                 else
                     s = sprintf('%03g', iPer);
                 end
             case 'R'
                 try %#ok<TRYNC>
-                    s = upperRomans{iPer};
+                    s = UPPER_ROMANS{iPer};
                 end
             case 'r'
                 try %#ok<TRYNC>
-                    s = lowerRomans{iPer};
+                    s = LOWER_ROMANS{iPer};
                 end
         end
     end%
@@ -438,11 +447,11 @@ return
                 s = sprintf('%g', M);
             case 'Q'
                 try %#ok<TRYNC>
-                    s = upperRomans{M};
+                    s = UPPER_ROMANS{M};
                 end
             case 'q'
                 try %#ok<TRYNC>
-                    s = lowerRomans{M};
+                    s = LOWER_ROMANS{M};
                 end
         end
     end%
@@ -504,10 +513,8 @@ return
     end%
 
 
-
-
     function subs = doDow(A)
-        subs = daysOfWeek{A};
+        subs = DAYS_OF_WEEK{A};
         if strcmp(field{j}, 'Aaa')
             subs = subs(1:3);
         elseif strcmp(field{j}, 'AAA')
@@ -516,38 +523,17 @@ return
     end%
 
 
-
-
     function month = calculateMonth( )
         % Non-calendar month
         month = NaN;
-        switch ithFreq
-            case {Frequency__.Yearly, Frequency__.HalfYearly, Frequency__.Quarterly}
-                month = per2month(iPer, ithFreq, opt.ConversionMonth);
-            case Frequency__.Monthly
+        switch currFreq
+            case {frequency.YEARLY, frequency.HALFYEARLY, frequency.QUARTERLY}
+                month = per2month(iPer, currFreq, opt.ConversionMonth);
+            case frequency.MONTHLY
                 month = iPer;
-            case Frequency__.Weekly
+            case frequency.WEEKLY
                 % Non-calendar month of a weekly date is the month that contains Thursday
                 [~, month] = datevec( double(iMsd+3) );
-        end
-    end%
-
-
-
-
-    function subs = subsFreqLetter( )
-        subs = '';
-        if ithFreq==Frequency__.Daily
-            % TODO: Include daily freq letter in config
-            subs = 'X';
-        else
-            inxRegular = ithFreq==configStruct.RegularFrequencies;
-            if any(inxRegular)
-                subs = opt.FreqLetters(inxRegular);
-            end
-        end
-        if isequal(field{j}, 'f')
-            subs = lower(subs);
         end
     end%
 end%

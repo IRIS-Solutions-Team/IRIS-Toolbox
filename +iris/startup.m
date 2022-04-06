@@ -17,10 +17,10 @@ MINIMUM_MATLAB = 'R2017b';
 % <=R2019a
 
 
-options = locallyResolveInputOptions(varargin{:});
+options = local_resolveInputOptions(varargin{:});
 
 if options.CheckMatlab ...
-        && locallyGetMatlabRelease()<locallyReleaseToNum(MINIMUM_MATLAB)
+        && local_getMatlabRelease()<local_releaseToNum(MINIMUM_MATLAB)
     error( ...
         "IrisToolbox:StartupError" ...
         , "Matlab %s or later is needed to run this [IrisToolbox] release" ...
@@ -41,21 +41,21 @@ config = iris.reset( ...
 );
 
 if ~options.Silent
-    hereDisplayIntro();
-    hereDisplayDetails();
+    here_displayIntro();
+    here_displayDetails();
 end
 
 % <=R2019a
 %{
 if options.LegacyWarning
-    hereDisplayLegacyWarning();
+    here_displayLegacyWarning();
 end
 %}
 % <=R2019a
 
 return
 
-    function hereDisplayIntro()
+    function here_displayIntro()
         release = config.Release;
         % Intro message
         fprintf('\n');
@@ -81,7 +81,7 @@ return
     end%
 
 
-    function hereDisplayDetails()
+    function here_displayDetails()
         %(
         % Matlab requirements
         fprintf("\tMatlab requirements: %s or later", MINIMUM_MATLAB);
@@ -132,7 +132,7 @@ return
         %)
     end%
 
-    function hereDisplayLegacyWarning()
+    function here_displayLegacyWarning()
         %(
         warning( ...
             join([
@@ -147,7 +147,7 @@ return
 end%
 
 
-function r = locallyGetMatlabRelease()
+function r = local_getMatlabRelease()
     %(
     r = uint16(0);
     try %#ok<TRYNC>
@@ -157,7 +157,7 @@ function r = locallyGetMatlabRelease()
             s = s(find(ixMatlab, 1));
             r = regexp(s.Release, 'R\d{4}[ab]', 'match', 'once');
             if ~isempty(r)
-                r = locallyReleaseToNum(r);
+                r = local_releaseToNum(r);
             end
         end
     end
@@ -165,7 +165,7 @@ function r = locallyGetMatlabRelease()
 end%
 
 
-function n = locallyReleaseToNum(r)
+function n = local_releaseToNum(r)
     %(
     n = uint16(0);
     r = lower(r);
@@ -182,7 +182,7 @@ function n = locallyReleaseToNum(r)
 end%
 
 
-function options = locallyResolveInputOptions(varargin)
+function options = local_resolveInputOptions(varargin)
     %(
     options = struct();
     options.CheckMatlab = true;

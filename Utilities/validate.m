@@ -391,6 +391,17 @@ classdef validate
         end%
 
 
+        function mustBeDatabankOrEmpty(x, varargin)
+            if isempty(x)
+                return
+            end
+            if isequal(validate.databank(x, varargin{:}), true)
+                return
+            end
+            error("Input value must be a databank (struct or Dictionary).");
+        end%
+
+
         function mustBeProperRange(x)
             if isequal(validate.properRange(x), true)
                 return

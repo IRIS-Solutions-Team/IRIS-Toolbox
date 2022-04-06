@@ -66,9 +66,9 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
    
-classdef plan < shared.UserDataContainer ...
-              & shared.CommentContainer ...
-              & shared.GetterSetter
+classdef plan < iris.mixin.UserDataContainer ...
+              & iris.mixin.CommentContainer ...
+              & iris.mixin.GetterSetter
     properties
         Start = NaN
         End = NaN
@@ -143,8 +143,8 @@ classdef plan < shared.UserDataContainer ...
             % -IRIS Macroeconomic Modeling Toolbox
             % -Copyright (c) 2007-2021 IRIS Solutions Team
             
-            this = this@shared.UserDataContainer( );
-            this = this@shared.GetterSetter( );
+            this = this@iris.mixin.UserDataContainer( );
+            this = this@iris.mixin.GetterSetter( );
             
             if nargin==0
                 return
@@ -245,8 +245,8 @@ classdef plan < shared.UserDataContainer ...
         
         
         function flag = checkConsistency(this)
-            flag = checkConsistency@shared.GetterSetter(this) && ...
-                checkConsistency@shared.UserDataContainer(this);
+            flag = checkConsistency@iris.mixin.GetterSetter(this) && ...
+                checkConsistency@iris.mixin.UserDataContainer(this);
         end%%
     end
     

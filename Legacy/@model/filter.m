@@ -19,7 +19,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 % run a linear Kalman filter on the `inputData` observations.
 %
 %
-% __`inputData`__ [ struct | Dictionary ] 
+% __`inputData`__ [ struct | Dictionary ]
 % >
 % Input databank from which the observations for measurement variables on
 % the `filterRange` will be taken.
@@ -46,7 +46,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 % type of output data are requested through the option `Output=`.
 %
 %
-% __`V`__ [ numeric ] 
+% __`V`__ [ numeric ]
 % >
 % Estimated variance scale factor if the `Relative=`
 % options is true; otherwise `V` is 1.
@@ -146,7 +146,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 %
 %
 % __`MeanOnly=false`__ [ `true` | `false` ]
-% > 
+% >
 % Return a plain databank with mean data only; this option overrides
 % options `ReturnCont=`, `ReturnMse=`, `ReturnStd=`.
 %
@@ -176,7 +176,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 % relative std devs, and a common variance scale factor will be estimated.
 %
 %
-% __`ReturnCont=false`__ [ `true` | `false` ]
+% __`Contributions=false`__ [ `true` | `false` ]
 % >
 % Return contributions of prediction errors in measurement variables to the
 % estimates of all variables and shocks.
@@ -210,7 +210,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 % numbers supplied will be multiplied by the std deviations assigned in
 % the model object to calculate the std deviations used in the filter. See
 % Description.
-% 
+%
 %
 % __`Override=[ ]`__ [ struct | empty ]
 % >
@@ -291,7 +291,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 %
 % ### Contributions of Measurement Variables to Estimates of All Variables ###
 %
-% Use the option `ReturnCont=true` to request the decomposition of
+% Use the option `Contributions=true` to request the decomposition of
 % measurement variables, transition variables, and shocks into the
 % contributions of each individual measurement variable. The resulting
 % output databank will include one extra subdatabank called `.cont`. In
@@ -315,15 +315,15 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 % (mean) that you want to deviate from the values currently assigned in the
 % model object. The time series supplied do not need to stretch over the
 % entire filter range: in the periods not specified, the values currently
-% assigned in the model object will be assumed. 
+% assigned in the model object will be assumed.
 %
 % The option `Override=` simply overrides the std deviations, correlations
-% or medians (means) of the shocks whenever specified. 
-% 
+% or medians (means) of the shocks whenever specified.
+%
 % The option `Mutliply=` can be used to supply multipliers for std
 % deviations. The numbers entered will be multiplied by the std deviations
 % to obtain the final std deviations used in the filter.
-% 
+%
 % To alter the median (mean) of a shock, supply a time series named after
 % the shock itself. To alter the std deviation of a shock, use the name of
 % that std deviation, i.e. `std_xxx` where `xxx` is the name of the shock.
@@ -381,11 +381,6 @@ numPages = size(inputArray, 3);
 
 % Check option conflicts
 hereCheckConflicts( );
-
-% Set up data sets for Rolling=
-if ~isequal(opt.Rolling, false)
-    hereSetupRolling( );
-end
 
 nz = nnz(this.Quantity.IxObserved);
 extendedStart = dater.plus(filterRange(1), -1);
@@ -464,36 +459,17 @@ return
                 'Cannot use option Ahead= with multiple data sets or parameter variants.' ...
             );
         end
-        if ~isequal(opt.Rolling, false) && multiple
-            error( ...
-                'Model:Filter:IllegalRolling', ...
-                'Cannot use option Rolling= with multiple data sets or parameter variants.' ...
-            );
-        end
-        if opt.ReturnCont && any(opt.Condition)
+        if opt.Contributions && any(opt.Condition)
             error( ...
                 'Model:Filter:IllegalCondition', ...
-                'Cannot combine options ReturnCont= and Condition=.' ...
+                'Cannot combine options ReturnCont and Condition.' ...
             );
         end
-    end% 
-
-
-
-
-    function hereSetupRolling( )
-        % No multiple data sets or parameter variants guaranteed here.
-        numRolling = numel(opt.RollingColumns);
-        inputArray = repmat(inputArray, 1, 1, numRolling);
-        for i = 1 : numRolling
-            inputArray(:, opt.RollingColumns(i)+1:end, i) = NaN;
-        end
-        numPages = size(inputArray, 3);
     end%
 
 
 
-    
+
     function herePreallocOutputData( )
         % TODO Make .Output the primary option, allow for cellstr or string
         % inputs
@@ -504,8 +480,8 @@ return
         numPredictions = max(numRuns, opt.Ahead);
         numContributions = max(ny, nz);
         if needsOutputData
-            
-            % 
+
+            %
             % Prediction
             %
             if isPred
@@ -517,20 +493,20 @@ return
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true );
                     end
-                    if opt.ReturnMSE
+                    if opt.ReturnMse
                         outputData.Mse0 = hdataobj( );
                         outputData.Mse0.Data = nan(nb, nb, numExtPeriods, numRuns);
                         outputData.Mse0.Range = extRange;
                     end
-                    if opt.ReturnCont
+                    if opt.Contributions
                         outputData.predcont = hdataobj( this, extRange, numContributions, ....
                                                    'IncludeLag=', false, ...
                                                    'Contributions=', @measurement );
                     end
                 end
             end
-            
-            % 
+
+            %
             % Filter
             %
             if isFilter
@@ -542,19 +518,19 @@ return
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true);
                     end
-                    if opt.ReturnMSE
+                    if opt.ReturnMse
                         outputData.Mse1 = hdataobj( );
                         outputData.Mse1.Data = nan(nb, nb, numExtPeriods, numRuns);
                         outputData.Mse1.Range = extRange;
                     end
-                    if opt.ReturnCont
+                    if opt.Contributions
                         outputData.filtercont = hdataobj( this, extRange, numContributions, ...
                                                      'IncludeLag=', false, ...
                                                      'Contributions=', @measurement );
                     end
                 end
             end
-            
+
             %
             % Smoother
             %
@@ -567,12 +543,12 @@ return
                             , 'IsVar2Std=', true ...
                         );
                     end
-                    if opt.ReturnMSE
+                    if opt.ReturnMse
                         outputData.Mse2 = hdataobj( );
                         outputData.Mse2.Data = nan(nb, nb, numExtPeriods, numRuns);
                         outputData.Mse2.Range = extRange;
                     end
-                    if opt.ReturnCont
+                    if opt.Contributions
                         outputData.C2 = hdataobj( ...
                             this, extRange, numContributions ...
                             , 'Contributions=', @measurement ...

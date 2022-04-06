@@ -132,7 +132,7 @@ function [obj, V, F, Pe, Delta, PDelta] = loglik(this, inputData, range, varargi
 
 % These variables are cleared at the end of the file unless the user
 % specifies `'persist=' true`.
-persistent DATA RANGE EXTENDED_RANGE OPT LIKOPT
+persistent DATA RANGE EXTENDED_RANGE opt LIKOPT
 
 % If loglik(m) is called without any further input arguments, the last ones
 % passed in will be used if `'persistent='` was set to `true`.
@@ -152,9 +152,20 @@ else
     RANGE = reshape(double(range), 1, [ ]);
     EXTENDED_RANGE = [dater.plus(RANGE(1), -1), RANGE];
     
-    [OPT, varargin] = passvalopt('model.loglik', varargin{:});
 
-    if strncmpi(OPT.domain, 't', 1)
+    %(
+    defaults = {
+        'MatrixFormat', 'namedmat', @validate.matrixFormat
+        'domain', 'time', @(x) any(strncmpi(x, {'t', 'f'}, 1))
+        'persist', false, @islogicalscalar
+    };
+    %)
+
+
+    [opt, varargin] = passvalopt(defaults, varargin{:});
+
+
+    if strncmpi(opt.domain, 't', 1)
         LIKOPT = prepareKalmanOptions(this, RANGE, varargin{:});
         req = 'tyg*';
     else
@@ -174,7 +185,7 @@ argin = struct( ...
     'Options', LIKOPT ...
 );
 
-if strncmpi(OPT.domain, 't', 1)
+if strncmpi(opt.domain, 't', 1)
     loglikFunc = @implementKalmanFilter;
 else
     loglikFunc = @freql;
@@ -187,13 +198,13 @@ else
     %
     % Populate regular (non-hdata) output arguments
     %
-    [F, Pe, V, Delta, PDelta] = kalmanFilterRegOutp(this, regOutp, EXTENDED_RANGE, LIKOPT, OPT);
+    [F, Pe, V, Delta, PDelta] = kalmanFilterRegOutp(this, regOutp, EXTENDED_RANGE, LIKOPT, opt);
 end
 
-if ~OPT.persist
+if ~opt.persist
     DATA   = [ ];
     RANGE  = [ ];
-    OPT    = [ ];
+    opt    = [ ];
     LIKOPT = [ ];
 end
 

@@ -3,24 +3,48 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-function output = solutionMatrices(this, options)
+% >=R2019b
+%(
+function output = solutionMatrices(this, opt)
 
 arguments
     this Model
 
-    options.Triangular (1, 1) logical = true
-    options.RemoveInactiveShocks (1, 1) logical = false
-    options.KeepExpansion (1, 1) logical = true
-    options.MatrixFormat (1, 1) string = "NamedMat"
+    opt.Triangular (1, 1) logical = true
+    opt.RemoveInactiveShocks (1, 1) logical = false
+    opt.KeepExpansion (1, 1) logical = true
+    opt.MatrixFormat (1, 1) string = "NamedMat"
 end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function output = solutionMatrices(this, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Triangular", true);
+    addParameter(ip, "RemoveInactiveShocks", false);
+    addParameter(ip, "KeepExpansion", true);
+    addParameter(ip, "MatrixFormat", "NamedMat");
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
+
 
 [T, R, K, Z, H, D, U, Omg, ~] ...
-    = sspaceMatrices(this, ':', options.KeepExpansion, options.Triangular);
+    = sspaceMatrices(this, ':', opt.KeepExpansion, opt.Triangular);
 
 [~, numXi, numXib, numXif, numE] = sizeSolution(this.Vector);
 
 inxShocksToKeep = true(1, numE);
-if options.RemoveInactiveShocks
+if opt.RemoveInactiveShocks
     inxShocksToKeep = ~diag( all(Omg==0, 3) );
     R = reshape(R, [numXi, numE, size(R, 2)/numE]);
     R = R(:, inxShocksToKeep, :);
@@ -37,7 +61,7 @@ xibVector = xiVector(numXif+1:end);
 eVector = string(printSolutionVector(this, "e", logPrefix));
 eVector = eVector(inxShocksToKeep);
 
-if ~options.Triangular
+if ~opt.Triangular
     alphaVector0 = string(printSolutionVector(this, this.Vector.Solution{2}(numXif+1:end), logPrefix));
     alphaVector1 = string(printSolutionVector(this, this.Vector.Solution{2}(numXif+1:end)-1i, logPrefix));
 else
@@ -46,7 +70,7 @@ else
     xiVector(numXif+1:end) = alphaVector0;
 end
 
-if startsWith(string(options.MatrixFormat), "named", "ignoreCase", true)
+if startsWith(string(opt.MatrixFormat), "named", "ignoreCase", true)
     eVectorX = eVector;
     forward = size(R, 2) / numE - 1;
     if forward>1

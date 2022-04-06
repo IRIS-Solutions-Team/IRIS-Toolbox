@@ -22,15 +22,16 @@ end
 %{
 function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser("@Explanatory/simulateResidualModel");
-    addParameter(pp, "BlackoutBefore", -Inf);
-    addParameter(pp, "SkipWhenData", false);
-    addParameter(pp, "Journal", false);
-    addParameter(pp, "IncludeInnovations", false);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    addParameter(ip, "BlackoutBefore", -Inf);
+    addParameter(ip, "SkipWhenData", false);
+    addParameter(ip, "Journal", false);
+    addParameter(ip, "IncludeInnovations", false);
 end
-opt = parse(pp, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

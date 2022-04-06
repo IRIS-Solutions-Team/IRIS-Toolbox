@@ -1,12 +1,13 @@
-function [specsFileTitle, message] = run(specsCode, info, opt)
+function [specsFileTitle, message] = run(specsCode, info)
 
-if ispc( )
+if ispc()
     executableName = "x13aswin.exe";
-elseif ismac( )
+elseif ismac()
     executableName = "x13asmac";
 else
     executableName = "x13asunix";
 end
+
 x13path = fullfile(iris.get("X13Path"), executableName);
 
 specsFileTitle = string(tempname("."));
@@ -16,10 +17,6 @@ fclose(fid);
 
 command = x13path + " """ + specsFileTitle + """";
 [status, message] = system(command);
-
-if opt.Display
-    disp(message);
-end
 
 end%
 

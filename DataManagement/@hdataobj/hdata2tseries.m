@@ -10,7 +10,15 @@ function outp = hdata2tseries(this, varargin)
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-opt = passvalopt('HData.hdata2tseries', varargin{:});
+
+%(
+defaults = { ...
+    'Delog', true, @islogicalscalar, ...
+};
+%)
+
+
+opt = passvalopt(defaults, varargin{:});
 
 %--------------------------------------------------------------------------
 

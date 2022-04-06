@@ -80,13 +80,17 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function this = roc(this, varargin)
+function this = roc(this, shift, varargin)
 
 if isempty(this.Data)
     return
 end
 
-[shift, power] = dater.resolveShift(getRangeAsNumeric(this), varargin{:});
+try, shift;
+    catch, shift = -1;
+end
+
+[shift, power] = dater.resolveShift(getRangeAsNumeric(this), shift, varargin{:});
 
 
 %==========================================================================

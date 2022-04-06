@@ -3,18 +3,34 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-function [output, beenHandled] = access(this, input, options)
-
 % >=R2019b
 %(
+function [output, beenHandled] = access(this, input, opt)
+
 arguments
     this (1, :) Model
     input (1, 1) string
 
-    options.Error (1, 1) logical = true
+    opt.Error (1, 1) logical = true
 end
 %)
 % >=R2019b
+
+
+% <=R2019a
+%{
+function [output, beenHandled] = access(this, input, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'Error', true);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
 
 stringify = @(x) reshape(string(x), 1, []);
 
@@ -165,7 +181,7 @@ end
 %==========================================================================
 
 
-if ~beenHandled && options.Error
+if ~beenHandled && opt.Error
     exception.error([
         "Model:InvalidAccessQuery"
         "This is not a valid query into Model objects: %s "

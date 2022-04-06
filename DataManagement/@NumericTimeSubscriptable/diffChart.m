@@ -24,21 +24,21 @@ end
 %{
 function [axesHandle, plotHandles, diffPlotHandle] = diffChart(inputSeries, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser();
-    addParameter(pp, 'Range', Inf);
-    addParameter(pp, 'Axes', "current");
-    addParameter(pp, 'DiffFunc', @minus);
-    addParameter(pp, 'PlotFunc', @plot);
-    addParameter(pp, 'DiffPlotFunc', @bar);
-    addParameter(pp, 'Transform', []);
-    addParameter(pp, 'FirstPlot', cell.empty(1, 0));
-    addParameter(pp, 'SecondPlot', cell.empty(1, 0));
-    addParameter(pp, 'DiffPlot', {'lineStyle', 'none', 'faceAlpha', 0.75});
+persistent ip
+if isempty(ip)
+ip = inputParser(); 
+    addParameter(ip, "Range", Inf);
+    addParameter(ip, "Axes", "current");
+    addParameter(ip, "DiffFunc", @minus);
+    addParameter(ip, "PlotFunc", @plot);
+    addParameter(ip, "DiffPlotFunc", @bar);
+    addParameter(ip, "Transform", []);
+    addParameter(ip, "FirstPlot", cell.empty(1, 0));
+    addParameter(ip, "SecondPlot", cell.empty(1, 0));
+    addParameter(ip, "DiffPlot", {"lineStyle", "none", "faceAlpha", 0.75});
 end
-parse(pp, varargin{:});
-opt = pp.Results;
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

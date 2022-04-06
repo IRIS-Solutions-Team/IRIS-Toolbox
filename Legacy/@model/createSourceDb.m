@@ -25,18 +25,24 @@ if isempty(pp)
     addRequired(pp, "model", @(x) isa(x, 'model'));
     addRequired(pp, "range", @validate.properRange);
 
+    addParameter(pp, "Deviation", false, @validate.logicalScalar);
+    addParameter(pp, "EvalTrends", logical.empty(1, 0));
+
     addParameter(pp, ["AppendPresample", "AddPresample"], true, @validate.logicalScalar);
     addParameter(pp, ["AppendPostsample", "AddPostsample"], true, @validate.logicalScalar);
     addParameter(pp, ["NumDraws", "NDraw"], 1, @(x) validate.roundScalar(x, 1, Inf));
     addParameter(pp, ["NumColumns", "NCol"], 1, @(x) validate.roundScalar(x, 1, Inf));
     addParameter(pp, 'ShockFunc', @zeros, @(x) isequal(x, @zeros) || isequal(x, @randn) || isequal(x, @lhsnorm)); 
     addParameter(pp, 'AddParameters', true);
-    addDeviationOptions(pp, false);
 end
 %)
 [skipped, opt] = maybeSkip(pp, this, range, varargin{:});
 if ~skipped
     opt = parse(pp, this, range, varargin{:});
+end
+
+if isempty(opt.EvalTrends)
+    opt.EvalTrends = ~opt.Deviation;
 end
 
 numDrawsRequested = opt.NumDraws;
@@ -98,7 +104,7 @@ if ~opt.Deviation
     X(inxYXG, :, :) = createTrendArray(this, Inf, isDelog, posYXG, ttrend);
 end
 
-if opt.DTrends
+if opt.EvalTrends
     W = evalTrendEquations(this, [ ], X(inxG, :, :), @all);
     X(1:ny, :, :) = X(1:ny, :, :) + W;
 end

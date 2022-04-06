@@ -57,7 +57,7 @@ if nargin==1
     return
 end
 
-if nargin==2 && isa(varargin{1}, 'shared.Tolerance')
+if nargin==2 && isa(varargin{1}, 'iris.mixin.Tolerance')
     %
     % Assign Tolerance:
     % this = tolerance(this, Tolerance)

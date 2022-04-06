@@ -26,23 +26,20 @@ end
 %{
 function outputTable = table(this, requests, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@Model/table');
-
-    addRequired(pp, 'model', @(x) isa(x, 'Model'));
-    addRequired(pp, 'requests', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-
-    addParameter(pp, 'CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'Diary', "", @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
-    addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
-    addParameter(pp, 'SelectRows', false, @(x) isequal(x, false) || validate.list(x));
-    addParameter(pp, {'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'WriteTable', "", @validate.mustBeTextScalar);
-    addParameter(pp, 'NonstationaryLevel', true);
-    addParameter(pp, 'Title', string.empty(1, 0));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "CompareFirstColumn", false);
+    addParameter(ip, "Diary", "");
+    addParameter(ip, "Round", Inf);
+    addParameter(ip, "SelectRows", false);
+    addParameter(ip, "SortAlphabetically", false);
+    addParameter(ip, "WriteTable", "");
+    addParameter(ip, "NonstationaryLevel", true);
+    addParameter(ip, "Title", string.empty(1, 0));
 end
-opt = parse(pp, this, requests, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

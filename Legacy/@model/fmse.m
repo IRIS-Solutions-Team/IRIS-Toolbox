@@ -49,15 +49,22 @@ function [X, YXVec, stdDb] = fmse(this, time, varargin)
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/fmse');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('Time', @validate.date);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('Model', @(x) isa(x, 'model'));
+    ip.addRequired('Time', @validate.date);
 end
-INPUT_PARSER.parse(this, time);
+ip.parse(this, time);
 
-opt = passvalopt('model.fmse', varargin{:});
+
+defaults = {
+    'MatrixFormat', 'namedmat', @validate.matrixFormat
+    'select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x)
+};
+
+opt = passvalopt(defaults, varargin{:});
+
 
 % tell whether time is nper or range
 if isscalar(time) && round(time)==time && time>0

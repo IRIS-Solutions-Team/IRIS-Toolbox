@@ -57,20 +57,34 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-function [output, beenHandled] = access(this, input, options)
-
 % >=R2019b
 %(
+function [output, beenHandled] = access(this, input, opt)
+
 arguments
     this (1, :) Comodel
     input (1, 1) string
 
-    options.Error (1, 1) logical = true
+    opt.Error (1, 1) logical = true
 end
 %)
 % >=R2019b
 
-stringify = @(x) reshape(string(x), 1, []);
+
+% <=R2019a
+%{
+function [output, beenHandled] = access(this, input, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Error", true);
+end
+parser(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
 
 %
 % Preprocess the input query
@@ -90,14 +104,14 @@ if lower(what)==lower("costdValues")
     ptr = this.Pairing.Costds;
     ptr(ptr==0) = [];
     values = permute(this.Variant.Values(1, ptr, :), [2, 3, 1]);
-    names = stringify(this.Quantity.Name(ptr));
+    names = textual.stringify(this.Quantity.Name(ptr));
     output = locallyCreateStruct(names, values);
 
 
 elseif lower(what)==lower("costds")
     ptr = this.Pairing.Costds;
     ptr(ptr==0) = [];
-    output = stringify(this.Quantity.Name(ptr));
+    output = textual.stringify(this.Quantity.Name(ptr));
 
 
 else
@@ -107,7 +121,7 @@ end
 %==========================================================================
 
 
-if ~beenHandled && options.Error
+if ~beenHandled && opt.Error
     exception.error([
         "Comodel:InvalidAccessQuery"
         "This is not a valid query into Comodel objects: %s "

@@ -1,19 +1,38 @@
-function [summaryTable, dimTables, json, info] = dimensions(dataset, options)
 
 % >=R2019b
 %(
+function [summaryTable, dimTables, json, info] = dimensions(dataset, opt)
+
 arguments
     dataset (1, 1) string
 
-    options.URL (1, 1) string = databank.fromIMF.Config.URL + "DataStructure/"
-    options.WebOptions = databank.fromIMF.Config.WebOptions
-    options.WriteTable (1, 1) string = ""
+    opt.URL (1, 1) string = databank.fromIMF.Config.URL + "DataStructure/"
+    opt.WebOptions = databank.fromIMF.Config.WebOptions
+    opt.WriteTable (1, 1) string = ""
 end
 %)
 % >=R2019b
 
+
+% <=R2019a
+%{
+function [summaryTable, dimTables, json, info] = dimensions(dataset, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, "URL", databank.fromIMF.Config.URL + "DataStructure/");
+    addParameter(ip, "WebOptions", databank.fromIMF.Config.WebOptions);
+    addParameter(ip, "WriteTable", "");
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
+
 [response, request] = databank.fromIMF.Config.request( ...
-    options.URL, upper(dataset), options.WebOptions ...
+    opt.URL, upper(dataset), opt.WebOptions ...
 );
 
 try
@@ -47,8 +66,8 @@ end % for
 summaryTable = table(summaryID, summaryName);
 summaryTable.Properties.VariableNames = {'ID', 'Name'};
 
-if strlength(options.WriteTable)>0
-    fileName = databank.fromIMF.Config.writeSummaryTable(options.WriteTable, summaryTable);
+if strlength(opt.WriteTable)>0
+    fileName = databank.fromIMF.Config.writeSummaryTable(opt.WriteTable, summaryTable);
     locallyWriteDimTables(fileName, dimTables, json);
 end % if
 

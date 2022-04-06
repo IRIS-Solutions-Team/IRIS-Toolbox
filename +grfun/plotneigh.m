@@ -67,7 +67,20 @@
 
 function varargout = plotneigh(d, varargin)
 
-opt = passvalopt('grfun.plotneigh', varargin{:});
+
+defaults = { 
+    'Caption', [ ], @(x) isempty(x) || iscellstr(x)
+    'plotobj', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
+    'plotlik', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
+    'plotest', {'marker=', '*', 'linestyle=', 'none', 'color=', 'red'}, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
+    'plotbounds', {'color=', 'red'}, @(x) isequal(x, true) || isequal(x, false)  || iscellstr(x(1:2:end))
+    'subplot', @auto, validFn.subplot
+    'title', {'interpreter=', 'none'}, @(x) isempty(x) || isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
+    'linkaxes', false, @(x) isequal(x, true) || isequal(x, false)
+};
+
+opt = passvalopt(defaults, varargin{:});
+
 
 isPlotObj = ~isequal(opt.plotobj, false);
 isPlotLik = ~isequal(~opt.plotlik, false);

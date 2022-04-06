@@ -5,16 +5,16 @@
 
 % >=R2019b
 %(
-function options = prepareCheckSteady(this, options)
+function opt = prepareCheckSteady(this, opt)
 
 arguments
     this %#ok<INUSA>
 
-    options.Run (1, 1) logical = true
-    options.Silent (1, 1) logical = false
-    options.EquationSwitch (1, 1) string {mustBeMember(options.EquationSwitch, ["dynamic", "steady"])} = "dynamic"
-    options.Error (1, 1) logical = true
-    options.Warning (1, 1) logical = true
+    opt.Run (1, 1) logical = true
+    opt.Silent (1, 1) logical = false
+    opt.EquationSwitch (1, 1) string {mustBeMember(opt.EquationSwitch, ["dynamic", "steady"])} = "dynamic"
+    opt.Error (1, 1) logical = true
+    opt.Warning (1, 1) logical = true
 end
 %)
 % >=R2019b
@@ -22,18 +22,19 @@ end
 
 % <=R2019a
 %{
-function options = prepareCheckSteady(this, varargin)
+function opt = prepareCheckSteady(this, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser("Model/prepareCheckSteady");
-    addParameter(inputParser, "Run", true, @validate.logicalScalar);
-    addParameter(inputParser, "Silent", false, @validate.logicalScalar);
-    addParameter(inputParser, "EquationSwitch", "dynamic", @(x) mustBeMember(x, ["dynamic", "steady"]));
-    addParameter(inputParser, "Error", true, @validate.logicalScalar);
-    addParameter(inputParser, "Warning", true, @validate.logicalScalar);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Run", true);
+    addParameter(ip, "Silent", false);
+    addParameter(ip, "EquationSwitch", "dynamic");
+    addParameter(ip, "Error", true);
+    addParameter(ip, "Warning", true);
 end
-options = parse(inputParser, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

@@ -10,6 +10,7 @@ function outputDb = clip(inputDb, newStart, newEnd, opt)
 arguments
     inputDb (1, 1) {validate.mustBeDatabank(inputDb)}
     newStart {mustBeNonempty, validate.mustBeDate(newStart)}
+
     newEnd {validate.mustBeScalarOrEmpty, validate.mustBeDate(newEnd)} = []
 
     opt.SourceNames {locallyValidateNames(opt.SourceNames)} = @all
@@ -23,24 +24,28 @@ end
 %{
 function outputDb = clip(inputDb, newStart, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('databank.clip');
-    addRequired(pp, 'inputDatabank', @validate.databank);
-    addRequired(pp, 'newStart', @(x) isequal(x, -Inf) || validate.date(x));
-    addOptional(pp, 'newEnd', [], @(x) isempty(x) || isequal(x, Inf) || validate.date(x));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addOptional(ip, "newEnd", []);
 
-    addParameter(pp, "SourceNames", @all, @(x) isequal(x, @all) || isstring(x) || ischar(x) || iscellstr(x));
-    addParameter(pp, "TargetDb", @auto, @(x) isequal(x, @auto) || validate.databank(x));
+    addParameter(ip, "SourceNames", @all);
+    addParameter(ip, "TargetDb", @auto);
 end
-opt = parse(pp, inputDb, newStart, varargin{:});
-newEnd = pp.Results.newEnd;
+parse(ip, varargin{:});
+newEnd = ip.Results.newEnd;
+opt = rmfied(ip.Results, ["newEnd"]);
 %}
 % <=R2019a
 
 
 newStart = double(newStart);
 newEnd = double(newEnd);
+
+if all(isinf(newStart)) && (isempty(newEnd) || all(isinf(newEnd)))
+    return
+end
+o
 if isempty(newEnd)
     newEnd = newStart(end);
 end

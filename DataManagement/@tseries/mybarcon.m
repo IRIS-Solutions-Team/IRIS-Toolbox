@@ -13,7 +13,18 @@ if isempty(X) || isempty(Y)
     return
 end
 
-opt = passvalopt('tseries.barcon',varargin{:});
+
+%(
+defaults = {
+    'barwidth', 0.8, @isnumericscalar, ...
+    'colormap', [ ], @isnumeric, ...
+    'evenlyspread', true, @islogicalscalar, ...
+    'ordering', 'preserve', @(x) isanystri(x, {'descend', 'ascend', 'preserve'}) || isnumeric(x), ...
+};
+%)
+
+
+opt = passvalopt(defaults, varargin{:});
 
 if isempty(opt.colormap)
     opt.colormap = get(gcf( ),'colorMap');

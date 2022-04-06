@@ -1,5 +1,5 @@
 classdef Data ...
-    < shared.DataBlock
+    < iris.mixin.DataBlock
 
     properties
         % ForceInit  Vector of initial conditions to replace YXEPG data

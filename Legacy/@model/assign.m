@@ -184,7 +184,7 @@ elseif n<=2 && (isstruct(varargin{1}) || isa(varargin{1}, 'table'))
     end
     if ~isempty(varargin) && ~isempty(varargin{1})
         clonePattern = varargin{1};
-        inputNames = model.File.cloneAllNames(inputNames, clonePattern);
+        inputNames = ModelSource.cloneAllNames(inputNames, clonePattern);
     end
     numInputNames = numel(inputNames);
     invalidLength = cell(1, 0);
@@ -334,9 +334,9 @@ return
         if n>=3
             clonePattern = string(varargin{3});
             if ~isequal(namesToAssign, @all) && any(strlength(clonePattern)>0)
-                namesToAssign = model.File.cloneAllNames(namesToAssign, clonePattern);
+                namesToAssign = ModelSource.cloneAllNames(namesToAssign, clonePattern);
             end
-            rhsNames = model.File.cloneAllNames(rhsNames, clonePattern);
+            rhsNames = ModelSource.cloneAllNames(rhsNames, clonePattern);
         end
         nvRhs = countVariants(rhs);
         if nvRhs~=1 && nvRhs~=nv

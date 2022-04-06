@@ -20,14 +20,14 @@
 % __`output`__ [ | ]
 % >
 % Output string that is no longer that `MaxLength=`; if abbreviated from
-% the `input` string, an `Ellipsis=` character (a single character) will be
+% the `input` string, an `Ellipsis` character (a single character) will be
 % added in place of the last character.
 %
 %
 % ## Options ##
 %
 %
-% __`Ellipsis=@config`__ [ `@config` | numeric ]
+% __`Ellipsis=char(8230)`__ [ `@config` | numeric ]
 % >
 % A single character that will be added at the end of the `output` string
 % to indicate that the `input` string has been abbreviated;
@@ -62,7 +62,7 @@ if isempty(pp)
      addRequired(pp, 'inputString', @validate.stringScalar);
 
      addParameter(pp, 'MaxLength', 20, @(x) validate.roundScalar(x, 1, Inf));
-     addParameter(pp, 'Ellipsis', @config, @(x) isequal(x, @config) || (validate.stringScalar(x) && strlength(x)==1));
+     addParameter(pp, 'Ellipsis', char(8230), @(x) isequal(x, @config) || (validate.stringScalar(x) && strlength(x)==1));
 end
 %)
 opt = parse(pp, x, varargin{:});
@@ -73,11 +73,7 @@ inputClass = class(x);
 
 x = join(splitlines(string(x)), " ");
 if strlength(x)>opt.MaxLength
-    ellipsis = opt.Ellipsis;
-    if isequal(ellipsis, @config)
-        ellipsis = iris.get('Ellipsis');
-    end
-    x = extractBefore(x, opt.MaxLength) + string(ellipsis);
+    x = extractBefore(x, opt.MaxLength) + string(opt.Ellipsis);
 end
 
 if isequal(inputClass, 'char')
