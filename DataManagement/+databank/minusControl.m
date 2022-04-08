@@ -103,7 +103,7 @@ The above block of code is equivalent to this one:
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-function varargout = minusControl(varargin{:})
+function varargout = minusControl(varargin)
 
 [varargout{1:nargout}] = databank.backend.control({@minus, @rdivide}, varargin{:});
 

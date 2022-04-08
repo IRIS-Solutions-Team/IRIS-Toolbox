@@ -13,6 +13,8 @@ end
 %)
 % >=R2019b
 
+inputSeries = varargin;
+
 
 if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
     dates = "unbalanced";

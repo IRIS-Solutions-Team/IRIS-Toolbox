@@ -70,8 +70,8 @@ for pos = reshape(find(inx), 1, [])
         else
             pos = 1;
         end
-        try
-            outputSeries = func{pos}(real(inputDb.(n)) ,real(controlDb.(n)));
+        %try
+            outputSeries = func{pos}(real(inputDb.(n)), real(controlDb.(n)));
             outputSeries = comment(outputSeries, inputDb.(n));
             if needsClip
                 outputSeries = clip(outputSeries, opt.Range);
@@ -81,7 +81,7 @@ for pos = reshape(find(inx), 1, [])
             else
                 store(outputDb, n, outputSeries);
             end
-        end
+        %end
     end
 end
 
