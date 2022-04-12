@@ -38,19 +38,23 @@ opt = ip.Results;
 % <=R2019a
 
 
-if startsWith(opt.Direction, "backward", "ignoreCase", true)
-    shift = -shift;
-end
 
 %--------------------------------------------------------------------------
 
 func = local_chooseFunction(operator, opt.Direction);
 
 dates = reshape(double(dates), 1, [ ]);
+
 shift = dater.resolveShift(dates, shift);
+if startsWith(opt.Direction, "b", "ignoreCase", true)
+    % Backward direction
+    shift = -shift;
+end
+
 datesShifted = dater.plus(dates, shift);
 startAll = min([dates, datesShifted]);
 endAll = max([dates, datesShifted]);
+
 
 % Get level data
 if isnumeric(this)
@@ -75,9 +79,11 @@ end
 %==========================================================================
 posDates = round(dates - startAll + 1);
 posDatesShifted = round(datesShifted - startAll + 1);
-if strcmpi(opt.Direction, "Forward")
+if startsWith(opt.Direction, "f", "ignoreCase", true)
+    % Forward direction
     posDatesGrowth = posDates;
 else
+    % Backward direction
     posDates = fliplr(posDates);
     posDatesShifted = fliplr(posDatesShifted);
     posDatesGrowth = posDatesShifted;
