@@ -51,6 +51,8 @@ outputTable = table(this.Quantity.Name(:), 'VariableNames', {'Name'});
 
 isFirstRequest = true;
 for n = requests
+    n = erase(n, "-");
+
     if lower(n)==lower("steady")
         compare = false;
         addTable = tableValues(this, @(x)x, compare, [ ], '', 'Steady', opt);

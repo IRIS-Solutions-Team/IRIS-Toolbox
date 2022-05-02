@@ -130,7 +130,7 @@ if ~s.IsObjOnly
     regOutp.PDelta = nan(numOutlik, numOutlik, numRuns);
     regOutp.SampleCov = nan(ne, ne, numRuns);
     regOutp.NLoop = numRuns;
-    regOutp.Init = { nan(nb, 1, numRuns), nan(nb, nb, numRuns), zeros(nb, nb, numRuns) };
+    regOutp.Initials = { nan(nb, 1, numRuns), nan(nb, nb, numRuns), zeros(nb, nb, numRuns) };
     regOutp.U = cell(1, nv);
 end
 
@@ -395,11 +395,11 @@ for run = 1 : numRuns
     regOutp.Delta(:, run) = s.delta;
     regOutp.PDelta(:, :, run) = s.PDelta*s.V;
     regOutp.SampleCov(:, :, run) = s.SampleCov;
-    regOutp.Init{1}(:, :, run) = s.InitMean;
-    regOutp.Init{2}(:, :, run) = s.InitMseReg;
+    regOutp.Initials{1}(:, :, run) = s.InitMean;
+    regOutp.Initials{2}(:, :, run) = s.InitMseReg;
     regOutp.U{run} = s.U;
     if ~isempty(s.InitMseInf)
-        regOutp.Init{3}(:, :, run) = s.InitMseInf;
+        regOutp.Initials{3}(:, :, run) = s.InitMseInf;
     end
 
 

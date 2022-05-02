@@ -121,7 +121,7 @@ end
     , info.Initials, this ...
 ] = postprocessFilterOutput(this, regOutp, extRange, opt);
 
-info.TriangularInitials = regOutp.Init;
+info.TriangularInitials = regOutp.Initials;
 info.MinusLogLik = minusLogLik;
 
 %

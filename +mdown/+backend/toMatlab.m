@@ -22,8 +22,7 @@ if isempty(pp)
     pp = inputParser();
     pp = addParameter("Language", ["matlab", "iris"]);
 end
-parse(pp, varargin{:});
-opt = pp.Results;
+opt = parse(pp, varargin{:});
 %}
 % <=R2019a
 

@@ -31,7 +31,7 @@ inxP = getIndexByType(this.Quantity, 4);
 inxLogInBlazer = blazer.Model.Quantity.InxLog;
 
 % Index of endogenous level and change quantities
-[inxEndgLevel, inxEndgChange] = hereGetInxEndogenous();
+[inxEndgLevel, inxEndgChange] = here_getInxEndogenous();
 
 
 if needsRefresh
@@ -57,8 +57,8 @@ steadyLevel = real(this.Variant.Values(:, :, variantsRequested));
 steadyChange = imag(this.Variant.Values(:, :, variantsRequested));
 steadyLevel(1, inxZero.Level, :) = 0;
 steadyChange(1, inxZero.Change, :) = 0;
-hereCheckFixedToNaN();
-hereCheckExogenizedToNaN();
+here_checkFixedToNaN();
+here_checkExogenizedToNaN();
 
 levelX0 = [ ];
 changeX0 = [ ];
@@ -70,7 +70,7 @@ for v = variantsRequested
     %
     % Initialize steady levels and changes
     % 
-    [levelX, changeX] = hereInitialize();
+    [levelX, changeX] = here_initialize();
 
     %
     % Add a minimum necessary subvector of StdCorr
@@ -96,7 +96,7 @@ for v = variantsRequested
         outputInfo.ExitFlags{v}(i) = exitFlag;
         outputInfo.LastJacob{v}{i} = lastJacob;
         outputInfo.Dimension{v}{i} = dimension;
-        hereHandleErrors();
+        here_handleErrors();
     end
 
     %
@@ -117,7 +117,7 @@ for v = variantsRequested
     %
     [flagLog, ~, inxInvalidLevel, inxInvalidChange] = checkZeroLog(this, v);
     if ~flagLog
-        hereInvalidSteady();
+        here_invalidSteady();
     end
 
 
@@ -149,7 +149,7 @@ success = success(variantsRequested);
 
 return
 
-    function [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous()
+    function [inxEndgLevel, inxEndgChange] = here_getInxEndogenous()
         %(
         inxEndgLevel = false(1, numQuantities);
         inxEndgChange = false(1, numQuantities);
@@ -162,7 +162,7 @@ return
     end%
 
 
-    function [levelX, changeX] = hereInitialize()
+    function [levelX, changeX] = here_initialize()
         %(
         %
         % Initialize levels of endogenous quantities
@@ -213,7 +213,7 @@ return
     end%
 
 
-    function hereCheckFixedToNaN()
+    function here_checkFixedToNaN()
         %(
         [levelsToFix, changesToFix] = iris.utils.splitRealImag(blazer.QuantitiesToFix);
 
@@ -242,7 +242,7 @@ return
     end%
 
 
-    function hereCheckExogenizedToNaN()
+    function here_checkExogenizedToNaN()
         %(
         inxNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
         inxNeeded = full(inxNeeded);
@@ -269,7 +269,7 @@ return
     end%
 
 
-    function hereInvalidSteady()
+    function here_invalidSteady()
         %(
         realValues__ = real(this.Variant.Values(:, :, v));
         imagValues__ = imag(this.Variant.Values(:, :, v));
@@ -284,7 +284,7 @@ return
     end%
 
 
-    function hereHandleErrors()
+    function here_handleErrors()
         %(
         if hasSucceeded(exitFlag)
             return

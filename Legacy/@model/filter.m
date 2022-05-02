@@ -434,7 +434,7 @@ end
 % parameters in the model object if `Relative=' true`
 %
 [F, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extRange, opt, opt);
-init = regOutp.Init;
+init = regOutp.Initials;
 
 
 %

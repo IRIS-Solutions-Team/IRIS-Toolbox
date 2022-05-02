@@ -48,13 +48,13 @@ this.PreparserControl = d;
 %
 
 the = parser.TheParser('model', this.FileName, code, opt.Assign);
-[qty, eqn, euc, puc, collector, log] = parse(the, parserOpt);
+[qty, eqn, euc, puc, collector, logSpecs] = parse(the, parserOpt);
 opt.Assign = the.AssignedDatabank;
 
 %
 % Run model-specific postparser
 %
-this = postparse(this, qty, eqn, log, euc, puc, collector, opt, optimalOpt, varargin{:});
+this = postparse(this, qty, eqn, logSpecs, euc, puc, collector, opt, optimalOpt, varargin{:});
 
 end%
 

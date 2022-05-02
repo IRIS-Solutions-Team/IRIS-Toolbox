@@ -18,11 +18,16 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
     end
 
 
+    properties (SetAccess=protected)
+        ExpressionExpanded (1, 1) string = ""
+    end
+
+
     properties (Constant)
         SEPARATE_CAPTION = ":"
         EXCLUDE_FROM_TRANSFORM = "^"
         EXPANSION_MARK = "?"
-        PAGE_BREAK = "//"
+        PAGE_BREAK = ["//", "---"]
     end
 
 
@@ -71,10 +76,9 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
 
         function evaluate(this, inputDb)
-            expression = this.Expression;
-            if ~ismissing(expression) && strlength(expression)>0
-                expression = expand(this, expression);
-                this.Data = databank.eval(inputDb, expression);
+            if ~ismissing(this.Expression) && strlength(this.Expression)>0
+                this = expand(this);
+                this.Data = databank.eval(inputDb, this.ExpressionExpanded);
                 if this.ApplyTransform
                     transform = getTransform(this);
                     if ~isempty(transform)
@@ -85,51 +89,52 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         end%
 
 
-        function expression = expand(this, expression)
+        function this = expand(this, expression)
+            expression = this.Expression;
             expansion = getExpansion(this);
-            if isempty(expansion)
-                return
-            end
-            for i = 1 : 2 : numel(expansion)
-                if contains(expression, expansion{i})
-                    newExpression = string.empty(1, 0);
-                    for n = reshape(string(expansion{i+1}), 1, [])
-                        newExpression(end+1) = replace(expression, expansion{i}, n);
+            if ~isempty(expansion)
+                for i = 1 : 2 : numel(expansion)
+                    if contains(expression, expansion{i})
+                        newExpression = string.empty(1, 0);
+                        for n = reshape(string(expansion{i+1}), 1, [])
+                            newExpression(end+1) = replace(expression, expansion{i}, n);
+                        end
+                        expression = "[" + join(newExpression, ", ") + "]";
+                        break
                     end
-                    expression = "[" + join(newExpression, ", ") + "]";
-                    break
                 end
             end
+            this.ExpressionExpanded = expression;
         end%
 
 
         function caption = resolveCaption(this)
             parent = this.ParentChartpack;
             if ~ismissing(this.Caption) && strlength(this.Caption)>0
-                caption = hereSplitCaption(this.Caption, parent.NewLine);
+                caption = here_splitCaption(this.Caption, parent.NewLine);
                 if parent.ShowFormulas
-                    caption = [caption; hereCreateFormula()];
+                    caption = [caption; here_createFormula()];
                 end
             elseif parent.CaptionFromComment && isa(this.Data, 'Series') && strlength(this.Data.Comment(1))>0
-                caption = hereSplitCaption(string(this.Data.Comment(1)), parent.NewLine);
+                caption = here_splitCaption(string(this.Data.Comment(1)), parent.NewLine);
                 if parent.ShowFormulas
-                    caption = [caption; hereCreateFormula()];
+                    caption = [caption; here_createFormula()];
                 end
             elseif ~ismissing(this.Expression) && strlength(this.Expression)>0
-                caption = hereCreateFormula();
+                caption = here_createFormula();
             else
                 caption = string(missing);
             end
 
-            function formula = hereCreateFormula()
-                formula = this.Expression;
+            function formula = here_createFormula()
+                formula = this.ExpressionExpanded;
                 transform = getTransform(this);
                 if ~isempty(transform) && parent.ShowTransform
                     formula(1) = formula(1) + "; " + string(func2str(this.Transform));
                 end
             end%
 
-            function caption = hereSplitCaption(caption, newLine)
+            function caption = here_splitCaption(caption, newLine)
                 if ~ismissing(newLine) && strlength(newLine)>0
                     caption = strip(split(caption, newLine));
                 end
@@ -180,7 +185,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                 temp.InputString = strip(n);
                 if startsWith(temp.InputString, "%")
                     continue
-                elseif temp.InputString==databank.chartpack.Chart.PAGE_BREAK
+                elseif any(temp.InputString==databank.chartpack.Chart.PAGE_BREAK)
                     temp.PageBreak = true;
                 else
                     [temp.Caption, temp.Expression, temp.ApplyTransform] ...

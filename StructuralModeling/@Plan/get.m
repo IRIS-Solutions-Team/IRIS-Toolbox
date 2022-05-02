@@ -1,4 +1,3 @@
-function response = get(this, query)
 % get  Inquire about Plan objects
 %{
 % ## Syntax ##
@@ -66,17 +65,17 @@ function response = get(this, query)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-%-------------------------------------------------------------------------------
+function response = get(this, query)
 
 if validate.anyString(query, 'Exogenized', 'OnlyExogenized', 'ExogenizedOnly')
     names = this.NamesOfEndogenous;
     inx = this.IdAnticipatedExogenized~=0 | this.IdUnanticipatedExogenized~=0;
-    response = hereGetE_ogenized(names, inx);
+    response = here_getSwapped(names, inx);
 
 elseif validate.anyString(query, 'Endogenized', 'OnlyEndogenized', 'EndogenizedOnly')
     names = this.NamesOfExogenous;
     inx = this.IdAnticipatedEndogenized~=0 | this.IdUnanticipatedEndogenized~=0;
-    response = hereGetE_ogenized(names, inx);
+    response = here_getSwapped(names, inx);
 
 elseif validate.anyString(query, 'NamesOfAnticipated', 'NamesOfUnanticipated')
     response = this.(char(query));
@@ -86,7 +85,7 @@ elseif validate.anyString(query, 'AnticipationStatus', 'Anticipate')
                             [this.NamesOfEndogenous(:); this.NamesOfExogenous(:)] );
 
 elseif validate.anyString(query, 'Sigma', 'Sigmas')
-    response = getSigmas( );
+    response = here_getSigmas( );
 
 else
     thisError = { 'Plan:InvalidQuery'
@@ -96,7 +95,7 @@ end
 
 return
     
-    function response = hereGetE_ogenized(names, inx)
+    function response = here_getSwapped(names, inx)
         isOnly = contains(query, 'Only', 'IgnoreCase', true);
         template = Series(this.BaseRange, true);
         numNames = numel(names);
@@ -112,7 +111,7 @@ return
     end%
 
 
-    function response = getSigmas( )
+    function response = here_getSigmas( )
         names = "sigma_" + this.NamesOfExogenous;
         start = this.BaseStart;
         baseRangeColumns = this.BaseRangeColumns;

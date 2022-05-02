@@ -18,7 +18,7 @@ baseStart = input.FilterRange(1);
 baseEnd = input.FilterRange(end);
 numBasePeriods = round(baseEnd - baseStart + 1);
 
-hereCheckNumVariants( )
+here_checkNumVariants( )
 
 %
 % If no parameters are time varying, do not create LinearSystem and return
@@ -61,19 +61,19 @@ obj = LinearSystem([numXi, numXib, numV, numY, numW], numSystemPeriods);
 %
 % Assign state space matrices
 %
-hereAssignSspaceMatrices( )
+here_assignSspaceMatrices( )
 
 %
 % Assign covariance matrices
 %
-hereAssignCovarianceMatrices( )
+here_assignCovarianceMatrices( )
 
 %
 % Initial condition
 %
 initCond = { };
 if nargout>=2
-    initCond = hereInitialize( );
+    initCond = here_initialize( );
 end
 
 obj.Tolerance = this.Tolerance;
@@ -81,7 +81,7 @@ obj.Tolerance = this.Tolerance;
 return
 
 
-    function hereCheckNumVariants( )
+    function here_checkNumVariants( )
         if countVariants(this)~=1
             thisError = [
                 "Model:SingleVariantOnly"
@@ -95,11 +95,11 @@ return
 
 
 
-    function hereAssignSspaceMatrices( )
+    function here_assignSspaceMatrices( )
         keepExpansion = false;
         keepTriangular = false;
         tempModel = this;
-        tempModel.Update = hereCreateUpdateStruct( );
+        tempModel.Update = here_createUpdateStruct( );
 
         [defaultMatrices{1:6}] = sspaceMatrices(this, input.Variant, keepExpansion, keepTriangular);
         defaultMatrices{2} = defaultMatrices{2}(:, inxV);
@@ -125,7 +125,7 @@ return
 
         return
 
-            function update = hereCreateUpdateStruct( )
+            function update = here_createUpdateStruct( )
                 update = struct( );
                 update.PosOfValues = find(inxP);
                 update.PosOfStdCorr = double.empty(1, 0);
@@ -140,7 +140,7 @@ return
 
 
 
-    function hereAssignCovarianceMatrices( )
+    function here_assignCovarianceMatrices( )
         Omega = covfun.stdcorr2cov(defaultStdCorr, numE);
         defaultMatrices = { Omega(inxV, inxV), Omega(inxW, inxW) };
         previousMatrices = NaN;
@@ -164,7 +164,7 @@ return
 
 
 
-    function initCond = hereInitialize( )
+    function initCond = here_initialize( )
         s = struct();
         s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
         s.DIFFUSE_SCALE = this.DIFFUSE_SCALE;

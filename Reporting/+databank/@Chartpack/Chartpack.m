@@ -145,6 +145,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         ShowTransform (1, 1) logical = false
         ShowFigure (1, 1) double = Inf
         Round (1, 1) double = Inf
+        FigureTitle (1, :) string = string.empty(1, 0)
 
         Expansion (1, :) cell = cell.empty(1, 0)
 

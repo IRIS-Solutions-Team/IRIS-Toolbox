@@ -102,26 +102,26 @@ return
 
     function reorder( )
         if ~isempty(opt.reorder)
-            if iscellstr(opt.reorder)
-                list = opt.reorder;
-                nList = length(list);
+            if iscellstr(opt.reorder) || isstring(opt.reorder)
+                list = textual.stringify(opt.reorder);
+                nList = numel(list);
                 valid = true(1, nList);
                 opt.reorder = nan(1, nList);
                 for i = 1 : nList
-                    pos = strcmp(this.EndogenousNames, list{i});
+                    pos = strcmp(this.EndogenousNames, list(i));
                     valid(i) = any(pos);
-                    if valid(i);
+                    if valid(i)
                         opt.reorder(i) = find(pos);
                     end
                 end
                 if any(~valid)
-                    utils.error('SVAR:identify', ...
-                        ['This variable name does not exist ', ...
-                        'in the VAR object: ''%s''.'], ...
-                        list{~valid});
+                    exception.error([
+                        "SVAR"
+                        "This is not a valid VAR endogenous name: %s"
+                    ], list(~valid));
                 end
             end
-            opt.reorder = opt.reorder(:)';
+            opt.reorder = reshape(opt.reorder, 1, []);
             if any(isnan(opt.reorder)) ...
                     || length(opt.reorder)~=ny ...
                     || length(intersect(1:ny, opt.reorder))~=ny

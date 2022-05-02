@@ -7,7 +7,6 @@ classdef ParamArmani ...
         ParameterizedMA = 1
     end
 
-
     methods
         function this = ParamArmani(numParameters, parameterizedAR, parameterizedMA, tolerance)
             if nargin>=1
@@ -107,7 +106,7 @@ classdef ParamArmani ...
                 function hereThrowError()
                     exception.error([
                         "ParamArmani:InvalidInputString"
-                        "This is not a valid input string for a ParamArmani object: %s"
+                        "This is not a valid input string for an ParamArmani object: %s"
                     ], preserveInput);
                 end%
         end%
@@ -176,7 +175,7 @@ classdef ParamArmani ...
                 function hereThrowError(preserveInput)
                     exception.error([
                         "ParamArmani:InvalidInputString"
-                        "This is not a valid input string for a ParamArmani object: %s"
+                        "This is not a valid input string for an ParamArmani object: %s"
                     ], preserveInput);
                 end%
         end%

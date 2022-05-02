@@ -10,7 +10,7 @@ exception.ParseTime.storeFileName(this.FileName);
 %
 % __Retrieve data preprocessors and postprocessors__
 %
-removeFromLog = string.empty(1, 0);
+processorLhsNames = string.empty(1, 0);
 for processor = ["Preprocessor", "Postprocessor"]
     collector.(processor) = regexprep(collector.(processor), "\s+", "");
     if ~isempty(collector.(processor))
@@ -21,20 +21,15 @@ for processor = ["Preprocessor", "Postprocessor"]
         this.(processor) = Explanatory.fromFile(mf);
         [this.(processor).Context] = deal(processor);
         this.(processor) = initializeLogStatus(this.(processor), log);
-        removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [])]; %#ok<AGROW>
+        processorLhsNames = [processorLhsNames, reshape(collectLhsNames(this.(processor)), 1, [])]; %#ok<AGROW>
     end
 end
-
-if ~isempty(removeFromLog)
-    log = setdiff(log, removeFromLog);
-end
-
 
 %
 % Initialize log status of names from the !log-variables section
 % and report invalid names
 %
-qty = initializeLogStatus(qty, log);
+qty = initializeLogStatus(qty, log, processorLhsNames);
 
 
 %

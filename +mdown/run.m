@@ -1,31 +1,33 @@
 
 % >=R2019b
 %(
-function run(fileName, section)
+function run(fileName, opt)
 
 arguments
     fileName (1, 1) string
-end
-
-arguments (Repeating)
-    section (1, 1) string
+    opt.Sections (1, :) string = string.empty(1, 0)
 end
 %)
 % >=R2019b
 
 
-% >=R2019b
+% <=R2019a
 %{
 function run(fileName, varargin)
 
-fileName = string(fileName);
-section = string(varargin);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, "Sections", string.empty(1, 0));
+end
+opt = parse(ip, varargin{:});
+opt.Sections = textual.stringify(opt.Sections);
 %}
-% >=R2019b
+% <=R2019a
 
 
 code = string(fileread(fileName));
-code = local_extractCode(code, fileName, section{:});
+code = local_extractCode(code, fileName, sections);
 
 if code~=""
     disp(code);
@@ -38,9 +40,9 @@ end%
 % Local functions
 %
 
-function outputCode = local_extractCode(inputCode, fileName, varargin)
+function outputCode = local_extractCode(inputCode, fileName, sections)
     %(
-    if isempty(varargin)
+    if isempty(sections)
         outputCode = extractBetween(inputCode, "```matlab", "```", "boundaries", "inclusive");
         if isempty(outputCode)
             error("No section(s) of Matlab code found in %s.", sectionNamePattern, fileName);

@@ -29,7 +29,7 @@ classdef Chart ...
             %)
             % >=R2019b
 
-            [startDate, endDate, varargin] = locallyParseInputDates(range, varargin);
+            [startDate, endDate, varargin] = local_parseInputDates(range, varargin);
 
             this = this@rephrase.Element(title, varargin{:});
             this.Content = cell.empty(1, 0);
@@ -41,7 +41,7 @@ classdef Chart ...
 
             function build(this, varargin)
                 build@rephrase.Container(this, varargin{:});
-                this = locallyResolveDates(this);
+                this = local_resolveDates(this);
                 if isfield(this.Settings, 'Highlight')
                     if isscalar(this.Settings.Highlight) && ~iscell(this.Settings.Highlight)
                         this.Settings.Highlight = {this.Settings.Highlight};
@@ -51,7 +51,7 @@ classdef Chart ...
                     try
                         this.Settings.DateFormat = string(this.Parent.Settings.DateFormat);
                     catch
-                        this.Settings.DateFormat = locallyCreateDefaultDateFormat(this.Settings.StartDate);
+                        this.Settings.DateFormat = local_createDefaultDateFormat(this.Settings.StartDate);
                     end
                 end
                 this.Settings.StartDate = dater.toIsoString(this.Settings.StartDate, "m");
@@ -75,7 +75,7 @@ end
 % Local functions
 %
 
-function dateFormat = locallyCreateDefaultDateFormat(startDate)
+function dateFormat = local_createDefaultDateFormat(startDate)
     %(
     switch dater.getFrequency(startDate)
         case frequency.YEARLY
@@ -93,7 +93,7 @@ function dateFormat = locallyCreateDefaultDateFormat(startDate)
 end%
 
 
-function this = locallyResolveDates(this)
+function this = local_resolveDates(this)
     %(
     if isempty(this.Settings.StartDate) || isinf(this.Settings.StartDate)
         try
@@ -109,7 +109,7 @@ function this = locallyResolveDates(this)
 end%
 
 
-function [startDate, endDate, repeating] = locallyParseInputDates(range, repeating)
+function [startDate, endDate, repeating] = local_parseInputDates(range, repeating)
     %(
     range = double(range);
     if isempty(repeating) || ~isnumeric(repeating{1}) || isempty(repeating{1})

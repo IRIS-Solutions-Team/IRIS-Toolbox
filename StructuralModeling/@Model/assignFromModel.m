@@ -1,16 +1,17 @@
 
 % >=R2019b
 %(
-function [this, namesAssigned] = assignFromModel(this, rhs, opt)
+function [this, namesAssigned] = assignFromModel(this, that, opt)
 
 arguments
     this Model
-    rhs Model
+    that Model
 
     opt.Names (1, :) = @all
     opt.CrossType (1, 1) logical = false
     opt.Level (1, 1) logical = true
     opt.Change (1, 1) logical = true
+    opt.ClonePattern (1, 2) string = ["", ""]
 end
 %)
 % >=R2019b
@@ -18,7 +19,7 @@ end
 
 % <=R2019a
 %{
-function [this, namesAssigned] = assignFromModel(this, rhs, varargin)
+function [this, namesAssigned] = assignFromModel(this, that, varargin)
 
 persistent ip
 if isempty(ip)
@@ -26,6 +27,7 @@ if isempty(ip)
     addParameter(ip, "CrossType", false);
     addParameter(ip, "Level", true);
     addParameter(ip, "Change", true);
+    addParameter(ip, "ClonePattern", ["", ""]);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
@@ -51,7 +53,7 @@ if isempty(namesToAssign) || (~opt.Level && ~opt.Change)
 end
 
 
-nvRhs = countVariants(rhs);
+nvRhs = countVariants(that);
 if nvRhs~=1 && nvRhs~=nv
     exception.error([
         "Model:NumVariantsMustMatch"
@@ -64,7 +66,7 @@ numQuantities = numel(this.Quantity);
 crossType = string.empty(1, 0);
 assigned = string.empty(1, 0);
 
-rhsNames = textual.stringify(rhs.Quantity.Name);
+rhsNames = textual.stringify(that.Quantity.Name);
 thisNames = textual.stringify(this.Quantity.Name);
 inxStdCorr = startsWith(namesToAssign, ["std_", "corr_"]);
 
@@ -79,7 +81,7 @@ for n = namesToAssign(~inxStdCorr)
         continue
     end
 
-    if rhs.Quantity.Type(inxRhs)~=this.Quantity.Type(inxThis)
+    if that.Quantity.Type(inxRhs)~=this.Quantity.Type(inxThis)
         crossType(end+1) = n;
         if ~opt.CrossType
             continue
@@ -87,10 +89,10 @@ for n = namesToAssign(~inxStdCorr)
     end
 
     oldValue = this.Variant.Values(1, inxThis, :);
-    rhsValue = rhs.Variant.Values(1, inxRhs, :);
+    rhsValue = that.Variant.Values(1, inxRhs, :);
     type = this.Quantity.Type(1, inxThis);
     isLog = this.Quantity.InxLog(1, inxThis);
-    newValue = locallyCreateNewValue(oldValue, rhsValue, type, isLog, opt);
+    newValue = local_createNewValue(oldValue, rhsValue, type, isLog, opt);
     this.Variant.Values(1, inxThis, :) = newValue;
 
     assigned(end+1) = n;
@@ -112,7 +114,7 @@ end
 
 if any(inxStdCorr)
     listStdCorrThis = [ getStdNames(this.Quantity), getCorrNames(this.Quantity) ];
-    listStdCorrRhs = [ getStdNames(rhs.Quantity), getCorrNames(rhs.Quantity) ];
+    listStdCorrRhs = [ getStdNames(that.Quantity), getCorrNames(that.Quantity) ];
     listStdCorrThis = textual.stringify(listStdCorrThis);
     listStdCorrRhs = textual.stringify(listStdCorrRhs);
 
@@ -127,7 +129,7 @@ if any(inxStdCorr)
             continue
         end
 
-        this.Variant.StdCorr(1, inxThis, :) = real(rhs.Variant.StdCorr(1, inxRhs, :));
+        this.Variant.StdCorr(1, inxThis, :) = real(that.Variant.StdCorr(1, inxRhs, :));
         assigned(end+1) = n;
     end
 end
@@ -138,7 +140,7 @@ end%
 % Local functions
 %
 
-function newValue = locallyCreateNewValue(oldValue, rhsValue, type, isLog, opt)
+function newValue = local_createNewValue(oldValue, rhsValue, type, isLog, opt)
     %(
     if type==31 || type==32
         newValue = 0;

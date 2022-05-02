@@ -7,12 +7,11 @@ function [this, flag, outputInfo] = steady(this, varargin)
 
 steadyOptions = prepareSteady(this, varargin{:});
 
-%--------------------------------------------------------------------------
-
 if this.IsLinear
     [this, flag, outputInfo] = steadyLinear(this, steadyOptions, Inf);
 else
     [this, flag, outputInfo] = steadyNonlinear(this, steadyOptions, Inf);
+    checkSteady(this, steadyOptions.CheckSteady{:});
 end
 
 pos = getPosTimeTrend(this.Quantity);

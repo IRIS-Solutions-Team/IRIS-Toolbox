@@ -9,7 +9,7 @@ inxShocks = this.Type==31 | this.Type==32;
 listShocks = string(this.Name(inxShocks));
 
 if nargin>=3 && any(strlength(clonePattern)>0)
-    listShocks = clonePattern(1) + listShocks + clonePattern(2);
+    listShocks = textual.fromPattern(listShocks, clonePattern);
 end
 
 listStd = string(model.component.Quantity.STD_PREFIX) + listShocks;

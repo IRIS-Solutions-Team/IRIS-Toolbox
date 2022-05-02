@@ -122,8 +122,7 @@ if isempty(ip)
 
     addParameter(ip, "Multiply", []);
 end
-parse(ip, varargin{:});
-opt = ip.parse(this, varargin{:});
+opt = parse(ip, varargin{:});
 %}
 % <=R2019a
 

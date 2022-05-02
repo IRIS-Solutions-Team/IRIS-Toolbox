@@ -9,8 +9,10 @@ end
 %)
 % >=R2019b
 
-
-output = string(pattern(1)) + string(base) + string(pattern(2));
+output = string(base);
+if any(strlength(pattern)>0)
+    output = string(pattern(1)) + output + string(pattern(2));
+end
 
 end%
 

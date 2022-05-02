@@ -14,7 +14,7 @@ if isempty(ip)
     ip.KeepUnmatched = true;
 
     ip.addParameter('Deviation', false, @validate.logicalScalar);
-    ip.addParameter('EvalTrends', logical.empty(1, 0);
+    ip.addParameter('EvalTrends', logical.empty(1, 0));
 
     ip.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     ip.addParameter({'AppendPresample', 'AddPresample'}, false, @(x) isequal(x, true) || isequal(x, false));
@@ -30,7 +30,7 @@ if isempty(ip)
     ip.addParameter('Plan', [ ], @(x) isa(x, 'plan') || isa(x, 'Plan') || isempty(x));
     ip.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
     ip.addParameter({'SparseShocks', 'SparseShock'}, false, @(x) isequal(x, true) || isequal(x, false));
-    ip.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
+    ip.addParameter('SystemProperty', false, @(x) isequal(x, false) || (ischar(x) || isstring(x) || iscellstr(x)));
 
     ip.addParameter('Error', false, @(x) isequal(x, true) || isequal(x, false));
     ip.addParameter('PrepareGradient', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
@@ -57,7 +57,7 @@ if isempty(ip)
     ip.addParameter('InitEndog', 'Dynamic', @(x) ischar(x) && any(strcmpi(x, {'Dynamic', 'Static'})));
     ip.addParameter('Solve', true, @model.validateSolve);
     ip.addParameter({'Steady', 'Sstate', 'SstateOpt'}, true, @model.validateSteady);
-    ip.addParameter('Unlog', [ ], @(x) isempty(x) || isequal(x, @all) || iscellstr(x) || ischar(x));
+    ip.addParameter('Unlog', [ ], @(x) isempty(x) || isequal(x, @all) || iscellstr(x) || ischar(x) || isstring(x));
 end
 
 opt = parse(ip, varargin{:});

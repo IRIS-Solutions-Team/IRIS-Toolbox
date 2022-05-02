@@ -87,6 +87,7 @@ titleHandles = cell(1, 0);
 subtitleHandles = cell(1, 0);
 plotHandles = cell(1, 0);
 
+countFigures = 0;
 countChartsInWindow = 0;
 currentFigure = gobjects(0);
 for x = this.Charts
@@ -99,6 +100,12 @@ for x = this.Charts
             runFigureExtras(this, currentFigure);
         end
         currentFigure = figure(this.FigureSettings{:});
+        countFigures = countFigures + 1;
+        if length(this.FigureTitle)==1
+            visual.heading(this.FigureTitle);
+        elseif length(this.FigureTitle)>=countFigures
+            visual.heading(this.FigureTitle(countFigures));
+        end
         figureHandles(end+1) = currentFigure;
         axesHandles{end+1} = gobjects(1, 0);
         titleHandles{end+1} = gobjects(1, 0);

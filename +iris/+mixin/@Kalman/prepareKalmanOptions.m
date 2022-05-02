@@ -11,16 +11,20 @@ if isempty(pp)
 
     addParameter(pp, 'MatrixFormat', 'namedmat', @validate.matrixFormat);
     addParameter(pp, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
+    addParameter(pp, 'OutputDataAssignFunc', @hdataassign, @(x) isa(x, 'function_handle'));
 
     addParameter(pp, 'Anticipate', false, @validate.logicalScalar);
     addParameter(pp, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
-    addParameter(pp, 'OutputDataAssignFunc', @hdataassign, @(x) isa(x, 'function_handle'));
-    addParameter(pp, {'CheckFmse', 'ChkFmse'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'Condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
-    addParameter(pp, 'FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
     addParameter(pp, 'Contributions', false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, {'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
-    addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'fixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
+
+    addParameter(pp, {'CheckFmse', 'ChkFmse'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
+
+    addParameter(pp, 'Condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
+
+    addParameter(pp, {'Initials', 'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
+    addParameter(pp, {'UnitRootInitials', 'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'fixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
+
     addParameter(pp, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
     addParameter(pp, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     addParameter(pp, {'ReturnObjFuncContribs', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
@@ -187,16 +191,16 @@ end
 %
 % Initial condition
 %
-if iscell(opt.Init)
+if iscell(opt.Initials)
     % Do nothing
-elseif isstruct(opt.Init)
+elseif isstruct(opt.Initials)
     [xbInitMean, listMissingMeanInit, xbInitMse, listMissingMSEInit] = ...
-        datarequest('xbInit', this, opt.Init, range);
+        datarequest('xbInit', this, opt.Initials, range);
     if isempty(xbInitMse)
         xbInitMse = zeros(numel(xbInitMean));
     end
     hereCheckNaNInit( );
-    opt.Init = {xbInitMean, xbInitMse};
+    opt.Initials = {xbInitMean, xbInitMse};
 end
 
 
@@ -252,7 +256,7 @@ return
         if ~isempty(timeVarying)
             opt.Override = [ ];
             opt.Multiply = [ ];
-            opt.Init = initCond;
+            opt.Initials = initCond;
         end
     end%
 

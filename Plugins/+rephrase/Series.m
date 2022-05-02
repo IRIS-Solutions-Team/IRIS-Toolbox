@@ -28,7 +28,9 @@ classdef Series ...
             inputs.Data = inputs.Data(:, :);
             numSeries = size(inputs.Data, 2);
             these = rephrase.Series.empty(1, 0);
-            if numTitles==1 && numSeries>1
+            if isempty(titles)
+                titles = repmat("", 1, numSeries);
+            elseif numTitles==1 && numSeries>1
                 titles = repmat(titles, 1, numSeries);
             end
             for i = 1 : numSeries

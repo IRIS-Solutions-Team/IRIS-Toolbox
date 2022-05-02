@@ -55,12 +55,12 @@ elseif what==lower("exogenousVariables")
     output = setdiff(output, ttrendName, "stable");
 
 elseif what==lower("logVariables")
-    inxType = this.Type==1 | this.Type==2; output = stringify(this.Name(this.InxLog & inxType));
+    inxType = this.Type==1 | this.Type==2; output = textual.stringify(this.Name(this.InxLog & inxType));
 
 
 elseif any(what==lower(["^logVariables", "nonLogVariables"]))
     inxType = this.Type==1 | this.Type==2;
-    output = stringify(this.Name(~this.InxLog & inxType));
+    output = textual.stringify(this.Name(~this.InxLog & inxType));
 
 
 elseif any(what==lower(["logStatus", "isLog"]))

@@ -70,7 +70,7 @@ end
 %
 % Initials for the original transition vector
 %
-initials = regOutp.Init;
+initials = regOutp.Initials;
 for v = 1 : size(initials{1}, 3)
     U = regOutp.U{v};
     if ~isempty(U)

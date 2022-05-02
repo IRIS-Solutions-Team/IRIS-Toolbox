@@ -2,8 +2,9 @@ classdef Steady ...
     < solver.blazer.Blazer
 
     properties
-        PreviousVariant % Use values from previous variant as initial condition
-        Warning % Throw warnings
+        PreviousVariant (1, 1) logical % Use values from previous variant as initial condition
+        Warning (1, 1) logical % Throw warnings
+        CheckSteady (1, :) cell
     end
 
 

@@ -1,4 +1,3 @@
-function outp = red2struct(this, inp, opt)
 % red2struct  Convert reduced-form VAR residuals to structural VAR shocks
 %
 % Backend IRIS function
@@ -7,7 +6,8 @@ function outp = red2struct(this, inp, opt)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-% Panel SVAR
+function outp = red2struct(this, inp, opt)
+
 if this.IsPanel
     outp = runGroups(@red2struct, this, inp, opt);
     return

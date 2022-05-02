@@ -5,8 +5,18 @@
 
 function [flag, dcy, list, sortedList] = checkSteady(this, varargin)
 
-needsSort = nargout>3;
+flag = NaN;
+dcy = NaN;
+list = NaN;
+sortedList = NaN;
+
 checkSteadyOptions = prepareCheckSteady(this, varargin{:});
+
+if ~checkSteadyOptions.Run
+    return
+end
+
+needsSort = nargout>3;
 nv = countVariants(this);
 this = refresh(this);
 

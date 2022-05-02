@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function this = initializeLogStatus(this, logNames)
+function this = initializeLogStatus(this, logNames, processorLhsNames)
 
 if isa(logNames, 'Except')
     default = true;
@@ -22,9 +22,9 @@ logNames = unique(reshape(string(logNames), 1, [ ]));
 inxCanBeLog = getIndexByType(this, 1, 2, 5);
 ttrendName = this.RESERVED_NAME_TTREND;
 inxCanBeLog(allNames==ttrendName) = false;
-namesCanBeLog = allNames(inxCanBeLog);
+namesCanBeLog = unique([allNames(inxCanBeLog), processorLhsNames], 'stable');
 
-inxValidLogNames = ismember(logNames, namesCanBeLog);
+inxValidLogNames = ismember(logNames, namesCanBeLog) | ismember(logNames, processorLhsNames);
 if any(~inxValidLogNames)
     exception.error([
         "Model:InvalidLogName"

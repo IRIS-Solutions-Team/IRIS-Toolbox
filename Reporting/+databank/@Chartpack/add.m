@@ -44,8 +44,8 @@ __`ApplyTransform=true`__ [ `true` | `false` ]
 
 __`Expansion=@parent`__ [ cell | empty | `@parent` ]
 >
-> Replace a substring in the expression with a mutliple strings, creating
-> multiple expression to be plotted in the same chart; overrides the
+> Replace a substring in the expression with mutliple strings, creating
+> multiple series to be plotted in the same chart; overrides the
 > property `Expansion` defined at the level of the databank.Chartpack
 > object.
 >
