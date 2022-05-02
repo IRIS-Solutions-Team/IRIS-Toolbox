@@ -350,6 +350,10 @@ classdef Model ...
         varargout = prepareLinearSystem(varargin)
         varargout = prepareRectangular(varargin)
         varargout = simulateFrames(varargin)
+
+        function this = removeUserEquations(this)
+            this.Equation = removeUserEquations(this.Equation);
+        end%
     end % methods
 
 

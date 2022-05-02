@@ -56,6 +56,7 @@ classdef Equation < model.component.Insertable
         varargout = populateTransient(varargin)
         varargout = readEquations(varargin)
         varargout = readDtrends(varargin)
+        varargout = removeUserEquations(varargin)
         varargout = saveObject(varargin)
         varargout = selectType(varargin)
         varargout = size(varargin)
