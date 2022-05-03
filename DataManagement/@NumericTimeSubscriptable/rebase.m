@@ -3,57 +3,78 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+
+% >=R2019b
+%(
 function ...
     [this, priorValue, reciprocal] ...
-    = rebase(this, basePeriod, baseValue, varargin)
+    = rebase(this, basePeriods, baseValue, opt)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('tseries.rebase');
-    pp.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    pp.addRequired('BasePeriod', @(x) any(strcmpi(x, {'AllStart', 'AllEnd'})) || validate.date(x));
-    pp.addRequired('BaseValue', @(x) isnumeric(x) && isscalar(x));
+arguments
+    this Series
+    basePeriods double
+    baseValue (1, 1) double
 
-    pp.addParameter('Mode', "auto", @locallyValidateMode);
-    pp.addParameter('Reciprocal', [], @locallyValidateReciprocal);
-    pp.addParameter('Aggregator', "auto");
+    opt.Mode {local_validateMode} = "auto"
+    opt.Reciprocal {local_validateReciprocal} = []
+    opt.Aggregator = "auto"
 end
-options = pp.parse(this, basePeriod, baseValue, varargin{:});
+%)
+% >=R2019b
 
 
-reciprocal = options.Reciprocal;
+% <=R2019a
+%{
+function ...
+    [this, priorValue, reciprocal] ...
+    = rebase(this, basePeriods, baseValue, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'Mode', "auto", @local_validateMode);
+    addParameter(ip, 'Reciprocal', [], @local_validateReciprocal);
+    addParameter(ip, 'Aggregator', "auto");
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
+
+reciprocal = opt.Reciprocal;
 isReciprocal = ~isempty(reciprocal);
 
 
-if startsWith(options.Mode, "add") ...
-    || (startsWith(options.Mode, "auto") && baseValue==0)
+if startsWith(opt.Mode, "add") ...
+    || (startsWith(opt.Mode, "auto") && baseValue==0)
     func = @plus;
     invFunc = @minus;
-    aggregator = options.Aggregator;
+    aggregator = opt.Aggregator;
     if isequal(aggregator, "auto")
         aggregator = @mean;
     end
 else
     func = @times;
     invFunc = @rdivide;
-    aggregator = options.Aggregator;
+    aggregator = opt.Aggregator;
     if isequal(aggregator, "auto")
         aggregator = @geomean;
     end
 end
 
 
-if ischar(basePeriod) || isstring(basePeriod)
-    basePeriod = get(this, basePeriod);
+if ischar(basePeriods) || isstring(basePeriods)
+    basePeriods = get(this, basePeriods);
 end
-basePeriod = reshape(basePeriod, 1, []);
+basePeriods = reshape(basePeriods, 1, []);
 
 %
 % Frequency check
 %
-freqBasePeriod = dater.getFrequency(basePeriod);
+freqBasePeriod = dater.getFrequency(basePeriods);
 freqInput = getFrequencyAsNumeric(this);
-if any(isnan(basePeriod)) || any(freqBasePeriod~=freqInput)
+if any(isnan(basePeriods)) || any(freqBasePeriod~=freqInput)
     this = this.empty(this);
     if isReciprocal
         reciprocal = reciprocal.empty(reciprocal);
@@ -65,7 +86,7 @@ end
 %
 % Get prior value and calculate correction
 %
-priorValue = getDataFromTo(this, basePeriod);
+priorValue = getDataFromTo(this, basePeriods);
 if size(priorValue, 1)>1
     priorValue = aggregator(priorValue, 1);
 end
@@ -91,7 +112,7 @@ end%
 % Local validators
 %
 
-function locallyValidateMode(x)
+function local_validateMode(x)
     %(
     if isstring(x) && isscalar(x) && startsWith(x, ["auto", "add", "mult"])
         return
@@ -101,7 +122,7 @@ function locallyValidateMode(x)
 end%
 
 
-function locallyValidateReciprocal(x)
+function local_validateReciprocal(x)
     %(
     if isempty(x) || isa(x, 'Series')
         return

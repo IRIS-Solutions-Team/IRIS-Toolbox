@@ -86,8 +86,9 @@ end
 
 opt.StartsWith = char(opt.StartsWith);
 opt.EndsWith = char(opt.EndsWith);
-opt.AddToStart = char(opt.AddToStart);
-opt.AddToEnd = char(opt.AddToEnd);
+
+opt.Prepend = char(opt.Prepend);
+opt.Append = char(opt.Append);
 
 hereCheckInputOutputNames( );
 
@@ -101,7 +102,7 @@ numFields = numel(namesFields);
 newNames = repmat({''}, size(namesFields));
 
 
-outputDb = opt.AddToDatabank;
+outputDb = opt.TargetDb;
 if isequal(outputDb, @default)
     outputDb = inputDb;
 end
@@ -138,11 +139,11 @@ for i = 1 : numFields
         if opt.RemoveEnd
             newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.EndsWith)+1);
         end
-        if ~isempty(opt.AddToStart)
-            newName__ = [opt.AddToStart, newName__];
+        if ~isempty(opt.Prepend)
+            newName__ = [opt.Prepend, newName__];
         end
-        if ~isempty(opt.AddToEnd)
-            newName__ = [newName__, opt.AddToEnd];
+        if ~isempty(opt.Append)
+            newName__ = [newName__, opt.Append];
         end
     end
     newNames{i} = newName__;

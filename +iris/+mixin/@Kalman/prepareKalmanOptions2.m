@@ -167,11 +167,12 @@ end
 %
 % Conditioning upon measurement variables
 %
-if isempty(opt.Condition) || nz>0
-    opt.Condition = [ ];
-else
-    [~, opt.Condition] = userSelection2Index(this.Quantity, opt.Condition, 1);
-end
+opt.Condition = [];
+% if isempty(opt.Condition) || nz>0
+    % opt.Condition = [];
+% else
+    % [~, opt.Condition] = userSelection2Index(this.Quantity, opt.Condition, 1);
+% end
 
 
 %
@@ -461,7 +462,7 @@ end%
 
 function flag = local_validateObjFuncRange(x)
     %(
-    flag = isnumeric(x) || isequal(x, @all));
+    flag = isnumeric(x) || isequal(x, @all);
     %)
 end%
 
