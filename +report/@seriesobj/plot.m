@@ -41,7 +41,7 @@ if size(this.data{1}(:, :), 2)>0
         case 'barcon'
             extras = cell.empty(1, 0);
             if isfield(this.options, 'colormap')
-                extras = [extras, {'ColorMap=', this.options.colormap}];
+                extras = [extras, {'ColorMap', this.options.colormap}];
             end
             [~, h, time, data, grid] = tseries.implementPlot( @numeric.barcon, ...
                                                               ax, par.options.range, this.data{1}, ...

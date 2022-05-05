@@ -10,9 +10,9 @@ for i = 1 : 2 % numel(lsFile)
     fileName = [fileTitle, fileExt];
     switch fileExt
         case '.m'
-            latex.publish(fileName, [ ], 'SuperTitle=', name);
+            latex.publish(fileName, [ ], 'SuperTitle', name);
         case '.model'
-            latex.publish(fileName, [ ], 'SuperTitle=', name, 'EvalCode=', false);
+            latex.publish(fileName, [ ], 'SuperTitle', name, 'EvalCode', false);
     end
 end
 

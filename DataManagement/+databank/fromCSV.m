@@ -92,7 +92,7 @@ opt = ip.Results;
 % <=R2019a
 
 
-opt = iris.utils.resolveAlias(opt, [], true);
+opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
 fileName = textual.stringify(fileName);

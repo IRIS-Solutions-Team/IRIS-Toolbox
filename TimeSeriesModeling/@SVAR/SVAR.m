@@ -134,43 +134,43 @@ classdef (CaseInsensitiveProperties=true) ...
             %
             % __Options__
             %
-            % * `'maxIter='` [ numeric | *`0`* ] - Maximum number of attempts when
+            % * `'maxIter'` [ numeric | *`0`* ] - Maximum number of attempts when
             % `'method'='draw'`.
             %
-            % * `'method='` [ *`'chol'`* | `'householder'` | `'qr'` | `'svd'` ] -
+            % * `'method'` [ *`'chol'`* | `'householder'` | `'qr'` | `'svd'` ] -
             % Method that will be used to identify structural VAR and structural shocks.
             %
-            % * `'nDraw='` [ numeric | *`0`* ] - Target number of successful draws when
+            % * `'nDraw'` [ numeric | *`0`* ] - Target number of successful draws when
             % `'method'='draw'`.
             %
-            % * `'reorder='` [ numeric | *empty* ] - Reorder VAR variables before
+            % * `'reorder'` [ numeric | *empty* ] - Reorder VAR variables before
             % identifying structural shocks, and bring the variables back in original
-            % order afterwards. Use the option '`backorderResiduals='` to control if
+            % order afterwards. Use the option `BackorderResiduals` to control if
             % also the structural shocks are to be brought back in original order.
             %
-            % * `'output='` [ *`'auto'`* | `'dbase'` | `'tseries'` ] - Format of output
+            % * `'output'` [ *`'auto'`* | `'dbase'` | `'tseries'` ] - Format of output
             % data.
             %
-            % * `'progress='` [ `true` | *`false`* ] - Display progress bar in the
+            % * `'progress'` [ `true` | *`false`* ] - Display progress bar in the
             % command window.
             %
-            % * `'rank='` [ numeric | *`Inf`* ] - Reduced rank of the covariance matrix of
-            % structural residuals when `'method=' 'svd'`; `Inf` means full rank is
+            % * `'rank'` [ numeric | *`Inf`* ] - Reduced rank of the covariance matrix of
+            % structural residuals when `Method='svd'`; `Inf` means full rank is
             % preserved.
             %
-            % * `'backOrderResiduals='` [ *`true`* | `false` ] - Bring the identified
+            % * `'backOrderResiduals'` [ *`true`* | `false` ] - Bring the identified
             % structural shocks back in original order after identification; works with
-            % `'reorder='`.
+            % `'reorder'`.
             %
-            % * `'std='` [ numeric | *`1`* ] - Std deviation of structural residuals;
+            % * `'std'` [ numeric | *`1`* ] - Std deviation of structural residuals;
             % the resulting structural covariance matrix will be re-scaled (divided) by
             % this factor.
             %
-            % * `'test='` [ char ] - Works with `'method=draw'` only; a string that
+            % * `'test'` [ char ] - Works with `'method=draw'` only; a string that
             % will be evaluated for each random draw of the impact matrix `B`. The
             % evaluation must result in `true` or `false`; only the matrices `B` that
             % evaluate to `true` will be kept. See Description for more on how to write
-            % the option `'test='`.
+            % the option `'test'`.
             %
             %
             % __Description__

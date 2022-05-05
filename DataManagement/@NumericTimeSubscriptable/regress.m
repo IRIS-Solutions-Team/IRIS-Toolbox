@@ -44,7 +44,7 @@ opt = rmfield(ip.Results, ["Constant", "dates__"]);
 % <=R2019a
 
 
-opt = iris.utils.resolveAlias(opt, [], true);
+opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
 %( Legacy input arguments

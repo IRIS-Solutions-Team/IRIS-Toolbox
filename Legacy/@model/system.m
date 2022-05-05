@@ -43,7 +43,7 @@ opt = ip.Results;
 % <=R2019a
 
 
-opt = iris.utils.resolveAlias(opt, [], false);
+opt = iris.utils.resolveOptionAliases(opt, [], false);
 
 
 if ~opt.Select && ~opt.ForceDiff

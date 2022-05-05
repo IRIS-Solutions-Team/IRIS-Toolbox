@@ -115,7 +115,7 @@ function x = disp2d(start, data, indent, sep, toCharFunc)
     if dater.getFrequency(start)==Frequency.WEEKLY
         dateFormatW = '$ (Aaa DD-Mmm-YYYY)';
         dates = [ dates, ...
-                  strjust(dat2char(range, 'dateFormat=', dateFormatW)) ];
+                  strjust(dat2char(range, 'dateFormat', dateFormatW)) ];
     end
     dates = [ repmat(indent, numPeriods, 1), ...
               dates, ...
@@ -182,7 +182,7 @@ function x = disp2dDaily(start, data, indent, sep, toCharFunc)
     nRow = length(rowStart);
     dates = cell(1, 1 + nx*nRow);
     dates(:) = {''};
-    dates(2:nx:end) = dat2str(rowStart, 'dateFormat=', ['$Mmm-YYYY', sep]);
+    dates(2:nx:end) = dat2str(rowStart, 'dateFormat', ['$Mmm-YYYY', sep]);
     dates = char(dates);
 
     % Data string.

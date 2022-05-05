@@ -284,7 +284,7 @@ return
 
 
     function [T, R, Z, H, Omg, numUnitRoots] = getSspace( )
-        [T, R, ~, Z, H, ~, ~, Omg] = sspaceMatrices(m, 1);
+        [T, R, ~, Z, H, ~, ~, Omg] = getSolutionMatrices(m, 1);
         T = T(nf+1:end, :);
         Z = Z(~inxToExclude, :);
         R = R(nf+1:end, 1:ne);

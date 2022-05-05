@@ -208,7 +208,7 @@ return
             return
         end
         % Estimate fixed initial conditions for unit root processes if the
-        % user did not supply data on `'initMeanUnit='` and there is at
+        % user did not supply data on UnitRootInitials and there is at
         % least one non-stationary measurement variable with at least one
         % observation
         inxObs = any(s.yindex, 2);

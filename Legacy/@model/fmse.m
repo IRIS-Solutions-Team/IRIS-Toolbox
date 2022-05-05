@@ -84,7 +84,7 @@ X = zeros(ny+nxx, ny+nxx, nPer, nv);
 
 indexOfSolutionsAvailable = beenSolved(this);
 for v = find(indexOfSolutionsAvailable)
-    [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, v, false);
+    [T, R, K, Z, H, D, U, Omg] = getSolutionMatrices(this, v, false);
     X(:, :, :, v) = timedom.fmse(T, R, K, Z, H, D, U, Omg, nPer);
 end
 

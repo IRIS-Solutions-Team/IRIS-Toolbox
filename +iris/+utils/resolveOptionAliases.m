@@ -1,4 +1,4 @@
-function opt = resolveAlias(opt, notAssigned, issueWarning)
+function opt = resolveOptionAliases(opt, notAssigned, issueWarning)
 
 % >=R2019b
 %(

@@ -194,7 +194,7 @@ return
         % Initialize growth rates of endogenous quantities
         %
         changeX = imag(this.Variant.Values(:, :, v));
-        % Variables with zero growth (all variables if 'growth=' false).
+        % Variables with zero growth (all variables if Growth=false).
         changeX(inxZero.Change) = 0;
         if any(~inxZero.Change)
             % Assign NaN growth initial conditions. First, assign values from

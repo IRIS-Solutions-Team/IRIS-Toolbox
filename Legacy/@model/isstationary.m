@@ -93,7 +93,7 @@ function [flag, test] = locallyCointegrationStatus(this, expn, EIGEN_TOLERANCE)
     test = cell(1, nv);
     numUnitRoots = getNumOfUnitRoots(this.Variant);
     for v = 1 : nv
-        [T, ~, ~, ~, ~, ~, U] = sspaceMatrices(this, v);
+        [T, ~, ~, ~, ~, ~, U] = getSolutionMatrices(this, v);
         test{v} = w*[ T(1:nf, 1:numUnitRoots(v)); U(:, 1:numUnitRoots(v)) ];
         flag(v) = all( abs(test{v})<=EIGEN_TOLERANCE );
     end

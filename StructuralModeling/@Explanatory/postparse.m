@@ -61,7 +61,7 @@ return
         if status~=0
             reportInvalidBlockAttributes = [
                 reportInvalidBlockAttributes, ...
-                textual.abbreviate(EQUATIONS_KEYWORD + reportBlock, "MaxLength=", 30)
+                textual.abbreviate(EQUATIONS_KEYWORD + reportBlock, "MaxLength", 30)
             ];
         end
 

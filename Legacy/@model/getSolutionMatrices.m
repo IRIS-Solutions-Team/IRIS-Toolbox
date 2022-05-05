@@ -1,12 +1,11 @@
-function [T, R, K, Z, H, D, U, Omega, Zb, Y, inxV, inxW, numUnitRoots, inxInit] = ...
-        sspaceMatrices(this, variantsRequested, keepExpansion, keepTriangular)
-% sspaceMatrices  Return state space matrices for given parameter variant
+% getSolutionMatrices  Return state space matrices for given parameter variant
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function ...
+    [T, R, K, Z, H, D, U, Omega, Zb, Y, inxV, inxW, numUnitRoots, inxInit] ...
+    = getSolutionMatrices(this, variantsRequested, keepExpansion, keepTriangular)
 
 if nargin<3
     requiredForward = 0;

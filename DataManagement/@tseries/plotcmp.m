@@ -107,7 +107,7 @@ end
 d = replace(X,X.data * opt.compare,X.start);
 
 [Ax,Lhs,Rhs,varargout{1:nargout-3}] = ...
-   plotyy(Range,X,Range,d,varargin{:},'rhsPlotFunc=',opt.cmpplotfunc);
+   plotyy(Range,X,Range,d,varargin{:},'rhsPlotFunc',opt.cmpplotfunc);
 
 set(Rhs,'faceColor',opt.cmpcolor,'edgeColor',opt.cmpcolor);
 

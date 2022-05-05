@@ -18,7 +18,7 @@ if any(strcmpi(this.options.plottype, {'patch', 'line'}))
 else
     [~, ~, ~, data] = errorbar(Ax, double(this.options.range), ...
         this.data{1}, this.Low{1}, this.High{1}, ...
-        'relative=', this.options.relative);
+        'relative', this.options.relative);
     legendEntry = mylegend(this, size(data, 2));
 end
 

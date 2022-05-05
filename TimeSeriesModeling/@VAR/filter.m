@@ -216,7 +216,7 @@ return
             YY.M2 = hdataobj(this, extendedRange, numRuns);
             if ~opt.MeanOnly
                 YY.S2 = hdataobj(this, extendedRange, numRuns, ...
-                    'IsVar2Std=', true);
+                    'IsVar2Std', true);
             end
         end
         if isPred
@@ -224,14 +224,14 @@ return
             YY.M0 = hdataobj(this, extendedRange, nPred);
             if ~opt.MeanOnly
                 YY.S0 = hdataobj(this, extendedRange, nPred, ...
-                    'IsVar2Std=', true);
+                    'IsVar2Std', true);
             end
         end
         if isFilter
             YY.M1 = hdataobj(this, extendedRange, numRuns);
             if ~opt.MeanOnly
                 YY.S1 = hdataobj(this, extendedRange, numRuns, ...
-                    'IsVar2Std=', true);
+                    'IsVar2Std', true);
             end
         end
     end%

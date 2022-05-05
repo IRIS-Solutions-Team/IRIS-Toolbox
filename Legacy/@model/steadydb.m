@@ -1,4 +1,3 @@
-function [d, deviation] = steadydb(this, range, varargin)
 % steadydb  Create model-specific steady-state or balanced-growth-path database
 %{
 %
@@ -56,28 +55,19 @@ function [d, deviation] = steadydb(this, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-% zerodb, steadydb
+function [d, deviation] = steadydb(this, range, varargin)
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.steadydb');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('SimulationRange', @validate.properRange);
-end
-parser.parse(this, range);
-
-%--------------------------------------------------------------------------
-
-[flag, list] = isnan(this, 'sstate');
+[flag, list] = isnan(this, 'steady');
 
 if flag
-    utils.warning( 'model:steadydb', ...
-                   'Steady state for this variables is NaN: %s ', ...
-                   list{:} );
+    exception.warning([
+        "Model"
+        "Steady state for this variables is NaN: %s "
+    ], textual.stringify(list));
 end
 
-d = createSourceDb(this, range, varargin{:}, 'Deviation=', false);
 deviation = false;
+d = createSourceDb(this, range, varargin{:}, 'deviation', deviation);
 
 end%
 

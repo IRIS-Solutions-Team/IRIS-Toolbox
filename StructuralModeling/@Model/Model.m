@@ -12,6 +12,7 @@ classdef Model ...
 
     properties (Constant)
         FILE_NAME_WHEN_INPUT_STRING = "[input-string]"
+        INTERCEPT_STRING = "[const]"
     end
 
 
@@ -275,6 +276,7 @@ classdef Model ...
         varargout = setBounds(varargin)
         varargout = simulate(varargin)
         varargout = solutionMatrices(varargin)
+        varargout = systemMatrices(varargin)
         varargout = table(varargin)
         varargout = quickAssign(varargin)
         %)

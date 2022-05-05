@@ -37,6 +37,6 @@ C = strrep(C,'~','\ensuremath{\sim}');
 C = regexprep(C,'(?<!\.)\.\.\.(?!\.)','\\ldots{ }');
 
 % Put the protected content back.
-C = restore(C,f,'delimiter=',false);
+C = restore(C,f,'delimiter',false);
 
 end

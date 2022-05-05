@@ -434,7 +434,7 @@ return
     function prepareSave( )
         if strlength(opt.saveas)==0
             utils.error('poster', ...
-                'The option ''saveas='' must be a valid file name.');
+                'The option SaveAs must be a valid file name.');
         end
         % Create an HDF5.
         h5create(opt.saveas, '/theta', [nPar, numDraws], 'fillValue', NaN);

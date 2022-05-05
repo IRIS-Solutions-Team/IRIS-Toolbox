@@ -321,44 +321,43 @@ NumericTimeSubscriptable ...
                 x = binop(@mtimes, x, y);
             end
         end%
-        function x = nanmean(x, dim, varargin)
+
+        function this = nanmean(this, dim, varargin)
             if nargin<2
                 dim = 1;
             end
-            x = unop(@mean, x, dim, dim, 'OmitNaN', varargin{:});
+            this = unop(@mean, this, dim, dim, 'OmitNaN', varargin{:});
         end%
-        function This = nanstd(This, Flag, Dim)
+
+        function this = nanstd(this, flag, dim, varargin)
             if nargin<2
-                Flag = 0;
+                flag = 0;
             end
             if nargin<3
-                Dim = 1;
+                dim = 1;
             end
-            % @@@@@ MOSW
-            This = unop(@(varargin) tseries.mynanstd(varargin{:}), ...
-                This, Dim, Flag, Dim);
+            this = unop(@std, this, dim, dim, 'omitNaN', varargin{:});
         end%
-        function This = nansum(This, Dim)
+
+        function this = nansum(this, dim, varargin)
             if nargin<2
-                Dim = 1;
+                dim = 1;
             end
-            % @@@@@ MOSW
-            This = unop(@(varargin) tseries.mynansum(varargin{:}), ...
-                This, Dim, Dim);
+            this = unop(@sum, this, dim, dim, 'omitNaN', varargin{:});
         end%
-        function This = nanvar(This, Flag, Dim)
+
+        function this = nanvar(this, flag, dim, varargin)
             if nargin<2
-                Flag = 0;
+                flag = 0;
             end
             if nargin<3
-                Dim = 1;
+                dim = 1;
             end
-            % @@@@@ MOSW
-            This = unop(@(varargin) tseries.mynanvar(varargin{:}), ...
-                This, Dim, Flag, Dim);
+            this = unop(@var, this, dim, dim, 'omitNaN', varargin{:});
         end%
-        function This = ne(This, Y)
-            This = binop(@ne, This, Y);
+
+        function this = ne(this, Y)
+            this = binop(@ne, this, Y);
         end%
         function x = norm(x, varargin)
             x = norm(x.Data, varargin{:}) ;

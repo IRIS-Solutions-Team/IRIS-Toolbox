@@ -80,7 +80,7 @@ sizeData = size(data);
 ndimsData = ndims(data);
 data = data(:, :);
 
-[data, tt, ts] = numeric.trend(data, 'StartDate=', startDate, trendOpt{:});
+[data, tt, ts] = numeric.trend(data, 'StartDate', startDate, trendOpt{:});
 
 if ndimsData>2
     data = reshape(data, sizeData);

@@ -120,14 +120,14 @@ for row = 1 : nRow
                 'horizontalAlignment', 'center', ...
                 'verticalAlignment', 'middle'); %#ok<AGROW>
         else
-            h = grfun.plotcircle(col, 1+nRow-row, abs(x), 'fill=', true);
+            h = grfun.plotcircle(col, 1+nRow-row, abs(x), 'fill', true);
             if x >= 0
                 HPos(end+1) = h; %#ok<AGROW>
             else
                 HNeg(end+1) = h; %#ok<AGROW>
             end
             HMax(end+1) = ...
-                grfun.plotcircle(col, 1+nRow-row, radius, 'color=', gray); %#ok<AGROW>
+                grfun.plotcircle(col, 1+nRow-row, radius, 'color', gray); %#ok<AGROW>
         end
     end
 end

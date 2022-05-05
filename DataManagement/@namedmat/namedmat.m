@@ -217,3 +217,4 @@ classdef namedmat < double
         varargout = myselect(varargin)
     end
 end
+

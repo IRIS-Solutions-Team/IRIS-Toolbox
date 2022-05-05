@@ -67,7 +67,7 @@ end
 nv = length(this);
 nz = length(select);
 p = opt.order;
-C = acf(this, opt.acf{:}, 'order=', p, 'output=', 'numeric');
+C = acf(this, opt.acf{:}, 'order', p, 'output', 'numeric');
 range = range(1) : range(end);
 nPer = length(range);
 nk = double(opt.constant);

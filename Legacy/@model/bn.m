@@ -80,7 +80,7 @@ G = datarequest('g', this, inp, range);
 numRuns = max([numDataSets, nv]);
 
 % Pre-allocate hdataobj for output data.
-hd = hdataobj(this, range, numRuns, 'IncludeLag=', false);
+hd = hdataobj(this, range, numRuns, 'includeLag', false);
 
 indexSolutionAvailable = true(1, nv);
 indexDiffStationary = true(1, nv);

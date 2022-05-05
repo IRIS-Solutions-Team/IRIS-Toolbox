@@ -100,7 +100,7 @@ return
 
 
     function [lvl, grw, isDiffStat] = hereGetSteady( )
-        [T, ~, K, Z, ~, D, U] = sspaceMatrices(this, v);
+        [T, ~, K, Z, ~, D, U] = getSolutionMatrices(this, v);
         [nx, nb] = size(T);
         numOfUnitRoots = getNumOfUnitRoots(this.Variant, v);
         nf = nx - nb;

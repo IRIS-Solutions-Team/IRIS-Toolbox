@@ -211,7 +211,7 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp'), varargi
     % name is char or char list or rexp or double-dot list but not cellstr
     inputNames = varargin(1:2:end);
     numNames = numel(inputNames);
-    % Remove equal signs from assign(m, 'alpha=', 1).
+    % Remove equal signs from assign(m, 'alpha', 1).
     for i = 1 : numNames
         inputNames{i} = strrep(inputNames{i}, ' ', '');
         if ~isempty(inputNames{i}) && inputNames{i}(end)=='='

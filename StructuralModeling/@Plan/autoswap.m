@@ -22,7 +22,7 @@ else
     inxToAutoswap = hereIndexPairsToSwap( );
 end
 pairsToAutoswap = this.AutoswapPairs(inxToAutoswap, :);
-this = swap(this, dates, pairsToAutoswap, 'AnticipationStatus=', opt.AnticipationStatus);
+this = swap(this, dates, pairsToAutoswap, 'AnticipationStatus', opt.AnticipationStatus);
 
 return
 

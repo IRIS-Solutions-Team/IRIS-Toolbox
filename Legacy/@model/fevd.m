@@ -95,7 +95,7 @@ for v = find(inxOfSolutionsAvailable)
     if ~inxOfZeroCorr(v)
         continue
     end
-    [T, R, K, Z, H, D, Za, Omg] = sspaceMatrices(this, v, false);
+    [T, R, K, Z, H, D, Za, Omg] = getSolutionMatrices(this, v, false);
     % Continue immediately if solution is not available.
     [Xi, Yi] = timedom.fevd(T, R, K, Z, H, D, Za, Omg, numPeriods);
     X(:, :, :, v) = Xi;

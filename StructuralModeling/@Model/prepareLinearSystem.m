@@ -101,7 +101,7 @@ return
         tempModel = this;
         tempModel.Update = here_createUpdateStruct( );
 
-        [defaultMatrices{1:6}] = sspaceMatrices(this, input.Variant, keepExpansion, keepTriangular);
+        [defaultMatrices{1:6}] = getSolutionMatrices(this, input.Variant, keepExpansion, keepTriangular);
         defaultMatrices{2} = defaultMatrices{2}(:, inxV);
         defaultMatrices{5} = defaultMatrices{5}(:, inxW);
         previousMatrices = NaN;
@@ -115,7 +115,7 @@ return
                 matrices__ = defaultMatrices;
             else
                 tempModel = update(tempModel, overrideParams(:, t), input.Variant);
-                [matrices__{1:6}] = sspaceMatrices(tempModel, input.Variant, keepExpansion, keepTriangular);
+                [matrices__{1:6}] = getSolutionMatrices(tempModel, input.Variant, keepExpansion, keepTriangular);
                 matrices__{2} = matrices__{2}(:, inxV);
                 matrices__{5} = matrices__{5}(:, inxW);
             end

@@ -352,7 +352,7 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
             listErrors{end+1} = Error.message; %#ok<AGROW>
         end
         if ~isempty(tit)
-            grfun.title(tit, 'interpreter=', opt.Interpreter);
+            grfun.title(tit, 'interpreter', opt.Interpreter);
         end
         % Create a name for the entry in the output database based on the
         % (user-supplied) prefix and the name of the current panel. Substitute '_'
@@ -522,7 +522,7 @@ function [actualRange, data, isOk] = callPlot( func, funcArgs, aa, ...
     end
 
     if ~isempty(opt.VLine)
-        visual.vline(aa, opt.VLine, 'Color=', 'Black');
+        visual.vline(aa, opt.VLine, 'Color', 'Black');
     end
 
     if ~isempty(opt.Highlight)

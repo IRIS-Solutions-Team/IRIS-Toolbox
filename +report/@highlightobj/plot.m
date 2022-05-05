@@ -18,7 +18,7 @@ end
 
 zCoor = cell.empty(1, 0);
 if isfield(this.options, 'zcoor')
-    zCoor = {'ZCoor=', this.options.zcoor};
+    zCoor = {'ZCoor', this.options.zcoor};
 end
 
 visual.highlight( ...

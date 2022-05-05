@@ -81,7 +81,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     assertEqual(testCase, errorThrown, true);
     errorThrown = false;
     try
-        checkUniqueLhs(q, 'ThrowAs=', 'Error');
+        checkUniqueLhs(q, 'ThrowAs', 'Error');
     catch
         errorThrown = true;
     end
@@ -104,7 +104,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     errorThrown = false;
     lastwarn('');
     try
-        checkUniqueLhs(q, 'ThrowAs=', 'Warning');
+        checkUniqueLhs(q, 'ThrowAs', 'Warning');
     catch
         errorThrown = true;
     end

@@ -1,4 +1,3 @@
-function [d, deviation] = zerodb(this, range, varargin)
 % zerodb  Create model-specific zero-deviation database
 %
 %
@@ -53,20 +52,10 @@ function [d, deviation] = zerodb(this, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-% zerodb, sstatedb
+function [d, deviation] = zerodb(this, range, varargin)
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.zerodb');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('SimulationRange', @validate.properRange);
-end
-parser.parse(this, range);
-
-%--------------------------------------------------------------------------
-
-d = createSourceDb(this, range, varargin{:}, "deviation", true);
 deviation = true;
+d = createSourceDb(this, range, varargin{:}, "deviation", deviation);
 
 end%
 

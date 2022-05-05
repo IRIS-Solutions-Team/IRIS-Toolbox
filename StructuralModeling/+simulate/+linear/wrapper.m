@@ -35,7 +35,7 @@ end
 
 % Add measurement detereministic trends.
 if ~isempty(yTrend)
-    % Add to trends to the current simulation; when `'contributions=' true`, we
+    % Add to trends to the current simulation; when Contributions=true, we
     % need to add the trends to (ne+1)-th simulation (ie. the contribution of
     % init cond and constant).
     if s.IsContributions

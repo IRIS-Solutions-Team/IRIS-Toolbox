@@ -95,7 +95,7 @@ classdef grouping < iris.mixin.UserDataContainer ...
             % Options
             % ========
             %
-            % * `'IncludeExtras='` [ `true` | *`false`* ] - Include two extra
+            % * `IncludeExtras=false` [ `true` | `false` ] - Include two extra
             % decomposition columns, `Init+Const+Dtrend` and `Nonlinear`, produced by
             % the `simulate( )` function, in the list of constributions available in
             % this grouping.

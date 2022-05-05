@@ -85,7 +85,7 @@ for i = 1 : numRuns
     inxOfDiag = logical(eye(nYIncl));
     
     if i<=nv
-        [T, R, K, Z, H, W, U, Omg] = sspaceMatrices(this, i, false); %#ok<ASGLU>
+        [T, R, K, Z, H, W, U, Omg] = getSolutionMatrices(this, i, false); %#ok<ASGLU>
         [nx, nb] = size(T);
         nf = nx - nb;
         numOfUnitRoots = getNumOfUnitRoots(this.Variant, i);

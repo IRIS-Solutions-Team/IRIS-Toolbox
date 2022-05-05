@@ -120,7 +120,7 @@ extendedRange = range(1)-1 : range(end);
 if ~s.IsContributions
     hData = hdataobj(this, extendedRange, numRuns);
 else
-    hData = hdataobj(this, extendedRange, ne+2, 'Contributions=', @shock);
+    hData = hdataobj(this, extendedRange, ne+2, 'Contributions', @shock);
 end
 
 s.progress = [ ];
@@ -205,7 +205,7 @@ for ithRun = 1 : numRuns
         end
         % Add measurement detereministic trends.
         if ~isempty(yTrend)
-            % Add to trends to the current simulation; when `'contributions=' true`, we
+            % Add to trends to the current simulation; when Contributions=true, we
             % need to add the trends to (ne+1)-th simulation (ie. the contribution of
             % init cond and constant).
             if s.IsContributions
@@ -253,7 +253,7 @@ end
 
 % Convert hdataobj to struct. The comments assigned to the output series
 % depend on whether contributions=true or false.
-outputData = hdata2tseries(hData, 'Delog=', opt.Delog);
+outputData = hdata2tseries(hData, 'delog', opt.Delog);
 
 % Overlay the input (or user-supplied) database with the simulation
 % database if DbOverlay=true or AppendPresample=true
@@ -319,7 +319,7 @@ return
 
 
     function checkConflicts( )
-        % The option 'contributions=' option cannot be used with the 'plan='
+        % The option Contributions option cannot be used with the Plan
         % option, with multiple parameter variants, or multiple data sets.
         if opt.Contributions
             if nv>1 || numOfInitDataSets>1 || numOfShockDataSets>1

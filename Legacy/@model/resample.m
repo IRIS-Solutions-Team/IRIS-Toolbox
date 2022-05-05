@@ -136,7 +136,7 @@ extendedRange = range(1)-1 : range(end);
 ixd = this.Equation.Type==3;
 isTrendEquations = opt.EvalTrends && any(ixd);
 [ny, nxx, nb, nf, ne, ng] = sizeSolution(this.Vector);
-[T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, 1, false);
+[T, R, K, Z, H, D, U, Omg] = getSolutionMatrices(this, 1, false);
 if opt.Deviation
     K(:) = 0;
     D(:) = 0;

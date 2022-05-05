@@ -154,9 +154,9 @@ range = double(range);
 %--------------------------------------------------------------------------
 
 if isequal(list, @all)
-    list = dbnames(d, 'ClassFilter=', 'tseries');
+    list = dbnames(d, 'ClassFilter', 'tseries');
 elseif isa(list, 'rexp')
-    list = dbnames(d, 'ClassFilter=', 'tseries', 'NameFilter=', list);
+    list = dbnames(d, 'ClassFilter', 'tseries', 'NameFilter', list);
 elseif ischar(list)
     list = regexp(list, '\w+', 'match');
 elseif isstring(list)

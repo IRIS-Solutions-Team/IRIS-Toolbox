@@ -400,10 +400,10 @@ unmatchedOptions = parser.UnmatchedInCell;
 
 if isequal(list, @all)
     % All time series names in the input database.
-    list = dbnames(d, 'ClassFilter=', 'TimeSubscriptable');
+    list = dbnames(d, 'ClassFilter', 'TimeSubscriptable');
 elseif isa(list, 'rexp')
     % Regular expression.
-    list = dbnames(d, 'NameFilter=', list, 'ClassFilter=', 'TimeSubscriptable');
+    list = dbnames(d, 'NameFilter', list, 'ClassFilter', 'TimeSubscriptable');
 elseif isa(list, 'string')
     list = cellstr(list);
 end

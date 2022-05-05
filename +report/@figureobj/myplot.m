@@ -35,7 +35,7 @@ end
 % Apply styles to this figure only, do not cascade through.
 sty = This.options.style;
 if ~isempty(sty) && isfield(sty,'figure')
-    grfun.style(sty,This.handle,'cascade=',false,'warning=',false);
+    grfun.style(sty,This.handle,'cascade',false,'warning',false);
 end
 
 % Determine subplot division

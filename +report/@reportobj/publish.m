@@ -45,10 +45,6 @@ if isempty(strfind(opt.papersize, 'paper'))
 end
 
 if ~isequal(opt.title, Inf)
-    utils.warning('report', ...
-        ['The option ''title='' is obsolete in report/publish( ), ', ...
-        'and will be removed from future versions of IRIS. ', ...
-        'Use the Caption input argument in report/new( ) instead.']);
     this.caption = opt.title;
 end
 
@@ -149,7 +145,7 @@ return
     function doSaveLatexFile( )
         tempDir = this.hInfo.tempDir;
         latexFile = [tempname(tempDir), '.tex'];
-        textual.write(c, latexFile, 'char', 'Encoding=', opt.Encoding);
+        textual.write(c, latexFile, 'char', 'Encoding', opt.Encoding);
     end
 
 

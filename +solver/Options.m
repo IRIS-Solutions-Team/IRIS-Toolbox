@@ -289,7 +289,7 @@ function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
     end
 
     if iscell(solverOpt)
-        % Solver= {solverName, 'Name=', Value, ... }
+        % Solver= {solverName, 'Name', Value, ... }
         % where solverName is 'lsqnonlin' | 'fsolve'
         parse(pp, solverOpt{2:end});
         solverOpt = optimoptions(solverOpt{1});

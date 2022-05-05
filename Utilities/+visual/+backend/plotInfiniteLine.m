@@ -59,7 +59,7 @@ end
 
 % Handle shortcut syntax for Text=
 if ~iscell(opt.Text) || size(opt.Text, 2)==1
-    opt.Text = {'String=', opt.Text};
+    opt.Text = {'String', opt.Text};
 end
 
 % Handle legacy options VPosition= and HPosition=

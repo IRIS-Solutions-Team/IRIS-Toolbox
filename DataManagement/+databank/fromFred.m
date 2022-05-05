@@ -373,7 +373,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     assertEqual(testCase, db.GDPC1.Frequency, Frequency.QUARTERLY);
     assertEqual(testCase, db.PCE.Frequency, Frequency.MONTHLY);
 
-    db = databank.fromFred(["GDPC1", "PCE"], "Frequency=", "Q");
+    db = databank.fromFred(["GDPC1", "PCE"], "Frequency", "Q");
     assertEqual(testCase, db.GDPC1.Frequency, Frequency.QUARTERLY);
     assertEqual(testCase, db.PCE.Frequency, Frequency.QUARTERLY);
 
@@ -390,20 +390,20 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Vintage Dates
 
     db = databank.fromFred( ...
-        "GDPC1", "Vintage=", ["2001-09-11", "2019-12-30", "2019-12-31"] ...
+        "GDPC1", "Vintage", ["2001-09-11", "2019-12-30", "2019-12-31"] ...
     );
     assertEqual(testCase, db.GDPC1(:, 2), db.GDPC1(:, 3));
 
 
 %% Test All Vintages
 
-    v = databank.fromFred(["GDPC1", "TB3MS"], "Request=", "VintageDates");
+    v = databank.fromFred(["GDPC1", "TB3MS"], "Request", "VintageDates");
 
-    db = databank.fromFred("GDPC1", "Vintage=", v.GDPC1(end-5:end));
+    db = databank.fromFred("GDPC1", "Vintage", v.GDPC1(end-5:end));
     assertEqual(testCase, size(db.GDPC1, 2), 6);
     assertTrue(testCase, all(startsWith(string(db.GDPC1.Comment), "[Vintage:")));
 
-    db = databank.fromFred("TB3MS", "Vintage=", v.TB3MS(end-5:end));
+    db = databank.fromFred("TB3MS", "Vintage", v.TB3MS(end-5:end));
     assertEqual(testCase, size(db.TB3MS, 2), 6);
     assertTrue(testCase, all(startsWith(string(db.TB3MS.Comment), "[Vintage:")));
 
@@ -412,7 +412,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
     db1 = databank.fromFred(["GDPC1", "TB3MS"]);
     db2 = databank.fromFred("GDPC1");
-    db2 = databank.fromFred("TB3MS", "AddToDatabank=", db2);
+    db2 = databank.fromFred("TB3MS", "AddToDatabank", db2);
     assertEqual(testCase, sort(keys(db1)), sort(keys(db2)));
     for k = keys(db1)
         assertEqual(testCase, db1.(k).Data, db2.(k).Data);
@@ -422,7 +422,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Progress Bar
 
     vintages = ["2001-09-11", "2005-11-15", "2007-05-31", "2008-09-15", "2011-03-09"];
-    db = databank.fromFred(["GDPC1", "TB3MS"], "Vintage=", vintages, "Progress=", true);
+    db = databank.fromFred(["GDPC1", "TB3MS"], "Vintage", vintages, "Progress", true);
 
 
 ##### SOURCE END #####

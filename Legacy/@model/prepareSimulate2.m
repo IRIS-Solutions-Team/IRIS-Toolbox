@@ -24,7 +24,7 @@ nPerMax = s.NPer;
 
 % Solution matrices expanded forward if needed
 if strcmpi(s.Method, 'Selective')
-    [s.T, s.R, s.K, s.Z, s.H, s.D, s.U, ~, ~, s.Q] = sspaceMatrices(this, variantRequested);
+    [s.T, s.R, s.K, s.Z, s.H, s.D, s.U, ~, ~, s.Q] = getSolutionMatrices(this, variantRequested);
     currentForward = min( size(s.R, 2)/ne, size(s.Q, 2)/nh ) - 1;
     if s.RequiredForward>currentForward
         vthExpansion = getIthFirstOrderExpansion(this.Variant, variantRequested);

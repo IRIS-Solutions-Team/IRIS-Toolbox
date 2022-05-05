@@ -147,7 +147,7 @@ end
 
 function fnPrior = penalty2Prior(spec, p0, startIfNan, penalty)
     % The 4th entry is a penalty function, compute the
-    % total weight including the `'penalty='` option.
+    % total weight including the Penalty option.
     totalWeight = spec{4}(1)*penalty;
     if numel(spec{4})==1
         % Only the weight specified. The centre of penalty

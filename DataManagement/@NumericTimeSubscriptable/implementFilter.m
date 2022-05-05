@@ -62,7 +62,7 @@ opt = rmfield(ip, ["range__"]);
 % <=R2019a
 
 
-opt = iris.utils.resolveAlias(opt, [], true);
+opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
 range = double(opt.Range);

@@ -270,11 +270,11 @@ end
 % Create and initialize output hdataobj.
 hData = struct( );
 hData.mean = hdataobj(this, xRange, numOfRuns, ...
-    'Precision=', opt.Precision);
+    'Precision', opt.Precision);
 if ~opt.MeanOnly
     hData.std = hdataobj(this, xRange, numOfRuns, ...
-        'IsVar2Std=', true, ...
-        'Precision=', opt.Precision);
+        'IsVar2Std', true, ...
+        'Precision', opt.Precision);
 end
 
 if opt.Progress
@@ -298,7 +298,7 @@ for iLoop = 1 : numOfRuns
         this = expand(this, k);
         keepExpansion = true;
         triangular = false;
-        [T, R, K, Z, H, D] = sspaceMatrices(this, iLoop, keepExpansion, triangular);
+        [T, R, K, Z, H, D] = getSolutionMatrices(this, iLoop, keepExpansion, triangular);
         Tf = T(1:nf, :);
         Tb = T(nf+1:end, :);
         Rf = R(1:nf, 1:ne);

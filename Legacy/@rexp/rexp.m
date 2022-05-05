@@ -161,7 +161,7 @@ classdef rexp
                 ixKeep = cellfun(@isempty, start);
                 s = s(ixKeep);
             elseif isstruct(s) && isa(this, 'rexp')
-                list = dbnames(s, 'NameFilter=', this);
+                list = dbnames(s, 'NameFilter', this);
                 s = dbminus(s, list);
             end
         end%
@@ -169,7 +169,7 @@ classdef rexp
 
         function d = mtimes(d, this)
             if isstruct(d)
-                list = dbnames(d, 'NameFilter=', this);
+                list = dbnames(d, 'NameFilter', this);
                 d = dbmtimes(d, list);
             end
         end%

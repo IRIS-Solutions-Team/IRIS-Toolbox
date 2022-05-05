@@ -97,7 +97,7 @@ nLhs = length(lhsPos);
 nRhs = length(rhsPos);
 
 p = -min([imag(rhsPos),imag(lhsPos)]);
-C = acf(This,opt.acf{:},'order=',p,'MatrixFormat=','plain');
+C = acf(This,opt.acf{:},'order',p,'MatrixFormat','plain');
 nc = size(C,1);
 
 % Convert `lhspos` and `rhspos` to positions in

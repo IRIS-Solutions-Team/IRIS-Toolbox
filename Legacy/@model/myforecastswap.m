@@ -35,7 +35,7 @@ Mye = zeros(ny*last, ne*last);
 mae = zeros(nb, ne*last);
 
 % System matrices.
-[T, R, K, Z, H, D, U] = sspaceMatrices(this, variantRequested);
+[T, R, K, Z, H, D, U] = getSolutionMatrices(this, variantRequested);
 Tf = T(1:nf, :);
 Ta = T(nf+1:end, :);
 Ru = R(:, 1:ne);

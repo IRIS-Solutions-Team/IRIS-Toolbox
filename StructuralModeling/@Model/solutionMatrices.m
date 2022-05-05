@@ -37,9 +37,8 @@ opt = ip.Results;
 % <=R2019a
 
 
-
 [T, R, K, Z, H, D, U, Omg, ~] ...
-    = sspaceMatrices(this, ':', opt.KeepExpansion, opt.Triangular);
+    = getSolutionMatrices(this, ':', opt.KeepExpansion, opt.Triangular);
 
 [~, numXi, numXib, numXif, numE] = sizeSolution(this.Vector);
 
@@ -74,14 +73,14 @@ if startsWith(string(opt.MatrixFormat), "named", "ignoreCase", true)
     eVectorX = eVector;
     forward = size(R, 2) / numE - 1;
     if forward>1
-        eVectorX = locallyExpandShockNames(eVectorX, forward);
+        eVectorX = local_expandShockNames(eVectorX, forward);
     end
     T = namedmat(T, xiVector, alphaVector1);
     R = namedmat(R, xiVector, eVectorX);
-    K = namedmat(K, xiVector, "1");
+    K = namedmat(K, xiVector, this.INTERCEPT_STRING);
     Z = namedmat(Z, yVector, alphaVector0);
     H = namedmat(H, yVector, eVector);
-    D = namedmat(D, yVector, "1");
+    D = namedmat(D, yVector, this.INTERCEPT_STRING);
     if ~isempty(U)
         U = namedmat(U, xibVector, alphaVector0);
     end
@@ -109,7 +108,7 @@ end%
 % Local functions
 %
 
-function eVector = locallyExpandShockNames(eVector, horizon)
+function eVector = local_expandShockNames(eVector, horizon)
     %(
     temp = eVector;
     for i = 1 : horizon
@@ -118,3 +117,4 @@ function eVector = locallyExpandShockNames(eVector, horizon)
     end
     %)
 end%
+

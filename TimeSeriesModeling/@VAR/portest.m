@@ -47,10 +47,6 @@ pp.addRequired('Inp',@(x) myisvalidinpdata(This,x));
 pp.addRequired('H',@isnumericscalar);
 pp.parse(Inp,H);
 
-if length(varargin) == 1 && isnumericscalar(varargin{1})
-    % Bkw compatibility.
-    varargin = [{'level='},varargin];
-end
 
 defaults = {
     'level', 0.05, @(x) isnumericscalar(x) && x > 0 && x < 1

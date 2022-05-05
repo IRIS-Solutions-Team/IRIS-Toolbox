@@ -77,7 +77,7 @@ nPar = length(This.paramList);
 
 % Generate initial chain for constructing reentry distribution and special K
 [initSample,lp_initSample,initAccRatio,initSgm,initFinalCov] ...
-    = arwm(This,opt.initialChainSize,'lastAdapt=',1) ; %#ok<*ASGLU,*NASGU>
+    = arwm(This,opt.initialChainSize,'lastAdapt',1) ; %#ok<*ASGLU,*NASGU>
 initStd = chol(cov(initSample')) ;
 initMean = mean(initSample,2) ;
 

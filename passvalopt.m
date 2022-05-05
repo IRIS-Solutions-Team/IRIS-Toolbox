@@ -22,7 +22,7 @@ listUnused = cell(1, 0);
 
 if ~isempty(varargin)
     if iscellstr(varargin(1:2:end)) || all(cellfun(@isstring, varargin(1:2:end)))
-        % Called passvalopt(Spec, 'Name=', Value,...).
+        % Called passvalopt(Spec, 'Name', Value,...).
         % This is the preferred way.
         userName = cellstr(varargin(1:2:end));
         userValue = varargin(2:2:end);
@@ -33,7 +33,7 @@ if ~isempty(varargin)
         userValue = struct2cell(varargin{1})';
         
     elseif nargin==2 && iscell(varargin{1})
-        % Called passvalopt(Spec, {'Name=', Value}).
+        % Called passvalopt(Spec, {'Name', Value}).
         userName = varargin{1}(1:2:end);
         userValue = varargin{1}(2:2:end);
     else

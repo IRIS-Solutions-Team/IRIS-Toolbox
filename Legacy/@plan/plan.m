@@ -133,7 +133,7 @@ classdef plan < iris.mixin.UserDataContainer ...
             % * forecasts conditioned upon some variables;
             %
             % The plan object is passed to the [simulate](model/simulate) or
-            % [`jforecast`](model/jforecast) functions through the option `'plan='`.
+            % [`jforecast`](model/jforecast) functions through the option Plan.
             %
             %
             % Example

@@ -47,7 +47,7 @@ maxLag = -min(idImag);
 Phi = nan(ny+nxx, numOfRuns, numOfPeriods+1, nv);
 inxOfSolutionsAvailable = beenSolved(this);
 for v = find(inxOfSolutionsAvailable)
-    [T, R, K, Z, H, D, U] = sspaceMatrices(this, v, false); %#ok<ASGLU>
+    [T, R, K, Z, H, D, U] = getSolutionMatrices(this, v, false); %#ok<ASGLU>
     Phi(:, :, :, v) = func(T, R, [ ], Z, H, [ ], U, [ ], v, numOfPeriods);
 end
 % Report NaN solutions.

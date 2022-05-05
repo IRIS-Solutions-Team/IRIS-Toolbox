@@ -338,7 +338,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = size(varargin)
         varargout = sizeSolution(varargin)
         varargout = sizeSystem(varargin)
-        varargout = sspaceMatrices(varargin)
+        varargout = getSolutionMatrices(varargin)
 
 
         function stdcorr = getIthStdcorr(this, variantsRequested)

@@ -143,7 +143,7 @@ end%
 
 function priorDistribution = penaltyToDistribution(spec, init, defaultInitial, penalty)
     % The 4th entry is a penalty function, compute the
-    % total weight including the `'penalty='` option.
+    % total weight including the Penalty option.
     totalWeight = spec{4}(1)*penalty;
     if isscalar(spec{4})
         % Only the weight specified. The centre of penalty
