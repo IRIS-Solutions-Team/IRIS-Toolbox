@@ -5,20 +5,22 @@
 
 function [outputDb, this, info] = kalmanFilter(this, inputDb, range, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('Dynafit/kalmanFilter');
-    pp.addRequired('a', @(x) isa(x, 'Dynafit'));
-    pp.addRequired('InputData', @validate.databank);
-    pp.addRequired('Range', @isnumeric);
-    pp.addParameter('Cross', true, ...
-        @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
-    pp.addParameter('InvFunc', @auto, @(x) isa(x, 'function_handle'));
-    pp.addParameter('MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
-    pp.addParameter('Persist', false, @(x) isequal(x, true) || isequal(x, false));
-    pp.addParameter('Tolerance', 0, @(x) isnumeric(x) && isscalar(x));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addRequired(ip, 'df', @(x) isa(x, 'Dynafit'));
+    addRequired(ip, 'inputDb', @validate.databank);
+    addRequired(ip, 'range', @isnumeric);
+
+    addParameter(ip, 'Cross', true, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
+    addParameter(ip, 'InvFunc', @auto, @(x) isa(x, 'function_handle'));
+    addParameter(ip, 'MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'Persist', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'Tolerance', 0, @(x) isnumeric(x) && isscalar(x));
 end
-opt = pp.parse(this, inputDb, range, varargin{:});
+parse(ip, this, inputDb, range, varargin{:});
+opt = rmfield(ip.Results, ["df", "inputDb", "range"]);
+
 
 nv = countVariants(this);
 
@@ -32,7 +34,7 @@ info = struct();
 % Retrieve and standardize input data
 %
 range = double(range);
-y = hereGetObserved();
+y = here_getObserved();
 
 % TODO: Support for multiple data pages
 y = y(:, :, 1); 
@@ -129,12 +131,12 @@ end
 %
 % Create output databank
 %
-outputDb = hereCreateOutputDb();
+outputDb = here_createOutputDb();
 
 
 return
 
-    function inputArray = hereGetObserved()
+    function inputArray = here_getObserved()
         %(
         numBasePeriods = round(range(end) - range(1) + 1);
         if ~isempty(inputDb)
@@ -161,7 +163,7 @@ return
     end%
 
 
-    function outputDb = hereCreateOutputDb()
+    function outputDb = here_createOutputDb()
         %(
         allNames = [ ...
             this.ObservedNames, this.CommonNames, this.FactorNames ...

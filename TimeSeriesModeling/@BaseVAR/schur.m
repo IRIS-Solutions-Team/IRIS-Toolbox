@@ -1,4 +1,3 @@
-function this = schur(this)
 % schur  Compute and store triangular representation of VAR
 %
 % Syntax
@@ -30,6 +29,8 @@ function this = schur(this)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function this = schur(this)
 
 [ny, p, nv] = size(this.A);
 p = p / max(ny, 1);

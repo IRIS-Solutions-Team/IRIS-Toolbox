@@ -80,7 +80,7 @@ defaults = {
 };
 
 
-opt = passvalopt('VAR.resample', varargin{:});
+opt = passvalopt(defaults, varargin{:});
 
 if ischar(opt.method)
     opt.method = lower(opt.method);

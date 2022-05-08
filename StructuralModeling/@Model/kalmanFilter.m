@@ -32,7 +32,7 @@ info = struct();
 % Resolve Kalman filter opt and create a time-varying LinearSystem if
 % necessary
 %
-[opt, timeVarying] = prepareKalmanOptions2(this, baseRange, varargin{:});
+[opt, objectToRun] = prepareKalmanOptions2(this, baseRange, varargin{:});
 
 
 %
@@ -90,17 +90,14 @@ outputData = struct( );
 
 
 %=========================================================================
-argin = struct( ...
+kalmanInputs = struct( ...
     'InputData', inputArray, ...
     'OutputData', outputData, ...
     'OutputDataAssignFunc', @hdataassign, ...
     'Options', opt ...
 );
-if isempty(timeVarying)
-    [minusLogLik, regOutp, outputData] = implementKalmanFilter(this, argin); %#ok<ASGLU>
-else
-    [minusLogLik, regOutp, outputData] = implementKalmanFilter(timeVarying, argin); %#ok<ASGLU>
-end
+
+[minusLogLik, regOutp, outputData] = implementKalmanFilter(objectToRun, kalmanInputs); %#ok<ASGLU>
 %=========================================================================
 
 
@@ -123,6 +120,7 @@ end
 
 info.TriangularInitials = regOutp.Initials;
 info.MinusLogLik = minusLogLik;
+
 
 %
 % Post-process hdata output arguments

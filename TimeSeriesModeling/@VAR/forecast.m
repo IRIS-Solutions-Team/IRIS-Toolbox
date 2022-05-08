@@ -90,7 +90,7 @@ defaults = {
     'returnresiduals, returnresidual', true, @islogicalscalar
     'E', [ ], @(x) isempty(x) || isnumeric(x) 
     'Sigma', [ ], @isnumeric
-}
+};
 %)
 
 

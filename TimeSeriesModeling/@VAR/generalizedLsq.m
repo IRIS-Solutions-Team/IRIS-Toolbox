@@ -1,11 +1,9 @@
-function s = generalizedLsq(s, opt)
 % generalizedLsq  Generalised least squares estimator for reduced-form VARs
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function s = generalizedLsq(s, dummy, opt)
 
 y0 = s.y0; % LHS data
 k0 = s.k0; % Constant and dummies
@@ -14,15 +12,14 @@ y1 = s.y1; % Own lags
 g1 = s.g1; % Lagged level variables entering the co-integrating vector
 Rr = s.Rr; % Linear restrictions on parameters: beta = R*gamma + r
 w = s.w;   % Variance-based weights
-priorDummies = opt.PriorDummies;
 
-%--------------------------------------------------------------------------
 
 numY = size(y0, 1); 
 numK = size(k0, 1); 
 numX = size(x0, 1); 
 numG = size(g1, 1); 
-isPrior = isa(priorDummies, 'BVAR.DummyWrapper') && ~isempty(priorDummies); 
+numD = dummy.NumDummyColumns;
+
 
 if ~isempty(Rr)
     R = Rr(:, 1:end-1); 
@@ -32,6 +29,7 @@ else
     r = [ ]; 
 end
 
+
 % Number of lags included in regression; needs to be decreased by one for
 % difference VARs or VECs
 p = opt.Order; 
@@ -40,16 +38,6 @@ if opt.Diff
     p = p - 1; 
 end
 
-% BVAR prior dummies
-numPriors = 0; 
-if isPrior
-    bvarY0 = priorDummies.y0(numY, p, numG, numK); 
-    bvarK0 = priorDummies.k0(numY, p, numG, numK); 
-    bvarY1 = priorDummies.y1(numY, p, numG, numK); 
-    bvarG1 = priorDummies.g1(numY, p, numG, numK); 
-    numPriors = size(bvarY0, 2); 
-    bvarX0 = zeros(numX, numPriors); 
-end
 
 % Find effective estimation range and exclude NaNs
 inxFitted = all(~isnan([y0; k0; x0; y1; g1; w]), 1); 
@@ -96,7 +84,11 @@ else
     Xw  = X; 
 end
 
-if opt.Standardize && isPrior
+
+hasDummies = numD>0;
+
+
+if opt.Standardize && hasDummies
     % Create a matrix of observations (that will be possibly demeaned)
     % including pre-sample initial condition
     yd = y0w; 
@@ -110,18 +102,21 @@ if opt.Standardize && isPrior
     % prior dummy observations. This is equivalent to standardizing the
     % observations with given dummies
     ystd = std(yd, 1, 2); 
-    bvarY0 = bvarY0 .* ystd(:, ones(1, numPriors)); 
-    bvarY1 = bvarY1 .* repmat(ystd(:, ones(1, numPriors)), p, 1); 
+    ystd = repmat(ystd, 1, numD);
+    dummy.Y = dummy.Y .* ystd; 
+    dummy.Z = dummy.Z .* repmat(ystd, p, 1); 
 end
 
+
 % Add prior dummy observations to the LHS and RHS data matrices
-if isPrior
-    y0 = [bvarY0, y0]; 
-    y0w = [bvarY0, y0w]; 
-    bvarX = [bvarK0; bvarX0; bvarY1; bvarG1]; 
-    X = [bvarX, X]; 
-    Xw = [bvarX, Xw]; 
+if hasDummies
+    y0 = [dummy.Y, y0]; 
+    y0w = [dummy.Y, y0w]; 
+    temp = [dummy.K; dummy.X; dummy.Z; zeros(numG, numD)]; 
+    X = [temp, X]; 
+    Xw = [temp, Xw]; 
 end
+
 
 % `Omg0` is covariance of residuals based on unrestricted non-bayesian VAR;
 % this matrix is used to compute the covariance matrix of parameters
@@ -154,7 +149,7 @@ if ~isempty(R) && opt.EqtnByEqtn
     end
     beta = reshape(beta, [numLhs, numRhs]); 
     ew = y0w - beta*Xw; 
-    ew = ew(:, numPriors+1:end); 
+    ew = ew(:, numD+1:end); 
     Omg = ew * transpose(ew) / numFittedCorrected; 
     iter = iter + 1; 
 else
@@ -165,7 +160,7 @@ else
         % Ordinary least squares for unrestricted VAR or BVAR
         beta = y0w / Xw; 
         ew = y0w - beta*Xw; 
-        ew = ew(:, numPriors+1:end); 
+        ew = ew(:, numD+1:end); 
         Omg = ew * transpose(ew) / numFittedCorrected; 
         Omg0 = Omg; 
         iter = iter + 1; 
@@ -184,7 +179,7 @@ else
             % Compute parameters.
             beta = reshape(R*gamma + r, numLhs, numRhs); 
             ew = y0w - beta*Xw; 
-            ew = ew(:, numPriors+1:end); 
+            ew = ew(:, numD+1:end); 
             Omg = ew * transpose(ew) / numFittedCorrected; 
             invOmg = inv(Omg); 
             maxDiff = max(abs(beta(:) - lastBeta(:))); 
@@ -195,12 +190,12 @@ end
 
 % Unweighted residuals
 e = y0 - beta*X; 
-e = e(:, numPriors+1:end); 
+e = e(:, numD+1:end); 
 
 % Covariance of parameter estimates, not available for VECM and diff VARs.
 Sgm = [ ]; 
 if opt.CovParameters && ~opt.Diff
-    hereCovParameters( ); 
+    here_covParameters( ); 
 end
 
 % Coefficients of exogenous inputs including constant
@@ -232,15 +227,15 @@ s.InxFitted = inxFitted;
 return
 
 
-    function hereCovParameters( )
+    function here_covParameters( )
         % Asymptotic covariance of parameters is based on the covariance matrix of
-        % residuals from a non-restricted non-bayesian VAR; the risk exists that we
+        % residuals from a non-restricted VAR; the risk exists that we
         % run into singularity or near-singularity
         if isempty(Omg0)
             if ~isempty(Xw)
                 beta0 = y0w / Xw; 
                 e0w = y0w - beta0*Xw; 
-                e0w = e0w(:, numPriors+1:end); 
+                e0w = e0w(:, numD+1:end); 
                 Omg0 = e0w * transpose(e0w) / numFittedCorrected; 
             else
                 Omg0 = nan(numY); 

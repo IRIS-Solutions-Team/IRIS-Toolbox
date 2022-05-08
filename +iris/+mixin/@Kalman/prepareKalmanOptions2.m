@@ -6,7 +6,7 @@
 
 % >=R2019b
 %(
-function [opt, timeVarying] = prepareKalmanOptions2(this, range, opt)
+function [opt, objectToRun] = prepareKalmanOptions2(this, range, opt)
 
 arguments
     this iris.mixin.Kalman
@@ -67,7 +67,7 @@ end
 
 % <=R2019a
 %{
-function [opt, timeVarying] = prepareKalmanOptions2(this, range, varargin)
+function [opt, objectToRun] = prepareKalmanOptions2(this, range, varargin)
 
 persistent ip
 if isempty(ip)
@@ -149,7 +149,7 @@ opt.ReturnMedian = local_resolveMedianOption(this, opt.ReturnMedian);
 %
 % Resolve Override, creating time varying LinearSystem object if necessary
 %
-timeVarying = hereResolveTimeVarying( );
+timeVarying = here_resolveTimeVarying( );
 
 
 %
@@ -335,7 +335,7 @@ if isstruct(opt.UnitRootInitials)
     [xbInitMean, missingMean] = ...
         datarequest('xbInit', this, opt.UnitRootInitials, range);
     missingMse = cell.empty(1, 0);
-    hereCheckNaNInit( );
+    here_checkNaNInit( );
     opt.UnitRootInitials = xbInitMean;
 end
 
@@ -355,28 +355,35 @@ else
 end
 
 if ~isequal(opt.Simulate, false)
-    herePrepareSimulateSystemProperty( );
+    here_prepareSimulateSystemProperty( );
 end
+
+
+if isempty(timeVarying)
+    objectToRun = this;
+else
+    objectToRun = timeVarying;
+end
+
 
 return
 
-    function timeVarying = hereResolveTimeVarying( )
+    function timeVarying = here_resolveTimeVarying( )
         %(
         timeVarying = [ ];
         if ~isa(this, 'Model')
             return
         end
+
         if isempty(opt.Override) || ~validate.databank(opt.Override) || isempty(fieldnames(opt.Override))
             return
         end
-        argin = struct( ...
-            'Variant', 1, ...
-            'FilterRange', range, ...
-            'Override', opt.Override, ...
-            'Multiply', opt.Multiply, ...
-            'BreakUnlessTimeVarying', true ...
+
+        [timeVarying, initCond] = prepareLinearSystem( ...
+            this, range, opt.Override, opt.Multiply ...
+            , "variant", 1 ...
+            , "returnEarly", true ...
         );
-        [timeVarying, initCond] = prepareLinearSystem(this, argin);
         if ~isempty(timeVarying)
             opt.Override = [];
             opt.Multiply = [];
@@ -386,7 +393,7 @@ return
     end%
 
 
-    function hereCheckNaNInit( )
+    function here_checkNaNInit( )
         %(
         if ~isempty(missingMean)
             thisError = { 'Model:MissingInitial'
@@ -404,7 +411,7 @@ return
     end%
 
 
-    function herePrepareSimulateSystemProperty( )
+    function here_prepareSimulateSystemProperty( )
         %(
         opt.Simulate = simulate( ...
             this, "asynchronous", @auto, ...

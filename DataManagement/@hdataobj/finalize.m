@@ -15,20 +15,20 @@ MSE_OUTPUT = "MSE";
 outputDb = struct();
 
 if isfield(Y, 'M0') && ~isequal(Y.M0, [ ])
-    hereOneOutput('0');
+    here_oneOutput('0');
 end
 
 if isfield(Y, 'M1') && ~isequal(Y.M1, [ ])
-    hereOneOutput('1');
+    here_oneOutput('1');
 end
 
 if isfield(Y, 'M2') && ~isequal(Y.M2, [ ])
-    hereOneOutput('2');
+    here_oneOutput('2');
 end
 
 return
 
-    function hereOneOutput(X)
+    function here_oneOutput(X)
         switch X
             case '0'
                 prefix = 'Predict';

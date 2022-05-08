@@ -1,4 +1,3 @@
-function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range, varargin)
 % estimate  Estimate reduced-form VAR model
 %{
 % __Syntax__
@@ -142,6 +141,9 @@ function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
+
+function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('VAR.estimate');
@@ -165,14 +167,16 @@ if isempty(pp)
     addParameter(pp, 'SmallSampleCorrection', false, @validate.logicalScalar);
 
     addParameter(pp, 'A', [ ], @isnumeric);
-    addParameter(pp, 'C', [ ], @isnumeric);    
+    addParameter(pp, 'C', [ ], @isnumeric);
     addParameter(pp, 'G', [ ], @isnumeric);
     addParameter(pp, 'J', [ ], @isnumeric);
     addParameter(pp, 'Mean', [ ], @(x) isempty(x) || isnumeric(x));
-    addParameter(pp, 'MaxIter', 1, @(x) validate.roundScalar(x, 0, Inf)); 
+    addParameter(pp, 'MaxIter', 1, @(x) validate.roundScalar(x, 0, Inf));
     addParameter(pp, 'Tolerance', 1e-5, @(x) validate.numericScalar(x, eps( ), Inf));
 
-    addParameter(pp, {'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.DummyWrapper'));
+    addParameter(pp, 'Dummy', {}, @(x) iscell(x) || isa(x, 'dummy.Base'));
+    addParameter(pp, {'LegacyDummy', 'PriorDummies', 'BVAR'}, [], @(x) isempty(x) || isa(x, 'BVAR.DummyWrapper'));
+
     addParameter(pp, {'Standardize', 'Stdize'}, false, @validate.logicalScalar);
 
     addParameter(pp, {'FixedEff', 'FixedEffect'}, true, @validate.logicalScalar);
@@ -188,11 +192,11 @@ end
 
 %--------------------------------------------------------------------------
 
-p = hereResolveOrder( );
+p = here_resolveOrder( );
 this.Order = p;
 opt.Order = p;
 
-isIntercept = hereResolveIntercept( );
+isIntercept = here_resolveIntercept( );
 this.Intercept = isIntercept;
 opt.Intercept = isIntercept;
 
@@ -240,7 +244,7 @@ end
 
 % Read parameter restrictions, and set up their hyperparameter form.
 % They are organised as follows:
-% * Rr = [R, r], 
+% * Rr = [R, r],
 % * beta = R*gamma + r.
 this.Rr = VAR.restrict(numEndogenous, numIntercepts, numExogenous, numCointeg, opt);
 
@@ -294,19 +298,28 @@ for iLoop = 1 : numRuns
     s.k0 = k0(:, :, min(iLoop, end));
     s.x0 = x0(:, :, min(iLoop, end));
     s.g1 = g1(:, :, min(iLoop, end));
-    
+
+
+    % Evaluate prior dummy observation matrices
+    dummyStruct = dummy.Base.evalCollection(opt.Dummy, this);
+    if isempty(opt.Dummy) && isa(opt.LegacyDummy, 'BVAR.DummyWrapper')
+        dummyStruct = local_evalLegacyDummy(this, dummyStruct, opt.LegacyDummy);
+    end
+
+
     % Run generalised least squares
-    s = VAR.generalizedLsq(s, opt);
+    s = VAR.generalizedLsq(s, dummyStruct, opt);
+
 
     % Assign estimated coefficient matrices to the VAR object.
     [this, fitted{iLoop}] = assignEst(this, s, inxGroupSpec, iLoop, opt);
-    
+
     e0(:, :, iLoop) = s.resid;
     count(iLoop) = s.count;
 
     if opt.Progress
         update(progress, iLoop/numRuns);
-    end 
+    end
 end
 
 % Calculate triangular representation.
@@ -355,7 +368,7 @@ return
                 'because of missing observations: %s '], ...
                 join(s, " "));
         end
-    end 
+    end
 
 
     function organizeOutpData( )
@@ -385,7 +398,7 @@ return
         y0 = [ ];
         x0 = [ ];
         e0 = [ ];
-    end 
+    end
 
 
     function inxGroupSpec = resolveGroupSpec( )
@@ -409,7 +422,7 @@ return
     end%
 
 
-    function order = hereResolveOrder( )
+    function order = here_resolveOrder( )
         if isequal(opt.Order, @auto)
             order = this.Order;
         else
@@ -418,12 +431,33 @@ return
     end%
 
 
-    function isIntercept = hereResolveIntercept( )
+    function isIntercept = here_resolveIntercept( )
         if isequal(opt.Intercept, @auto)
             isIntercept = this.Intercept;
         else
             isIntercept = opt.Intercept;
         end
     end%
+end%
+
+
+%
+% Local functions
+%
+
+function dummyStruct = local_evalLegacyDummy(this, dummyStruct, legacyDummyInput)
+    %(
+    numY = numel(this.EndogenousNames);
+    numK = nnz(this.Intercept);
+    numX = numel(this.ExogenousNames);
+    numG = NaN;
+    order = this.Order;
+
+    dummyStruct.Y = legacyDummyInput.y0(numY, order, numG, numK); 
+    dummyStruct.K = legacyDummyInput.k0(numY, order, numG, numK); 
+    dummyStruct.Z = legacyDummyInput.y1(numY, order, numG, numK); 
+    dummyStruct.NumDummyColumns = size(dummyStruct.Y, 2); 
+    dummyStruct.X = zeros(numX, dummyStruct.NumDummyColumns); 
+    %)
 end%
 

@@ -1,26 +1,81 @@
-function varargout = fromModel(model, filterRange, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@LinearSystem.fromModel');
-    addRequired(pp, 'model', @(x) isa(x, 'Model'));
-    addRequired(pp, 'filterRange', @validate.properRange);
-    addParameter(pp, 'Override', struct( ), @validate.databank);
-    addParameter(pp, 'Multiply', struct( ), @validate.databank);
-end
-parse(pp, model, filterRange, varargin{:});
-opt = pp.Options;
+%{
+---
+title: LinearSystem.fromModel
+---
 
-%--------------------------------------------------------------------------
+# `LinearSystem.fromModel`
 
-input = struct( );
-input.Variant = 1;
-input.FilterRange = filterRange;
-input.Override = opt.Override;
-input.Multiply = opt.Multiply;
-input.BreakUnlessTimeVarying = false;
+{== Prepare LinearSystem object from Model object ==}
 
-[varargout{1:nargout}] = prepareLinearSystem(model, input);
+
+## Syntax
+
+    ls = LinearSystem.fromModel(model, filterRange, override, multiply, ___)
+
+
+## Input arguments
+
+__`model`__ [ Model ]
+>
+> Model from which a time-varying linear system, `ls`, will be created for
+> the time-varying parameters and stdcorrs.
+> 
+
+__`filterRange`__ [ Dater ]
+> 
+> Date range for which the time-varying linear system `ls` will be created.
+> 
+
+__`override`__ [ struct | empty ]
+> 
+> Databank with time-varying parameters and stdcorrs.
+> 
+
+__`multiply`__ [ struct | empty ]
+>
+> Databank with time-varying mutlipliers that will be applied to stdcorrs.
+> 
+
+## Output arguments
+
+__`ls`__ [ LinearSystem ]
+>
+> A time-varying linear system object that can be used to run a time-varying
+> Kalman filter.
+>
+
+
+## Options
+
+__`Variant=1`__ [ numeric ]
+>
+> Select this parameter variant if the input `model` has multiple variants.
+>
+
+__`BreakUnlessTimeVarying=false`__ [ `true` | `false` ]
+>
+> Return prematurely with `ls = []` if no time-varying parameters or
+> stdcorrs are specified in `override` or `multiply`
+>
+
+## Description
+
+
+## Examples
+
+%}
+
+
+%---8<---
+
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function varargout = fromModel(model, varargin)
+
+[varargout{1:nargout}] = prepareLinearSystem(model, varargin{:});
 
 end%
 

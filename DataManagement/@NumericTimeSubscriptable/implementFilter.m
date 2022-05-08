@@ -14,7 +14,7 @@ arguments
 
     opt.Range {validate.mustBeRange} = Inf
     opt.Change Series = Series.empty(0, 1)
-        opt.Growth__Change Series = []
+        opt.Growth__Change = []
     opt.Gamma = 1
     opt.Cutoff = []
     opt.CutoffYear = []

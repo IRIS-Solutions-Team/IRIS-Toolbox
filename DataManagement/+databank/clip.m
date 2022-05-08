@@ -45,7 +45,7 @@ newEnd = double(newEnd);
 if all(isinf(newStart)) && (isempty(newEnd) || all(isinf(newEnd)))
     return
 end
-o
+
 if isempty(newEnd)
     newEnd = newStart(end);
 end

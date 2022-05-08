@@ -43,8 +43,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % K  Vector of intercepts (constant terms)
         K = double.empty(0, 1)
 
-        T = double.empty(0) % Schur quasitriangular matrix
-        U = double.empty(0) % Schur unitary matrix
+        T = [] % Schur quasitriangular matrix
+        U = [] % Schur unitary matrix
 
         % Zi  Measurement matrx for conditioning variables
         Zi = double.empty(0)

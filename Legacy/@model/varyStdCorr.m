@@ -3,7 +3,8 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [overrideReal, overrideImag, multiply] = ...
+function ...
+    [overrideReal, overrideImag, multiply] = ...
     varyStdCorr(this, range, userOverride, userMultiply, options)
 
 % options.Clip=true  Clip trailing NaNs

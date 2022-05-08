@@ -1,4 +1,4 @@
-function [O,Y0,K0,Y1,G1] = sumofcoeff(Mu,varargin)
+function [This,Y0,K0,Y1,G1] = sumofcoeff(Mu,varargin)
 % sumofcoeff  Doan et al sum-of-coefficient prior dummy observations for BVARs.
 %
 % Syntax

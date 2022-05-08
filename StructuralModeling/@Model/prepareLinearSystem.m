@@ -1,82 +1,178 @@
-% prepareLinearSystem  Prepare LinearSystem object from Model object
-%
+
+%{
+---
+title: prepareLinearSystem
+---
+
+# `prepareLinearSystem`
+
+{== Prepare LinearSystem object from Model object ==}
+
+
+## Syntax
+
+    ls = prepareLinearSystem(model, filterRange, override, multiply, ___)
+
+
+## Input arguments
+
+__`model`__ [ Model ]
+>
+> Model from which a time-varying linear system, `ls`, will be created for
+> the time-varying parameters and stdcorrs.
+> 
+
+__`filterRange`__ [ Dater ]
+> 
+> Date range for which the time-varying linear system `ls` will be created.
+> 
+
+__`override`__ [ struct | empty ]
+> 
+> Databank with time-varying parameters and stdcorrs.
+> 
+
+__`multiply`__ [ struct | empty ]
+>
+> Databank with time-varying mutlipliers that will be applied to stdcorrs.
+> 
+
+## Output arguments
+
+__`ls`__ [ LinearSystem ]
+>
+> A time-varying linear system object that can be used to run a time-varying
+> Kalman filter.
+>
+
+
+## Options
+
+__`Variant=1`__ [ numeric ]
+>
+> Select this parameter variant if the input `model` has multiple variants.
+>
+
+__`ReturnEarly=false`__ [ `true` | `false` ]
+>
+> Return early with `ls = []` whenever no time-varying parameters or
+> stdcorrs are specified in `override` or `multiply`
+>
+
+## Description
+
+
+## Examples
+
+%}
+
+%---8<---
+
+
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [obj, initCond] = prepareLinearSystem(this, input)
 
-% input.Variant
-% input.FilterRange
-% input.Override
-% input.Multiply
-% input.BreakUnlessTimeVarying
+% >=R2019b
+%(
+function [obj, initCond] = prepareLinearSystem(this, filterRange, override, multiply, opt)
 
-inxP = getIndexByType(this.Quantity, 4);
-numP = nnz(inxP);
-input.FilterRange = double(input.FilterRange);
-baseStart = input.FilterRange(1);
-baseEnd = input.FilterRange(end);
-numBasePeriods = round(baseEnd - baseStart + 1);
+    arguments
+        this Model
 
-here_checkNumVariants( )
+        filterRange (1, :) double {validate.mustBeProperRange}
+        override = []
+        multiply = []
 
-%
-% If no parameters are time varying, do not create LinearSystem and return
-% immediately
-%
-overrideParams = varyParams(this, input.FilterRange, input.Override);
-if isempty(overrideParams) && input.BreakUnlessTimeVarying
-    obj = [ ];
+        opt.Variant (1, 1) double = 1
+        opt.ReturnEarly (1, 1) logical = false
+    end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
+function [obj, initCond] = prepareLinearSystem(this, filterRange, override, multiply, varargin)
+
+    persistent ip
+    if isempty(ip)
+        ip = inputParser(); 
+        addParameter(ip, 'Variant', 1);
+        addParameter(ip, 'ReturnEarly', false);
+    end
+    parse(ip, varargin{:});
+    opt = ip.Results;
+%}
+% <=R2019a
+
+
+    inxP = getIndexByType(this.Quantity, 4);
+    numP = nnz(inxP);
+    filterRange = double(filterRange);
+    baseStart = filterRange(1);
+    baseEnd = filterRange(end);
+    numBasePeriods = round(baseEnd - baseStart + 1);
+    v = opt.Variant;
+
+    here_checkNumVariants( )
+
+    %
+    % If no parameters are time varying, do not create LinearSystem and return
+    % immediately
+    %
+    overrideParams = varyParams(this, filterRange, override);
+    if isempty(overrideParams) && opt.ReturnEarly
+        obj = [ ];
+        initCond = { };
+        return
+    end
+
+    %
+    % Initialize LinearSystem
+    %
+    [numY, numXi, numXib, numXif, numE, ~, ~, numV, numW] = sizeSolution(this);
+    inxV = [true(1, numV), false(1, numW)];
+    inxW = [false(1, numV), true(1, numW)];
+
+    defaultParams = this.Variant.Values(1, inxP, v);
+    if ~isempty(overrideParams) && size(overrideParams, 2)<numBasePeriods
+        overrideParams(:, end+1) = defaultParams;
+    end
+    [overrideParams, equalsDefaultParams, equalsPreviousParams] = ...
+        local_overrideAndMultiply(overrideParams, [], defaultParams);
+
+    optionsHere = struct('Clip', true, 'Presample', false);
+    [overrideStdCorr, ~, multiplyStdCorr] = varyStdCorr(this, filterRange, override, multiply, optionsHere);
+    defaultStdCorr = this.Variant.StdCorr(1, :, v);
+    if ~isempty(overrideStdCorr) && size(overrideStdCorr, 2)<numBasePeriods
+        overrideStdCorr(:, end+1) = defaultStdCorr;
+    end
+    [overrideStdCorr, equalsDefaultStdCorr, equalsPreviousStdCorr] ...
+        = local_overrideAndMultiply(overrideStdCorr, multiplyStdCorr, defaultStdCorr);
+
+    numSystemPeriods = max(size(overrideParams, 2), size(overrideStdCorr, 2));
+    obj = LinearSystem([numXi, numXib, numV, numY, numW], numSystemPeriods);
+
+    %
+    % Assign state space matrices
+    %
+    here_assignSspaceMatrices( )
+
+    %
+    % Assign covariance matrices
+    %
+    here_assignCovarianceMatrices( )
+
+    %
+    % Initial condition
+    %
     initCond = { };
-    return
-end
+    if nargout>=2
+        initCond = here_initialize( );
+    end
 
-%
-% Initialize LinearSystem
-%
-[numY, numXi, numXib, numXif, numE, ~, ~, numV, numW] = sizeSolution(this);
-inxV = [true(1, numV), false(1, numW)];
-inxW = [false(1, numV), true(1, numW)];
-
-defaultParams = this.Variant.Values(1, inxP, input.Variant);
-if ~isempty(overrideParams) && size(overrideParams, 2)<numBasePeriods
-    overrideParams(:, end+1) = defaultParams;
-end
-[overrideParams, equalsDefaultParams, equalsPreviousParams] = ...
-    locallyOverrideAndMultiply(overrideParams, [ ], defaultParams);
-
-optionsHere = struct('Clip', true, 'Presample', false);
-[overrideStdCorr, ~, multiplyStdCorr] ...
-    = varyStdCorr(this, input.FilterRange, input.Override, [ ], optionsHere);
-defaultStdCorr = this.Variant.StdCorr(1, :, input.Variant);
-if ~isempty(overrideStdCorr) && size(overrideStdCorr, 2)<numBasePeriods
-    overrideStdCorr(:, end+1) = defaultStdCorr;
-end
-[overrideStdCorr, equalsDefaultStdCorr, equalsPreviousStdCorr] ...
-    = locallyOverrideAndMultiply(overrideStdCorr, multiplyStdCorr, defaultStdCorr);
-
-numSystemPeriods = max(size(overrideParams, 2), size(overrideStdCorr, 2));
-obj = LinearSystem([numXi, numXib, numV, numY, numW], numSystemPeriods);
-
-%
-% Assign state space matrices
-%
-here_assignSspaceMatrices( )
-
-%
-% Assign covariance matrices
-%
-here_assignCovarianceMatrices( )
-
-%
-% Initial condition
-%
-initCond = { };
-if nargout>=2
-    initCond = here_initialize( );
-end
-
-obj.Tolerance = this.Tolerance;
+    obj.Tolerance = this.Tolerance;
 
 return
 
@@ -98,10 +194,11 @@ return
     function here_assignSspaceMatrices( )
         keepExpansion = false;
         keepTriangular = false;
+
         tempModel = this;
         tempModel.Update = here_createUpdateStruct( );
 
-        [defaultMatrices{1:6}] = getSolutionMatrices(this, input.Variant, keepExpansion, keepTriangular);
+        [defaultMatrices{1:6}] = getSolutionMatrices(this, v, keepExpansion, keepTriangular);
         defaultMatrices{2} = defaultMatrices{2}(:, inxV);
         defaultMatrices{5} = defaultMatrices{5}(:, inxW);
         previousMatrices = NaN;
@@ -114,8 +211,8 @@ return
             elseif equalsDefaultParams(t)
                 matrices__ = defaultMatrices;
             else
-                tempModel = update(tempModel, overrideParams(:, t), input.Variant);
-                [matrices__{1:6}] = getSolutionMatrices(tempModel, input.Variant, keepExpansion, keepTriangular);
+                tempModel = update(tempModel, overrideParams(:, t), v);
+                [matrices__{1:6}] = getSolutionMatrices(tempModel, v, keepExpansion, keepTriangular);
                 matrices__{2} = matrices__{2}(:, inxV);
                 matrices__{5} = matrices__{5}(:, inxW);
             end
@@ -129,8 +226,8 @@ return
                 update = struct( );
                 update.PosOfValues = find(inxP);
                 update.PosOfStdCorr = double.empty(1, 0);
-                update.Values = this.Variant.Values(1, :, input.Variant);
-                update.StdCorr = this.Variant.StdCorr(1, :, input.Variant);
+                update.Values = this.Variant.Values(1, :, v);
+                update.StdCorr = this.Variant.StdCorr(1, :, v);
                 update.Steady = prepareSteady(this, "run", false);
                 update.CheckSteady = prepareCheckSteady(this, "run", false);
                 update.Solve = prepareSolve(this, "silent", true);
@@ -170,7 +267,7 @@ return
         s.DIFFUSE_SCALE = this.DIFFUSE_SCALE;
         s.OBJ_FUNC_PENALTY = this.OBJ_FUNC_PENALTY;
         requiredForward = 0;
-        [T, R, k, Z, H, d, s.U, Zb, s.InxV, s.InxW, s.NumUnitRoots, s.InxInit] = getIthKalmanSystem(this, input.Variant, requiredForward);
+        [T, R, k, Z, H, d, s.U, Zb, s.InxV, s.InxW, s.NumUnitRoots, s.InxInit] = getIthKalmanSystem(this, v, requiredForward);
         [numXi, numXiB] = size(T);
         numXiF = numXi - numXiB;
         inxXiB = [false(1, numXiF), true(1, numXiB)];
@@ -178,11 +275,11 @@ return
         s.Ta = T(inxXiB, :);
         s.ka = k(inxXiB, :);
         s.Ra = R(inxXiB, :);
-        s.Omg = getIthOmega(this, input.Variant);
+        s.Omg = getIthOmega(this, v);
 
         init = 'Steady';
-        initUnit = 'ApproxDiffuse';
-        s = iris.mixin.Kalman.initialize(s, init, initUnit);
+        unitRootInitials = 'ApproxDiffuse';
+        s = iris.mixin.Kalman.initialize(s, init, unitRootInitials);
         initCond = {s.InitMean, s.InitMseReg, s.InitMseInf};
     end%
 end%
@@ -193,7 +290,7 @@ end%
 %
 
 
-function [override, equalsDefault, equalsPrevious] = locallyOverrideAndMultiply(override, multiply, default)
+function [override, equalsDefault, equalsPrevious] = local_overrideAndMultiply(override, multiply, default)
     numPeriods = max(size(override, 2), size(multiply, 2));
     addPeriods = numPeriods - size(override, 2);
     if addPeriods>0

@@ -1,15 +1,15 @@
-% forExplanatory  Construct a simulation Plan object for Explanatory object or array
+% forExplanatory  Construct a simulation Plan object for SVAR object
 %{
 % ## Syntax ##
 %
 %
-%     p = Plan.forExplanatory(expy, simulationRange, ...)
+%     p = Plan.forSVAR(svar, simulationRange, ...)
 %
 %
 % ## Input Arguments ##
 %
 %
-% __`expy`__ [ Explanatory ]
+% __`svar`__ [ SVAR ]
 % >
 % Explanatory object or array for which the new simulation Plan `p`
 % will be created on the `simulationRange`.
@@ -17,7 +17,7 @@
 %
 % __`simulationRange`__ [ DateWrapper ]
 % >
-% The range on which the `expy` object or array will be simulated using the
+% The range on which the `svar` object or array will be simulated using the
 % simulation plan `p`.
 %
 %
@@ -26,7 +26,7 @@
 %
 % __`p`__ [ Plan ]
 % >
-% A new simulation Plan object that can be use when simulating the `expy`
+% A new simulation Plan object that can be use when simulating the `svar`
 % object or array on the `simulationRange`.
 %
 %
@@ -60,24 +60,24 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function this = forExplanatory(expy, simulationRange)
+function this = forExplanatory(svar, simulationRange)
 
 %( Input parser
 persistent ip
 if isempty(ip)
-    ip = inputParser();
-    addRequired(ip, 'expy', @(x) isa(x, 'Explanatory'));
+    ip = extend.InputParser('Plan.Plan');
+    addRequired(ip, 'svar', @(x) isa(x, 'SVAR'));
     addRequired(ip, 'simulationRange', @validate.properRange);
 end
-parse(ip, expy, simulationRange);
+parse(ip, svar, simulationRange);
 simulationRange = double(simulationRange);
 %)
 
 
-this = Plan( );
+this = Plan();
 this.BaseStart = simulationRange(1);
 this.BaseEnd = simulationRange(end);
-this = preparePlan(expy, this);
+this = preparePlan(svar, this);
 
 numEndogenous = this.NumOfEndogenous;
 numExogenous = this.NumOfExogenous;

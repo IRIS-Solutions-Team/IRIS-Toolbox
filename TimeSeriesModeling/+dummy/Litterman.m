@@ -1,10 +1,9 @@
-function [this, y0, k, y1, g] = litterman(rho, mu, lambda, varargin)
 % litterman  Litterman's prior dummy observations for BVARs
 %{
 % ## Syntax ##
 %
 %
-%     [b, Y0, K, Y1, G] = BVAR.litterman(rho, mu, lambda)
+%     [b, y0, K, y1, G] = BVAR.litterman(rho, mu, lambda)
 %
 %
 % ## Input Arguments ##
@@ -70,7 +69,7 @@ function [this, y0, k, y1, g] = litterman(rho, mu, lambda, varargin)
 % inbetween is a general autoregressive prior;
 %
 % * `mu` is the weight on the prior (can be a vector of numbers in which
-% case each variable gets different weight); if you use the option
+% case each variable evals different weight); if you use the option
 % `Standardize=` when estimating the VAR, `mu` can be loosely interpreted
 % as the number of fictitious observations that will pull the estimates
 % towards the priors;
@@ -98,67 +97,67 @@ function [this, y0, k, y1, g] = litterman(rho, mu, lambda, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('BVAR.litterman');
-    addRequired(pp, 'rho', @(x) isnumeric(x) && all(x>=0 & x<=1));
-    addRequired(pp, 'mu', @(x) isnumeric(x) && all(x>=0));
-    addRequired(pp, 'lambda', @(x) validate.numericScalar(x, 0, Inf));
+
+classdef Litterman < dummy.Base
+    properties
+        Rho = 0 % [0, 1]
+        Mu = 0 % [0, Inf)
+        Lambda (1, 1) double {mustBeNonnegative} = 0
+    end
+
+
+    methods
+        function this = Litterman(rho, mu, lambda)
+            if nargin==0
+                return
+            end
+            this.Rho = rho;
+            this.Mu = mu;
+            if nargin>=3
+                this.Lambda = lambda;
+            end
+        end%
+
+
+        function y0 = evalY(this, var)
+            [numY, numK, ~, order] = dummy.Base.getDimensions(var);
+            numColumns = numY * order;
+            y0 = this.Mu .* this.Rho;
+            if isscalar(y0) && numY>1
+                y0 = repmat(y0, numY, 1);
+            end
+            y0 = [diag(y0), zeros(numY, numColumns-numY)];
+        end%
+
+
+        function k = evalK(this, var)
+            [numY, numK, ~, order] = dummy.Base.getDimensions(var);
+            numColumns = numY * order;
+            k = zeros(numK, numColumns);
+        end%
+
+
+        function y1 = evalZ(this, var)
+            [numY, numK, ~, order] = dummy.Base.getDimensions(var);
+            sgm = this.Mu * 1;
+            if isscalar(sgm) && numY>1
+                sgm = repmat(sgm, numY, 1);
+            end
+            sgm = repmat(sgm, 1, order);
+            if this.Lambda>0
+                lags = (1 : order) .^ this.Lambda;
+                lags = repmat(lags, numY, 1);
+                sgm = sgm .* lags;
+            end
+            y1 = diag(sgm(:));
+        end%
+
+
+        function x = evalX(this, var)
+            [numY, numK, numX, order] = dummy.Base.getDimensions(var);
+            numColumns = numY * order;
+            x = zeros(numX, numColumns);
+        end%
+    end
 end
-parse(pp, rho, mu, lambda);
-
-%--------------------------------------------------------------------------
-
-rho = rho(:);
-mu = mu(:);
-
-this = BVAR.DummyWrapper( );
-this.name = 'litterman';
-this.y0 = @getY0;
-this.k0 = @getK0;
-this.y1 = @getY1;
-this.g1 = @getG1;
-
-if ~isempty(varargin) && nargout>1
-    [y0, k, y1, g] = BVAR.mydummymat(this, varargin{:});
-end
-
-return
-    
-    function Y0 = getY0(numY, order, ~, ~)
-        nd = numY*order;
-        muRho = mu .* rho;
-        if length(muRho)==1 && numY>1
-            muRho = muRho(ones(1, numY), 1);
-        end
-        Y0 = [diag(muRho), zeros(numY, nd-numY)];
-    end%
-
-
-    function K0 = getK0(numY, order, ~, numK)
-        nd = numY*order;
-        K0 = zeros(numK, nd);
-    end%
-
-
-    function Y1 = getY1(numY, order, ~, ~)
-        sgm = mu;
-        if length(sgm)==1 && numY>1
-            sgm = sgm(ones(1, numY), 1);
-        end
-        sgm = sgm(:, ones(1, order));
-        if lambda>0
-            lags = (1 : order).^lambda;
-            lags = lags(ones(1, numY), :);
-            sgm = sgm .* lags;
-        end
-        Y1 = diag(sgm(:));
-    end%
-
-
-    function G1 = getG1(numY, order, numG, ~)
-        nd = numY*order;
-        G1 = zeros(numG, nd);
-    end% 
-end%
 

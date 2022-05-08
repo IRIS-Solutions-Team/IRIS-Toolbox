@@ -3,16 +3,18 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function s = initialize(s, init, initUnit)
+function s = initialize(s, initial, unitRootInitial)
 
 numUnitRoots = s.NumUnitRoots;
 numXiB = size(s.Ta, 2);
 numStable = numXiB - numUnitRoots;
+
 try
     numE = s.NumE;
 catch
     numE = s.ne;
 end
+
 inxStable = [false(1, numUnitRoots), true(1, numStable)];
 
 needsTransform = isfield(s, 'U') && ~isempty(s.U);
@@ -24,7 +26,7 @@ end
 %
 % Fixed unknown
 %
-if strcmpi(init, 'FixedUnknown')
+if strcmpi(initial, 'FixedUnknown')
     s.InitMean = zeros(numXiB, 1);
     s.InitMseReg = zeros(numXiB);
     s.InitMseInf = [ ];
@@ -35,19 +37,19 @@ end
 %
 % Initialize mean
 %
-s.InitMean = hereInitializeMean( );
+s.InitMean = here_initializeMean();
 
 
 %
 % Intialize MSE
 %
-[s.InitMseReg, s.InitMseInf] = hereInitializeMse( );
-s.NumEstimInit = hereCountEstimInit( );
+[s.InitMseReg, s.InitMseInf] = here_initializeMse();
+s.NumEstimInit = here_countEstimInit();
 
 return
 
 
-    function a0 = hereInitializeMean( )
+    function a0 = here_initializeMean()
         inxInit = reshape(s.InxInit, [ ], 1);
 
         a0 = zeros(numXiB, 1);
@@ -63,12 +65,12 @@ return
             a0 = [a1; a2];
         end
 
-        if iscell(init) && ~isempty(init) && ~isempty(init{1})
+        if iscell(initial) && ~isempty(initial) && ~isempty(initial{1})
             %
             % User-supplied initial condition
             % Convert Mean[XiB] to Mean[Alpha]
             %
-            xb0 = reshape(double(init{1}), [ ], 1);
+            xb0 = reshape(double(initial{1}), [ ], 1);
 
             inxNa = isnan(xb0);
             if any(inxNa)
@@ -93,12 +95,12 @@ return
             return
         end
 
-        if numUnitRoots>0 && isnumeric(initUnit)
+        if numUnitRoots>0 && isnumeric(unitRootInitial)
             %
             % User supplied data to initialize mean for unit root processes
             % Convert XiB to Alpha
             %
-            xb00 = initUnit;
+            xb00 = unitRootInitial;
             inxZero = isnan(xb00) & ~inxInit;
             xb00(inxZero) = 0;
 
@@ -114,28 +116,28 @@ return
 
 
 
-    function [PaReg, PaInf] = hereInitializeMse( )
+    function [PaReg, PaInf] = here_initializeMse()
         PaReg = zeros(numXiB);
         PaInf = [];
 
         %
         % Fixed initial condition with zero MSE
         %
-        if strcmpi(init, 'Fixed')
+        if strcmpi(initial, 'Fixed')
             return
         end
 
         %
         % Numerical initial condition supplied by user
         %
-        if iscell(init) && numel(init)>=2 && ~isempty(init{2})
+        if iscell(initial) && numel(initial)>=2 && ~isempty(initial{2})
             %
             % User-supplied initial condition including MSE
             % Convert MSE[xiB] to MSE[alpha]
             %
-            PaReg(:, :) = double(init{2});
-            if numel(init)>=3 && ~isempty(init{3})
-                PaInf = reshape(double(init{3}), numXiB, numXiB);
+            PaReg(:, :) = double(initial{2});
+            if numel(initial)>=3 && ~isempty(initial{3})
+                PaInf = reshape(double(initial{3}), numXiB, numXiB);
             end
             if needsTransform
                 PaReg = (U \ PaReg) / U';
@@ -170,7 +172,7 @@ return
         end
 
         if any(~inxStable)
-            if strcmpi(initUnit, 'ApproxDiffuse')
+            if strcmpi(unitRootInitial, 'ApproxDiffuse')
                 scale = mean(diag(PaReg));
                 if isempty(scale) || scale==0
                     if ~isempty(s.Omg)
@@ -189,21 +191,19 @@ return
     end%
 
 
-
-
-    function n = hereCountEstimInit( )
-        % Number of init conditions estimated as fixed unknowns
-        if iscell(init)
-            % All init cond supplied by user
+    function n = here_countEstimInit()
+        % Number of initial conditions estimated as fixed unknowns
+        if iscell(initial)
+            % All initial cond supplied by user
             n = 0;
             return
         end
-        if strcmpi(initUnit, 'ApproxDiffuse')
+        if strcmpi(unitRootInitial, 'ApproxDiffuse')
             % Initialize unit roots with a large finite MSE matrix
             n = 0;
             return
         end
-        if strcmpi(init, 'Fixed')
+        if strcmpi(initial, 'Fixed')
             n = 0;
             return
         end

@@ -1,13 +1,11 @@
-% smoother  Kalman smoother for VAR-based systems
+% smootherForVAR  Kalman smoother for VAR-based systems
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [X2, Px2, E, U, Y2, Py2, YInx, Y0, F, Y1, Py1] = ...
-         smoother(this, A, B, K, Z, D, Omg, Sgm, y, E, x0, P0, S)
+function ...
+    [X2, Px2, E, U, Y2, Py2, YInx, Y0, F, Y1, Py1] ...
+    = smootherForVAR(this, A, B, K, Z, D, Omg, Sgm, y, E, x0, P0, S)
 
 % The VAR-based state-space system is given by
 %

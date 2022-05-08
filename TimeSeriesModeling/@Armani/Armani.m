@@ -99,6 +99,16 @@ classdef Armani
         end%
 
 
+        function varargout = reconstruct(this, varargin)
+            [varargout{1:nargout}] = filter(this, varargin{:});
+        end%
+
+
+        function varargout = deconstruct(this, varargin)
+            [varargout{1:nargout}] = filter(inv(this), varargin{:});
+        end%
+
+
         function x = filter(this, x, varargin)
             %(
             if isequal(this.AR, 1) && isequal(this.MA, 1)
