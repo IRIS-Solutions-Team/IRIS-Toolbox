@@ -5,7 +5,7 @@
 
 % >=R2019b
 %(
-function varargout = fromString(inputStrings, varargin)
+function varargout = fromString(inputString, varargin)
 
 source = ModelSource.fromString(inputString, varargin{:});
 [varargout{1:nargout}] = Model(source, varargin{:});

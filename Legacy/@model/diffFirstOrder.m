@@ -41,17 +41,17 @@ if any(inxToDiff)
 
     % Symbolic differentiation
     if any(inxSymbolic)
-        deriv = hereDiffSymbolically(deriv);
+        deriv = here_diffSymbolically(deriv);
     end
 
     % Numerical differentiation 
     if any(inxNumeric)
         if this.IsLinear
             % Linear models 
-            deriv = hereDiffNumericallyLinear(deriv);
+            deriv = here_diffNumericallyLinear(deriv);
         else
             % Nonlinear models
-            deriv = hereDiffNumericallyNonlinear(deriv);
+            deriv = here_diffNumericallyNonlinear(deriv);
         end
     end
 
@@ -74,7 +74,7 @@ end
 
 return
 
-    function deriv = hereDiffNumericallyLinear(deriv)
+    function deriv = here_diffNumericallyLinear(deriv)
         %(
         init = zeros(numQuantities, 1);
         init(inxP) = real(asgn(inxP));
@@ -125,7 +125,7 @@ return
     end%
 
 
-    function deriv = hereDiffNumericallyNonlinear(deriv)
+    function deriv = here_diffNumericallyNonlinear(deriv)
         %(
         minT = 1 - sh0;
         maxT = nsh - sh0;
@@ -145,7 +145,7 @@ return
         % different from `h`)
         %
         % Any imag parts in `xPlus` and `xMinus` should cancel; `real( )` does no
-        % harm here therefore
+        % harm here_ therefore
         %
         step = real(xPlus) - real(xMinus);
 
@@ -202,7 +202,7 @@ return
     end%
 
 
-    function deriv = hereDiffSymbolically(deriv)
+    function deriv = here_diffSymbolically(deriv)
         %(
         if this.IsLinear
             x = zeros(numQuantities, 1);

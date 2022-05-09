@@ -2,12 +2,26 @@ classdef frequency
 
     properties (Constant)
         YEARLY = 1
+        Yearly = 1
+
         HALFYEARLY = 2
+        HalfYearly = 2
+
         QUARTERLY = 4
+        Quarterly = 4
+
         MONTHLY = 12
+        Monthly = 12
+
         WEEKLY = 52
+        Weekly = 52
+
         DAILY = 365
+        Daily = 365
+
         INTEGER = 0
+        Integer = 0
+
         NaN = NaN
         NaF = NaN
 
@@ -49,7 +63,7 @@ classdef frequency
         end%
 
 
-        function freq = fromString(freqString)
+        function this = fromString(freqString)
             switch upper(char(string(freqString)))
                 case {'INTEGER', 'II', 'I'}
                     this = frequency.INTEGER;

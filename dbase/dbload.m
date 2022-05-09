@@ -207,7 +207,7 @@ end
 defaults = {
     'dateformat', @config, @iris.Configuration.validateDateFormat
     'months, month', @config, @iris.Configuration.validateMonths
-    {'ConversionMonth', 'standinmonth'}, iris.Configuration.ConversionMonth, @iris.Configuration.validateConversionMonth
+    'ConversionMonth', iris.Configuration.ConversionMonth, @iris.Configuration.validateConversionMonth
     'Wday', iris.Configuration.WDay, @iris.Configuration.validateWDay
     'case, changecase', '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'}))
     'commentrow', {'comment', 'comments'}, @(x) ischar(x) || iscellstr(x)

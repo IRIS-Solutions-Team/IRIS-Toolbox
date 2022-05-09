@@ -33,13 +33,16 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function this = adiff(this, varargin)
+function this = adiff(this, shift, varargin)
 
 if isempty(this.Data)
     return
 end
 
-this = diff(this, varargin{:}, "annualize", true);
+try, shift;
+    catch, shift = -1; end
+
+this = diff(this, shift, varargin{:}, "annualize", true);
 
 end%
 

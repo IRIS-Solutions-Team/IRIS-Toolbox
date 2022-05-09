@@ -27,6 +27,7 @@ classdef ModelSource ...
         ];
         NAME_PATTERN = '(?<![!\?])\<[A-Za-z]\w*\>(?!\()'
         CODE_SEPARATOR = string(repmat(char(newline()), 1, 2))
+        FILE_NAME_WHEN_INPUT_STRING = "[input-string]"
     end
 
 
@@ -168,10 +169,11 @@ classdef ModelSource ...
             this.FileName = ModelSource.FILE_NAME_WHEN_INPUT_STRING;
             this.Code = '';
             for code = textual.stringify(inputString)
+                rawCode = code;
                 if isequal(opt.Markdown, true) 
-                    code = mdown.backend.toMatlab(code);
+                    rawCode = mdown.backend.toMatlab(code);
                 end
-                this.Code = [this.Code, char(ModelSource.CODE_SEPARATOR), code];
+                this.Code = [this.Code, char(ModelSource.CODE_SEPARATOR), char(rawCode)];
             end
         end%
 

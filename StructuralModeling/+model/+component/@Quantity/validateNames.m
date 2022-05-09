@@ -14,6 +14,7 @@ end
 
 % hereCheckValidMatlabNames();
 hereCheckReservedNames();
+here_validateTrendName();
 hereCheckDoubleUnderscores();
 hereCheckNonuniqueNames();
 hereCheckReservedPrefixes();
@@ -50,6 +51,10 @@ return
                 ], n);
             end
         end
+    end%
+
+
+    function here_validateTrendName()
         if allNames(end)~=string(this.RESERVED_NAME_TTREND)
             exception.error([
                 "Parser:ReservedName"
@@ -95,12 +100,7 @@ return
 
     function hereCheckReservedPrefixes()
         %(
-        reservedPrefixes = [ 
-            string(model.component.Quantity.STD_PREFIX)
-            string(model.component.Quantity.CORR_PREFIX)
-            string(model.component.Quantity.LOG_PREFIX)
-        ];
-        inxReservedPrefix = startsWith(allNames, reservedPrefixes);
+        inxReservedPrefix = startsWith(allNames, model.component.Quantity.RESERVED_PREFIXES);
         if any(inxReservedPrefix)
             exception.error([
                 "Parser:ReservedPrefix"

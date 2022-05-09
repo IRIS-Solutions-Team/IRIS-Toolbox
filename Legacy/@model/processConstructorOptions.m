@@ -42,7 +42,7 @@ if isempty(ip) || isempty(ipParser) || isempty(ipOptimal)
     ipOptimal.KeepUnmatched = true;
     ipOptimal.PartialMatching = false;
     addParameter(ipOptimal, 'MultiplierPrefix', 'Mu_', @ischar);
-    addParameter(ipOptimal, 'NonNegative', cell.empty(1, 0), @(x) isempty(x) || (validate.stringScalar(x) && isvarname(x)));
+    % addParameter(ipOptimal, 'NonNegative', cell.empty(1, 0), @(x) isempty(x) || (validate.stringScalar(x) && isvarname(x)));
     addParameter(ipOptimal, 'Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
 end
 %)

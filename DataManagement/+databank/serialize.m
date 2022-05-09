@@ -47,18 +47,18 @@ if isempty(pp)
     addRequired(pp, 'inputDb', @validate.databank);
     addOptional(pp, 'dates', Inf, @(x) isequal(x, Inf) || validate.date(x));
 
-    addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && ~contains(x, ["'", """"]));
     addParameter(pp, 'TargetNames', [], @(x) isempty(x) || isa(x, 'function_handle'));
-    addParameter(pp, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && ~contains(x, ["'", """"]));
     addParameter(pp, 'Class', true, @validate.logicalScalar);
     addParameter(pp, {'Comments', 'Comment'}, true, @validate.logicalScalar);
-    addParameter(pp, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && ~contains(x, ["'", """"]));
     addParameter(pp, {'Decimals', 'Decimal'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
     addParameter(pp, 'Format', '%.8e', @(x) validate.string(x) && startsWith(x, "%") && ~contains(x, ["$", "-"]));
     addParameter(pp, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(pp, 'Nan', 'NaN', @validate.string);
-    addParameter(pp, 'UserDataFields', cell.empty(1, 0), @validate.namesToSave);
-    addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, 'UserDataFields', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isstring(x));
+    addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && ~contains(x, ["'", """"]));
     addParameter(pp, 'Delimiter', ',', @validate.string);
     addParameter(pp, 'QuoteStrings', true, @validate.logicalScalar);
     addParameter(pp, 'SourceNames', Inf, @(x) isequal(x, Inf) || isequal(x, @all) || isstring(x));

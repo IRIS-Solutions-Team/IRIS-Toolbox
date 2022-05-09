@@ -37,9 +37,12 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-function this = aroc(this, varargin)
+function this = aroc(this, shift, varargin)
 
-this = roc(this, varargin{:}, "annualize", true);
+try, shift;
+    catch, shift = -1; end
+
+this = roc(this, shift, varargin{:}, "annualize", true);
 
 end%
 

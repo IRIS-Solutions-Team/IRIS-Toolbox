@@ -74,7 +74,7 @@ defaults = {
     'plotlik', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
     'plotest', {'marker', '*', 'linestyle', 'none', 'color', 'red'}, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
     'plotbounds', {'color', 'red'}, @(x) isequal(x, true) || isequal(x, false)  || iscellstr(x(1:2:end))
-    'subplot', @auto, validFn.subplot
+    'subplot', @auto, @(x) isequal(x, @auto) || isnumeric(x)
     'title', {'interpreter', 'none'}, @(x) isempty(x) || isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
     'linkaxes', false, @(x) isequal(x, true) || isequal(x, false)
 };

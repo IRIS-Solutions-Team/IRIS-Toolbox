@@ -1,100 +1,141 @@
+%{
+---
+title: `fisher`
+---
+
+# `fisher`
+
+{== Approximate Fisher information matrix in frequency domain ==}
+
+## Syntax ##
+
+    [F, FF, Delta, Freq] = fisher(M, NPer, PList, ...)
+
+
+## Input Arguments ##
+
+__`M`__ [ model ]
+>
+> Solved model object.
+>
+
+__`NPer`__ [ numeric ]
+>
+> Length of the hypothetical range for which the Fisher information will be
+> computed.
+> 
+
+__`PList`__ [ cellstr ]
+>
+> List of parameters with respect to which the likelihood function will be
+> differentiated.
+>
+
+
+## Output Arguments ##
+
+__`F`__ [ numeric ]
+>
+> Approximation of the Fisher information matrix.
+>
+
+__`FF`__ [ numeric ]
+>
+> Contributions of individual frequencies to the total Fisher information
+> matrix.
+>
+
+__`Delta`__ [ numeric ]
+>
+> Kronecker delta by which the contributions in `Fi` need to be multiplied
+> to sum up to `F`.
+> 
+
+__`Freq`__ [ numeric ]
+>
+> Vector of frequencies at which the Fisher information matrix is
+> evaluated.
+> 
+
+## Options ##
+
+__`CheckSteady`__ [ `true` | `false` | cell ]
+>
+> Check steady state in
+> each iteration; works only in non-linear models.
+> 
+
+__`Deviation`__ [ `true` | `false` ]
+>
+> Exclude the steady state effect
+> at zero frequency.
+> 
+
+__`Exclude`__ [ char | cellstr | empty ]
+>
+> List of measurement
+> variables that will be excluded from the likelihood function.
+>
+
+__`Percent`__ [ `true` | `false` ]
+>
+> Report the overall Fisher matrix `F` as Hessian w.r.t. the log of
+> variables; the interpretation for this is that the Fisher matrix
+> describes the changes in the log-likelihood function in reponse to
+> percent, not absolute, changes in parameters.
+> 
+
+__`Progress`__ [ `true` | `false` ]
+>
+> Display progress bar in the command window.
+> 
+
+__`Solve`__ [ `true` | `false` | cellstr ]
+>
+> Re-compute solution in each differentiation step; you can specify a cell
+> array with options for the `solve()` function.
+> 
+
+__`Steady`__ [ `true` | `false` | cell ]
+>
+> Re-compute steady state in each differentiation step; if the model is
+> non-linear, you can pass in a cell array with opt used in the `steady()`
+> function.
+>
+
+## Description ##
+
+
+## Example ##
+
+%}
+
+
+%---8<---
+
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
 function [F, FF, delta, freq, G, step] = fisher(this, numPeriods, listParameters, varargin)
-% fisher  Approximate Fisher information matrix in frequency domain.
-%
-% ## Syntax ##
-%
-%     [F, FF, Delta, Freq] = fisher(M, NPer, PList, ...)
-%
-%
-% ## Input Arguments ##
-%
-% * `M` [ model ] - Solved model object.
-%
-% * `NPer` [ numeric ] - Length of the hypothetical range for which the
-% Fisher information will be computed.
-%
-% * `PList` [ cellstr ] - List of parameters with respect to which the
-% likelihood function will be differentiated.
-%
-%
-% ## Output Arguments ##
-%
-% * `F` [ numeric ] - Approximation of the Fisher information matrix.
-%
-% * `FF` [ numeric ] - Contributions of individual frequencies to the total
-% Fisher information matrix.
-%
-% * `Delta` [ numeric ] - Kronecker delta by which the contributions in
-% `Fi` need to be multiplied to sum up to `F`.
-%
-% * `Freq` [ numeric ] - Vector of frequencies at which the Fisher
-% information matrix is evaluated.
-%
-%
-% ## Options ##
-%
-% * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
-% each iteration; works only in non-linear models.
-%
-% * `'Deviation='` [ *`true`* | `false` ] - Exclude the steady state effect
-% at zero frequency.
-%
-% * `'Exclude='` [ char | cellstr | *empty* ] - List of measurement
-% variables that will be excluded from the likelihood function.
-%
-% * `'Percent='` [ `true` | *`false`* ] - Report the overall Fisher matrix
-% `F` as Hessian w.r.t. the log of variables; the interpretation for this
-% is that the Fisher matrix describes the changes in the log-likelihood
-% function in reponse to percent, not absolute, changes in parameters.
-%
-% * `'Progress='` [ `true` | *`false`* ] - Display progress bar in the
-% command window.
-%
-% * `'Solve='` [ *`true`* | `false` | cellstr ] - Re-compute solution in
-% each differentiation step; you can specify a cell array with options for
-% the `solve` function.
-%
-% * `'Sstate='` [ `true` | *`false`* | cell ] - Re-compute steady state in
-% each differentiation step; if the model is non-linear, you can pass in a
-% cell array with opt used in the `sstate( )` function.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
-
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('model/fisher');
-    pp.addRequired('model', @(x) isa(x, 'model'));
-    pp.addRequired('numPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
-    pp.addRequired('parameters', @(x) isstring(x) || iscellstr(x) || ischar(x));
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addParameter(ip, 'chksgf', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'CheckSteady', true, @model.validateChksstate);
+    addParameter(ip, 'Deviation', true, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'epspower', 1/3, @isnumericscalar);
+    addParameter(ip, 'Exclude', { }, @(x) isstring(x) || ischar(x) || iscellstr(x));
+    addParameter(ip, 'percent', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'progress', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'Solve', true, @model.validateSolve);
+    addParameter(ip, 'Steady', false, @model.validateSteady);
+    addParameter(ip, 'tolerance', eps( )^(2/3), @isnumericscalar);
 end
-pp.parse(this, numPeriods, listParameters);
+parse(ip, varargin{:});
+opt = ip.Results;
 
-
-%(
-defauts = {
-    'chksgf', false, @(x) isequal(x, true) || isequal(x, false)
-    'CheckSteady', true, @model.validateChksstate
-    'Deviation', true, @(x) isequal(x, true) || isequal(x, false)
-    'epspower', 1/3, @isnumericscalar
-    'Exclude', { }, @(x) isstring(x) || ischar(x) || iscellstr(x)
-    'percent', false, @(x) isequal(x, true) || isequal(x, false)
-    'progress', false, @(x) isequal(x, true) || isequal(x, false)
-    'Solve', true, @model.validateSolve
-    'Steady', false, @model.validateSteady
-    'tolerance', eps( )^(2/3), @isnumericscalar
-};
-%)
-
-
-opt = passvalopt(defaults, varargin{:});
 
 ixy = this.Quantity.Type==1;
 [ny, ~, ~, nf, ne] = sizeSolution(this.Vector);
@@ -209,27 +250,27 @@ for v = 1 : nv
         pm(i) = pm(i) - step(i);
         twoSteps = pp(i) - pm(i);
 
-        isSstate = ~opt.Deviation && ~isnan(posValues(i));
+        isSteady = ~opt.Deviation && ~isnan(posValues(i));
         
         % Steady state, state space and SGF at p0(i) + step(i).
         m = update(m, pp, 1);
-        if isSstate
-            yp = getSstate( );
+        if isSteady
+            yp = getSteady( );
         end
         [Tp, Rp, Zp, Hp, Omgp, nUnitp] = getSspace( );
         Gp = computeSgfy(Tp, Rp, Zp, Hp, Omgp, nUnitp, freq, opt);
         
         % Steady state, state space and SGF at p0(i) - step(i).
         m = update(m, pm, 1);
-        if isSstate
-            ym = getSstate( );
+        if isSteady
+            ym = getSteady( );
         end
         [Tm, Rm, Zm, Hm, Omgm, nUnitm] = getSspace( );
         Gm = computeSgfy(Tm, Rm, Zm, Hm, Omgm, nUnitm, freq, opt);
         
         % Differentiate SGF and steady state.
         dG(:, :, :, i) = (Gp - Gm) / twoSteps;
-        if isSstate
+        if isSteady
             dy(:, i) = real(yp(:) - ym(:)) / twoSteps;
         end
         
@@ -293,7 +334,7 @@ return
     end 
 
     
-    function y = getSstate( )
+    function y = getSteady( )
         % Get steady-state levels for measurement variables.
         y = m.Variant.Values(:, ixy, :);
         y = real(y);

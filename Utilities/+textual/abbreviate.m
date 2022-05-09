@@ -53,8 +53,6 @@
 
 function x = abbreviate(x, varargin)
 
-%--------------------------------------------------------------------------
-
 %( Input parser
 persistent pp
 if isempty(pp)
@@ -66,8 +64,6 @@ if isempty(pp)
 end
 %)
 opt = parse(pp, x, varargin{:});
-
-%--------------------------------------------------------------------------
 
 inputClass = class(x);
 
@@ -97,13 +93,13 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Test Char
     act = textual.abbreviate('abcdefg', 'MaxLength', 5);
-    exp = ['abcd', char(iris.get('Ellipsis'))];
+    exp = ['abcd', char(8230)];
     assertEqual(testCase, act, exp);
 
 
 %% Test String
     act = textual.abbreviate("abcdefg", "MaxLength", 5);
-    exp = "abcd" + string(iris.get("Ellipsis"));
+    exp = "abcd" + string(char(8230));
     assertEqual(testCase, act, exp);
 
 

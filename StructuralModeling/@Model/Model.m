@@ -11,7 +11,7 @@ classdef Model ...
 
 
     properties (Constant)
-        FILE_NAME_WHEN_INPUT_STRING = "[input-string]"
+        
         INTERCEPT_STRING = "[const]"
     end
 

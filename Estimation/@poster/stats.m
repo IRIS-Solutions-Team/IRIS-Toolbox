@@ -5,35 +5,32 @@
 
 function outputStats = stats(this, theta, logPost, varargin)
 
-
-%(
-defaults = {
-    'hpdicover', 90, @(x) isnumericscalar(x) && x >= 0 && x <= 100
-    'histbins, histbin', 50, @(x) isintscalar(x) && x > 0
-    'mddgrid', 0.1:0.1:0.9, @(x) isnumeric(x) && all(x(:) > 0 & x(:) < 1)
-    'output', '', @(x) ischar(x) || iscellstr(x)
-    'progress', false, @islogicalscalar
-    ...
-    'chain', true, @islogicalscalar
-    'cov', false, @islogicalscalar
-    'mean', true, @islogicalscalar
-    'median', false, @islogicalscalar
-    'mode', false, @islogicalscalar
-    'mdd, lmdd', true, @islogicalscalar
-    'std', true, @islogicalscalar
-    'hpdi', false, @(x) islogicalscalar(x) || (isnumericscalar(x) && x > 0 && x < 100)
-    'hist', true, @(x) islogicalscalar(x) || (isintscalar(x) && x > 0)
-    'bounds', false, @islogicalscalar
-    'ksdensity', false, @(x) islogicalscalar(x) || isempty(x) || (isintscalar(x) && x > 0)
-    'prctile, pctile', [ ], @(x) isnumeric(x) && all(x(:) >= 0 & x(:) <= 100)
-};
-%)
-
-
-opt = passvalopt(defaults, varargin{:});
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'hpdicover', 90, @(x) isnumericscalar(x) && x >= 0 && x <= 100);
+    addParameter(ip, 'histbins', 50, @(x) isintscalar(x) && x > 0);
+    addParameter(ip, 'mddgrid', 0.1:0.1:0.9, @(x) isnumeric(x) && all(x(:) > 0 & x(:) < 1));
+    addParameter(ip, 'output', '', @(x) ischar(x) || iscellstr(x));
+    addParameter(ip, 'progress', false, @islogicalscalar);
+    addParameter(ip, 'chain', true, @islogicalscalar);
+    addParameter(ip, 'cov', false, @islogicalscalar);
+    addParameter(ip, 'mean', true, @islogicalscalar);
+    addParameter(ip, 'median', false, @islogicalscalar);
+    addParameter(ip, 'mode', false, @islogicalscalar);
+    addParameter(ip, 'mdd', true, @islogicalscalar);
+    addParameter(ip, 'std', true, @islogicalscalar);
+    addParameter(ip, 'hpdi', false, @(x) islogicalscalar(x) || (isnumericscalar(x) && x > 0 && x < 100));
+    addParameter(ip, 'hist', true, @(x) islogicalscalar(x) || (isintscalar(x) && x > 0));
+    addParameter(ip, 'bounds', false, @islogicalscalar);
+    addParameter(ip, 'ksdensity', false, @(x) islogicalscalar(x) || isempty(x) || (isintscalar(x) && x > 0));
+    addParameter(ip, 'prctile', [ ], @(x) isnumeric(x) && all(x(:) >= 0 & x(:) <= 100));
+end
+parse(ip, varargin{:});
+opt = ip.Results;
 
 
-herePreprocessOptions();
+here_preprocessOptions();
 
 % Simulated chain has been saved in a collection of mat files
 isFile = ischar(theta) || isstring(theta);
@@ -53,7 +50,7 @@ if isFile
     inpFile = theta;
     numDraws = NaN;
     saveEvery = NaN;
-    hereCheckPosteriorFile();
+    here_checkPosteriorFile();
     getThetaFunc = @(I) h5read(inpFile, '/theta', [I, 1], [1, Inf]);
     getLogPostFunc = @() h5read(inpFile, '/logPost', [1, 1], [1, Inf]);
 else
@@ -62,7 +59,7 @@ end
 
 if opt.mean || opt.cov || opt.std || opt.mdd
     thetaMean = nan(numParams, 1);
-    hereCalculateMean();
+    here_calculateMean();
 end
 
 if opt.progress
@@ -140,13 +137,13 @@ if opt.cov
 end
 
 if opt.mdd
-    uuu = hereCalculateUUU();
-    outputStats.mdd = hereCalculateMDD();
+    uuu = here_calculateUUU();
+    outputStats.mdd = here_calculateMDD();
 end
 
 return
 
-    function hereCalculateMean()
+    function here_calculateMean()
         if isFile
             for ii = 1 : numParams
                 iTheta = getThetaFunc(ii);
@@ -178,8 +175,8 @@ return
     end%
 
 
-    function d = hereCalculateMDD()
-        % hereCalcMdd  Modified harmonic mean estimator of minus the log marginal data
+    function d = here_calculateMDD()
+        % here_calcMdd  Modified harmonic mean estimator of minus the log marginal data
         % density; Geweke (1999).
 
         % Copyright (c) 2010-2021 IRIS Solutions Team & Troy Matheson.
@@ -211,7 +208,7 @@ return
     end%
 
 
-    function uuu = hereCalculateUUU()
+    function uuu = here_calculateUUU()
         uuu = nan(1, numDraws);
         invCovarMatrix = inv(covarMatrix);
         if isFile
@@ -237,8 +234,8 @@ return
     end%
 
 
-    function hereCheckPosteriorFile()
-        try
+    function here_checkPosteriorFile()
+        %try
             valid = true;
             % Parameter list.
             paramList = h5readatt(inpFile, '/', 'paramList');
@@ -254,9 +251,9 @@ return
             % Log posterior dataset.
             logPostInfo = h5info(inpFile, '/logPost');
             valid = valid && numDraws == logPostInfo.Dataspace.Size(2);
-        catch
-            valid = false;
-        end
+        % catch
+            % valid = false;
+        % end
         if ~valid
             utils.error('poster', ...
                 'This is not a valid posterior simulation file: ''%s''.', ...
@@ -265,7 +262,7 @@ return
     end%
 
 
-    function herePreprocessOptions()
+    function here_preprocessOptions()
         if isequal(opt.prctile, true)
             opt.prctile = [10, 90];
         end

@@ -440,7 +440,7 @@ return
         h5create(opt.saveas, '/theta', [nPar, numDraws], 'fillValue', NaN);
         h5create(opt.saveas, '/logPost', [1, numDraws], 'fillValue', NaN);
         h5writeatt(opt.saveas, '/', 'paramList', char(join(this.ParameterNames, " ")));
-        h5writeatt(opt.saveas, '/', 'nDraw', numDraws);
+        h5writeatt(opt.saveas, '/', 'numDraws', numDraws);
         h5writeatt(opt.saveas, '/', 'saveEvery', opt.saveevery');
     end%
 

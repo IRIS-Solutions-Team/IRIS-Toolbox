@@ -1,4 +1,4 @@
-% simulateFrames  Implement simulation by frames
+% simuleteFrames  Implement simulation by frames
 %
 % Backend [IrisToolbox] method
 % No help provided
@@ -37,7 +37,7 @@ plan = runningData.Plan;
 % in the respective page of the runningData and return immediately
 %
 if isequal(method, solver.Method.NONE)
-    runningData.YXEPG(:, :, run) = local_resetOutsideBaseRange( ...
+    outputYXEPG = local_resetOutsideBaseRange( ...
         runningData.YXEPG(:, :, run), firstColumnToRun:lastColumnToRun, inxInitInPresample ...
     );
     return
@@ -218,7 +218,7 @@ data.YXEPG = local_resetOutsideBaseRange( ...
 if isRegularCall
     % This is a call from @Model.simulate
     % Return the data.YXEPG array and update runningData.YXEPG only in
-    % Model/simulate; this is much faster than update it in place
+    % Model/simulate; this is much faster than updating it in place
     outputYXEPG = data.YXEPG;
     runningData.Success(run) = success;
     if runningData.PrepareOutputInfo

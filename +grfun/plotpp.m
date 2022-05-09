@@ -160,7 +160,7 @@ defaults = {
     'PlotPoster', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
     'PlotBounds', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto) || iscell(x)
     'Sigma', 3, @(x) isnumeric(x) && isscalar(x) && x>0
-    'Subplot', @auto, validFn.subplot
+    'Subplot', @auto, @(x) isequal(x, @auto) || isnumeric(x)
     'Tight', true, @(x) isequal(x, true) || isequal(x, false)
     'Title', true, @(x) isequal(x, true) || isequal(x, false) || iscell(x)
     'XLim, XLims', [ ], @(x) isempty(x) || isstruct( )

@@ -125,7 +125,6 @@ end
 
 
 % __Seal model quantities__
-% * Validate names
 % * Add special names (exogenous ttrend)
 % * Save original names
 % * Populate transient properties
@@ -332,13 +331,13 @@ return
             newNames{ii} = [optimalOpt.MultiplierPrefix, sprintf('Eq%g', ii)];
         end
 
-        hasFloors = ~isempty(optimalOpt.Floor);
-        if hasFloors
-            numEquationsToAdd = numEquationsToAdd + 1;
-            numQuantitiesToAdd = numQuantitiesToAdd + 1;
-            floorVariableName = string(optimalOpt.MultiplierPrefix) + string(optimalOpt.Floor);
-            newNames{end+1} = char(floorVariableName);
-        end
+        hasFloors = false; %~isempty(optimalOpt.NonNegative);
+%         if hasFloors
+%             numEquationsToAdd = numEquationsToAdd + 1;
+%             numQuantitiesToAdd = numQuantitiesToAdd + 1;
+%             floorVariableName = string(optimalOpt.MultiplierPrefix) + string(optimalOpt.NonNegative);
+%             newNames{end+1} = char(floorVariableName);
+%         end
 
         %
         % Insert the new names between at the beginning of the block of existing
@@ -348,44 +347,44 @@ return
         add.IxLagrange(:) = true;
         qty = insert(qty, add, 2, 'first');
 
-        if hasFloors
-            floorParameterName = string(model.component.Quantity.FLOOR_PREFIX) + string(optimalOpt.Floor);
-
-            % Floor parameter may be declared by the user
-            inxFloorParameter = startsWith(qty.Name, model.component.Quantity.FLOOR_PREFIX) & qty.Type==4;
-            if any(inxFloorParameter)
-                posFloorParameter = find(inxFloorParameter);
-            else
-                add = model.component.Quantity( );
-                add.Name = {char(floorParameterName)};
-                add.Label = {['Floor for ', optimalOpt.Floor]};
-                add.Alias = {char.empty(1, 0)};
-                add.Attributes = {string.empty(1, 0)};
-                add.IxLog = false(1, 1);
-                add.IxLagrange = false(1, 1);
-                add.IxObserved = false(1, 1);
-                add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, 1);
-                [qty, inxPre] = insert(qty, add, 4, 'last');
-                posFloorParameter = find(inxPre, 1, 'last') + 1;
-            end
-        end
+%         if hasFloors
+%             floorParameterName = string(model.component.Quantity.FLOOR_PREFIX) + string(optimalOpt.NonNegative);
+% 
+%             % Floor parameter may be declared by the user
+%             inxFloorParameter = startsWith(qty.Name, model.component.Quantity.FLOOR_PREFIX) & qty.Type==4;
+%             if any(inxFloorParameter)
+%                 posFloorParameter = find(inxFloorParameter);
+%             else
+%                 add = model.component.Quantity( );
+%                 add.Name = {char(floorParameterName)};
+%                 add.Label = {['Floor for ', optimalOpt.NonNegative]};
+%                 add.Alias = {char.empty(1, 0)};
+%                 add.Attributes = {string.empty(1, 0)};
+%                 add.IxLog = false(1, 1);
+%                 add.IxLagrange = false(1, 1);
+%                 add.IxObserved = false(1, 1);
+%                 add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, 1);
+%                 [qty, inxPre] = insert(qty, add, 4, 'last');
+%                 posFloorParameter = find(inxPre, 1, 'last') + 1;
+%             end
+%         end
 
         % Loss function is always moved to last position among transition equations.
         posLossEqtn = numel(eqn.Input);
-        if hasFloors
-            % Find the position of floored variables in the list of names AFTER we
-            % have inserted placeholders.
-            inxFloorVariable = strcmp(optimalOpt.Floor, qty.Name);
-            if ~any(inxFloorVariable) ...
-                    || qty.Type(inxFloorVariable)~=int8(2)
-                throw( ...
-                    exception.ParseTime('Model:Postparser:NAME_CANNOT_BE_NONNEGATIVE', 'error'), ...
-                    optimalOpt.Floor ...
-                );
-            end
-            posFloorVariable = find(inxFloorVariable);
-            posFloorMultiplier = find(strcmp(qty.Name, floorVariableName));
-        end
+%         if hasFloors
+%             % Find the position of floored variables in the list of names AFTER we
+%             % have inserted placeholders.
+%             inxFloorVariable = strcmp(optimalOpt.NonNegative, qty.Name);
+%             if ~any(inxFloorVariable) ...
+%                     || qty.Type(inxFloorVariable)~=int8(2)
+%                 throw( ...
+%                     exception.ParseTime('Model:Postparser:NAME_CANNOT_BE_NONNEGATIVE', 'error'), ...
+%                     optimalOpt.NonNegative ...
+%                 );
+%             end
+%             posFloorVariable = find(inxFloorVariable);
+%             posFloorMultiplier = find(strcmp(qty.Name, floorVariableName));
+%         end
 
         %
         % Add a total of `numEquationsToAdd` new transition equations, i.e. the

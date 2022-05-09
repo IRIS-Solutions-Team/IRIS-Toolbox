@@ -46,19 +46,19 @@ classdef Frequency ...
 
         function d = getCalendarDuration(this)
             switch this
-                case frequency.Yearly
+                case frequency.YEARLY
                     d = calendarDuration(1, 0, 0);
-                case frequency.HalfYearly
+                case frequency.HALFYEARLY
                     d = calendarDuration(0, 6, 0);
-                case frequency.Quarterly
+                case frequency.QUARTERLY
                     d = calendarDuration(0, 3, 0);
-                case frequency.Monthly
+                case frequency.MONTHLY
                     d = calendarDuration(0, 1, 0);
-                case frequency.Weekly
+                case frequency.WEEKLY
                     d = calendarDuration(0, 0, 7);
-                case frequency.Daily
+                case frequency.DAILY
                     d = calendarDuration(0, 0, 1);
-                case frequency.Integer
+                case frequency.INTEGER
                     d = 1;
             end
         end%

@@ -61,12 +61,21 @@ classdef (CaseInsensitiveProperties=true) ...
         DEFAULT_BOUNDS = [-Inf; Inf; -Inf; Inf]
         RESERVED_NAME_TTREND = 'ttrend'
         RESERVED_NAME_LINEAR = 'linear'
+
         STD_PREFIX = 'std_'
         CORR_PREFIX = 'corr_'
         LOG_PREFIX = 'log_'
         FLOOR_PREFIX = 'floor_'
         COSTD_PREFIX = 'costd_'
         SLACK_PREFIX = 'slack_'
+
+        RESERVED_PREFIXES = [
+            string(model.component.Quantity.STD_PREFIX) 
+            string(model.component.Quantity.CORR_PREFIX)
+            string(model.component.Quantity.LOG_PREFIX)
+            string(model.component.Quantity.COSTD_PREFIX)
+            string(model.component.Quantity.SLACK_PREFIX)
+        ]
     end
 
 

@@ -112,7 +112,7 @@ return
         %(
         if isequal(opt.TargetNames, @auto) || isequal(opt.TargetNames, "__auto__")
             targetNames = sourceNames;
-        elseif isa(opt.TargetNames, 'function_handle') || iscell(opt.TargetNames)
+        elseif isa(opt.TargetNames, 'function_handle') || (iscell(opt.TargetNames) && ~iscellstr(opt.TargetNames))
             targetNames = sourceNames;
             for i = 1 : numel(targetNames)
                 targetNames(i) = iris.utils.applyFunctions(targetNames(i), opt.TargetNames);

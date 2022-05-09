@@ -21,9 +21,9 @@ if ~isfield(opt,'dateformat') || isequal(opt.dateformat, @config)
     end
 end
 
-if ~isfield(opt,'freqletters') || isequal(opt.freqletters, @config)
-    opt.freqletters = irisConfig.freqletters;
-end
+% if ~isfield(opt,'freqletters') || isequal(opt.freqletters, @config)
+%     opt.freqletters = irisConfig.freqletters;
+% end
 
 if ~isfield(opt,'months') || isequal(opt.months, @config)
     opt.months = irisConfig.months;

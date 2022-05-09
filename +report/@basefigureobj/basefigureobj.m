@@ -8,7 +8,6 @@ classdef basefigureobj < report.tabularobj
     methods
         function This = basefigureobj(varargin)
             IsVisibleDefault = false;
-            validFn = iris.options.validfn;
             This = This@report.tabularobj(varargin{:});
             This.childof = {'report', 'align'};
             This.default = [This.default, { ...

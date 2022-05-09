@@ -43,16 +43,15 @@ end
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tseries.interp');
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    inputParser.addOptionalRangeStartEnd( );
+    inputParser.addOptional('Range', Inf, @isnumeric);
     inputParser.addParameter('Method', 'pchip', @(x) ischar(x) || isa(x, 'string'));
 end
-inputParser.parse(this, varargin{:});
-opt = inputParser.Options;
+inputParser.parse(varargin{:});
+opt = inputParser.Results;
 
 %--------------------------------------------------------------------------
 
-[data, actualStart] = getDataFromTo(this, opt.SerialOfStart, opt.SerialOfEnd);
+[data, actualStart] = getDataFromTo(this, opt.Range);
 
 if isempty(data)
     this = this.empty(this);

@@ -317,26 +317,26 @@ runningData.PrepareOutputInfo = nargout>=2;
 runningData.PrepareFrameData = nargout>=3;
 
 % Retrieve data from intput databank, set up ranges
-hereExtractInputData();
+here_extractInputData();
 
 % Check Contributions= only after preparing data and resolving the number
 % of runs (variants, pages)
-hereResolveContributionsConflicts();
+here_resolveContributionsConflicts();
 
-hereCopyOptionsToRunningData();
+here_copyOptionsToRunningData();
 
 if opt.Contributions
     % Expand and set up YXEPG to prepare contributions simulation
-    herePrepareContributions();
+    here_prepareContributions();
 end
 
 
 % Check initial conditions for NaNs
-hereCheckInitialConditions();
+here_checkInitialConditions();
 
 
 % Set up Blazer objects
-hereSetupDefaultBlazers();
+here_setupDefaultBlazers();
 
 
 % Define time frames and check for deficiency of simulation plans; can be
@@ -344,7 +344,7 @@ hereSetupDefaultBlazers();
 defineFrames(runningData, opt);
 
 
-systemProperty = hereSetupSystemProperty();
+systemProperty = here_setupSystemProperty();
 if ~isequal(opt.SystemProperty, false)
     outputDb = systemProperty;
     return
@@ -376,26 +376,26 @@ runningData.YXEPG = cat(3, outputYXEPG{:});
 
 
 if opt.Contributions
-    herePostprocessContributions();
+    here_postprocessContributions();
 end
 
 if isAsynchronous
     return
 end
 
-outputDb = hereCreateOutputData();
+outputDb = here_createOutputData();
 
 if runningData.PrepareOutputInfo
-    outputInfo = hereCreateOutputInfo();
+    outputInfo = here_createOutputInfo();
 end
 
 if runningData.PrepareFrameData
-    frameDb = hereCreateFrameDb();
+    frameDb = here_createFrameDb();
 end
 
 return
 
-    function hereResolveContributionsConflicts()
+    function here_resolveContributionsConflicts()
         %(
         if opt.Contributions && plan.NumOfExogenizedPoints>0
             exception.error([
@@ -414,7 +414,7 @@ return
     end%
 
 
-    function hereCopyOptionsToRunningData()
+    function here_copyOptionsToRunningData()
         %(
         numRuns = runningData.NumPages;
         runningData.Plan = plan;
@@ -429,9 +429,9 @@ return
     end%
 
 
-    function hereExtractInputData()
+    function here_extractInputData()
         %(
-        numDummyPeriods = hereCalculateNumDummyPeriods();
+        numDummyPeriods = here_calculateNumDummyPeriods();
         baseRangePlusDummy = [baseRange(1), baseRange(end) + numDummyPeriods];
 
         % Check the input databank; treat all names as optional, and check for
@@ -490,7 +490,7 @@ return
     end%
 
 
-    function herePrepareContributions()
+    function here_prepareContributions()
         %(
         firstColumnToSimulate = runningData.BaseRangeColumns(1);
         inxLog = this.Quantity.InxLog;
@@ -533,7 +533,7 @@ return
     end%
 
 
-    function hereSetupDefaultBlazers()
+    function here_setupDefaultBlazers()
         %(
         switch opt.Method
             case solver.Method.STACKED
@@ -565,7 +565,7 @@ return
     end%
 
 
-    function systemProperty = hereSetupSystemProperty()
+    function systemProperty = here_setupSystemProperty()
         %(
         systemProperty = SystemProperty(this);
         systemProperty.Function = @simulateFrames;
@@ -582,7 +582,7 @@ return
     end%
 
 
-    function hereCheckInitialConditions()
+    function here_checkInitialConditions()
         %(
         if isAsynchronous
             return
@@ -595,7 +595,7 @@ return
     end%
 
 
-    function numDummyPeriods = hereCalculateNumDummyPeriods()
+    function numDummyPeriods = here_calculateNumDummyPeriods()
         %(
         numDummyPeriods = opt.Window - 1;
         if ~strcmpi(opt.Method, 'FirstOrder')
@@ -609,7 +609,7 @@ return
     end%
 
 
-    function outputDb = hereCreateOutputData()
+    function outputDb = here_createOutputData()
         %(
         if startsWith(opt.OutputData, "databank", "ignoreCase", true)
             columns = 1 : runningData.BaseRangeColumns(end);
@@ -625,7 +625,7 @@ return
     end%
 
 
-    function outputInfo = hereCreateOutputInfo()
+    function outputInfo = here_createOutputInfo()
         %(
         outputInfo = struct();
         outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
@@ -642,7 +642,7 @@ return
     end%
 
 
-    function frameDb = hereCreateFrameDb()
+    function frameDb = here_createFrameDb()
         %(
         frameDb = cell(1, numRuns);
         for i = 1 : numRuns
@@ -654,7 +654,7 @@ return
     end%
 
 
-    function herePostprocessContributions()
+    function here_postprocessContributions()
         %(
         inxLog = this.Quantity.InxLog;
         if runningData.Method(end)~=solver.Method.NONE
@@ -844,14 +844,14 @@ function plan = local_resolvePlan(this, baseRange, plan, anticipate)
     %(
     if isa(plan, 'Plan')
         if ~isempty(anticipate)
-            hereThrowError();
+            here_throwError();
         end
         checkPlanConsistency(this, baseRange, plan);
         return
     end
     if islogical(plan)
         if ~isempty(anticipate)
-            hereThrowError();
+            here_throwError();
         end
         plan = Plan(this, baseRange, "anticipate", plan);
         return
@@ -862,7 +862,7 @@ function plan = local_resolvePlan(this, baseRange, plan, anticipate)
     end
     plan = Plan(this, baseRange, "anticipate", true);
     return
-        function hereThrowError()
+        function here_throwError()
             exception.error([
                 "Model:OptionsPlanAnticipate"
                 "Options Plan= and Anticipate= cannot be used at the same time."

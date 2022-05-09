@@ -42,7 +42,7 @@ classdef Variant
             this = createIndexOfStdCorrAllowed(this, quantity);
             this = preallocateValues(this, numVariants, quantity);
             this = preallocateStdCorr(this, quantity, defaultStd);
-            this = preallocateFloors(this, quantity, defaultFloor);
+            % this = preallocateFloors(this, quantity, defaultFloor);
             this = preallocateSolution(this, vector, ahead, numHashed, numObserved);
         end%
 
@@ -97,11 +97,11 @@ classdef Variant
         end%
 
 
-        function this = preallocateFloors(this, quantity, defaultFloor)
-            inxFloors = ...
-                startsWith(quantity.Name, quantity.FLOOR_PREFIX) & quantity.Type==4;
-            this.Values(1, inxFloors, :) = defaultFloor;
-        end%
+        % function this = preallocateFloors(this, quantity, defaultFloor)
+            % inxFloors = ...
+                % startsWith(quantity.Name, quantity.FLOOR_PREFIX) & quantity.Type==4;
+            % this.Values(1, inxFloors, :) = defaultFloor;
+        % end%
 
 
         function this = preallocateSolution(this, vector, ahead, numHashed, numObserved)

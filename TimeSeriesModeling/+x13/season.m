@@ -105,7 +105,7 @@ arguments
     specs.Regression_PVAicTest { validate.mustBeScalarOrEmpty, mustBeNumeric, mustBeGreaterThanOrEqual(specs.Regression_PVAicTest, 0), mustBeLessThanOrEqual(specs.Regression_PVAicTest, 1) } = double.empty(1, 0) 
     specs.Regression_TLimit { validate.mustBeScalarOrEmpty, mustBeNumeric } = double.empty(1, 0)
     specs.Regression_Chi2Test logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
-    specs.Regression_Chi2TestCV { validate.mustBeScalarOrEmpty, mustBeNumeric, mustBeGreaterThanOrEqual(specs.Regression_Chi2TestCV 0), mustBeLessThanOrEqual(specs.Regression_Chi2TestCV, 1) } = double.empty(1, 0) 
+    specs.Regression_Chi2TestCV { validate.mustBeScalarOrEmpty, mustBeNumeric, mustBeGreaterThanOrEqual(specs.Regression_Chi2TestCV, 0), mustBeLessThanOrEqual(specs.Regression_Chi2TestCV, 1) } = double.empty(1, 0) 
     specs.Regression_Print (1, :) string = string.empty(1, 0)
     specs.Regression_Save (1, :) string = string.empty(1, 0)
     specs.Regression_SaveLog (1, :) string = string.empty(1, 0)

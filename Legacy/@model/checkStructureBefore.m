@@ -3,7 +3,7 @@
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function [exc, args] = checkStructureBefore(this, quantity, equation, options)
+function [exc, args] = checkStructureBefore(this, quantity, equation, opt)
 
 exc = [];
 args = {};
@@ -117,7 +117,7 @@ end
 
 % Exogenous variables in equations other than measurement trends - the user
 % may allow exogenous variables, they only work in nonlinear simulations
-if ~options.AllowExogenous
+if ~opt.AllowExogenous
     test = any(indxs(~ixd, ixg), 2) | any(insxs(~ixd, ixg), 2);
     if any(test)
         eqtn = equation.Input(~ixd);
