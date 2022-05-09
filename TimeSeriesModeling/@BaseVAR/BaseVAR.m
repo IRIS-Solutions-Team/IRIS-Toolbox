@@ -1,8 +1,5 @@
 % BaseVAR  Superclass for VAR based model objects
 %
-% Backend [IrisToolbox] class
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
@@ -108,6 +105,9 @@ classdef (CaseInsensitiveProperties=true) ...
 
         % IsPanel  True if this is a panel model
         IsPanel
+
+        % A_  Transition matrix 
+        A_
     end
 
 
@@ -215,6 +215,11 @@ classdef (CaseInsensitiveProperties=true) ...
 
     methods
         varargout = getResidualComponents(varargin);
+
+        function x = get.A_(this)
+            numY = size(this.A, 1);
+            x = reshape(this.A, numY, numY, this.Order);
+        end%
 
 
         function x = get.EigenValues(this)

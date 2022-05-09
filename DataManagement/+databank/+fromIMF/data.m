@@ -32,7 +32,7 @@ end
 
 
 % <=R2019a
-%(
+%{
 function [outputDb, info] = data(dataset, freq, areas, items, counters, varargin{:})
 
 persistent ip
@@ -52,8 +52,8 @@ if isempty(ip)
     addParameter(ip, "NameFunc", [ ]);
 end
 parse(ip, varargin{:});
-opt = parse(ip, varargin{:});
-%)
+opt = ip.Results;
+%}
 % <=R2019a
 
 
@@ -96,10 +96,10 @@ request = opt.URL + request;
 response = webread(request, opt.WebOptions);
 
 outputDb = local_createSeriesFromResponse( ...
-    outputDb, freq, response, request, areaMap, itemMap, counterMap, opt, ...
+    outputDb, freq, response, request, areaMap, itemMap, counterMap, opt ...
 );
 
-info = struct( );
+info = struct();
 info.Request = request;
 info.Response = response;
 

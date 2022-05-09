@@ -176,6 +176,15 @@ an extra `F` in the input files (such as `0.8F`);
 * `Automdl_Print`
 * `Automdl_SaveLog`
 
+
+### Pickmdl Spec
+
+* `Pickmdl_Method`
+* `Pickmdl_Mode`
+* `Pickmdl_Print`
+* `Pickmdl_SaveLog`
+
+
 ### Arima Spec 
 
 * `Arima_Model`
@@ -335,8 +344,8 @@ The following output tables (i.e. output series) can be requested in the option 
 | `"rnd"`                  | `Force_rnd`         | Rounded final seasonally adjusted series                               |
 | `"fct"`                  | `Forecast_fct`      | Point forecasts on the original scale                                  |
 | `"bct"`                  | `Forecast_bct`      | Point backcasts on the original scale                                  |
-| `"ftr"`                  | `Forecast_ftr`      |  Point forecasts on the transformed scale                              |
-| `"btr"`                  | `Forecast_btr`      |  Point backcasts on the transformed scale                              |
+| `"ftr"`                  | `Forecast_ftr`      | Point forecasts on the transformed scale                              |
+| `"btr"`                  | `Forecast_btr`      | Point backcasts on the transformed scale                              |
 
 
 ## Example

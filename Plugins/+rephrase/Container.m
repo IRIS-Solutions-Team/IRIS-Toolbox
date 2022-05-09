@@ -22,6 +22,11 @@ classdef (Abstract) Container ...
         end%
 
 
+        function this = plus(this, child)
+            this = add(this, child);
+        end%
+
+
         function this = lt(this, child)
             this = add(this, child);
         end%

@@ -69,6 +69,12 @@ arguments
     specs.Automdl_Print (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Automdl_SaveLog (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
+    specs.Pickmdl logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
+    specs.Pickmdl_Method (1, :) string = string.empty(1, 0)
+    specs.Pickmdl_Mode (1, :) string = string.empty(1, 0)
+    specs.Pickmdl_Print (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
+    specs.Pickmdl_SaveLog (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
+
     specs.Arima logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Arima_Model (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Arima_AR (1, :) { mustBeNumeric } = double.empty(1, 0)
@@ -214,6 +220,12 @@ if isempty(ip)
     addParameter(ip, "Automdl_Mixed", logical.empty(1, 0));
     addParameter(ip, "Automdl_Print", string.empty(1, 0));
     addParameter(ip, "Automdl_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "Pickmdl", logical.empty(1, 0));
+    addParameter(ip, "Pickmdl_Method", string.empty(1, 0));
+    addParameter(ip, "Pickmdl_Mode", string.empty(1, 0));
+    addParameter(ip, "Pickmdl_Print", string.empty(1, 0));
+    addParameter(ip, "Pickmdl_SaveLog", string.empty(1, 0));
 
     addParameter(ip, "Arima", logical.empty(1, 0));
     addParameter(ip, "Arima_Model", string.empty(1, 0));
