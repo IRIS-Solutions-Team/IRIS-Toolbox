@@ -15,10 +15,13 @@ beenHandled = true;
 output = [ ];
 stringify = @(x) reshape(string(x), 1, [ ]);
 
-if lower(what)==lower("autoswapsSimulate")
+F = @(x) erase(lower(x), ["s", "_", "-", ":", "."]);
+what = F(what);
+
+if what==F("autoswaps-simulate")
     [~, ~, output] = model.component.Pairing.getAutoswaps(this.Autoswaps.Simulate, quantity, @string);
 
-elseif lower(what)==lower("autoswapsSteady")
+elseif what==F("autoswaps-steady")
     [~, ~, output] = model.component.Pairing.getAutoswaps(this.Autoswaps.Steady, quantity, @string);
 
 else

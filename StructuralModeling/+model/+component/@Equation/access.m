@@ -14,39 +14,37 @@ beenHandled = true;
 output = [ ];
 stringify = @(x) reshape(string(x), 1, [ ]);
 
-if lower(what)==lower("equations")
+F = @(x) erase(lower(x), ["s", "_", "-", ":", "."]);
+what = F(what);
+
+if what==F("equations")
     output = stringify(this.Input);
 
-elseif lower(what)==lower("equationsDynamic")
+elseif what==F("equations-dynamic")
     output = stringify(this.Input);
     output = model.component.Equation.extractInput(output, "dynamic");
 
-elseif lower(what)==lower("equationsSteady")
+elseif what==F("equations-steady")
     output = stringify(this.Input);
     output = model.component.Equation.extractInput(output, "steady");
 
-
-elseif lower(what)==lower("measurementEquations")
+elseif what==F("measurement-equations")
     output = stringify(this.Input(this.Type==1));
 
-
-elseif lower(what)==lower("transitionEquations")
+elseif what==F("transition-equations")
     output = stringify(this.Input(this.Type==2));
 
-elseif any(lower(what)==lower(["measurement-trends", "dtrends"]))
+elseif any(what==F(["measurement-trends", "dtrends"]))
     output = stringify(this.Input(this.Type==3));
 
-elseif lower(what)==lower("links")
+elseif what==F("links")
     output = stringify(this.Input(this.Type==4));
 
-
-elseif lower(what)==erase("equation-descriptions", "-")
+elseif what==F("equations-descriptions")
     output = textual.stringify(this.Label);
 
-
-elseif lower(what)==erase("equation-attributes", "-")
+elseif what==F("equations-attributes")
     output = unique([this.Attributes{:}], "stable");
-
 
 else
     beenHandled = false;

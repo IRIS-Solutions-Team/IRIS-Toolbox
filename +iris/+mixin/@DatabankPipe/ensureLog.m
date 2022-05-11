@@ -1,10 +1,12 @@
-function array = ensureLog(~, dbInfo, array)
+function array = ensureLog(~, dbInfo, array, namesInRows)
 
 inxNeedsLog = ...
-    ismember(dbInfo.AllNames, dbInfo.LogNames) ...
-    & ~ismember(dbInfo.AllNames, dbInfo.NamesWithLogInputData);
+    ismember(namesInRows, dbInfo.LogNames) ...
+    & ~ismember(namesInRows, dbInfo.NamesWithLogInputData);
 
-array(inxNeedsLog, :, :) = log(array(inxNeedsLog, :, :));
+if any(inxNeedsLog)
+    array(inxNeedsLog, :, :) = log(array(inxNeedsLog, :, :));
+end
 
 end%
 

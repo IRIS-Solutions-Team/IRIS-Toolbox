@@ -45,7 +45,7 @@ classdef tableobj < report.tabularobj
                     'must be specified.']);
             end
             
-            % The option `'range='` can include dates with imag parts: `+1i` means a
+            % The option `'range'` can include dates with imag parts: `+1i` means a
             % vertical line drawn after the date, `-1i` means a vertical line drawn
             % before the date.
             rng = this.options.range(:).';

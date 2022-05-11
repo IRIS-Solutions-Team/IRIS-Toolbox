@@ -1,4 +1,4 @@
-function C = xsf2coher(S,varargin)
+function C = xsf2coher(S, varargin)
 % xsf2coher  Convert power spectrum matrices to coherence.
 %
 %
@@ -46,12 +46,11 @@ s = size(S);
 n = prod(s(3:end));
 C = zeros(size(S));
 
-% TODO: parfor
 for i = 1 : n
     Si = S(:,:,i);
     a2 = abs(Si).^2;
     d = diag(Si);
-    index = d == 0;
+    index = d==0;
     d(~index) = 1./d(~index);
     d(index) = 0;
     D = diag(d);
@@ -60,6 +59,10 @@ end
 
 for i = 1 : size(C,1)
     C(i,i,:) = 1;
+end
+
+if isa(S, 'namedmat')
+    C = namedmat(C, S.RowNames, S.ColNames);
 end
 
 end

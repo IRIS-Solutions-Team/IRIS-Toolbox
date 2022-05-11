@@ -3,10 +3,10 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-function X = requestData(~, dbInfo, inputDb, namesRequested, dates)
+function X = requestData(~, dbInfo, inputDb, namesInRows, dates)
 
 numPeriods = numel(dates);
-numNames = numel(namesRequested);
+numNames = numel(namesInRows);
 
 if isequal(inputDb, "asynchronous")
     X = nan(numNames, numPeriods, 1);
@@ -17,7 +17,7 @@ numPages = dbInfo.NumPages;
 X = nan(numNames, numPeriods, numPages);
 
 logPrefix = model.component.Quantity.LOG_PREFIX;;
-inxLogInput = ismember(namesRequested, dbInfo.NamesWithLogInputData);
+inxLogInput = ismember(namesInRows, dbInfo.NamesWithLogInputData);
 hasAnyNamesWithLogInputData = ~isempty(dbInfo.NamesWithLogInputData);
 
 for name = dbInfo.NamesAvailable
@@ -26,7 +26,7 @@ for name = dbInfo.NamesAvailable
         continue
     end
 
-    inxName = name==namesRequested;
+    inxName = name==namesInRows;
     if ~any(inxName)
         continue
     end
@@ -65,7 +65,7 @@ for name = dbInfo.NamesAvailable
             data = repmat(reshape(field, 1, 1, [ ]), 1, numPeriods, 1);
         end
     end
-    X(name==namesRequested, :, :) = data;
+    X(name==namesInRows, :, :) = data;
 end
 
 end%

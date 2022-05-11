@@ -1,4 +1,4 @@
-function G = xsf2gain(S,varargin)
+function G = xsf2gain(S, varargin)
 % xsf2gain  Compute gain of power spectrum matrices.
 %
 %
@@ -51,4 +51,8 @@ for i = 1 : size(G,1)
     G(i,i,:) = 1;
 end
 
+if isa(S, 'namedmat')
+    G = namedmat(G, S.RowNames, S.ColNames);
 end
+
+end%

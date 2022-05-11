@@ -181,7 +181,7 @@ output.NumForward = sum(imag(this.Vector.System{2})>=0);
 output.NumBackward = numel(this.Vector.System{2});
 
 if opt.Sparse && numVariants==1
-    [system, ~, deriv] = systemFirstOrder(this, 1, opt);
+    [system, ~, ~] = systemFirstOrder(this, 1, opt);
     output.F = system.A{1}; %#ok<*AGROW>
     output.G = system.B{1};
     output.H = system.K{1};
@@ -192,7 +192,7 @@ if opt.Sparse && numVariants==1
     output.D = system.E{2};
 else
     for v = 1 : numVariants
-        [system, ~, deriv] = systemFirstOrder(this, v, opt);
+        [system, ~, ~] = systemFirstOrder(this, v, opt);
         output.F(:, :, v) = full(system.A{1}); %#ok<*AGROW>
         output.G(:, :, v) = full(system.B{1});
         output.H(:, 1, v) = full(system.K{1});
@@ -212,6 +212,9 @@ xVectorB1 = xVector1(output.NumForward+1:end);
 eVector = string(printSolutionVector(this, "e", logPrefix));
 mEquations = string(model.component.Equation.extractInput(this.Equation.Input(1:numM), "dynamic"));
 tEquations = string(model.component.Equation.extractInput(this.Equation.Input(numM+(1:numT)), "dynamic"));
+
+numIdentities = size(output.A, 1) - numT;
+tEquations = [tEquations, "Identity_"+string(1:numIdentities)];
 
 output.XVector = xVector0;
 output.YVector = yVector;

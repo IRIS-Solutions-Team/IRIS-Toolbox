@@ -1,11 +1,10 @@
-function [Rad,Per] = xsf2phase(S,varargin)
 % xs2phase  Convert power spectrum or spectral density matrices to phase shift.
 %
 % Syntax
 % =======
 %
 %     Rad = xsf2phase(S,...)
-%     [Rad,Per] = xsf2phase(S,Freq,...)
+%     [Rad,Per] = xsf2phase(S, Freq,...)
 %
 % Input arguments
 % ================
@@ -23,7 +22,7 @@ function [Rad,Per] = xsf2phase(S,varargin)
 % Options
 % ========
 %
-% * `'unwrap='` [ `true` | *`false`* ] - Correct phase angles to produce
+% * `'Unwrap='` [ `true` | *`false`* ] - Correct phase angles to produce
 % smoother phase vector.
 %
 % Description
@@ -40,46 +39,60 @@ function [Rad,Per] = xsf2phase(S,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2021 IRIS Solutions Team.
 
-if ~isempty(varargin) && isnumeric(varargin{1})
-    freq = varargin{1};
-    varargin(1) = [ ];
-else
-    freq = [ ];
+
+% >=R2019b
+%(
+function [rad, per] = xsf2phase(S, freq, opt)
+
+arguments
+    S
+    freq
+    opt.Unwrap (1, 1) logical = false
 end
+%)
+% >=R2019b
 
-defaults = {
-    'unwrap',false,@islogicalscalar
-};
 
-opt = passvalopt(defaults, varargin{:});
+% <=R2019a
+%{
+function [rad, per] = xsf2phase(S, freq, varargin)
 
-%--------------------------------------------------------------------------
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'Unwrap', false);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
 
-Rad = atan2(imag(S),real(S));
 
-if opt.unwrap
-    Rad = unwrap(Rad,[ ],3);
+rad = atan2(imag(S), real(S));
+
+if opt.Unwrap
+    rad = unwrap(rad, [ ], 3);
 end
 
 if nargout == 1
+    if isa(S, 'namedmat')
+        rad = namedmat(rad, S.RowNames, S.ColNames);
+    end
     return
 end
 
-if length(freq) ~= size(Rad,3)
-    utils.error('utils', ...
-        ['Cannot compute phase shift in periods when the vector of ', ...
-        'frequencies is not specified.']);
+per = rad;
+realsmall = getrealsmall( );
+for i = 1 : size(per, 3)
+    if abs(freq(i))<=realsmall
+        per(:, :, i, :) = NaN;
+    else
+        per(:, :, i, :) = per(:, :, i, :) / freq(i);
+    end
 end
 
-nfreq = length(freq);
-Per = Rad;
-realsmall = getrealsmall( );
-for i = 1 : nfreq
-    if abs(freq(i)) <= realsmall
-        Per(:,:,i,:) = NaN;
-    else
-        Per(:,:,i,:) = Per(:,:,i,:) / freq(i);
-    end
+if isa(S, 'namedmat')
+    per = namedmat(per, S.RowNames, S.ColNames);
 end
 
 end%

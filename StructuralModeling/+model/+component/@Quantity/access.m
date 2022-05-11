@@ -17,83 +17,71 @@ output = [ ];
 allNames = textual.stringify(this.Name);
 numQuantities = numel(allNames);
 ttrendName = textual.stringify(this.RESERVED_NAME_TTREND);
+F = @(x) erase(lower(x), ["s", "_", "-", ":", "."]);
+what = F(what);
 
-
-if endsWith(what, "descriptions")
-    allNames = textual.stringify(this.Label);
-    what = erase(what, "descriptions");
-    if what==""
-        what = "names";
-    end
-end
-
-
-if what==lower("names")
+if what==F("names")
     output = allNames;
     output(output==ttrendName) = [];
 
-elseif what==lower("measurementVariables")
+elseif what==F("measurement-variables")
     output = allNames(this.Type==1);
 
-elseif what==lower("transitionVariables")
+elseif what==F("transition-variables")
     output = allNames(this.Type==2);
 
-elseif what==lower("allShocks")
+elseif what==F("all-shocks")
     output = allNames(this.Type==31 | this.Type==32);
 
-elseif what==lower("transitionShocks")
+elseif what==F("transition-shocks")
     output = allNames(this.Type==32);
 
-elseif what==lower("measurementShocks")
+elseif what==F("measurement-shocks")
     output = allNames(this.Type==31);
 
-elseif what==lower("parameters")
+elseif what==F("parameters")
     output = allNames(this.Type==4);
 
-elseif what==lower("exogenousVariables")
+elseif what==F("exogenous-variables")
     output = allNames(this.Type==5);
     output = setdiff(output, ttrendName, "stable");
 
-elseif what==lower("logVariables")
+elseif what==F("log-variables")
     inxType = this.Type==1 | this.Type==2; output = textual.stringify(this.Name(this.InxLog & inxType));
 
 
-elseif any(what==lower(["^logVariables", "nonLogVariables"]))
+elseif any(what==F(["^log-variables", "non-log-variables"]))
     inxType = this.Type==1 | this.Type==2;
     output = textual.stringify(this.Name(~this.InxLog & inxType));
 
 
-elseif any(what==lower(["logStatus", "isLog"]))
+elseif any(what==F(["log-status", "is-log"]))
     inxType = getIndexByType(this, 1, 2, 5);
     inxType(allNames==ttrendName) = false;
     status = num2cell(reshape(this.InxLog(inxType), 1, []));
     output = cell2struct(status, allNames(inxType), 2);
 
 
-elseif any(what==lower(["nameDescription", "nameLabel", "namesDescriptions", "nameDescriptionsStruct"]))
+elseif any(what==F(["names-descriptions", "names-labels", "names-descriptions", "names-descriptions-struct"]))
     labels = arrayfun(@(x) string(x), this.Label, "uniformOutput", false);
     output = cell2struct(labels, this.Name, 2);
 
 
-elseif any(what==lower("nameAliasesStruct"))
+elseif any(what==F("names-aliases"))
     output = arrayfun(@(x) string(x), this.Alias, "uniformOutput", false);
     output = cell2struct(output, this.Name, 2);
 
 
-elseif any(what==lower("nameAttributesStruct"))
+elseif any(what==F("names-attributes"))
     output = cell2struct(this.Attributes, this.Name, 2);
 
 
-elseif any(what==lower("nameAttributes"))
-    output = this.Attributes;
-
-
-elseif any(what==lower(["namePositions", "positions"]))
+elseif any(what==F(["names-positions", "positions"]))
     positions = num2cell(1 : numQuantities);
     output = cell2struct(positions, allNames, 2);
 
 
-elseif any(what==lower("nameTypes"))
+elseif any(what==F("names-types"))
     types = repmat("", size(this.Type));
     types(this.Type==1) = "measurement-variables";
     types(this.Type==2) = "transition-variables";
@@ -105,7 +93,7 @@ elseif any(what==lower("nameTypes"))
     output = cell2struct(types, allNames, 2);
 
 
-elseif what==lower("nameAttributesList")
+elseif what==F("names-attributes-list")
     output = unique([this.Attributes{:}], "stable");
 
 

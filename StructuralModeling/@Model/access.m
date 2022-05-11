@@ -37,8 +37,8 @@ stringify = @(x) reshape(string(x), 1, []);
 %
 % Preprocess the input query
 %
-what = input;
-what = erase(what, ["_", "-", ":", "."]);
+F = @(x) erase(lower(x), ["s", "_", "-", ":", "."]);
+what = F(input);
 
 %
 % Model components
@@ -59,69 +59,72 @@ numVariants = countVariants(this);
 
 
 %==========================================================================
-if lower(what)==lower("fileName")
+if what==F("file-name")
     output = string(this.FileName);
 
 
-elseif lower(what)==lower("preprocessor")
+elseif what==F("preprocessor")
     output = this.Preprocessor;
 
 
-elseif lower(what)==lower("postprocessor")
+elseif what==F("postprocessor")
     output = this.Postprocessor;
 
 
-elseif any(lower(what)==erase(["parameter-values", "parameters-struct"], "-"))
+elseif any(what==F(["parameter-values", "parameters-struct"]))
     inx = this.Quantity.Type==4;
     names = this.Quantity.Name(inx);
     values = permute(this.Variant.Values(1, inx, :), [2, 3, 1]);
-    output = locallyCreateStruct(names, values);
+    output = local_createStruct(names, values);
 
 
-elseif lower(what)==lower("stdValues")
+elseif what==F("std-values")
     namesStd = stringify(getStdNames(this.Quantity));
     numShocks = numel(namesStd);
     values = permute(this.Variant.StdCorr(1, 1:numShocks, :), [2, 3, 1]);
-    output = locallyCreateStruct(namesStd, values);
+    output = local_createStruct(namesStd, values);
 
 
-elseif lower(what)==lower("corrValues")
+elseif what==F("corr-values")
     output = implementGet(this, "corr");
 
 
-elseif lower(what)==lower("nonzeroCorrValues")
+elseif what==F("nonzero-corr-values")
     output = implementGet(this, "nonzeroCorr");
 
 
-elseif startsWith(what, "steady", "ignoreCase", true)
+elseif what==F("steady")
     values = permute(this.Variant.Values, [2, 3, 1]);
-    if endsWith(what, ["level", "levels"], "ignoreCase", true)
-        values = real(values);
-    elseif endsWith(what, ["change", "growth", "changes"], "ignoreCase", true)
-        values = imag(values);
-    end
-    output = locallyCreateStruct(this.Quantity.Name, values);
+    output = local_createStruct(this.Quantity.Name, values);
+
+elseif what==F("steady-level")
+    values = permute(this.Variant.Values, [2, 3, 1]);
+    output = local_createStruct(this.Quantity.Name, real(values));
+
+elseif what==F("steady-change")
+    values = permute(this.Variant.Values, [2, 3, 1]);
+    output = local_createStruct(this.Quantity.Name, imag(values));
 
 
-elseif any(lower(what)==lower(["required", "initials"]))
+elseif any(what==F(["required", "initials"]))
     logStyle = "none";
     idInit = getIdInitialConditions(this);
     output = printSolutionVector(this, idInit, logStyle);
     output = reshape(string(output), 1, []);
 
 
-elseif lower(what)==lower("initCond")
+elseif what==F("init-cond")
     logStyle = "log()";
     idInit = getIdInitialConditions(this);
     output = printSolutionVector(this, idInit, logStyle);
     output = reshape(string(output), 1, []);
 
 
-elseif lower(what)==lower("eigenValues")
+elseif what==F("eigen-values")
     output = this.Variant.EigenValues;
 
 
-elseif any(lower(what)==lower(["stableRoots", "unitRoots", "unstableRoots"]))
+elseif any(what==F(["stableRoots", "unitRoots", "unstableRoots"]))
     eigenValues = this.Variant.EigenValues;
     eigenStability = this.Variant.EigenStability;
     if startsWith(what, "stable", "ignoreCase", true)
@@ -142,35 +145,35 @@ elseif any(lower(what)==lower(["stableRoots", "unitRoots", "unstableRoots"]))
     end
 
 
-elseif any(lower(what)==lower("maxLag"))
+elseif any(what==F("max-lag"))
     [~, ~, output] = getActualMinMaxShifts(this);
 
 
-elseif any(lower(what)==lower("maxLead"))
+elseif any(what==F("max-lead"))
     [~, output] = getActualMinMaxShifts(this);
 
 
-elseif any(lower(what)==lower(["stationaryStatus", "isStationary"]))
+elseif any(what==F(["stationary-status", "is-stationary"]))
     output = implementGet(this, "stationary");
 
 
-elseif any(lower(what)==lower(["stationaryList", "nonstationaryList"]))
-    output = textual.stringify(implementGet(this, lower(what)));
+elseif any(what==F(["stationary-list", "nonstationary-list"]))
+    output = textual.stringify(implementGet(this, input));
 
 
-elseif lower(what)==lower("transitionVector")
+elseif what==F("transition-vector")
     output = textual.stringify(implementGet(this, "xVector"));
 
 
-elseif lower(what)==lower("measurementVector")
+elseif what==F("measurement-vector")
     output = textual.stringify(implementGet(this, "yVector"));
 
 
-elseif lower(what)==lower("shockVector")
+elseif what==F("shock-vector")
     output = textual.stringify(implementGet(this, "eVector"));
 
 
-elseif lower(what)==lower("forwardHorizon")
+elseif what==F("forward-horizon")
     output = implementGet(this, "forward");
 
 
@@ -194,7 +197,7 @@ end%
 % Local functions
 %
 
-function output = locallyCreateStruct(names, values)
+function output = local_createStruct(names, values)
     %(
     names = reshape(string(names), 1, []);
     output = struct();

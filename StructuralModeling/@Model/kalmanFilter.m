@@ -34,16 +34,15 @@ info = struct();
 %
 [opt, objectToRun] = prepareKalmanOptions2(this, baseRange, varargin{:});
 
-
 %
 % Get measurement and exogenous variables
 %
 if ~isempty(inputDb)
     requiredNames = string.empty(1, 0);
-    inx = getIndexByType(this.Quantity, 1, 5);
-    optionalNames = string(this.Quantity.Name(inx));
+    inxYG = getIndexByType(this.Quantity, 1, 5);
+    optionalNames = string(this.Quantity.Name(inxYG));
     allowedNumeric = @all;
-    logNames = optionalNames(this.Quantity.InxLog(inx));
+    logNames = optionalNames(this.Quantity.InxLog(inxYG));
     context = "";
     dbInfo = checkInputDatabank( ...
         this, inputDb, baseRange ...
@@ -55,7 +54,7 @@ if ~isempty(inputDb)
         this, dbInfo, inputDb ...
         , [requiredNames, optionalNames], baseRange ...
     );
-    inputArray = ensureLog(this, dbInfo, inputArray);
+    inputArray = ensureLog(this, dbInfo, inputArray, [requiredNames, optionalNames]);
 else
     inputArray = nan(ny+ng, numBasePeriods);
 end

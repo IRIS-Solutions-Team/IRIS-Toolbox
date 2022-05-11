@@ -292,13 +292,14 @@ if iscell(opt.Initials)
     presampleDates = dater.plus(range(1), maxLag:-1);
     if validate.databank(opt.Initials{1})
         if numXb>0
-            names = textual.stringify(this.Quantity.Name);
-            numQuantities = numel(names);
+            namesInRows = textual.stringify(this.Quantity.Name);
+            numQuantities = numel(namesInRows);
             inxXb = false(1, numQuantities);
             inxXb(real(xbVector)) = true;
-            xbNames = textual.stringify(names(inxXb));
-            xbLogNames = textual.stringify(names(inxXb & this.Quantity.InxLog));
+            xbNames = textual.stringify(namesInRows(inxXb));
+            xbLogNames = textual.stringify(namesInRows(inxXb & this.Quantity.InxLog));
             context = "";
+
             dbInfo = checkInputDatabank( ...
                 this, opt.Initials{1}, range ...
                 , string.empty(1, 0), xbNames ...
@@ -306,8 +307,10 @@ if iscell(opt.Initials)
                 , context ...
             );
 
-            names(~inxXb) = missing;
-            array = requestData(this, dbInfo, opt.Initials{1}, names, presampleDates);
+            % namesInRows(~inxXb) = missing;
+            array = requestData(this, dbInfo, opt.Initials{1}, namesInRows, presampleDates);
+            array = ensureLog(this, dbInfo, array, namesInRows);
+
             linx = sub2ind(size(array), real(xbVector), imag(xbVector)-maxLag);
             opt.Initials{1} = reshape(double(array(linx)), numXb, 1);
         else
@@ -323,7 +326,7 @@ if iscell(opt.Initials)
     elseif isequal(opt.Initials{2}, 0)
         opt.Initials{2} = zeros(numXb, numXb);
     elseif ~isempty(opt.Initials{2})
-        opt.Initials{2} = reshape(opt.Initials{2}, numXb, numXb);
+        opt.Initials{2} = reshape(double(opt.Initials{2}), numXb, numXb);
     end
 end
 
@@ -338,6 +341,8 @@ if isstruct(opt.UnitRootInitials)
     here_checkNaNInit( );
     opt.UnitRootInitials = xbInitMean;
 end
+
+
 
 % Last backward smoothing period. The option  lastsmooth will not be
 % adjusted after we add one pre-sample init condition in `kalman`. This

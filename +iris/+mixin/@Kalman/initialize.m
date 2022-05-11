@@ -70,11 +70,11 @@ return
             % User-supplied initial condition
             % Convert Mean[XiB] to Mean[Alpha]
             %
-            xb0 = reshape(double(initial{1}), [ ], 1);
+            xiB0 = reshape(double(initial{1}), [ ], 1);
 
-            inxNa = isnan(xb0);
+            inxNa = isnan(xiB0);
             if any(inxNa)
-                xb0(inxNa) = U(inxNa, :) * a0;
+                xiB0(inxNa) = U(inxNa, :) * a0;
             end
 
             % inxZero = isnan(xb0) & ~inxInit;
@@ -87,9 +87,9 @@ return
             % end
 
             if needsTransform
-                a0 = U \ xb0;
+                a0 = U \ xiB0;
             else
-                a0 = xb0;
+                a0 = xiB0;
             end
 
             return
@@ -100,14 +100,14 @@ return
             % User supplied data to initialize mean for unit root processes
             % Convert XiB to Alpha
             %
-            xb00 = unitRootInitial;
-            inxZero = isnan(xb00) & ~inxInit;
-            xb00(inxZero) = 0;
+            xiB00 = unitRootInitial;
+            inxZero = isnan(xiB00) & ~inxInit;
+            xiB00(inxZero) = 0;
 
             if needsTransform
-                a00 = U \ xb00;
+                a00 = U \ xiB00;
             else
-                a00 = xb00;
+                a00 = xiB00;
             end
             a0(1:numUnitRoots) = a00(1:numUnitRoots);
         end
