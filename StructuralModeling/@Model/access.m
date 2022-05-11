@@ -124,14 +124,14 @@ elseif what==F("eigen-values")
     output = this.Variant.EigenValues;
 
 
-elseif any(what==F(["stableRoots", "unitRoots", "unstableRoots"]))
+elseif any(what==F(["stable-roots", "unit-roots", "unstable-roots"]))
     eigenValues = this.Variant.EigenValues;
     eigenStability = this.Variant.EigenStability;
-    if startsWith(what, "stable", "ignoreCase", true)
+    if startsWith(what, F("stable"), "ignoreCase", true)
         inxSelect = eigenStability==0;
-    elseif startsWith(what, "unit", "ignoreCase", true)
+    elseif startsWith(what, F("unit"), "ignoreCase", true)
         inxSelect = eigenStability==1;
-    elseif startsWith(what, "unstable", "ignoreCase", true)
+    elseif startsWith(what, F("unstable"), "ignoreCase", true)
         inxSelect = eigenStability==2;
     end
     output = nan(size(eigenValues));
