@@ -109,7 +109,7 @@ end
 
 current = ITER_STRUCT;
 current.Iter = 0;
-[current.X, current.BoundsReport] = locallyEnforceBounds(initX, bounds);
+[current.X, current.BoundsReport] = local_enforceBounds(initX, bounds);
 current.F = objectiveFuncReshaped(current.X);
 sizeF = size(current.F);
 current.F = current.F(:);
@@ -132,7 +132,7 @@ iter = 0;
 needsPrintHeader = true;
 forceJacobUpdate = false;
 
-headerInfo = hereCompileHeaderInfo();
+headerInfo = here_compileHeaderInfo();
 
 
 %===========================================================================
@@ -156,7 +156,7 @@ while true
         best = current;
     end
 
-    if hereVerifyConvergence() 
+    if here_verifyConvergence() 
         % Convergence reached, exit
         exitFlag = solver.ExitFlag.CONVERGED;
         break
@@ -196,7 +196,7 @@ while true
         current.InvJ = [ ];
 
     elseif iter>0 && iter<=lastBroydenUpdate && ~current.Reverse
-        jacobUpdateString = hereUpdateJacobByBroyden();
+        jacobUpdateString = here_updateJacobByBroyden();
 
     else
         current.J = last.J;
@@ -224,7 +224,7 @@ while true
     %
     if displayLevel.Iter
         if mod(iter, displayLevel.Every)==0
-            hereReportIter();
+            here_reportIter();
             fprintf('\n');
         end
     end
@@ -263,9 +263,9 @@ while true
     end
 
     if maxLambda==0
-        hereMakeNewtonStep();
+        here_makeNewtonStep();
     else
-        hereMakeHybridStep();
+        here_makeHybridStep();
     end
 
 
@@ -276,16 +276,16 @@ while true
     if doTryMakeProgress && next.Norm>current.Norm 
         % Change the step size until objective function improves; try to
         % deflate first, then try to inflate
-        success = hereTryMakeProgress(deflateStep);
+        success = here_tryMakeProgress(deflateStep);
         if ~success
-            hereTryMakeProgress(inflateStep);
+            here_tryMakeProgress(inflateStep);
         end
     elseif doTryImproveProgress
         % Change the step size as far as objective function improves; try
         % to inflate first, then try to deflate
-        success = hereTryImproveProgress(inflateStep);
+        success = here_tryImproveProgress(inflateStep);
         if ~success
-            hereTryImproveProgress(deflateStep);
+            here_tryImproveProgress(deflateStep);
         end
     end
 
@@ -304,12 +304,12 @@ while true
             current.Step = 0.5*next.Step;
             forceJacobUpdate = opt.ForceJacobUpdateWhenReversing;
             if displayLevel.Iter
-                hereReportReversal();
+                here_reportReversal();
             end
         else
             forceJacobUpdate = true;
             if displayLevel.Iter
-                hereReportForcedJacobUpdate();
+                here_reportForcedJacobUpdate();
             end
         end
         current.Iter = iter;
@@ -348,7 +348,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    hereReportIter();
+    here_reportIter();
     fprintf('\n');
 end
 
@@ -362,7 +362,7 @@ lastJacob = last.J;
 return
 
 
-    function headerInfo = hereCompileHeaderInfo()
+    function headerInfo = here_compileHeaderInfo()
         headerInfo.Format = '%6s %8s %13s %6s %13s %13s %13s %13s %13s %9s';
 
         % Function norm
@@ -390,7 +390,7 @@ return
     end%
 
 
-    function jacobUpdateString = hereUpdateJacobByBroyden()
+    function jacobUpdateString = here_updateJacobByBroyden()
         step = current.Step;
         if ~isscalar(step) || isnan(step) || isinf(step)
             jacobUpdateString = "None";
@@ -413,9 +413,9 @@ return
     end%
 
 
-    function hereMakeNewtonStep()
+    function here_makeNewtonStep()
         % Get and trim current objective function
-        F0 = hereGetCurrentObjectiveFunction();
+        F0 = here_getCurrentObjectiveFunction();
         step = next.Step;
         lenStepSize = numel(step);
 
@@ -435,7 +435,7 @@ return
         N = nan(1, lenStepSize);
         boundsReport = repmat("", 1, lenStepSize);
         for ii = 1 : lenStepSize
-            [X{ii}, boundsReport(ii)] = locallyEnforceBounds(current.X + step(ii)*next.D, bounds);
+            [X{ii}, boundsReport(ii)] = local_enforceBounds(current.X + step(ii)*next.D, bounds);
             F{ii} = objectiveFuncReshaped(X{ii});
             fnCount = fnCount + 1;
             F{ii} = F{ii}(:);
@@ -453,17 +453,17 @@ return
         next.Lambda = 0;
         next.BoundsReport = boundsReport(pos);
         if lenStepSize>1 && displayLevel.Iter
-            hereReportStepSizeOptim();
+            here_reportStepSizeOptim();
         end
     end%
 
 
-    function hereMakeHybridStep()
+    function here_makeHybridStep()
         X0 = current.X;
         J0 = current.J;
 
         % Get and trim current objective function
-        F0 = hereGetCurrentObjectiveFunction();
+        F0 = here_getCurrentObjectiveFunction();
 
         step = next.Step;
         if issparse(J0)
@@ -482,8 +482,6 @@ return
             lambda = minLambda;
         end
 
-        J0t_J0 = transpose(J0) * J0;
-        J0t_F0 = transpose(J0) * F0;
         % scale = maxSingularValue;
         scale = tol;
         scaledEye = scale * speye(numUnknowns);
@@ -493,10 +491,12 @@ return
                 D = -J0 \ F0;
             else
                 % Lambda>0; hybrid Newton-Cauchy step
+                J0t_J0 = transpose(J0) * J0;
+                J0t_F0 = transpose(J0) * F0;
                 D = -( J0t_J0 + lambda*scaledEye ) \ J0t_F0; % J0.' * F0;
             end
 
-            [X, boundsReport] = locallyEnforceBounds(X0 + step*D, bounds);
+            [X, boundsReport] = local_enforceBounds(X0 + step*D, bounds);
             F = objectiveFuncReshaped(X);
             fnCount = fnCount + 1;
             F = F(:);
@@ -526,7 +526,7 @@ return
     %
     % Get and trim current value of objective function
     %
-    function F0 = hereGetCurrentObjectiveFunction()
+    function F0 = here_getCurrentObjectiveFunction()
         F0 = current.F;
         if trimObjectiveFunction
             F0(abs(F0)<=tolFun) = 0;
@@ -537,7 +537,7 @@ return
     %
     % Try changing the step size until the function improves
     %
-    function success = hereTryMakeProgress(changeStep)
+    function success = here_tryMakeProgress(changeStep)
         X0 = current.X;
         N0 = current.Norm;
         step = next.Step;
@@ -546,7 +546,7 @@ return
         iterMakeProgress = 0;
         while step>=MIN_STEP && step<=MAX_STEP && iterMakeProgress<MAX_ITER_MAKE_PROGRESS
             step = changeStep*step;
-            [X, boundsReport] = locallyEnforceBounds(X0 + step*D, bounds);
+            [X, boundsReport] = local_enforceBounds(X0 + step*D, bounds);
             F = objectiveFuncReshaped(X);
             fnCount = fnCount + 1;
             F = F(:);
@@ -568,7 +568,7 @@ return
     %
     % Try changing the step size as far as function norm improves
     %
-    function success = hereTryImproveProgress(changeStep)
+    function success = here_tryImproveProgress(changeStep)
         X0 = current.X;
         D0 = next.D;
         step = next.Step;
@@ -576,7 +576,7 @@ return
         iterImproveProgress = 0;
         while step>=MIN_STEP && step<=MAX_STEP && iterImproveProgress<MAX_ITER_IMPROVE_PROGRESS
             step = changeStep*step;
-            [X, boundsReport] = locallyEnforceBounds(X0 + step*D0, bounds);
+            [X, boundsReport] = local_enforceBounds(X0 + step*D0, bounds);
             F = objectiveFuncReshaped(X);
             fnCount = fnCount + 1;
             F = F(:);
@@ -598,7 +598,7 @@ return
     %
     % Check for function and step convergence
     %
-    function flag = hereVerifyConvergence()
+    function flag = here_verifyConvergence()
         flag = all( max(abs(current.F(:)))<=tolFun );
         if current.Iter>0
             flag = flag && all(current.MaxXChng<=tolX);
@@ -606,7 +606,7 @@ return
     end%
 
 
-    function herePrintHeader()
+    function here_printHeader()
         %(
         rows = repmat({''}, 1, 4);
         rows{1} = sprintf( ...
@@ -649,10 +649,10 @@ return
     end%
 
 
-    function hereReportIter()
+    function here_reportIter()
         %(
         if needsPrintHeader
-            herePrintHeader();
+            here_printHeader();
             needsPrintHeader = false;
         end
         jacobChange = NaN;
@@ -676,21 +676,21 @@ return
     end%
 
 
-    function hereReportReversal()
+    function here_reportReversal()
         %(
         fprintf("Reversing to Iteration %g\nReducing Step Size to %g\n", best.Iter, current.Step);
         %)
     end%
 
 
-    function hereReportForcedJacobUpdate()
+    function here_reportForcedJacobUpdate()
         %(
         fprintf("Forced update of Jacobian\n");
         %)
     end%
 
 
-    function hereReportStepSizeOptim()
+    function here_reportStepSizeOptim()
         fprintf('Optimal Step Size %g', next.Step);
         fprintf('\n');
     end%
@@ -700,7 +700,7 @@ end%
 % Local Function
 %
 
-function [x, report] = locallyEnforceBounds(x, bounds)
+function [x, report] = local_enforceBounds(x, bounds)
     %(
     if isempty(bounds)
         report = "None";

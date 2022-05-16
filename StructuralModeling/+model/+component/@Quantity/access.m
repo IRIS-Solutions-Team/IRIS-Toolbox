@@ -67,6 +67,11 @@ elseif any(what==F(["names-descriptions", "names-labels", "names-descriptions", 
     output = cell2struct(labels, this.Name, 2);
 
 
+elseif any(what==F(["shocks-descriptions"]))
+    inxType = getIndexByType(this, 31, 32);
+    output = string(this.Label(inxType));
+
+
 elseif any(what==F("names-aliases"))
     output = arrayfun(@(x) string(x), this.Alias, "uniformOutput", false);
     output = cell2struct(output, this.Name, 2);

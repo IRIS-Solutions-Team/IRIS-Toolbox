@@ -43,6 +43,9 @@ classdef Rectangular < handle
         LinxOfXib
         LinxOfXif
         LinxOfCurrentXi
+        InxLogWithinXib
+        InxLogWithinXif
+        InxLogWithinY
 
         Deviation = false
         SimulateY = true
@@ -182,6 +185,9 @@ classdef Rectangular < handle
                 real(idCurrentXi), ...
                 this.FirstColumn + imag(idCurrentXi) ...
             );
+            this.InxLogWithinXib = this.Quantity.InxLog(real(idXiB));
+            this.InxLogWithinXif = this.Quantity.InxLog(real(idXiF));
+            this.InxLogWithinY = this.Quantity.InxLog(real(idY));
         end%
     end
 

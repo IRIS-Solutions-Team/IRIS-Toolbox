@@ -179,7 +179,7 @@ for t = 2 : numExtdPeriods
     else
         % Run non-linear simulation to produce the mean prediction.
         init = a + K1*pe;
-        [a, f0, simulatedY] = hereSimulatePredict(init);
+        [a, f0, simulatedY] = here_simulatePredict(init);
         s.f0(:, 1, t) = f0;
     end
 
@@ -300,7 +300,7 @@ for t = 2 : numExtdPeriods
 
         if isCondition
             % Condition the prediction step
-            hereCondition( );
+            here_condition( );
         end
 
         if isEst
@@ -332,7 +332,7 @@ for t = 2 : numExtdPeriods
 
     if ~s.IsObjOnly
         % Store prediction error decomposition
-        hereStorePed( );
+        here_storePed( );
     end
 
 end
@@ -374,23 +374,23 @@ end
 return
 
 
-    function hereStorePed( )
-        % hereStorePed  Store predicition error decomposition
+    function here_storePed( )
+        % here_storePed  Store predicition error decomposition
         s.F(jy, jy, t) = Fj;
         s.pe(jy, 1, t) = pe;
         if isEst
             s.M(:, :, t) = M;
         end
         if s.storePredict
-            hereStorePredict( );
+            here_storePredict( );
         end
     end%
 
 
 
 
-    function hereStorePredict( )
-        % hereStorePredict  Store prediction and updating steps
+    function here_storePredict( )
+        % here_storePredict  Store prediction and updating steps
         s.a0(:, 1, t) = a;
         s.Pa0(:, :, t) = P;
         s.Pa1(:, :, t) = P - K1*ZP;
@@ -438,26 +438,39 @@ return
 
 
 
-    function [a, f0, y0] = hereSimulatePredict(init)
-        data.ForceInit = init;
+    function [a0, f0, y0] = here_simulatePredict(alphaInit)
         if needsTransform
             U = s.U(:, :, min(t, end));
-            data.ForceInit = U*data.ForceInit;
+            xibInit = U*alphaInit;
+        else
+            xibInit = alphaInit;
         end
+
+        xibInit(rect.InxLogWithinXib) = exp(xibInit(rect.InxLogWithinXib));
+        writeXib0(data, rect, xibInit);
+
         idFrame = 1;
         simulateFunc(simulateFirstOrderFunc, rect, data, blazer, idFrame);
-        a = data.YXEPG(rect.LinxOfXib);
+
+        xib = data.YXEPG(rect.LinxOfXib);
+        xib(rect.InxLogWithinXib) = log(xib(rect.InxLogWithinXib));
         if needsTransform
-            a = U\a;
+            a0 = U\xib;
+        else
+            a0 = xib;
         end
+
         f0 = data.YXEPG(rect.LinxOfXif);
+        f0(rect.InxLogWithinXif) = log(f0(rect.InxLogWithinXif));
+
         y0 = data.YXEPG(rect.LinxY);
+        y0(rect.InxLogWithinY) = log(y0(rect.InxLogWithinY));
     end%
 
 
 
 
-    function hereCondition( )
+    function here_condition( )
         % Condition time t predictions upon time t outcomes of conditioning
         % measurement variables
         Zc = Z(cy, :);

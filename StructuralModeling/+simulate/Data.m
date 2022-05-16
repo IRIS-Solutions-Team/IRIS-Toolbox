@@ -9,7 +9,7 @@ classdef Data ...
         InitYX = [ ]
 
         % BarYX  NumYX-by-NumOfPeriods matrix of steady levels for [observed; endogenous]
-        BarYX = double.empty(0) 
+        BarYX = double.empty(0)
 
         % NonlinAddf  Add-factors in hash equations
         NonlinAddf = double.empty(0)
@@ -71,7 +71,7 @@ classdef Data ...
 
         FirstColumnSimulation
         LastColumnSimulation
-        
+
         % Window  Window for nonlinear addfactors
         Window = 0
 
@@ -113,8 +113,8 @@ classdef Data ...
             % storage because they may have been overwritten in the
             % simulations of the preceding frames
             %
-            if this.HasExogenizedYX 
-                this.YXEPG(this.InxExogenizedYX) = this.TargetYX(this.InxExogenizedYX); 
+            if this.HasExogenizedYX
+                this.YXEPG(this.InxExogenizedYX) = this.TargetYX(this.InxExogenizedYX);
             end
 
             %
@@ -129,18 +129,28 @@ classdef Data ...
         function YXEPG = addSteadyTrends(this, YXEPG)
             inx = this.InxYX & this.InxLog;
             YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxLog(this.InxYX), :);
-            
+
             inx = this.InxYX & ~this.InxLog;
             YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxLog(this.InxYX), :);
         end%
 
 
         function YXEPG = removeSteadyTrends(this, YXEPG)
+            %(
             inx = this.InxYX & this.InxLog;
             YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxLog(this.InxYX), :);
-            
+
             inx = this.InxYX & ~this.InxLog;
             YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxLog(this.InxYX), :);
+            %)
+        end%
+
+
+        function writeXib0(this, rect, initials)
+            linxXib = rect.LinxOfXib;
+            offset = size(this.YXEPG, 1);
+            linxXib0 = linxXib - offset;
+            this.YXEPG(linxXib0) = reshape(initials, [], 1);
         end%
 
 
@@ -419,7 +429,7 @@ classdef Data ...
                 this.InxAnticipatedE(this.InxE) = plan;
                 this.InxUnanticipatedE(this.InxE) = not(plan);
             end
-                
+
             %
             % Prepare data for measurement trend equations
             %
@@ -444,13 +454,13 @@ classdef Data ...
             if ~any(inxAnticipatedE(:)) && ~any(inxUnanticipatedE(:))
                 return
             end
-            
+
             %
             % Retrieve anticipated shocks
             %
             anticipatedE(inxAnticipatedE, columns) = real(YXEPG(inxAnticipatedE, columns));
             anticipatedE(inxUnanticipatedE, columns) = imag(YXEPG(inxUnanticipatedE, columns));
-            
+
             %
             % Retrieve unanticipated shocks
             %
