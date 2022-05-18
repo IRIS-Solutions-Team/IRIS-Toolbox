@@ -30,7 +30,7 @@ function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
 
 inputData = argin.InputData;
 outputData = argin.OutputData;
-outputDataAssignFunc = argin.OutputDataAssignFunc;
+outputDataAssignFunc = argin.InternalAssignFunc;
 opt = argin.Options;
 
 if ~isfield(opt, 'Initials') && isfield(opt, 'Init')
@@ -54,7 +54,7 @@ numExtendedPeriods = size(inputData, 2);
 
 s = struct();
 s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
-s.DIFFUSE_SCALE = this.DIFFUSE_SCALE;
+s.DIFFUSE_SCALE = opt.DiffuseScale;
 s.OBJ_FUNC_PENALTY = this.OBJ_FUNC_PENALTY;
 
 s.Ahead = opt.Ahead;
@@ -412,7 +412,9 @@ for run = 1 : numRuns
 end
 %=========================================================================
 
-
+if opt.ReturnObjFuncContribs
+    obj = obj(2:end, :);
+end
 
 if ~all(inxSolutionAvailable)
     thisWarning = { 'Kalman:SystemMatricesWithNaN'

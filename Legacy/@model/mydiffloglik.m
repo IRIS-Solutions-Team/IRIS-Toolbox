@@ -76,7 +76,7 @@ end
 kalmanFilterInput = struct( );
 kalmanFilterInput.InputData = [ ];
 kalmanFilterInput.OutputData = [ ];
-kalmanFilterInput.OutputDataAssignFunc = [ ];
+kalmanFilterInput.InternalAssignFunc = [ ];
 kalmanFilterInput.Options = likOpt;
 
 for iData = 1 : numDataSets

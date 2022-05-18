@@ -5,45 +5,46 @@
 %
 function [opt, timeVarying] = prepareKalmanOptions(this, range, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('@Kalman.prepareKalmanOptions');
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('@Kalman.prepareKalmanOptions');
 
-    addParameter(pp, 'MatrixFormat', 'namedmat', @validate.matrixFormat);
-    addParameter(pp, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
-    addParameter(pp, 'OutputDataAssignFunc', @hdataassign, @(x) isa(x, 'function_handle'));
+    addParameter(ip, 'MatrixFormat', 'namedmat', @validate.matrixFormat);
+    addParameter(ip, {'OutputData', 'Data', 'Output'}, 'smooth', @(x) isstring(x) || ischar(x));
+    addParameter(ip, 'InternalAssignFunc', @hdataassign, @(x) isa(x, 'function_handle'));
+    addParameter(ip, 'DiffuseScale', iris.mixin.Kalman.DIFFUSE_SCALE);
 
-    addParameter(pp, 'Anticipate', false, @validate.logicalScalar);
-    addParameter(pp, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
-    addParameter(pp, 'Contributions', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'Anticipate', false, @validate.logicalScalar);
+    addParameter(ip, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    addParameter(ip, 'Contributions', false, @(x) isequal(x, true) || isequal(x, false));
 
-    addParameter(pp, {'CheckFmse', 'ChkFmse'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
+    addParameter(ip, {'CheckFmse', 'ChkFmse'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
 
-    addParameter(pp, 'Condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
+    addParameter(ip, 'Condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
 
-    addParameter(pp, {'Initials', 'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
-    addParameter(pp, {'UnitRootInitials', 'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'fixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
+    addParameter(ip, {'Initials', 'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
+    addParameter(ip, {'UnitRootInitials', 'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'fixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
 
-    addParameter(pp, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
-    addParameter(pp, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    addParameter(pp, {'ReturnObjFuncContribs', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, {'ObjFunc', 'Objective'}, 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'})));
-    addParameter(pp, {'ObjFuncRange', 'ObjectiveSample'}, @all, @(x) isnumeric(x) || isequal(x, @all));
-    addParameter(pp, {'Plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
-    addParameter(pp, 'Deviation', false, @validate.logicalScalar);
-    addParameter(pp, {'EvalTrends', 'DTrends', 'DTrend'}, logical.empty(1, 0));
-    addParameter(pp, 'Progress', false, @validate.logicalScalar);
-    addParameter(pp, 'Relative', true, @validate.logicalScalar);
-    addParameter(pp, {'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || validate.databank(x));
-    addParameter(pp, 'Multiply', [ ], @(x) isempty(x) || isstruct(x));
-    addParameter(pp, 'Simulate', false, @(x) isequal(x, false) || validate.nestedOptions(x));
-    addParameter(pp, 'Weighting', [ ], @isnumeric);
-    addParameter(pp, 'MeanOnly', false, @validate.logicalScalar);
-    addParameter(pp, 'ReturnStd', true, @validate.logicalScalar);
-    addParameter(pp, 'ReturnMse', true, @validate.logicalScalar);
+    addParameter(ip, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
+    addParameter(ip, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addParameter(ip, {'ReturnObjFuncContribs', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, {'ObjFunc', 'Objective'}, 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'})));
+    addParameter(ip, {'ObjFuncRange', 'ObjectiveSample'}, @all, @(x) isnumeric(x) || isequal(x, @all));
+    addParameter(ip, {'Plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
+    addParameter(ip, 'Deviation', false, @validate.logicalScalar);
+    addParameter(ip, {'EvalTrends', 'DTrends', 'DTrend'}, logical.empty(1, 0));
+    addParameter(ip, 'Progress', false, @validate.logicalScalar);
+    addParameter(ip, 'Relative', true, @validate.logicalScalar);
+    addParameter(ip, {'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || validate.databank(x));
+    addParameter(ip, 'Multiply', [ ], @(x) isempty(x) || isstruct(x));
+    addParameter(ip, 'Simulate', false, @(x) isequal(x, false) || validate.nestedOptions(x));
+    addParameter(ip, 'Weighting', [ ], @isnumeric);
+    addParameter(ip, 'MeanOnly', false, @validate.logicalScalar);
+    addParameter(ip, 'ReturnStd', true, @validate.logicalScalar);
+    addParameter(ip, 'ReturnMse', true, @validate.logicalScalar);
 end  
-opt = parse(pp, varargin{:});
+opt = parse(ip, varargin{:});
 
 if isempty(opt.EvalTrends)
     opt.EvalTrends = ~opt.Deviation;

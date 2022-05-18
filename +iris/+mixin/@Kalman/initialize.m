@@ -184,8 +184,7 @@ return
                     end
                 end
                 PaInf = zeros(numXiB);
-                PaInf(~inxStable, ~inxStable) ...
-                    = scale * s.DIFFUSE_SCALE * eye(numUnitRoots);
+                PaInf(~inxStable, ~inxStable) = scale * s.DIFFUSE_SCALE * eye(numUnitRoots);
             end
         end
     end%

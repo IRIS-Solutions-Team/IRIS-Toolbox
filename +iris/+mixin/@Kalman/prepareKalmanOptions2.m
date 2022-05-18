@@ -15,7 +15,8 @@ arguments
     opt.FlatOutput (1, 1) logical = true
     opt.MatrixFormat (1, 1) string {validate.mustBeMatrixFormat} = "namedMatrix"
     opt.OutputData (1, :) string = "smooth"
-    opt.OutputDataAssignFunc = @hdataassign
+    opt.InternalAssignFunc = @hdataassign
+    opt.DiffuseScale (1, 1) double = iris.mixin.Kalman.DIFFUSE_SCALE
 
     opt.Anticipate (1, 1) logical = false
     opt.Ahead (1, 1) double = 1
@@ -76,7 +77,8 @@ if isempty(ip)
     addParameter(ip, "FlatOutput", true);
     addParameter(ip, "MatrixFormat", "namedMatrix");
     addParameter(ip, "OutputData", "smooth");
-    addParameter(ip, "OutputDataAssignFunc", @hdataassign);
+    addParameter(ip, "InternalAssignFunc", @hdataassign);
+    addParameter(ip, "DiffuseScale", iris.mixin.Kalman.DIFFUSE_SCALE);
 
     addParameter(ip, "Anticipate", false);
     addParameter(ip, "Ahead", 1);

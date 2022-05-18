@@ -11,7 +11,7 @@ persistent pp outsideOptimOptions
 if isempty(pp)
     pp = extend.InputParser('model.estimate');
     pp.KeepUnmatched = true;
-    pp.addRequired('Model', @(x) isa(x, 'model'));
+    pp.addRequired('Model', @(x) isa(x, 'model') && countVariants(x)==1);
     pp.addRequired('InputDatabank', @(x) isempty(x) || validate.databank(x));
     pp.addRequired('Range', @(x) isempty(x) || validate.properRange(x));
     pp.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
@@ -49,9 +49,8 @@ if isempty(outsideOptimOptions)
     outsideOptimOptions.addParameter('TolFun', 1e-6, @(x) validate.numericScalar(x, 0, Inf));
     outsideOptimOptions.addParameter('TolX', 1e-6, @(x) validate.numericScalar(x, 0, Inf));
 end
-pp.parse(this, inputDatabank, range, varargin{:});
+opt = parse(pp, this, inputDatabank, range, varargin{:});
 estimationSpecs = pp.Results.EstimationSpecs;
-opt = pp.Options;
 outsideOptimOptions.parse(pp.UnmatchedInCell{:});
 
 if isempty(inputDatabank) || isempty(fieldnames(inputDatabank))
@@ -139,7 +138,7 @@ if opt.EvalDataLik>0 && (nargout>=5 || likOpt.Relative)
     argin = struct( ...
         'InputData', inputArray, ...
         'OutputData', [ ], ...
-        'OutputDataAssignFunc', [ ], ...
+        'InternalAssignFunc', [ ], ...
         'Options', likOpt ...
     );
     [~, regOutp] = likOpt.minusLogLikFunc(this, argin);
