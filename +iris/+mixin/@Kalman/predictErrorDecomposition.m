@@ -133,7 +133,6 @@ if s.NeedsSimulate
 end
 
 
-
 %=========================================================================
 for t = 2 : numExtdPeriods
     %
@@ -171,8 +170,6 @@ for t = 2 : numExtdPeriods
         % where `K0(t<-t-1) = Ta(t<-t-1)*K1(t-1)`
         %
         a = Ta*a + K0*pe;
-
-        % Adjust the prediction step for the constant vector
         if ~isempty(ka)
             a = a + ka(:, min(t, end));
         end
@@ -337,8 +334,6 @@ for t = 2 : numExtdPeriods
 
 end
 %=========================================================================
-
-
 
 switch status
     case 'condNumberFailed'

@@ -7,7 +7,9 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-classdef Rectangular < handle
+classdef Rectangular ...
+    < matlab.mixin.Copyable
+
     properties
         Method
         PlanMethod

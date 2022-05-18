@@ -38,6 +38,7 @@ end
 %
 updateTargetsWithinFrame(data);
 
+
 numBlocks = numel(blazer.Blocks);
 for i = 1 : numBlocks
     block__ = blazer.Blocks{i};
@@ -65,8 +66,10 @@ for i = 1 : numBlocks
     end
 end 
 
+
 hereReportEvaluatesToNaN( );
 hereCleanupTerminal( );
+
 
 return
 
@@ -130,7 +133,7 @@ return
     function hereCleanupTerminal( )
         %(
         setFrame(rect, [firstColumnFrame, lastColumnFrame]);
-        resetStackedNoShocks(rect);        
+        resetStackedNoShocks(rect);
         %)
     end%
 end%
