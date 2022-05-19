@@ -55,7 +55,7 @@ for i = 1 : numel(this.Id)
         if isempty(this.Contributions)
             c = repmat(this.Label(j), [1, s(2:end)]);
         else
-            c = utils.concomment(char(name), this.Contributions, inxLog(j));
+            c = string(name) + this.CONTRIBUTION_SIGN + string(this.Contributions);
         end
         outp.(name).Comment = c;
     end

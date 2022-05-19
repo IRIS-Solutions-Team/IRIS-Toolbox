@@ -110,7 +110,7 @@ s.nPred = max(numRuns, s.Ahead);
 
 % Pre-allocate output data
 if ~s.IsObjOnly
-    requestOutp( );
+    requestOutp();
 end
 
 % Pre-allocate the non-hdata output arguments
@@ -120,9 +120,10 @@ if opt.ReturnObjFuncContribs
 end
 obj = nan(nObj, numRuns);
 
+
 if ~s.IsObjOnly
     % Regular (non-hdata) output arguments
-    regOutp = struct( );
+    regOutp = struct();
     regOutp.F = nan(ny, ny, numExtendedPeriods, numRuns);
     regOutp.Pe = nan(ny, numExtendedPeriods, s.nPred);
     regOutp.V = nan(1, numRuns);
@@ -209,16 +210,16 @@ for run = 1 : numRuns
         s.Rf = R(1:nf, 1:ne, :);
         s.Ra = R(nf+1:end, 1:ne, :);
         if opt.Deviation
-            s.ka = [ ];
-            s.kf = [ ];
-            s.d  = [ ];
+            s.ka = [];
+            s.kf = [];
+            s.d  = [];
         else
             s.kf = k(1:nf, :);
             s.ka = k(nf+1:end, :);
             s.d  = d(:, :);
         end
 
-        s = hereGetReducedFormCovariance(this, v, s, opt);
+        s = here_getReducedFormCovariance(this, v, s, opt);
     end
 
     % Stop immediately if solution is not available; report NaN solutions
@@ -234,7 +235,7 @@ for run = 1 : numRuns
     if nz==0 && (numOutlik>0 || opt.EvalTrends)
         [s.D, s.X] = evalTrendEquations(this, opt.OutOfLik, s.g, run);
     else
-        s.D = [ ];
+        s.D = [];
         s.X = zeros(ny, 0, numExtendedPeriods);
     end
     % Subtract fixed deterministic trends from measurement variables
@@ -252,7 +253,7 @@ for run = 1 : numRuns
     % filtered shocks can differ from its tunes (unless the user specifies zero
     % std dev).
     if s.IsOverrideMean
-        [s.d, s.ka, s.kf] = hereOverrideMean(s, R, opt);
+        [s.d, s.ka, s.kf] = here_overrideMean(s, R, opt);
     end
 
     % Index of available observations.
@@ -297,7 +298,7 @@ for run = 1 : numRuns
 
     % Prediction errors unadjusted (uncorrected) for estimated init cond
     % and DTrends; these are needed for contributions.
-    if s.retCont
+    if s.returnContribs
         s.peUnc = s.pe;
     end
 
@@ -306,41 +307,43 @@ for run = 1 : numRuns
     if s.NumEstimInit>0 || numOutlik>0
         est = [s.delta; s.init];
         if s.storePredict
-            [s.pe, s.a0, s.y0, s.ydelta] = ...
-                kalman.correct(s, s.pe, s.a0, s.y0, est, s.d);
+            [s.pe, s.a0, s.y0, s.ydelta] = iris.mixin.Kalman.correct(s, s.pe, s.a0, s.y0, est, s.d);
         else
-            s.pe = kalman.correct(s, s.pe, [ ], [ ], est, [ ]);
+            s.pe = iris.mixin.Kalman.correct(s, s.pe, [], [], est, []);
         end
-    end
-
-
-    % Prediction step for fwl variables
-    if s.retPredMse || s.retPredStd || s.retFilter || s.retSmooth
-        s = hereGetPredXfMse(s);
-    end
-    if s.retPred || s.retSmooth
-        % Predictions for forward-looking transtion variables have been already
-        % filled in in non-linear predictions
-        if ~s.NeedsSimulate
-            s = hereGetPredXfMean(s);
-        end
-    end
-
-
-    % Add k-step-ahead predictions
-    if s.Ahead>1 && s.storePredict
-        s = hereAhead(s);
     end
 
 
     %
-    % Update
+    % Add k-step-ahead predictions for alpha
+    %
+    if s.Ahead>1 && s.storePredict
+        s = here_ahead(s);
+    end
+
+
+    % Prediction step for xif and xib
+    if s.retPredMse || s.retPredStd || s.retFilter || s.retSmooth
+        s = here_predictXifMse(s);
+    end
+    if s.retPred || s.retFilter || s.retSmooth
+        % Predictions for xif have been already filled in in non-linear predictions
+        if ~s.NeedsSimulate
+            s = here_getPredXfMean(s);
+        end
+        % Predictions for xib
+        s = here_predictXibMean(s);
+    end
+
+
+    %
+    % Updating step
     %
     if s.retFilter
         if s.retFilterStd || s.retFilterMse
-            s = hereGetFilterMse(s);
+            s = here_getUpdateMse(s);
         end
-        s = hereGetFilterMean(s);
+        s = here_getUpdateMean(s);
     end
 
 
@@ -349,18 +352,19 @@ for run = 1 : numRuns
     %
     if s.retSmooth
         if s.retSmoothStd || s.retSmoothMse
-            s = hereGetSmoothMse(s);
+            s = here_getSmoothMse(s);
         end
-        s = hereGetSmoothMean(s);
+        s = here_getSmoothMean(s);
     end
 
 
     %
-    % Contributions of Measurement Variables
+    % Contributions of measurement variables
     %
-    if s.retCont
-        s = kalman.cont(s);
+    if s.returnContribs
+        s = iris.mixin.Kalman.contributions(s);
     end
+
 
     %
     % Return Requested Data
@@ -376,14 +380,14 @@ for run = 1 : numRuns
     % Populate hdata output arguments
     %
     if s.retPred
-        returnPred( );
+        here_returnPred();
     end
     if s.retFilter
-        returnUpdate( );
+        returnUpdate();
     end
     s.SampleCov = NaN;
     if s.retSmooth
-        returnSmooth( );
+        here_returnSmooth();
     end
 
     %
@@ -435,36 +439,36 @@ return
 
 
 
-    function requestOutp( )
-        s.retPredMean   = isfield(outputData, 'M0');
-        s.retPredMse    = isfield(outputData, 'Mse0');
-        s.retPredStd    = isfield(outputData, 'S0');
-        s.retPredCont   = isfield(outputData, 'C0');
+    function requestOutp()
+        s.retPredMean = isfield(outputData, 'M0');
+        s.retPredMse = isfield(outputData, 'Mse0');
+        s.retPredStd = isfield(outputData, 'S0');
+        s.retPredCont = isfield(outputData, 'C0');
         s.retFilterMean = isfield(outputData, 'M1');
-        s.retFilterMse  = isfield(outputData, 'Mse1');
-        s.retFilterStd  = isfield(outputData, 'S1');
+        s.retFilterMse = isfield(outputData, 'Mse1');
+        s.retFilterStd = isfield(outputData, 'S1');
         s.retFilterCont = isfield(outputData, 'C1');
         s.retSmoothMean = isfield(outputData, 'M2');
-        s.retSmoothMse  = isfield(outputData, 'Mse2');
-        s.retSmoothStd  = isfield(outputData, 'S2');
+        s.retSmoothMse = isfield(outputData, 'Mse2');
+        s.retSmoothStd = isfield(outputData, 'S2');
         s.retSmoothCont = isfield(outputData, 'C2');
-        s.retPred       = s.retPredMean || s.retPredStd || s.retPredMse;
-        s.retFilter     = s.retFilterMean || s.retFilterStd || s.retFilterMse;
-        s.retSmooth     = s.retSmoothMean || s.retSmoothStd || s.retSmoothMse;
-        s.retCont       = s.retPredCont || s.retFilterCont || s.retSmoothCont;
-        s.storePredict  = s.Ahead>1 || s.retPred || s.retFilter || s.retSmooth;
+        s.retPred = s.retPredMean || s.retPredStd || s.retPredMse;
+        s.retFilter = s.retFilterMean || s.retFilterStd || s.retFilterMse;
+        s.retSmooth = s.retSmoothMean || s.retSmoothStd || s.retSmoothMse;
+        s.returnContribs = s.retPredCont || s.retFilterCont || s.retSmoothCont;
+        s.storePredict = s.Ahead>1 || s.retPred || s.retFilter || s.retSmooth;
     end%
 
 
 
 
-    function returnPred( )
+    function here_returnPred()
         % Return pred mean.
         % Note that s.y0, s.f0 and s.a0 include k-sted-ahead predictions if
         % ahead>1.
         if s.retPredMean
             if nz>0
-                s.y0 = s.y0([ ], :, :, :);
+                s.y0 = s.y0([], :, :, :);
             end
             yy = permute(s.y0, [1, 3, 4, 2]);
             yy(:, 1, :) = NaN;
@@ -473,23 +477,24 @@ return
             end
             % Convert `alpha` predictions to `xb` predictions. The
             % `a0` may contain k-step-ahead predictions in 3rd dimension.
-            bb = permute(s.a0, [1, 3, 4, 2]);
+            b0 = permute(s.a0, [1, 3, 4, 2]);
             if ~isempty(s.U)
                 if size(s.U, 3)==1
-                    for ii = 1 : size(bb, 3)
-                        bb(:, :, ii) = s.U*bb(:, :, ii);
+                    for ii = 1 : size(b0, 3)
+                        b0(:, :, ii) = s.U*b0(:, :, ii);
                     end
                 else
                     for tt = 2 : s.NumExtdPeriods
                         U = s.U(:, :, min(tt, end));
-                        for ii = 1 : size(bb, 3)
-                            bb(:, tt, ii) = U*bb(:, tt, ii);
+                        for ii = 1 : size(b0, 3)
+                            b0(:, tt, ii) = U*b0(:, tt, ii);
                         end
                     end
                 end
             end
+            s.b0 = b0;
             ff = permute(s.f0, [1, 3, 4, 2]);
-            xx = [ff; bb];
+            xx = [ff; b0];
             % Shock predictions are always zeros.
             ee = zeros(ne, numExtendedPeriods, s.Ahead);
             % Set predictions for the pre-sample period to `NaN`.
@@ -501,18 +506,18 @@ return
                 ee = ee + repmat(s.OverrideMean, 1, 1, s.Ahead);
             end
             % Do not use lags in the prediction output data.
-            outputData.M0 = outputDataAssignFunc(outputData.M0, predCols, {yy, xx, ee, [ ], [ ]});
+            outputData.M0 = outputDataAssignFunc(outputData.M0, predCols, {yy, xx, ee, [], []});
         end
 
         % Return pred std
         if s.retPredStd
             if nz>0
-                s.Dy0 = s.Dy0([ ], :);
+                s.Dy0 = s.Dy0([], :);
             end
             % Do not use lags in the prediction output data
             outputData.S0 = outputDataAssignFunc( ...
                 outputData.S0, run, ...
-                {s.Dy0*s.V, [s.Df0; s.Db0]*s.V, s.De0*s.V, [ ], [ ]} ...
+                {s.Dy0*s.V, [s.Df0; s.Db0]*s.V, s.De0*s.V, [], []} ...
             );
         end
 
@@ -524,7 +529,7 @@ return
         % Return PE contributions to prediction step.
         if s.retPredCont
             if nz>0
-                s.yc0 = s.yc0([ ], :, :, :);
+                s.yc0 = s.yc0([], :, :, :);
             end
             yy = s.yc0;
             yy = permute(yy, [1, 3, 2, 4]);
@@ -533,18 +538,17 @@ return
             xx(:, 1, :) = NaN;
             ee = s.ec0;
             ee = permute(ee, [1, 3, 2, 4]);
-            gg = [nan(ng, 1), zeros(ng, numExtendedPeriods-1)];
-            outputData.predcont = outputDataAssignFunc(outputData.predcont, ':', {yy, xx, ee, [ ], gg});
+            outputData.C0 = outputDataAssignFunc(outputData.C0, ':', {yy, xx, ee, [], []});
         end
     end%
 
 
 
 
-    function returnUpdate( )
+    function returnUpdate()
         if s.retFilterMean
             if nz>0
-                s.y1 = s.y1([ ], :);
+                s.y1 = s.y1([], :);
             end
             yy = s.y1;
             % Add fixed deterministic trends back to measurement vars.
@@ -558,13 +562,13 @@ return
                 ee = ee + s.OverrideMean;
             end
             % Do not use lags in the filter output data.
-            outputData.M1 = outputDataAssignFunc(outputData.M1, run, {yy, xx, ee, [ ], s.g});
+            outputData.M1 = outputDataAssignFunc(outputData.M1, run, {yy, xx, ee, [], s.g});
         end
 
         % Return PE contributions to filter step.
         if s.retFilterCont
             if nz>0
-                s.yc1 = s.yc1([ ], :, :, :);
+                s.yc1 = s.yc1([], :, :, :);
             end
             yy = s.yc1;
             yy = permute(yy, [1, 3, 2, 4]);
@@ -572,17 +576,18 @@ return
             xx = permute(xx, [1, 3, 2, 4]);
             ee = s.ec1;
             ee = permute(ee, [1, 3, 2, 4]);
-            gg = [nan(ng, 1), zeros(ng, numExtendedPeriods-1)];
-            outputData.filtercont = outputDataAssignFunc(outputData.filtercont, ':', {yy, xx, ee, [ ], gg});
+            outputData.C1 = outputDataAssignFunc(outputData.C1, ':', {yy, xx, ee, [], []});
         end
 
         % Return filter std.
         if s.retFilterStd
             if nz>0
-                s.Dy1 = s.Dy1([ ], :);
+                s.Dy1 = s.Dy1([], :);
             end
-            outputData.S1 = outputDataAssignFunc( outputData.S1, run, ...
-                                                  {s.Dy1*s.V, [s.Df1;s.Db1]*s.V, [ ], [ ], s.Dg1*s.V} );
+            outputData.S1 = outputDataAssignFunc( ...
+                outputData.S1, run, ...
+                {s.Dy1*s.V, [s.Df1;s.Db1]*s.V, [], [], s.Dg1*s.V} ...
+            );
         end
 
         % Return filtered MSE for `xb`.
@@ -595,10 +600,10 @@ return
 
 
 
-    function returnSmooth( )
+    function here_returnSmooth()
         if s.retSmoothMean
             if nz>0
-                s.y2 = s.y2([ ], :);
+                s.y2 = s.y2([], :);
             end
             yy = s.y2;
             yy(:, 1:s.LastSmooth) = NaN;
@@ -621,25 +626,27 @@ return
                 end
             end
             ee(:, 1:s.LastSmooth) = preNaN;
-            outputData.M2 = outputDataAssignFunc(outputData.M2, run, {yy, xx, ee, [ ], s.g});
+            outputData.M2 = outputDataAssignFunc(outputData.M2, run, {yy, xx, ee, [], s.g});
         end
 
         % Return smooth std
         if s.retSmoothStd
             if nz>0
-                s.Dy2 = s.Dy2([ ], :);
+                s.Dy2 = s.Dy2([], :);
             end
             s.Dy2(:, 1:s.LastSmooth) = NaN;
             s.Df2(:, 1:s.LastSmooth) = NaN;
             s.Db2(:, 1:s.LastSmooth-1) = NaN;
-            outputData.S2 = outputDataAssignFunc( outputData.S2, run, ...
-                                                  {s.Dy2*s.V, [s.Df2; s.Db2]*s.V, [ ], [ ], s.Dg2*s.V} );
+            outputData.S2 = outputDataAssignFunc( ...
+                outputData.S2, run, ...
+                {s.Dy2*s.V, [s.Df2; s.Db2]*s.V, [], [], s.Dg2*s.V} ...
+            );
         end
 
         % Return PE contributions to smooth step
         if s.retSmoothCont
             if nz>0
-                s.yc2 = s.yc2([ ], :, :, :);
+                s.yc2 = s.yc2([], :, :, :);
             end
             yy = s.yc2;
             yy = permute(yy, [1, 3, 2, 4]);
@@ -649,8 +656,7 @@ return
             ee = permute(ee, [1, 3, 2, 4]);
             size3 = size(xx, 3);
             size4 = size(xx, 4);
-            gg = [nan(ng, 1, size3, size4), zeros(ng, numExtendedPeriods-1, size3, size4)];
-            outputData.C2 = outputDataAssignFunc(outputData.C2, ':', {yy, xx, ee, [ ], gg});
+            outputData.C2 = outputDataAssignFunc(outputData.C2, ':', {yy, xx, ee, [], []});
         end
 
         inxObjFunc = s.InxObjFunc & any(s.yindex, 1);
@@ -667,8 +673,8 @@ end%
 
 
 
-function s = hereAhead(s)
-    % hereAhead  K-step ahead predictions and prediction errors for K>2 when
+function s = here_ahead(s)
+    % here_ahead  K-step ahead predictions and prediction errors for K>2 when
     % requested by caller. This function must be called after correction for
     % diffuse initial conditions and/or out-of-lik params has been made.
 
@@ -738,9 +744,24 @@ function s = hereAhead(s)
 end%
 
 
+function s = here_predictXibMean(s)
+    %(
+    s.b0 = s.a0;
+    numPeriods = size(s.a0, 2);
+    numPages = size(s.a0, 3);
+    if ~isempty(s.U)
+        for t = 1 : numPeriods
+            U = s.U(:, :, min(t, end));
+            for n = 1 : numPages
+                s.b0(:, t, n) = U * s.a0(:, t, n);
+            end
+        end
+    end
+    %)
+end%
 
 
-function s= hereGetPredXfMse(s)
+function s = here_predictXifMse(s)
     nf = s.NumF;
     nb = s.NumB;
     numExtendedPeriods = s.NumExtdPeriods;
@@ -766,8 +787,8 @@ end%
 
 
 
-function s = hereGetPredXfMean(s)
-% hereGetPredXfMean  Point prediction step for fwl transition variables. The
+function s = here_getPredXfMean(s)
+% here_getPredXfMean  Point prediction step for fwl transition variables. The
 % MSE matrices are computed in `xxSmoothMse` only when needed.
     if s.NumF==0
         return
@@ -786,7 +807,7 @@ end%
 
 
 
-function s = hereGetFilterMean(s)
+function s = here_getUpdateMean(s)
     nf = s.NumF;
     nb = s.NumB;
     ne = s.NumE;
@@ -818,12 +839,14 @@ function s = hereGetFilterMean(s)
 
     for t = lastObs : -1 : 1
         j = yInx(:, t);
-        d = [ ];
+        d = [];
         if ~isempty(s.d)
             d = s.d(:, min(t, end));
         end
-        [y1, f1, b1, e1] = kalman.oneStepBackMean( s, t, s.pe(:, 1, t, 1), s.a0(:, 1, t, 1), ...
-                                                   s.f0(:, 1, t, 1), s.ydelta(:, 1, t), d, 0 );
+        [y1, f1, b1, e1] = iris.mixin.Kalman.oneStepBackMean( ...
+            s, t, s.pe(:, 1, t, 1), s.a0(:, 1, t, 1), ...
+            s.f0(:, 1, t, 1), s.ydelta(:, 1, t), d, 0 ...
+        );
         s.y1(~j, t) = y1(~j, 1);
         if nf>0
             s.f1(:, t) = f1;
@@ -836,8 +859,8 @@ end%
 
 
 
-function s = hereGetFilterMse(s)
-    % hereGetFilterMse  MSE matrices for updating step.
+function s = here_getUpdateMse(s)
+    % here_getUpdateMse  MSE matrices for updating step.
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
@@ -864,7 +887,7 @@ function s = hereGetFilterMse(s)
     end
 
     for t = lastObs : -1 : 2
-        [Pb1, Dy1, Df1, Db1] = hereOneStepBackMse(s, t, 0);
+        [Pb1, Dy1, Df1, Db1] = here_oneStepBackMse(s, t, 0);
         if s.retFilterMse
             s.Pb1(:, :, t) = Pb1;
         end
@@ -879,8 +902,8 @@ end%
 
 
 
-function s = hereGetSmoothMse(s)
-    % hereGetSmoothMse  Smoother for MSE matrices of all variables
+function s = here_getSmoothMse(s)
+    % here_getSmoothMse  Smoother for MSE matrices of all variables
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
@@ -908,7 +931,7 @@ function s = hereGetSmoothMse(s)
 
     N = 0;
     for t = lastObs : -1 : lastSmooth
-        [Pb2, Dy2, Df2, Db2, N] = hereOneStepBackMse(s, t, N);
+        [Pb2, Dy2, Df2, Db2, N] = here_oneStepBackMse(s, t, N);
         if s.retSmoothMse
             s.Pb2(:, :, t) = Pb2;
         end
@@ -923,8 +946,8 @@ end%
 
 
 
-function s = hereGetSmoothMean(s)
-    % hereGetSmoothMean  Kalman smoother for point estimates of all variables.
+function s = here_getSmoothMean(s)
+    % here_getSmoothMean  Kalman smoother for point estimates of all variables.
     nb = s.NumB;
     nf = s.NumF;
     ne = s.NumE;
@@ -953,12 +976,14 @@ function s = hereGetSmoothMean(s)
     r = zeros(nb, 1);
     for t = lastObs : -1 : lastSmooth
         j = s.yindex(:, t);
-        d = [ ];
+        d = [];
         if ~isempty(s.d)
             d = s.d(:, min(t, end));
         end
-        [y2, f2, b2, e2, r] = kalman.oneStepBackMean( s, t, s.pe(:, 1, t, 1), s.a0(:, 1, t, 1), ...
-                                                      s.f0(:, 1, t, 1), s.ydelta(:, 1, t), d, r );
+        [y2, f2, b2, e2, r] = iris.mixin.Kalman.oneStepBackMean( ...
+            s, t, s.pe(:, 1, t, 1), s.a0(:, 1, t, 1), ...
+            s.f0(:, 1, t, 1), s.ydelta(:, 1, t), d, r ...
+        );
         s.y2(~j, t) = y2(~j, 1);
         if nf>0
             s.f2(:, t) = f2;
@@ -971,7 +996,7 @@ end%
 
 
 
-function [D, Ka, Kf] = hereOverrideMean(s, R, opt)
+function [D, Ka, Kf] = here_overrideMean(s, R, opt)
     ne = s.NumE;
     ny = s.NumY;
     nf = s.NumF;
@@ -1001,7 +1026,7 @@ end%
 
 
 
-function s = hereGetReducedFormCovariance(this, v, s, opt)
+function s = here_getReducedFormCovariance(this, v, s, opt)
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
@@ -1076,8 +1101,8 @@ end%
 %
 
 
-function [Pb, Dy, Df, Db, N] = hereOneStepBackMse(s, t, N)
-% hereOneStepBackMse  One-step backward smoothing for MSE matrices
+function [Pb, Dy, Df, Db, N] = here_oneStepBackMse(s, t, N)
+% here_oneStepBackMse  One-step backward smoothing for MSE matrices
     ny = s.NumY;
     nf = s.NumF;
     lastSmooth = s.LastSmooth;
@@ -1089,7 +1114,7 @@ function [Pb, Dy, Df, Db, N] = hereOneStepBackMse(s, t, N)
     Fj = F(inxObs, inxObs);
 
     if isempty(s.U)
-        U = [ ];
+        U = [];
     else
         U = s.U(:, :, min(end, t));
     end
@@ -1105,11 +1130,7 @@ function [Pb, Dy, Df, Db, N] = hereOneStepBackMse(s, t, N)
     Pa0NPa0 = Pa0*N*Pa0;
     Pa = Pa0 - Pa0NPa0;
     Pa = (Pa + Pa')/2;
-    if isempty(U)
-        Pb = Pa;
-    else
-        Pb = kalman.pa2pb(U, Pa);
-    end
+    Pb = iris.mixin.Kalman.PbFromPa(U, Pa);
     Db = diag(Pb);
 
     if nf>0 && t>lastSmooth

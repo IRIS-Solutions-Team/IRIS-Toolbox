@@ -116,7 +116,7 @@ if ~s.IsObjOnly
         s.Dy0 = nan(numY, numExtdPeriods);
         s.Db0 = nan(numB, numExtdPeriods);
     end
-    if s.retCont
+    if s.returnContribs
         s.MtFi = nan(numOutlik+numEstimInit, numY, numExtdPeriods);
     end
 end
@@ -344,7 +344,7 @@ switch status
     otherwise % status=='ok'
         % Evaluate common variance scalar, out-of-lik parameters, fixed init
         % conditions, and concentrated likelihood function.
-        [obj, V, est, Pest] = kalman.oolik(logdetF, peFipe, MtFiM, MtFipe, numObs, opt);
+        [obj, V, est, Pest] = iris.mixin.Kalman.likelihood(logdetF, peFipe, MtFiM, MtFipe, numObs, opt);
 end
 
 
@@ -358,7 +358,7 @@ s.PDelta = Pest(1:numOutlik, 1:numOutlik);
 s.init = est(numOutlik+1:end, :);
 s.V = V;
 
-if ~s.IsObjOnly && s.retCont
+if ~s.IsObjOnly && s.returnContribs
     if isEst
         s.sumMtFiM = sum(MtFiM, 3);
     else
@@ -419,13 +419,13 @@ return
         if s.retPredStd || s.retFilterStd || s.retSmoothStd || s.retFilterMse || s.retSmoothMse
             if needsTransform
                 U = s.U(:, :, min(t, end));
-                s.Pb0(:, :, t) = kalman.pa2pb(U, P);
+                s.Pb0(:, :, t) = iris.mixin.Kalman.PbFromPa(U, P);
             end
             s.Dy0(:, t) = diag(s.F(:, :, t));
             s.Db0(:, t) = diag(s.Pb0(:, :, t));
         end
 
-        if isEst && s.retCont
+        if isEst && s.returnContribs
             s.MtFi(:, xy, t) = MtFi;
         end
     end%

@@ -31,8 +31,13 @@ classdef (Abstract) Kalman
 
 
     methods (Static)
-        varargout = initialize(varargin)
         varargout = combineStdcorr(varargin)
+        varargout = contributions(varargin)
+        varargout = correct(varargin)
+        varargout = initialize(varargin)
+        varargout = likelihood(varargin)
+        varargout = oneStepBackMean(varargin)
+        varargout = PbFromPa(varargin)
         varargout = predictErrorDecomposition(varargin)
         varargout = smootherForVAR(varargin)
     end

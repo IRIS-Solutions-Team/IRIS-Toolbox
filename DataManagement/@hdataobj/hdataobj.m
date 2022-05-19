@@ -8,6 +8,12 @@
 
 classdef hdataobj<handle
 
+    properties (Constant)
+        CONTRIBUTION_FIXED = "Fixed"
+        CONTRIBUTION_SIGN = " <--[+] "
+    end
+
+
     properties
         Data = struct( )
         Range = double.empty(1, 0)
@@ -67,6 +73,9 @@ classdef hdataobj<handle
                 end
 
                 hdatainit(callerObj, this);
+                if ~isempty(this.Contributions)
+                    this.Contributions = [string(this.Contributions), this.CONTRIBUTION_FIXED];
+                end
 
                 % Initialize all variables in each block with NaN arrays. Max lag is
                 % computed for each block.

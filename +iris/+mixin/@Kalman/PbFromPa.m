@@ -1,13 +1,13 @@
-function P = pa2pb(U, P)
-% Pa2Pb  Convert MSE matrix of the alpha vector to MSE matrix of the vector of predetermined variables
+% PbFromPa  Convert MSE matrix of the alpha vector to MSE matrix of the vector of predetermined variables
 %
-% Backend IRIS function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function P = PbFromPa(U, P)
+
+if isempty(U)
+    return
+end
 
 Ut = transpose(U);
 for i = 1 : size(P, 3)

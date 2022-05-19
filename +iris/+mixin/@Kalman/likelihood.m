@@ -1,11 +1,9 @@
-function [objFunc, V, Est, PEst] = oolik(LogDetF, PeFiPe, MtFiM, MtFiPe, NObs, opt)
-% oolik  Estimate out-of-lik parameters and sum up log-likelihood function components
+% likelihood  Estimate out-of-lik parameters and sum up log-likelihood function components
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+
+function [objFunc, V, Est, PEst] = likelihood(logDetF, peFiPe, MtFiM, MtFiPe, numObs, opt)
 
 %#ok<*CTCH>
 
@@ -15,9 +13,9 @@ end
 
 %--------------------------------------------------------------------------
 
-sumNumObs = sum(NObs, 2);
-sumLogDetF = sum(LogDetF, 2);
-sumPeFiPe = sum(PeFiPe, 2);
+sumNumObs = sum(numObs, 2);
+sumLogDetF = sum(logDetF, 2);
+sumPeFiPe = sum(peFiPe, 2);
 sumMtFiM = sum(MtFiM, 3);
 sumMtFiPe = sum(MtFiPe, 2);
 isOutOfLik = ~isempty(sumMtFiM) && ~isempty(sumMtFiPe);
@@ -64,17 +62,17 @@ end
 % Objective Function Components
 %
 if isOutOfLik
-    PeFiPe = PeFiPe - Est.'*MtFiPe;
+    peFiPe = peFiPe - Est.'*MtFiPe;
 end
 if V~=1
-    LogDetF = LogDetF + NObs*log(V);
-    PeFiPe = PeFiPe / V;
+    logDetF = logDetF + numObs*log(V);
+    peFiPe = peFiPe / V;
 end
 sumObj = objFunc;
 if opt.ObjFunc==1
-    objFunc = (NObs*log2Pi + LogDetF + PeFiPe) / 2;
+    objFunc = (numObs*log2Pi + logDetF + peFiPe) / 2;
 else
-    objFunc = PeFiPe / 2;
+    objFunc = peFiPe / 2;
 end
 objFunc(1) = sumObj;
 

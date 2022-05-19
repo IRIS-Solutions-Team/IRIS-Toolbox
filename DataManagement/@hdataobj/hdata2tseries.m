@@ -8,7 +8,7 @@ function outp = hdata2tseries(this, varargin)
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES = TIME_SERIES_CONSTRUCTOR();
 
 
 %(
@@ -33,7 +33,7 @@ for i = 1 : numel(this.Id)
     if isempty(this.Id{i})
         continue
     end
-    
+
     realId = real(this.Id{i});
     imagId = imag(this.Id{i});
     maxLag = -min(imagId);
@@ -45,10 +45,10 @@ for i = 1 : numel(this.Id)
     end
     xStart = xRange(1);
     nXPer = length(xRange);
-    
+
     for j = sort(realId(imagId==0))
         name = this.Name{j};
-        
+
         if ~isfield(this.Data,name)
             continue
         end
@@ -59,19 +59,19 @@ for i = 1 : numel(this.Id)
         if ixLog(j)
             this.Data.(name) = real(exp(this.Data.(name)));
         end
-        
+
         % Create a new database entry
         outp.(name) = fill( TIME_SERIES, ...
                             this.Data.(name), ...
                             xStart );
         s = size(outp.(name).data);
-        if isempty(this.Contributions)            
+        if isempty(this.Contributions)
             c = repmat(this.Label(j), [1, s(2:end)]);
         else
-            c = utils.concomment(name, this.Contributions, ixLog(j));    
+            c = string(name) + this.CONTRIBUTION_SIGN + string(this.Contributions);
         end
         outp.(name).Comment = c;
-        
+
         % Free memory.
         this.Data.(name) = [ ];
     end
@@ -80,7 +80,7 @@ end
 if this.IncludeParam
     list = fieldnames(this.ParamDb);
     for i = 1 : numel(list)
-    	outp.(list{i}) = this.ParamDb.(list{i});
+        outp.(list{i}) = this.ParamDb.(list{i});
     end
 end
 

@@ -1,13 +1,11 @@
-function s = cont(s)
 % cont  Contributions of measurement variables to estimates of transition variables
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function s = contributions(s)
+
+addDeterministic = @(xc, x) cat(2, xc, x-sum(xc, 2));
 
 numY = size(s.Z, 1);
 numB = size(s.Ta, 1);
@@ -72,7 +70,7 @@ end
 
 if needsEstimate
     estc = pinv(s.sumMtFiM) * sumMtFiPec;
-    [pec, ac0, yc0, ydeltac] = kalman.correct(s, pec, ac0, yc0, estc, [ ]);
+    [pec, ac0, yc0, ydeltac] = iris.mixin.Kalman.correct(s, pec, ac0, yc0, estc, []);
 end
 
 for t = 2 : numExtPeriods
@@ -85,10 +83,10 @@ end
 
 s.ac0 = ac0;
 if s.retPredCont
-    s.yc0 = yc0;
-    s.fc0 = fc0;
-    s.bc0 = bc0;
-    s.ec0 = zeros(numE, numContribs, numExtPeriods);
+    s.yc0 = addDeterministic(yc0, s.y0);
+    s.fc0 = addDeterministic(fc0, s.f0);
+    s.bc0 = addDeterministic(bc0, s.b0);
+    s.ec0 = zeros(numE, numContribs+1, numExtPeriods);
 end
 
 %
@@ -106,16 +104,16 @@ if s.retFilterCont
     for t = lastObs : -1 : 2
         jy = yInx(:, t);
         [yc1temp, fc1(:, :, t), bc1(:, :, t), ec1(:, :, t)] ...
-            = kalman.oneStepBackMean(s, t, ...
+            = iris.mixin.Kalman.oneStepBackMean(s, t, ...
             pec(:, :, t), ac0(:, :, t), fc0(:, :, t), ydeltac(:, :, t), [ ], 0);
         if any(~jy)
             yc1(~jy, :, t) = yc1temp(~jy, :);
         end
     end
-    s.yc1 = yc1;
-    s.fc1 = fc1;
-    s.bc1 = bc1;
-    s.ec1 = ec1;
+    s.yc1 = addDeterministic(yc1, permute(s.y1, [1, 3, 2]));
+    s.fc1 = addDeterministic(fc1, permute(s.f1, [1, 3, 2]));
+    s.bc1 = addDeterministic(bc1, permute(s.b1, [1, 3, 2]));
+    s.ec1 = addDeterministic(ec1, permute(s.e1, [1, 3, 2]));
 end
 
 %
@@ -135,7 +133,7 @@ if s.retSmoothCont
     for t = lastObs : -1 : lastSmooth
         jy = yInx(:, t);
         [yc2temp, fc2(:, :, t), bc2(:, :, t), ec2(:, :, t), r] ...
-            = kalman.oneStepBackMean( ...
+            = iris.mixin.Kalman.oneStepBackMean( ...
                 s, t ...
                 , pec(:, :, t), ac0(:, :, t), fc0(:, :, t) ...
                 , ydeltac(:, :, t), [ ], r ...
@@ -144,10 +142,10 @@ if s.retSmoothCont
             yc2(~jy, :, t) = yc2temp(~jy, :);
         end
     end
-    s.yc2 = yc2;
-    s.fc2 = fc2;
-    s.bc2 = bc2;
-    s.ec2 = ec2;
+    s.yc2 = addDeterministic(yc2, permute(s.y2, [1, 3, 2]));
+    s.fc2 = addDeterministic(fc2, permute(s.f2, [1, 3, 2]));
+    s.bc2 = addDeterministic(bc2, permute(s.b2, [1, 3, 2]));
+    s.ec2 = addDeterministic(ec2, permute(s.e2, [1, 3, 2]));
 end
 
 end%

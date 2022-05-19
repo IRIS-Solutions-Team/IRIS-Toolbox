@@ -83,7 +83,7 @@ for i = 1 : numRuns
     inxToExclude = argin.Options.InxToExclude(:) | any(isnan(y), 2);
     nYIncl = sum(~inxToExclude);
     inxOfDiag = logical(eye(nYIncl));
-    
+
     if i<=nv
         [T, R, K, Z, H, W, U, Omg] = getSolutionMatrices(this, i, false); %#ok<ASGLU>
         [nx, nb] = size(T);
@@ -102,7 +102,7 @@ for i = 1 : numRuns
         H = H(~inxToExclude, :);
         Sa = R*Omg*transpose(R);
         Sy = H(~inxToExclude, :)*Omg*H(~inxToExclude, :).';
-        
+
         % Fourier transform of steady state
         isSteady = false;
         if ~argin.Options.Deviation
@@ -116,9 +116,9 @@ for i = 1 : numRuns
                 S = S.';
             end
         end
-        
+
     end
-        
+
     % Fourier transform of deterministic trends
     isTrendEquations = false;
     numOutlik = 0;
@@ -136,32 +136,32 @@ for i = 1 : numRuns
         end
         numOutlik = size(M, 2);
     end
-        
+
     % Subtract sstate trends from observations; note that fft(y-s)
     % equals fft(y) - fft(s).
     if ~argin.Options.Deviation && isSteady
         y = y - S;
     end
-    
+
     % Subtract deterministic trends from observations.
     if argin.Options.EvalTrends && isTrendEquations
         y = y - W;
     end
-    
+
     % Remove measurement variables inxToExcludeuded from likelihood by the user, or
     % those that have within-sample NaNs.
     y = y(~inxToExclude, :);
     y = y / sqrt(numPeriods);
-    
+
     M = M(~inxToExclude, :, :);
     M = M / sqrt(numPeriods);
-    
+
     L0 = zeros(1, numFreq+1);
     L1 = zeros(1, numFreq+1);
     L2 = zeros(numOutlik, numOutlik, numFreq+1);
     L3 = zeros(numOutlik, numFreq+1);
     numObs = zeros(1, numFreq+1);
-    
+
     pos = 0;
     for j = reshape(find(inxFreq), 1, [ ])
         pos = pos + 1;
@@ -170,21 +170,21 @@ for i = 1 : numRuns
         y__ = y(:, j);
         hereOneFrequency( );
     end
-    
-    [obj(:, i), V, Delta, PDelta] = kalman.oolik(L0, L1, L2, L3, numObs, opt);
-    
+
+    [obj(:, i), V, Delta, PDelta] = iris.mixin.Kalman.likelihood(L0, L1, L2, L3, numObs, opt);
+
     if s.isObjOnly
         continue
     end
-    
+
     regOutp.V(1, i) = V;
     regOutp.Delta(:, i) = Delta;
-    regOutp.PDelta(:, :, i) = PDelta;    
+    regOutp.PDelta(:, :, i) = PDelta;
 end
 
 return
-    
-    
+
+
     function hereOneFrequency( )
         numObs(1, 1+pos) = delta__*nYIncl;
         ZiW = Z / ((eye(size(T)) - T*exp(-1i*freq__)));

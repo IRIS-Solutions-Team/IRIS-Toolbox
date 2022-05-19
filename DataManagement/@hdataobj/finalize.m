@@ -8,7 +8,7 @@ function outputDb = finalize(Y, options)
 TIME_SERIES = Series();
 MEAN_OUTPUT = "Mean";
 MEDIAN_OUTPUT = "Median";
-BREAKDOWN_OUTPUT = "Std";
+BREAKDOWN_OUTPUT = "Contribs";
 STD_OUTPUT = "Std";
 MSE_OUTPUT = "MSE";
 
