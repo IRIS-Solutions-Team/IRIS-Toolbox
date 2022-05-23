@@ -29,39 +29,23 @@ info = struct();
 
 
 %
-% Resolve Kalman filter opt and create a time-varying LinearSystem if
-% necessary
+% Resolve Kalman filter options.
 %
-[opt, objectToRun] = prepareKalmanOptions2(this, baseRange, varargin{:});
+opt = prepareKalmanOptions2(this, baseRange, varargin{:});
+
 
 %
 % Get measurement and exogenous variables
 %
-if ~isempty(inputDb)
-    requiredNames = string.empty(1, 0);
-    inxYG = getIndexByType(this.Quantity, 1, 5);
-    optionalNames = string(this.Quantity.Name(inxYG));
-    allowedNumeric = @all;
-    logNames = optionalNames(this.Quantity.InxLog(inxYG));
-    context = "";
-    dbInfo = checkInputDatabank( ...
-        this, inputDb, baseRange ...
-        , requiredNames, optionalNames ...
-        , allowedNumeric, logNames ...
-        , context ...
-    );
-    inputArray = requestData( ...
-        this, dbInfo, inputDb ...
-        , [requiredNames, optionalNames], baseRange ...
-    );
-    inputArray = ensureLog(this, dbInfo, inputArray, [requiredNames, optionalNames]);
-else
-    inputArray = nan(ny+ng, numBasePeriods);
-end
+inputArray = local_prepareInputArray(this, inputDb, baseRange);
 numPages = size(inputArray, 3);
 
+
+%
 % Check option conflicts
-here_checkConflicts( );
+%
+here_checkConflicts();
+
 
 nz = nnz(this.Quantity.IxObserved);
 extendedStart = dater.plus(baseRange(1), -1);
@@ -90,13 +74,13 @@ outputData = struct( );
 
 %=========================================================================
 kalmanInputs = struct( ...
+    'FilterRange', baseRange, ...
     'InputData', inputArray, ...
     'OutputData', outputData, ...
     'InternalAssignFunc', @hdataassign, ...
     'Options', opt ...
 );
-
-[minusLogLik, regOutp, outputData] = implementKalmanFilter(objectToRun, kalmanInputs); %#ok<ASGLU>
+[minusLogLik, regOutp, outputData] = implementKalmanFilter(this, kalmanInputs); %#ok<ASGLU>
 %=========================================================================
 
 
@@ -300,6 +284,34 @@ function local_validateInputDb(x)
         return
     end
     error("Input value must be a databank or empty.");
+    %)
+end%
+
+
+function inputArray = local_prepareInputArray(this, inputDb, baseRange)
+    %(
+    if ~isempty(inputDb) && ~isempty(fieldnames(inputDb))
+        requiredNames = string.empty(1, 0);
+        inxYG = getIndexByType(this.Quantity, 1, 5);
+        numYG = nnz(inxYG);
+        optionalNames = string(this.Quantity.Name(inxYG));
+        allowedNumeric = @all;
+        logNames = optionalNames(this.Quantity.InxLog(inxYG));
+        context = "";
+        dbInfo = checkInputDatabank( ...
+            this, inputDb, baseRange ...
+            , requiredNames, optionalNames ...
+            , allowedNumeric, logNames ...
+            , context ...
+        );
+        inputArray = requestData( ...
+            this, dbInfo, inputDb ...
+            , [requiredNames, optionalNames], baseRange ...
+        );
+        inputArray = ensureLog(this, dbInfo, inputArray, [requiredNames, optionalNames]);
+    else
+        inputArray = nan(numYG, numBasePeriods);
+    end
     %)
 end%
 

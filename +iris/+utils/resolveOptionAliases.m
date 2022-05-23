@@ -1,16 +1,5 @@
 function opt = resolveOptionAliases(opt, notAssigned, issueWarning)
 
-% >=R2019b
-%(
-arguments
-    opt (1, 1) struct
-    notAssigned
-    issueWarning (1, 1) logical
-end
-%)
-% >=R2019b
-
-
 allNames = reshape(string(fieldnames(opt)), 1, []);
 inx = contains(allNames, "__");
 
@@ -31,7 +20,9 @@ for n = allNames(inx)
         ], aliasName, primaryName);
     end
     opt.(primaryName) = opt.(n);
-    if issueWarning
+    if isequal(issueWarning, true) ...
+        || (isstring(issueWarning) && ismember(aliasName, issueWarning)) ...
+        || (isa(issueWarning, 'Except') && ~ismember(aliasName, issueWarning.List))
         exception.warning([
             "Legacy:Option"
             "Option '%s' is obsolete and will be removed in the future. "

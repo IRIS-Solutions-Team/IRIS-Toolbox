@@ -1,4 +1,3 @@
-function [trend, rem] = ellone(this, order, lambda, varargin)
 % ellone  L1 norm trend filtering
 %{
 % ## Syntax ##
@@ -43,17 +42,19 @@ function [trend, rem] = ellone(this, order, lambda, varargin)
 
 %--------------------------------------------------------------------------
 
+function [trend, rem] = ellone(this, order, lambda, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable.ellone');
     addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable') && isnumeric(x.Data));
     addRequired(pp, 'order', @(x) isequal(x, 1) || isequal(x, 2));
-    addRequired(pp, 'Lambda', @(x) isnumeric(x) && isscalar(x) && x>0);
+    addRequired(pp, 'lambda', @(x) isnumeric(x) && isscalar(x) && x>0);
 
     addParameter(pp, 'Range', Inf, @validate.range);
 end
 parse(pp, this, order, lambda, varargin{:});
-opt = pp.Options;
+opt = pp.Results;
 
 %--------------------------------------------------------------------------
 

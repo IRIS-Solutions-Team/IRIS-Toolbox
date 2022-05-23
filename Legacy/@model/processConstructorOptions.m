@@ -5,9 +5,10 @@ persistent ip ipOptimal ipParser
 if isempty(ip) || isempty(ipParser) || isempty(ipOptimal)
     ip = extend.InputParser();
     ip.KeepUnmatched = true;
-    ip.PartialMatching = false;
+    % ip.PartialMatching = false;
     addParameter(ip, 'AllowExogenous', false, @validate.logicalScalar);
-    addParameter(ip, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
+    addParameter(ip, 'Context', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
+        addParameter(ip, 'Assign__Context', [ ]);
     addParameter(ip, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(ip, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, "ThrowErrorAs", "error", @(x) ismember(lower(x), ["error", "warning"]));
@@ -41,13 +42,16 @@ if isempty(ip) || isempty(ipParser) || isempty(ipOptimal)
     ipOptimal = extend.InputParser();
     ipOptimal.KeepUnmatched = true;
     ipOptimal.PartialMatching = false;
-    addParameter(ipOptimal, 'MultiplierPrefix', 'Mu_', @ischar);
+    addParameter(ipOptimal, 'MultiplierPrefix', 'Mu_', @validate.textScalar);
     % addParameter(ipOptimal, 'NonNegative', cell.empty(1, 0), @(x) isempty(x) || (validate.stringScalar(x) && isvarname(x)));
-    addParameter(ipOptimal, 'Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
+    addParameter(ipOptimal, 'Type', 'Discretion', @(x) validate.anyText(x, "consistent", "commitment", "discretion"));
 end
-%)
 
 opt = parse(ip, varargin{:});
+%)
+
+opt = iris.utils.resolveOptionAliases(opt, [], Except("Assign"));
+
 
 % Optimal policy options
 optimalOpt = parse(ipOptimal, opt.Optimal{:});
@@ -63,23 +67,23 @@ end
 
 % Control parameters
 unmatched = ipParser.UnmatchedInCell;
-if ~isstruct(opt.Assign)
-    if iscell(opt.Assign)
+if ~isstruct(opt.Context)
+    if iscell(opt.Context)
         newAssign = struct( );
-        for i = 1 : 2 : numel(opt.Assign)
-            name = strip(erase(string(opt.Assign{i}), "="));
-            value = opt.Assign{i+1};
+        for i = 1 : 2 : numel(opt.Context)
+            name = strip(erase(string(opt.Context{i}), "="));
+            value = opt.Context{i+1};
             newAssign.(name) = value;
         end
-        opt.Assign = newAssign;
+        opt.Context = newAssign;
     else
-        opt.Assign = struct( );
+        opt.Context = struct();
     end
 end
 
 % Legacy options
 for i = 1 : 2 : numel(unmatched)
-    opt.Assign.(unmatched{i}) = unmatched{i+1};
+    opt.Context.(unmatched{i}) = unmatched{i+1};
 end
 
 end%

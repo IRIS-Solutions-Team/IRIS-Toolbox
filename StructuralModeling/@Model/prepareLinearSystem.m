@@ -1,111 +1,16 @@
 
-%{
----
-title: prepareLinearSystem
----
-
-# `prepareLinearSystem`
-
-{== Prepare LinearSystem object from Model object ==}
-
-
-## Syntax
-
-    ls = prepareLinearSystem(model, filterRange, override, multiply, ___)
-
-
-## Input arguments
-
-__`model`__ [ Model ]
->
-> Model from which a time-varying linear system, `ls`, will be created for
-> the time-varying parameters and stdcorrs.
-> 
-
-__`filterRange`__ [ Dater ]
-> 
-> Date range for which the time-varying linear system `ls` will be created.
-> 
-
-__`override`__ [ struct | empty ]
-> 
-> Databank with time-varying parameters and stdcorrs.
-> 
-
-__`multiply`__ [ struct | empty ]
->
-> Databank with time-varying mutlipliers that will be applied to stdcorrs.
-> 
-
-## Output arguments
-
-__`ls`__ [ LinearSystem ]
->
-> A time-varying linear system object that can be used to run a time-varying
-> Kalman filter.
->
-
-
-## Options
-
-__`Variant=1`__ [ numeric ]
->
-> Select this parameter variant if the input `model` has multiple variants.
->
-
-__`ReturnEarly=false`__ [ `true` | `false` ]
->
-> Return early with `ls = []` whenever no time-varying parameters or
-> stdcorrs are specified in `override` or `multiply`
->
-
-## Description
-
-
-## Examples
-
-%}
-
-%---8<---
-
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 
-% >=R2019b
-%(
-function [obj, initCond] = prepareLinearSystem(this, filterRange, override, multiply, opt)
+function [obj, initCond] = prepareLinearSystem(this, filterRange, override, multiply, variant, returnEarly, steadyOpt, checkSteadyOpt, solveOpt)
 
-    arguments
-        this Model
+    obj = [];
+    initCond = {};
 
-        filterRange (1, :) double {validate.mustBeProperRange}
-        override = []
-        multiply = []
-
-        opt.Variant (1, 1) double = 1
-        opt.ReturnEarly (1, 1) logical = false
+    if isempty(override) || ~validate.databank(override) || isempty(fieldnames(override))
+        return
     end
-%)
-% >=R2019b
-
-
-% <=R2019a
-%{
-function [obj, initCond] = prepareLinearSystem(this, filterRange, override, multiply, varargin)
-
-    persistent ip
-    if isempty(ip)
-        ip = inputParser(); 
-        addParameter(ip, 'Variant', 1);
-        addParameter(ip, 'ReturnEarly', false);
-    end
-    parse(ip, varargin{:});
-    opt = ip.Results;
-%}
-% <=R2019a
-
 
     inxP = getIndexByType(this.Quantity, 4);
     numP = nnz(inxP);
@@ -113,29 +18,27 @@ function [obj, initCond] = prepareLinearSystem(this, filterRange, override, mult
     baseStart = filterRange(1);
     baseEnd = filterRange(end);
     numBasePeriods = round(baseEnd - baseStart + 1);
-    v = opt.Variant;
+    v = variant;
 
-    here_checkNumVariants( )
+    here_checkNumVariants();
 
     %
     % If no parameters are time varying, do not create LinearSystem and return
     % immediately
     %
     overrideParams = varyParams(this, filterRange, override);
-    if isempty(overrideParams) && opt.ReturnEarly
-        obj = [ ];
-        initCond = { };
+    if isempty(overrideParams) && returnEarly
         return
     end
 
     %
-    % Initialize LinearSystem
+    % Initialize a LinearSystem object
     %
     [numY, numXi, numXib, numXif, numE, ~, ~, numV, numW] = sizeSolution(this);
     inxV = [true(1, numV), false(1, numW)];
     inxW = [false(1, numV), true(1, numW)];
 
-    defaultParams = this.Variant.Values(1, inxP, v);
+    defaultParams = reshape(this.Variant.Values(1, inxP, v), [], 1);
     if ~isempty(overrideParams) && size(overrideParams, 2)<numBasePeriods
         overrideParams(:, end+1) = defaultParams;
     end
@@ -144,7 +47,7 @@ function [obj, initCond] = prepareLinearSystem(this, filterRange, override, mult
 
     optionsHere = struct('Clip', true, 'Presample', false);
     [overrideStdCorr, ~, multiplyStdCorr] = varyStdCorr(this, filterRange, override, multiply, optionsHere);
-    defaultStdCorr = this.Variant.StdCorr(1, :, v);
+    defaultStdCorr = reshape(this.Variant.StdCorr(1, :, v), [], 1);
     if ~isempty(overrideStdCorr) && size(overrideStdCorr, 2)<numBasePeriods
         overrideStdCorr(:, end+1) = defaultStdCorr;
     end
@@ -179,12 +82,11 @@ return
 
     function here_checkNumVariants( )
         if countVariants(this)~=1
-            thisError = [
-                "Model:SingleVariantOnly"
+            exception.error([
+                "Model"
                 "LinearSystem object can be prepared only from Model object "
                 "with a single parameter variant."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
         end
     end%
 
@@ -196,7 +98,7 @@ return
         keepTriangular = false;
 
         tempModel = this;
-        tempModel.Update = here_createUpdateStruct( );
+        tempModel.Update = here_createUpdateStruct();
 
         [defaultMatrices{1:6}] = getSolutionMatrices(this, v, keepExpansion, keepTriangular);
         defaultMatrices{2} = defaultMatrices{2}(:, inxV);
@@ -228,9 +130,9 @@ return
                 update.PosOfStdCorr = double.empty(1, 0);
                 update.Values = this.Variant.Values(1, :, v);
                 update.StdCorr = this.Variant.StdCorr(1, :, v);
-                update.Steady = prepareSteady(this, "run", false);
-                update.CheckSteady = prepareCheckSteady(this, "run", false);
-                update.Solve = prepareSolve(this, "silent", true);
+                update.Steady = prepareSteady(this, steadyOpt{:});
+                update.CheckSteady = prepareCheckSteady(this, checkSteadyOpt{:});
+                update.Solve = prepareSolve(this, "silent", true, solveOpt{:});
             end%
     end%
 
@@ -266,6 +168,7 @@ return
         s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
         s.DIFFUSE_SCALE = this.DIFFUSE_SCALE;
         s.OBJ_FUNC_PENALTY = this.OBJ_FUNC_PENALTY;
+
         requiredForward = 0;
         [T, R, k, Z, H, d, s.U, Zb, s.InxV, s.InxW, s.NumUnitRoots, s.InxInit] = getIthKalmanSystem(this, v, requiredForward);
         [numXi, numXiB] = size(T);
@@ -280,7 +183,7 @@ return
         init = 'Steady';
         unitRootInitials = 'ApproxDiffuse';
         s = iris.mixin.Kalman.initialize(s, init, unitRootInitials);
-        initCond = {s.InitMean, s.InitMseReg, s.InitMseInf};
+        initCond = {s.InitMean, s.InitMseReg, s.InitMseInf, s.NumEstimInit};
     end%
 end%
 
@@ -303,7 +206,7 @@ function [override, equalsDefault, equalsPrevious] = local_overrideAndMultiply(o
             override(inxNaN, t) = default(inxNaN);
         end
         if any(~inxNaN)
-            equalsDefault(t) = false;
+            equalsDefault(t) = all(override(~inxNaN, t)==default(~inxNaN));
         end
         if t<=size(multiply, 2)
             inxMultiply = ~isnan(multiply(:, t));

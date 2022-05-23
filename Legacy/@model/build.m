@@ -5,7 +5,7 @@
 
 function this = build(this, opt)
 
-asgn = opt.Assign;
+context = opt.Context;
 
 % Assign user comment if it is non-empty, otherwise use what has been
 % found in the model code.
@@ -75,7 +75,7 @@ numObserved = nnz(this.Quantity.IxObserved);
 numQuants = numel(this.Quantity);
 defaultFloor = 0;
 preallocateFunc = getPreallocateFunc(this);
-numVariants = locallyGetNumVariants(this.Quantity, asgn);
+numVariants = locallyGetNumVariants(this.Quantity, context);
 this.Variant = model.component.Variant( ...
     numVariants, this.Quantity, this.Vector, lenExpansion, numHashed, numObserved, ...
     defaultStd, defaultFloor, preallocateFunc ...
@@ -94,7 +94,7 @@ this.Variant.Values(1, inxZero.Level, :) = 0;
 % Assign from input database; this must be done after creating
 % this.Variant and assigning default zeros
 %
-this = assign(this, asgn);
+this = assign(this, context);
 
 
 %
@@ -110,17 +110,17 @@ end%
 % Local functions
 %
 
-function numVariants = locallyGetNumVariants(quantity, asgn)
+function numVariants = locallyGetNumVariants(quantity, context)
     %(
     numVariants = 1;
-    if ~isempty(asgn) && isstruct(asgn) 
+    if ~isempty(context) && isstruct(context) 
         % Check number of alternative parametrizations in input database.
-        listFields = fieldnames(asgn);
+        listFields = fieldnames(context);
         ell = lookup(quantity, listFields);
         listFields(isnan(ell.PosName) & isnan(ell.PosStdCorr)) = [ ];
         for n = reshape(string(listFields), 1, [])
-            if isnumeric(asgn.(n))
-                numVariants(end+1) = numel(asgn.(n));
+            if isnumeric(context.(n))
+                numVariants(end+1) = numel(context.(n));
             end
         end
         numVariants = max(numVariants);

@@ -6,7 +6,7 @@
 
 % >=R2019b
 %(
-function [opt, objectToRun] = prepareKalmanOptions2(this, range, opt)
+function opt = prepareKalmanOptions2(this, range, opt)
 
 arguments
     this iris.mixin.Kalman
@@ -61,6 +61,10 @@ arguments
         opt.Std__Override = []
 
     opt.Multiply {validate.mustBeDatabankOrEmpty} = []
+
+    opt.Steady (1, :) cell = {"run", false}
+    opt.CheckSteady (1, :) cell = {"run", false}
+    opt.Solve (1, :) cell = {"run", true}
 end
 %)
 % >=R2019b
@@ -68,7 +72,7 @@ end
 
 % <=R2019a
 %{
-function [opt, objectToRun] = prepareKalmanOptions2(this, range, varargin)
+function opt = prepareKalmanOptions2(this, range, varargin)
 
 persistent ip
 if isempty(ip)
@@ -123,6 +127,10 @@ if isempty(ip)
         addParameter(ip, "Std__Override", []);
 
     addParameter(ip, "Multiply", []);
+
+    addParameter(ip, "Steady", {"run", false});
+    addParameter(ip, "CheckSteady", {"run", false});
+    addParameter(ip, "Solve", {"run", true});
 end
 opt = parse(ip, varargin{:});
 %}
@@ -146,12 +154,6 @@ numPeriods = round(endRange - startRange + 1);
 
 
 opt.ReturnMedian = local_resolveMedianOption(this, opt.ReturnMedian);
-
-
-%
-% Resolve Override, creating time varying LinearSystem object if necessary
-%
-timeVarying = here_resolveTimeVarying( );
 
 
 %
@@ -365,40 +367,7 @@ if ~isequal(opt.Simulate, false)
     here_prepareSimulateSystemProperty( );
 end
 
-
-if isempty(timeVarying)
-    objectToRun = this;
-else
-    objectToRun = timeVarying;
-end
-
-
 return
-
-    function timeVarying = here_resolveTimeVarying( )
-        %(
-        timeVarying = [ ];
-        if ~isa(this, 'Model')
-            return
-        end
-
-        if isempty(opt.Override) || ~validate.databank(opt.Override) || isempty(fieldnames(opt.Override))
-            return
-        end
-
-        [timeVarying, initCond] = prepareLinearSystem( ...
-            this, range, opt.Override, opt.Multiply ...
-            , "variant", 1 ...
-            , "returnEarly", true ...
-        );
-        if ~isempty(timeVarying)
-            opt.Override = [];
-            opt.Multiply = [];
-            opt.Initials = initCond;
-        end
-        %)
-    end%
-
 
     function here_checkNaNInit( )
         %(

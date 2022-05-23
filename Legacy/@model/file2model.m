@@ -11,6 +11,7 @@ function [this, opt] = file2model(this, modelSource, opt, preparserOpt, parserOp
 this.IsLinear = opt.Linear;
 this.IsGrowth = opt.Growth;
 
+
 %
 % __Run preparser__
 %
@@ -22,7 +23,7 @@ this.IsGrowth = opt.Growth;
 ] ...
 = parser.Preparser.parse( ...
     modelSource, [ ] ...
-    , "assigned", opt.Assign ...
+    , "assigned", opt.Context ...
     , "saveAs", opt.SavePreparsed ...
     , preparserOpt{:} ...
 );
@@ -38,7 +39,7 @@ export(this);
 
 d = struct( );
 for n = reshape(string(controls), 1, [ ])
-    d.(n) = opt.Assign.(n);
+    d.(n) = opt.Context.(n);
 end
 this.PreparserControl = d;
 
@@ -47,9 +48,10 @@ this.PreparserControl = d;
 % __Run model parser__
 %
 
-the = parser.TheParser('model', this.FileName, code, opt.Assign);
+the = parser.TheParser('model', this.FileName, code, opt.Context);
 [qty, eqn, euc, puc, collector, logSpecs] = parse(the, parserOpt);
-opt.Assign = the.AssignedDatabank;
+opt.Context = the.AssignedDatabank;
+
 
 %
 % Run model-specific postparser

@@ -59,7 +59,7 @@ __`Transform=[]`__ [ function | empty ]
 
 ### Customize chart captions
 
-__`CaptionFromComment=false`__  [ `true` | `false` ]
+__`Autocaption=false`__  [ `true` | `false` ]
 >
 > If chart caption is missing, use the time series comments to create the
 > captions.
@@ -75,7 +75,7 @@ __`ShowFormulas=false`__ [ `true` | `false` ]
 > Add formulas from the input strings to the chart captions; the formula is
 > always used for the chart caption whenever the caption is not supplied in
 > the input string and the time series does not have a non-empty comment
-> (or `CaptionFromComment=false`).
+> (or `Autocaption=false`).
 >
 
 __`ShowTransform=false`__ [ `true` | `false` ]
@@ -130,7 +130,8 @@ __`TitleSettings={}`__ [ cell ]
 %}
 
 
-classdef (CaseInsensitiveProperties=true) Chartpack < handle
+classdef (CaseInsensitiveProperties=true) Chartpack ...
+    < matlab.mixin.Copyable
 
     properties
         Charts (1, :) databank.chartpack.Chart = databank.chartpack.Chart.empty(1, 0)
@@ -140,7 +141,8 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         Extra = []
         Transform {validate.mustBeScalarOrEmpty} = []
         NewLine (1, 1) string = "//"
-        CaptionFromComment (1, 1) logical = false
+        CaptionFromComment = []
+        Autocaption (1, 1) logical = false
         ShowFormulas (1, 1) logical = false
         ShowTransform (1, 1) logical = false
         ShowFigure (1, 1) double = Inf
@@ -189,6 +191,11 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
         end%
 
 
+        function this = plus(this, varargin)
+            this = add(this, varargin{:});
+        end%
+
+
         function this = le(this, varargin)
             this = clear(this);
             this = add(this, varargin{:});
@@ -208,6 +215,12 @@ classdef (CaseInsensitiveProperties=true) Chartpack < handle
                 x = {x};
             end
             this.YLine = x;
+        end%
+
+
+        function this = set.CaptionFromComment(this, x)
+            this.Autocaption = x;
+            this.CaptionFromComment = x;
         end%
     end
 

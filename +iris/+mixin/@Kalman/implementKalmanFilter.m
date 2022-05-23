@@ -33,9 +33,27 @@ outputData = argin.OutputData;
 outputDataAssignFunc = argin.InternalAssignFunc;
 opt = argin.Options;
 
+
 if ~isfield(opt, 'Initials') && isfield(opt, 'Init')
     opt.Initials = opt.Init;
 end
+
+
+timeVarying = [];
+initials = [];
+
+%{
+range = argin.FilterRange;
+[timeVarying, initials] = prepareLinearSystem( ...
+    this, range, opt.Override, opt.Multiply, 1, true ...
+    , opt.Steady, opt.CheckSteady, opt.Solve ...
+);
+
+if ~isempty(timeVarying)
+    opt.Override = [];
+    opt.Multiply = [];
+end
+%}
 
 [ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);
 nv = countVariants(this);
@@ -266,20 +284,27 @@ for run = 1 : numRuns
     % Initialize mean and MSE
     % Determine number of init cond estimated as fixed unknowns
     %
-    if iscell(opt.Initials)
-        init__ = cell(size(opt.Initials));
-        for i = 1 : numel(init__)
-            init__{i} = double(opt.Initials{i}(:, :, min(end, run)));
+    if ~isempty(initials)
+        s.InitMean = initials{1};
+        s.InitMseReg = initials{2};
+        s.InitMseInf = initials{3};
+        s.NumEstimInit = initials{4};
+    else
+        if iscell(opt.Initials)
+            init__ = cell(size(opt.Initials));
+            for i = 1 : numel(init__)
+                init__{i} = double(opt.Initials{i}(:, :, min(end, run)));
+            end
+        else
+            init__ = opt.Initials;
         end
-    else
-        init__ = opt.Initials;
+        if isnumeric(opt.UnitRootInitials)
+            initUnit__ = double(opt.UnitRootInitials(:, :, min(end, run)));
+        else
+            initUnit__ = opt.UnitRootInitials;
+        end
+        s = iris.mixin.Kalman.initialize(s, init__, initUnit__);
     end
-    if isnumeric(opt.UnitRootInitials)
-        initUnit__ = double(opt.UnitRootInitials(:, :, min(end, run)));
-    else
-        initUnit__ = opt.UnitRootInitials;
-    end
-    s = iris.mixin.Kalman.initialize(s, init__, initUnit__);
 
     %
     % Prediction step
