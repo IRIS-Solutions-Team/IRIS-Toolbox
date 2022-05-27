@@ -51,39 +51,39 @@
 %     x = comment(x, "Comment")
 %
 %     x =
-% 
+%
 %         Series object: 2-by-2
 %         Class of Data: double
-% 
+%
 %         1: 0.28521     0.67068
 %         2: 0.91586     0.78549
 
 %         "Dates"    "Comment"    "Comment"
-% 
+%
 %         User data: empty
-% 
+%
 %     x = comment(x, ["Comment 1", "Comment 2"])
-% 
+%
 %     x =
-% 
+%
 %         Series object: 2-by-2
 %         Class of Data: double
-% 
+%
 %         1: 0.28521     0.67068
 %         2: 0.91586     0.78549
 %
 %         "Dates"    "Comment 1"    "Comment 2"
-% 
+%
 %         User Data: empty
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
-function varargout = comment(this, newComment)
-
 % >=R2019b
 %(
+function varargout = comment(this, newComment)
+
 arguments
     this TimeSubscriptable
 
@@ -109,15 +109,15 @@ newComment = ip.Results.newComment;
 
 
 if isequal(newComment, @get)
-    
+
     % __Get comments__
-    
+
     varargout{1} = this.Comment;
-    
+
 else
-    
+
     % __Set comments__
-    
+
     if isa(newComment, 'TimeSubscriptable')
         newComment = newComment.Comment;
     end
@@ -125,7 +125,7 @@ else
     this.Comment = strings([1, sizeData(2:end)]);
     this.Comment(:) = string(newComment);
     varargout{1} = this;
-    
+
 end
 
 end%
