@@ -41,22 +41,31 @@ end
 % non-empty setting.
 %
 
+invalid = string.empty(1, 0);
 for n = forceSpecsNames
     value = specs.(n);
     if isempty(value)
         continue
-    end
-    if isequal(value, true)
+    elseif isequal(value, true)
         if ~isfield(store, n)
             store = locallyInitializeSpec(store, n);
         end
-    else
+    elseif isequal(value, false)
         if isfield(store, n)
             store = rmfield(store, n)
         end
+    else
+        invalid(end+1) = n;
     end
 end
-            
+
+if ~isempty(invalid)
+    exception.error([
+        "X13"
+        "Invalid value of this X13 top-level specs: %s "
+    ], invalid);
+end
+
 code = string.empty(0, 1);
 for n = reshape(string(fieldnames(store)), 1, [ ])
     code = [code; n + "{"; store.(n); "}"; " "];
