@@ -87,7 +87,7 @@ function varargout = comment(this, newComment)
 arguments
     this TimeSubscriptable
 
-    newComment {locallyValidateNewComment} = @get
+    newComment {local_validateNewComment} = @get
 end
 %)
 % >=R2019b
@@ -95,15 +95,11 @@ end
 
 % <=R2019a
 %{
-function varargout = comment(this, varargin)
+function varargout = comment(this, newComment)
 
-persistent ip
-if isempty(ip)
-    ip = inputParser();
-    addOptional(ip, "newComment", @get);
+if nargin<2
+    newComment = @get;
 end
-parse(ip, varargin{:});
-newComment = ip.Results.newComment;
 %}
 % <=R2019a
 
@@ -134,7 +130,7 @@ end%
 % Local validators
 %
 
-function locallyValidateNewComment(value)
+function local_validateNewComment(value)
     %(
     if isequal(value, @get) || validate.text(value) || isa(value, 'TimeSubscriptable')
         return
