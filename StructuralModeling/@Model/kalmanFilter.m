@@ -98,7 +98,7 @@ end
 % Postprocess regular (non-hdata) output arguments; update the std
 % parameters in the model object if `Relative=' true`
 %
-info = postprocessKalmanOutput(this, regOutp, extRange, opt);
+[info, this] = postprocessKalmanOutput(this, regOutp, extRange, opt);
 info.MinusLogLik = minusLogLik;
 
 

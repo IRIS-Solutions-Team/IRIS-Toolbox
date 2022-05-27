@@ -1,6 +1,6 @@
 % postprocessKalmanOutput  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
 
-function info = postprocessKalmanOutput(this, regOutp, extdRange, opt)
+function [info, this] = postprocessKalmanOutput(this, regOutp, extdRange, opt)
 
 TIME_SERIES_TEMPLATE = Series();
 MEAN_OUTPUT = iris.mixin.Kalman.MEAN_OUTPUT;
