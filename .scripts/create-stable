@@ -1,0 +1,29 @@
+# f=$(find . -type f -name '*m' -exec ggrep -qP '>=R2019' {} ';' -a -print -a -quit)
+
+git switch bleeding
+
+echo > .scripts/logbook
+
+for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
+    echo $f
+    gsed -z -i 's/\r//g' $f
+    gsed -z -i 's/% >=R2019b[ ]*\n%(/% >=R2019b\n%{/g' $f
+    gsed -z -i 's/%)\n% >=R2019b[ ]*/%}\n% >=R2019b/g' $f
+    gsed -z -i 's/% <=R2019a[ ]*\n%{/% <=R2019a\n%(/g' $f
+    gsed -z -i 's/%}\n% <=R2019a[ ]*/%)\n% <=R2019a/g' $f
+    echo $f >> .scripts/logbook
+done
+
+
+git switch -C stable
+if [[ $(git branch --show-current) == "stable" ]]; then
+    git add -u .
+    git commit -m "Auto commit of stable branch"
+else
+    echo "Something's not right, we're not on stable"
+    exit 1
+fi
+
+
+git switch bleeding
+
