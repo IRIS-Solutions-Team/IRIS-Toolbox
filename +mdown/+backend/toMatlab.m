@@ -18,7 +18,7 @@ function output = toMatlab(input, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    ip = addParameter("Language", ["matlab", "iris"]);
+    addParameter(ip, "Language", ["matlab", "iris"]);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
