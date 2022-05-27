@@ -355,7 +355,7 @@ for i = find(~isnan(startDates))
     specs__.Series_Period = double(freq);
     specs__.Series_Data = double(data__);
 
-    info__ = struct( );
+    info__ = struct();
 
     %
     % Translate the specs struct into a specs code

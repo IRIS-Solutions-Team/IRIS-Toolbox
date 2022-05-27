@@ -16,7 +16,7 @@ for n = regularSpecsNames
         continue
     end
     if ~isfield(store, prefix)
-        store = locallyInitializeSpec(store, prefix);
+        store = local_initializeSpec(store, prefix);
     end
     if strlength(name)==0
         continue
@@ -25,9 +25,9 @@ for n = regularSpecsNames
     if isempty(value)
         continue
     end
-    isDate = locallyTellDate(n);
+    isDate = local_tellDate(n);
     [value, useBrackets] = x13.convertToString(value, isDate);
-    code = locallyEncodeAttribute(name, value, useBrackets);
+    code = local_encodeAttribute(name, value, useBrackets);
     store.(prefix) = [store.(prefix); code];
 end
 
@@ -48,7 +48,7 @@ for n = forceSpecsNames
         continue
     elseif isequal(value, true)
         if ~isfield(store, n)
-            store = locallyInitializeSpec(store, n);
+            store = local_initializeSpec(store, n);
         end
     elseif isequal(value, false)
         if isfield(store, n)
@@ -66,8 +66,18 @@ if ~isempty(invalid)
     ], invalid);
 end
 
+
+%
+% The Series specs must come first; otherwise, the order of the specs in
+% the specs file does not matter.
+%
+orderedSpecs = textual.fields(store);
+orderedSpecs(orderedSpecs=="Series") = [];
+orderedSpecs = ["Series", sort(orderedSpecs)];
+
+
 code = string.empty(0, 1);
-for n = reshape(string(fieldnames(store)), 1, [ ])
+for n = orderedSpecs
     code = [code; n + "{"; store.(n); "}"; " "];
 end
 code = join(code, newline);
@@ -78,12 +88,12 @@ end%
 % Local Functions
 %
 
-function store = locallyInitializeSpec(store, prefix)
+function store = local_initializeSpec(store, prefix)
     store.(prefix) = string.empty(0, 1);
 end%
 
 
-function code = locallyEncodeAttribute(name, value, useBrackets)
+function code = local_encodeAttribute(name, value, useBrackets)
     code = "    " + name + "=";
     if useBrackets
         code = code + "(";
@@ -102,7 +112,7 @@ function code = locallyEncodeAttribute(name, value, useBrackets)
 end%
 
 
-function isDate = locallyTellDate(name)
+function isDate = local_tellDate(name)
     isDate = endsWith(name, ["Start", "Span"], "IgnoreCase", true);
 end%
 
