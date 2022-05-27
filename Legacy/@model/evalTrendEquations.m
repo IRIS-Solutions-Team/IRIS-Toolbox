@@ -6,6 +6,18 @@
 
 function [W, dW] = evalTrendEquations(this, posOutlikParams, inputData, variantsRequested)
 
+% >=R2019b
+%(
+arguments
+    this
+    posOutlikParams (1, :) double
+    inputData (:, :, :) double
+    variantsRequested (1, :) double
+end
+%)
+% >=R2019b
+
+
 numPeriods = size(inputData, 2);
 numPages = size(inputData, 3);
 numParamsOut = numel(posOutlikParams);
@@ -80,6 +92,7 @@ return
 
 
     function exogenousData = here_prepareExogenousData( )
+        %(
         numRowsInputData = size(inputData, 1);
         if numRowsInputData==nnz(inxG)
             % Input data is exogenous variables only
@@ -88,6 +101,7 @@ return
             % Input data is a data matrix for all model variables
             exogenousData = inputData(inxG, :, :);
         end
+        %)
     end%
 end%
 
