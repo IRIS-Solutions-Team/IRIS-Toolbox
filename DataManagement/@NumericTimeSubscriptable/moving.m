@@ -7,7 +7,7 @@ function this = moving(this, legacyRange, opt)
 
 arguments
     this NumericTimeSubscriptable
-    legacyRange {validate.mustBeRange(range)} = Inf
+    legacyRange {validate.mustBeRange(legacyRange)} = Inf
 
     opt.Window {locallyValidateWindow(opt.Window)} = @auto
     opt.Function {validate.mustBeA(opt.Function, "function_handle")} = @mean
@@ -40,7 +40,7 @@ opt = ip.Results;
 
 
 % Legacy input argument
-if isequal(opt.Range, Inf) && ~isequal(range, Inf)
+if isequal(opt.Range, Inf) && ~isequal(legacyRange, Inf)
     opt.Range = legacyRange;
     exception.warning([
         "Legacy"
