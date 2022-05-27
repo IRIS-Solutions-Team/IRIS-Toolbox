@@ -28,13 +28,13 @@ function this = grow(this, operator, change, dates, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "shift", [], @isnumeric);
+    addOptional(ip, "shift__", [], @isnumeric);
 
     addParameter(ip, "Direction", "forward");
     addParameter(ip, "Shift", -1);
 end
 parse(ip, varargin{:});
-shift = ip.Results.shift;
+shift = ip.Results.shift__;
 opt = ip.Results;
 %}
 % <=R2019a
