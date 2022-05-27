@@ -23,7 +23,7 @@ function outputDb = control(func, model, inputDb, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "controlDb", struct([]));
+    addOptional(ip, "controlDb", struct([]), @isstruct);
     addParameter(ip, 'Range', Inf);
     addParameter(ip, 'AddToDatabank', @auto);
 end
