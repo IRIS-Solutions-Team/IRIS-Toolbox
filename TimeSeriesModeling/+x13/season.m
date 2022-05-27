@@ -161,7 +161,7 @@ persistent ip
 if isempty(ip)
     ip = inputParser();
 
-    addOptional(ip, "range", Inf, @isnumeric);
+    addOptional(ip, "range__", Inf, @isnumeric);
 
     addParameter(ip, "Output", "d11");
     addParameter(ip, "Display", false);
@@ -302,6 +302,7 @@ if isempty(ip)
     addParameter(ip, "Seats_SaveLog", string.empty(1, 0));
 end
 parse(ip, varargin{:});
+range = ip.Results.range__;
 opt = ip.Results;
 specs = ip.Results;
 %}
