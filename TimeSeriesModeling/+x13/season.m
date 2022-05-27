@@ -352,6 +352,7 @@ for i = find(~isnan(startDates))
     [specs__, flipSign__] = local_resolveAutoMode(data__, specs__);
     data__ = flipSign__*data__;
     data__ = local_adjustDataForNaNs(data__);
+
     specs__.Series_Start = double(start__);
     specs__.Series_Period = double(freq);
     specs__.Series_Data = double(data__);
@@ -717,11 +718,11 @@ function list = local_getRegularSpecsOrder()
     %(
     list = [
         "Series_Title"
-        "Series_Start"
+        "Series_Start" % Not in validator; *_Start is created for each *_Data 
         "Series_Span"
         "Series_ModelSpan"
         "Series_Data"
-        "Series_Period"
+        "Series_Period" % Not in validator
         "Series_Decimals"
         "Series_Precision"
         "Series_CompType"
@@ -807,7 +808,8 @@ function list = local_getRegularSpecsOrder()
         "Regression"
         "Regression_Variables"
         "Regression_TestAllEaster"
-        "Regression_Data"
+        "Regression_Data" 
+        "Regression_Start" % Not in validator; *_Start is created for each *_Data 
         "Regression_User"
         "Regression_UserType"
         "Regression_AicTest"
@@ -823,6 +825,7 @@ function list = local_getRegularSpecsOrder()
         "X11Regression"
         "X11Regression_Variables"
         "X11Regression_Data"
+        "X11Regression_Start" % Not in validator; *_Start is created for each *_Data 
         "X11Regression_User"
         "X11Regression_UserType"
         "X11Regression_AicTest"
