@@ -103,7 +103,7 @@ if isempty(ip)
         addParameter(ip, "OutOfLik__Outlik", []);
 
     addParameter(ip, "ObjFunc", "loglik");
-        addParameter(ip, "Objective__ObjFunc", [];);
+        addParameter(ip, "Objective__ObjFunc", []);
 
     addParameter(ip, "ReturnObjFuncContribs", false);
         addParameter(ip, "ObjDecomp__ReturnObjFuncContribs", []);
