@@ -36,6 +36,7 @@ if isempty(ip)
     addParameter(ip, "StartDate", "unbalanced");
     addParameter(ip, "EndDate", "unbalanced");
     addParameter(ip, "Frequency", @any);
+    addParameter(ip, "MultiFrequencies", true);
     addParameter(ip, "Filter", cell.empty(1, 0));
 end
 parse(ip, varargin{:});
