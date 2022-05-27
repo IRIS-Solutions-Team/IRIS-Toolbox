@@ -22,7 +22,7 @@ end
 %{
 function outputData = moving(inputData, freq, varargin)
 
-peristent ip
+persistent ip
 if isempty(ip)
     ip = inputParser();
     addOptional(ip, "window", @auto);
