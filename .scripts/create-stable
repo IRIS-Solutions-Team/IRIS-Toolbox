@@ -1,8 +1,14 @@
+
 # f=$(find . -type f -name '*m' -exec ggrep -qP '>=R2019' {} ';' -a -print -a -quit)
 
-git switch bleeding
+git switch --quiet bleeding
 
-echo > .scripts/logbook
+if ! git diff --quiet --exit-code || ! git diff --quiet --cached --exit-code; then
+    echo "Working tree not clean; stopping immediately"
+    exit 1
+fi
+
+echo > ./logbook
 
 for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
     echo $f
@@ -21,7 +27,7 @@ if [[ $(git branch --show-current) == "stable" ]]; then
     git commit -m "Auto commit of stable branch"
 else
     echo "Something's not right, we're not on stable"
-    exit 1
+    exit 2
 fi
 
 
