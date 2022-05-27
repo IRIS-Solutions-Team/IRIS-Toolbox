@@ -50,10 +50,12 @@ for n = forceSpecsNames
         if ~isfield(store, n)
             store = locallyInitializeSpec(store, n);
         end
-    else
+    elseif isequal(value, false)
         if isfield(store, n)
             store = rmfield(store, n)
         end
+    else
+        invalid(end+1) = n;
     end
 end
 

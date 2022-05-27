@@ -304,7 +304,7 @@ end
 parse(ip, varargin{:});
 range = ip.Results.range__;
 opt = ip.Results;
-specs = rmfield(ip.Results, ["Output", "Display", "Cleanup", "Range"]);
+specs = rmfield(ip.Results, ["Output", "Display", "Cleanup", "Range", "range__"]);
 %}
 % <=R2019a
 
