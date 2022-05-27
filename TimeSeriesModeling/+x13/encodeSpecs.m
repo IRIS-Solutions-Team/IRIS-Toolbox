@@ -36,7 +36,7 @@ end
 %
 % If the user specifies `specs.XXX = true`, then the spec XXX will be included
 % no matter what (even empty). If `specs.XXX = false`, then the spec will
-% neven be include (even when non-empty). If the `specs.XXX` is empty
+% never be included (even when non-empty). If the `specs.XXX` is empty
 % (default), then the inclusion is based on the presence of at least one
 % non-empty setting.
 %
@@ -46,7 +46,7 @@ for n = forceSpecsNames
     if isempty(value)
         continue
     end
-    if value
+    if isequal(value, true)
         if ~isfield(store, n)
             store = locallyInitializeSpec(store, n);
         end
