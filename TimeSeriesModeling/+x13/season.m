@@ -180,7 +180,7 @@ if isempty(ip)
     addParameter(ip, "Series_Type", string.empty(1, 0));
     addParameter(ip, "Series_Save", string.empty(1, 0));
 
-    addParameter(ip, "X11_Mode", @auto % string.empty(1, 0));
+    addParameter(ip, "X11_Mode", @auto, string.empty(1, 0));
     addParameter(ip, "X11_SeasonalMA", string.empty(1, 0));
     addParameter(ip, "X11_TrendMA", double.empty(1, 0));
     addParameter(ip, "X11_SigmaLim", double.empty(1, 0));
@@ -303,7 +303,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-specs = rmfield(opt, ["Output", "Display", "Cleanup"]);
+specs = ip.Results;
 %}
 % <=R2019a
 
