@@ -29,7 +29,9 @@ persistent ip
 if isempty(ip)
     ip = inputParser(); 
     addOptional(ip, "shift", [], @isnumeric);
+
     addParameter(ip, "Direction", "forward");
+    addParameter(ip, "Shift", -1);
 end
 parse(ip, varargin{:});
 shift = ip.Results.shift;
