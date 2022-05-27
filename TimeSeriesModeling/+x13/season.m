@@ -246,9 +246,9 @@ if isempty(ip)
     addParameter(ip, "Force_Save", string.empty(1, 0));
 
     addParameter(ip, "Forecast", logical.empty(1, 0));
-    addParameter(ip, "Forecast_MaxLead", double.empty(1, 0) % 0 to 120);
-    addParameter(ip, "Forecast_MaxBack", double.empty(1, 0) % 0 to 120);
-    addParameter(ip, "Forecast_Exclude", double.empty(1, 0) % 0 to 1000);
+    addParameter(ip, "Forecast_MaxLead", double.empty(1, 0));
+    addParameter(ip, "Forecast_MaxBack", double.empty(1, 0));
+    addParameter(ip, "Forecast_Exclude", double.empty(1, 0));
     addParameter(ip, "Forecast_LogNormal", logical.empty(1, 0));
     addParameter(ip, "Forecast_Print", string.empty(1, 0));
     addParameter(ip, "Forecast_Save", string.empty(1, 0));
@@ -261,10 +261,10 @@ if isempty(ip)
     addParameter(ip, "Regression_UserType", string.empty(1, 0));
     addParameter(ip, "Regression_AicTest", string.empty(1, 0));
     addParameter(ip, "Regression_AicDiff", double.empty(1, 0));
-    addParameter(ip, "Regression_PVAicTest", double.empty(1, 0) % 0 to 1);
+    addParameter(ip, "Regression_PVAicTest", double.empty(1, 0));
     addParameter(ip, "Regression_TLimit", double.empty(1, 0));
     addParameter(ip, "Regression_Chi2Test", logical.empty(1, 0));
-    addParameter(ip, "Regression_Chi2TestCV", double.empty(1, 0) % 0 to 1);
+    addParameter(ip, "Regression_Chi2TestCV", double.empty(1, 0));
     addParameter(ip, "Regression_Print", string.empty(1, 0));
     addParameter(ip, "Regression_Save", string.empty(1, 0));
     addParameter(ip, "Regression_SaveLog", string.empty(1, 0));
@@ -292,7 +292,7 @@ if isempty(ip)
     addParameter(ip, "Seats_HpCycle", logical.empty(1, 0));
     addParameter(ip, "Seats_NoAdmiss", logical.empty(1, 0));
     addParameter(ip, "Seats_QMax", double.empty(1, 0));
-    addParameter(ip, "Seats_RMod", double.empty(1, 0) % 0 to 1
+    addParameter(ip, "Seats_RMod", double.empty(1, 0));
     addParameter(ip, "Seats_Out", double.empty(1, 0));
     addParameter(ip, "Seats_StatSeas", logical.empty(1, 0));
     addParameter(ip, "Seats_TabTables", string.empty(1, 0));
