@@ -5,11 +5,11 @@
 
 % >=R2019b
 %(
-function varargout = season(inputSeries, range, opt, specs)
+function varargout = season(inputSeries, legacyRange, opt, specs)
 
 arguments
     inputSeries Series { local_validateInputSeries(inputSeries) }
-    range {validate.rangeInput} = Inf
+    legacyRange {validate.rangeInput} = Inf
 
     opt.Output (1, :) string = "d11"
     opt.Display (1, 1) logical = false
@@ -161,7 +161,7 @@ persistent ip
 if isempty(ip)
     ip = inputParser();
 
-    addOptional(ip, "range__", Inf, @isnumeric);
+    addOptional(ip, "legacyRange", Inf, @isnumeric);
 
     addParameter(ip, "Output", "d11");
     addParameter(ip, "Display", false);
@@ -302,15 +302,15 @@ if isempty(ip)
     addParameter(ip, "Seats_SaveLog", string.empty(1, 0));
 end
 parse(ip, varargin{:});
-range = ip.Results.range__;
+legacyRange = ip.Results.legacyRange;
 opt = ip.Results;
-specs = rmfield(ip.Results, ["Output", "Display", "Cleanup", "Range", "range__"]);
+specs = rmfield(ip.Results, ["Output", "Display", "Cleanup", "Range", "legacyRange"]);
 %}
 % <=R2019a
 
 
-if ~isequal(range, Inf) && isequal(opt.Range, Inf)
-    opt.Range = range;
+if ~isequal(legacyRange, Inf) && isequal(opt.Range, Inf)
+    opt.Range = legacyRange;
 end
 if ~isequal(opt.Range, Inf)
     [from, to] = resolveRange(inputSeries, opt.Range);

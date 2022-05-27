@@ -5,12 +5,12 @@
 
 % >=R2019b
 %(
-function varargout = implementFilter(order, inputSeries, range__, opt)
+function varargout = implementFilter(order, inputSeries, legacyRange, opt)
 
 arguments
     order (1, 1) double {mustBeInteger, mustBePositive}
     inputSeries NumericTimeSubscriptable
-    range__ (1, :) double {validate.mustBeRange} = Inf
+    legacyRange (1, :) double {validate.mustBeRange} = Inf
 
     opt.Range {validate.mustBeRange} = Inf
     opt.Change Series = Series.empty(0, 1)
@@ -39,7 +39,7 @@ order = double(order);
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "range__", Inf, @isnumeric);
+    addOptional(ip, "legacyRange", Inf, @isnumeric);
 
     addParameter(ip, "Range", Inf);
     addParameter(ip, "Change", Series.empty(0, 1));
@@ -56,7 +56,7 @@ if isempty(ip)
     addParameter(ip, "Swap", false);
 end
 parse(ip, varargin{:});
-range__ = ip.Results.range__;
+legacyRange = ip.Results.legacyRange;
 opt = ip.Results;
 %}
 % <=R2019a
@@ -65,12 +65,12 @@ opt = ip.Results;
 opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
-range = double(opt.Range);
-if isequal(range, Inf) && ~isequal(range__, Inf)
-    range = double(range__);
+opt.Range = double(opt.Range);
+if isequal(opt.Range, Inf) && ~isequal(legacyRange, Inf)
+    opt.Range = double(legacyRange);
 end
 
-if isempty(range)
+if isempty(opt.Range)
     varargout{1} = inputSeries.empty(inputSeries);
     varargout{2} = inputSeries.empty(inputSeries);
     varargout{3} = NaN;
@@ -117,7 +117,7 @@ end
 
 %--------------------------------------------------------------------------
 
-[inputStart, inputEnd] = resolveRange(inputSeries, range);
+[inputStart, inputEnd] = resolveRange(inputSeries, opt.Range);
 inputSeries = clip(inputSeries, inputStart, inputEnd);
 
 lambda = reshape(lambda, 1, [ ]);

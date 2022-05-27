@@ -3,11 +3,11 @@
 
 % >=R2019b
 %(
-function this = moving(this, range, opt)
+function this = moving(this, legacyRange, opt)
 
 arguments
     this NumericTimeSubscriptable
-    range {validate.mustBeRange(range)} = Inf
+    legacyRange {validate.mustBeRange(range)} = Inf
 
     opt.Window {locallyValidateWindow(opt.Window)} = @auto
     opt.Function {validate.mustBeA(opt.Function, "function_handle")} = @mean
@@ -25,22 +25,23 @@ function this = moving(this, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "range__", Inf, @isnumeric);
+    addOptional(ip, "legacyRange", Inf, @isnumeric);
+
     addParameter(ip, "Window", @auto);
     addParameter(ip, "Function", @mean);
     addParameter(ip, "Period", false);
     addParameter(ip, "Range", Inf);
 end
 parse(ip, varargin{:});
-range = ip.Results.range__;
+legacyRange = ip.Results.legacyRange;
 opt = ip.Results;
 %}
 % <=R2019a
 
 
 % Legacy input argument
-if ~isequal(range, Inf)
-    opt.Range = range;
+if isequal(opt.Range, Inf) && ~isequal(range, Inf)
+    opt.Range = legacyRange;
     exception.warning([
         "Legacy"
         "Date range as a second input argument is obsolete, and will be"

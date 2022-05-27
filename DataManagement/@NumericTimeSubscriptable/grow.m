@@ -5,14 +5,14 @@
 
 % >=R2019b
 %(
-function this = grow(this, operator, change, dates, shift, opt)
+function this = grow(this, operator, change, dates, legacyShift, opt)
 
 arguments
     this {local_validateLevelInput}
     operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "difflog", "roc", "pct"])}
     change {local_validateGrowthInput(change)}
     dates {validate.properDates(dates)}
-    shift (1, :) double {mustBeInteger} = double.empty(1, 0)
+    legacyShift (1, :) double {mustBeInteger} = double.empty(1, 0)
 
     opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
     opt.Shift (1, 1) double {mustBeInteger} = -1
@@ -28,21 +28,21 @@ function this = grow(this, operator, change, dates, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "shift__", [], @isnumeric);
+    addOptional(ip, "legacyShift", [], @isnumeric);
 
     addParameter(ip, "Direction", "forward");
     addParameter(ip, "Shift", -1);
 end
 parse(ip, varargin{:});
-shift = ip.Results.shift__;
+legacyShift = ip.Results.legacyShift;
 opt = ip.Results;
 %}
 % <=R2019a
 
 
 % Legacy positional argument
-if isscalar(shift) && opt.Shift==-1
-    opt.Shift = shift;
+if isscalar(legacyShift) && opt.Shift==-1
+    opt.Shift = legacyShift;
 end
 
 

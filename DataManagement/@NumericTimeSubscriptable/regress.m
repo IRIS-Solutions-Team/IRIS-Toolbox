@@ -5,14 +5,14 @@
 
 % >=R2019b
 %(
-function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, dates, opt)
+function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, legacyDates, opt)
 
 arguments
     lhs NumericTimeSubscriptable
     rhs NumericTimeSubscriptable
 
     % Legacy positional argument
-    dates double = [] 
+    legacyDates double = [] 
 
     opt.Dates double = Inf
     opt.Intercept (1, 1) logical = false
@@ -30,7 +30,7 @@ function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "dates__", [], @isnumeric);
+    addOptional(ip, "legacyDates", [], @isnumeric);
 
     addParameter(ip, "Dates", Inf);
     addParameter(ip, "Intercept", false);
@@ -38,7 +38,7 @@ if isempty(ip)
     addParameter(ip, "Weights", []);
 end
 parse(ip, varargin{:});
-dates = ip.Results.dates__;
+legacyDates = ip.Results.legacyDates;
 opt = ip.Results;
 %}
 % <=R2019a
@@ -48,14 +48,14 @@ opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
 %( Legacy input arguments
-if ~isempty(dates) && isnumeric(dates)
+if ~isempty(legacyDates) && isnumeric(legacyDates)
     exception.warning([
         "Obsolete:DateInput"
         "Specifying the regression dates as a third positional input argument "
         "is obsolete, and will be disallowed in a future release. "
         "Use the option Dates= instead."
     ]);
-    opt.Dates = double(dates);
+    opt.Dates = double(legacyDates);
 end
 %)
 
