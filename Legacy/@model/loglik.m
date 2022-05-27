@@ -1,18 +1,13 @@
-function [obj, V, F, Pe, Delta, PDelta] = loglik(this, inputData, range, varargin)
 % loglik  Evaluate minus the log-likelihood function in time or frequency domain.
 %{
 % ## Syntax ##
 %
-% Input arguments marked with a `~` sign may be omitted
-%
-%     [obj, V, F, PE, Delta, PDelta] = loglik(M, Inp, range, ~J, ...)
+%     [obj, info] = loglik(model, inputDb, range, domain, ___)
 %
 %
 % ## Syntax for Fast One-Off Likelihood Evaluation ##
 %
-% Input arguments marked with a `~` sign may be omitted.
-%
-%     obj = loglik(M, Inp, range, ~J, ...)
+%     obj = loglik(model, inputDb, range, domain, ...)
 %
 %
 % ## Syntax for Repeated Fast Likelihood Evaluations ##
@@ -20,7 +15,7 @@ function [obj, V, F, Pe, Delta, PDelta] = loglik(this, inputData, range, varargi
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     % Step #1: Initialise.
-%     loglik(M, Inp, range, ~J, ..., 'persist=', true);
+%     loglik(M, Inp, range, ~J, ..., 'Persist', true);
 %
 %     % Step #2: Assign/change parameters.
 %     M... = ...; % Change parameters.
@@ -45,10 +40,6 @@ function [obj, V, F, Pe, Delta, PDelta] = loglik(this, inputData, range, varargi
 %
 % * `range` [ numeric | char ] - Date range on which the Kalman filter will
 % be run.
-%
-% * `~J` [ struct | *empty* ] - Database with user-supplied time-varying
-% paths for std deviation, corr coefficients, or medians for shocks; `~J`
-% is equivalent to using the option `'vary='`, and may be omitted.
 %
 %
 % ## Output Arguments ##
@@ -80,7 +71,7 @@ function [obj, V, F, Pe, Delta, PDelta] = loglik(this, inputData, range, varargi
 % domain) or individual frequencies (in frequency domain); the
 % contributions are added as extra rows in the output argument `obj`.
 %
-% * `'persist='` [ `true` | *`false`* ] -- Pre-process and store the overhead
+% * `Persist=false` [ `true` | `false` ] -- Pre-process and store the overhead
 % (data and options) for subsequent fast calls.
 %
 % See help on [`model/filter`](model/filter) for other options available.
@@ -131,81 +122,79 @@ function [obj, V, F, Pe, Delta, PDelta] = loglik(this, inputData, range, varargi
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 % These variables are cleared at the end of the file unless the user
-% specifies `'persist=' true`.
-persistent DATA RANGE EXTENDED_RANGE opt LIKOPT
+% specifies `persist=true`.
+
+function [obj, info] = loglik(this, inputData, range, varargin)
+
+persistent DATA RANGE DOMAIN EXTENDED_RANGE OPT
 
 % If loglik(m) is called without any further input arguments, the last ones
 % passed in will be used if `'persistent='` was set to `true`.
-if nargin == 1
-    if isempty(DATA)
-        utils.error('model:loglik', ...
-            ['You must first initialise model/loglik( ) before ', ...
-            'running it in fast mode with one input argument.']);
+if nargin==1
+    if isempty(OPT)
+        exception.error([
+            "Model"
+            "The loglik() function has not been initialized for repeated evaluation."
+        ]);
     end
 else
-    pp = inputParser( );
-    pp.addRequired('solvedModel', @(x) isa(x, 'model'));
-    pp.addRequired('inputData', @validate.databank);
-    pp.addRequired('range', @validate.date);
-    pp.parse(this, inputData, range);
-    
     RANGE = reshape(double(range), 1, [ ]);
     EXTENDED_RANGE = [dater.plus(RANGE(1), -1), RANGE];
-    
-
-    %(
-    defaults = {
-        'MatrixFormat', 'namedmat', @validate.matrixFormat
-        'domain', 'time', @(x) any(strncmpi(x, {'t', 'f'}, 1))
-        'persist', false, @islogicalscalar
-    };
-    %)
 
 
-    [opt, varargin] = passvalopt(defaults, varargin{:});
-
-
-    if strncmpi(opt.domain, 't', 1)
-        LIKOPT = prepareKalmanOptions(this, RANGE, varargin{:});
-        req = 'tyg*';
-    else
-        LIKOPT = prepareFreqlOptions(this, RANGE, varargin{:});
-        req = 'fyg*';
+    DOMAIN = "time";
+    if ~isempty(varargin)
+        if strcmpi(varargin{1}, ["t", "time"])
+            DOMAIN = "time";
+            varargin(1) = [];
+        elseif strcmpi(varargin{1}, ["f", "freq", "frequency"])
+            DOMAIN = "frequency";
+            varargin(1) = [];
+        end
     end
-    % Get array of measurement and exogenous variables
-    DATA = datarequest(req, this, inputData, RANGE, ':');
+
+
+    if DOMAIN=="time"
+        OPT = prepareKalmanOptions2(this, RANGE, varargin{:});
+        DATA = datarequest('tyg*', this, inputData, RANGE, ':');
+    else
+        OPT = prepareFreckleOptions2(this, RANGE, varargin{:});
+        DATA = datarequest('fyg*', this, inputData, RANGE, ':');
+    end
 end
 
-%--------------------------------------------------------------------------
 
+%=========================================================================
 argin = struct( ...
     'InputData', DATA, ...
     'OutputData', [ ], ...
     'InternalAssignFunc', [ ], ...
-    'Options', LIKOPT ...
+    'Options', OPT ...
 );
-
-if strncmpi(opt.domain, 't', 1)
-    loglikFunc = @implementKalmanFilter;
-else
-    loglikFunc = @freql;
-end
-
 if nargout==1
-    obj = loglikFunc(this, argin);
+    if DOMAIN=="time"
+        obj = implementKalmanFilter(this, argin);
+    else
+        obj = implementFreckle(this. argin);
+    end
 else
-    [obj, regOutp] = loglikFunc(this, argin);
-    %
-    % Populate regular (non-hdata) output arguments
-    %
-    [F, Pe, V, Delta, PDelta] = kalmanFilterRegOutp(this, regOutp, EXTENDED_RANGE, LIKOPT, opt);
+    if DOMAIN=="time"
+        [obj, regOutp] = implementKalmanFilter(this, argin);
+        info = postprocessKalmanOutput(this, regOutp, EXTENDED_RANGE, OPT);
+    else
+        [obj, regOutp] = implementFreckle(this, argin);
+        info = postprocessFreckleOutput(this, regOutp, EXTENDED_RANGE, OPT);
+    end
 end
+%=========================================================================
 
-if ~opt.persist
-    DATA   = [ ];
-    RANGE  = [ ];
-    opt    = [ ];
-    LIKOPT = [ ];
+
+if ~OPT.Persist
+    DATA   = [];
+    DOMAIN = [];
+    RANGE = [];
+    EXTENDED_RANGE  = [];
+    OPT = [];
 end
 
 end%

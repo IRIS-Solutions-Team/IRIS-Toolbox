@@ -37,7 +37,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 % >
 % Model object with the std deviation of shocks updated (if
 % `Relative=true`) and/or the out-of-likelihood parameters updated (if
-% `OutOfLik=` is non-empty).
+% `Outlik=` is non-empty).
 %
 %
 % __`outputData`__ [ struct | Dictionary ]
@@ -151,7 +151,7 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 % options `ReturnCont=`, `ReturnMse=`, `ReturnStd=`.
 %
 %
-% __`OutOfLik={ }`__ [ cellstr | empty ]
+% __`Outlik={ }`__ [ cellstr | empty ]
 % >
 % List of parameters in deterministic trends that will be estimated by
 % concentrating them out of the likelihood function.

@@ -40,7 +40,7 @@ __`outputModel`__ [ Model ]
 >
 > Model object with the std deviation of shocks updated (if
 > `Relative=true`) and/or the out-of-likelihood parameters updated (if
-> `OutOfLik=` is non-empty).
+> `Outlik=` is non-empty).
 > 
 
 __`info`__ [ struct ]
@@ -195,7 +195,7 @@ __`LastSmooth=Inf`__ [ numeric ]
 > filterRange; `Inf` means the smoother will run on the entire filterRange.
 > 
 
-__`OutOfLik={ }`__ [ cellstr | empty ]
+__`Outlik={ }`__ [ cellstr | empty ]
 >
 > List of parameters in deterministic trends that will be estimated by
 > concentrating them out of the likelihood function.

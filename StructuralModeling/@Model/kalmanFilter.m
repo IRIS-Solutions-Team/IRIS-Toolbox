@@ -22,10 +22,8 @@ end
 
 
 baseRange = double(baseRange);
-numBasePeriods = round(baseRange(end) - baseRange(1) + 1);
 nv = countVariants(this);
-[ny, ~, nb, nf, ~, ng] = sizeSolution(this.Vector);
-info = struct();
+[ny, ~, nb, nf, ~, ~] = sizeSolution(this.Vector);
 
 
 %
@@ -53,7 +51,10 @@ extendedEnd = baseRange(end);
 extRange = dater.colon(extendedStart, extendedEnd);
 numExtPeriods = numel(extRange);
 
-% Throw a warning if some of the data sets have no observations.
+
+%
+% Throw a warning if some of the data sets have no observations
+%
 inxNaData = all(all(isnan(inputArray), 1), 2);
 if any(inxNaData)
     raise( ...
@@ -62,13 +63,15 @@ if any(inxNaData)
     );
 end
 
+
 opt = local_resolveReturnOptions(opt);
+
 
 %
 % Pre-allocate requested output data
 %
-outputData = struct( );
-[returnsPredict, returnsUpdate, returnsSmooth] = here_preallocOutputData( );
+outputData = struct();
+outputData = here_preallocOutputData(outputData);
 
 
 
@@ -95,13 +98,7 @@ end
 % Postprocess regular (non-hdata) output arguments; update the std
 % parameters in the model object if `Relative=' true`
 %
-[ ...
-    info.MsePredictErrors, info.PredictError, info.VarScale ...
-    , info.OutLikParams, info.MseOutLikParams ...
-    , info.Initials, this ...
-] = postprocessFilterOutput(this, regOutp, extRange, opt);
-
-info.TriangularInitials = regOutp.Initials;
+info = postprocessKalmanOutput(this, regOutp, extRange, opt);
 info.MinusLogLik = minusLogLik;
 
 
@@ -134,7 +131,7 @@ return
     end%
 
 
-    function [isPred, isUpdate, isSmooth] = here_preallocOutputData( )
+    function outputData = here_preallocOutputData(outputData)
         %(
         isPred = any(contains(opt.OutputData, "pred", "ignoreCase", true));
         isUpdate = any(contains(opt.OutputData, ["update", "filter"], "ignoreCase", true));

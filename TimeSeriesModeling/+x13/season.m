@@ -9,11 +9,12 @@ function varargout = season(inputSeries, range, opt, specs)
 
 arguments
     inputSeries Series { local_validateInputSeries(inputSeries) }
-    range {validate.rangeInput} = Inf 
+    range {validate.rangeInput} = Inf
 
     opt.Output (1, :) string = "d11"
     opt.Display (1, 1) logical = false
     opt.Cleanup (1, 1) logical = true
+    opt.Range {validate.rangeInput} = Inf
 
     specs.Series_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Series_Span (1, :) { local_validateSpan(specs.Series_Span) } = double.empty(1, 0)
@@ -154,18 +155,18 @@ end
 
 % <=R2019a
 %{
-function varargout = season(inputSeries, range, varargin)
-
-try, range;
-    catch, range = Inf; end
+function varargout = season(inputSeries, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser();
 
+    addOptional(ip, "range", Inf, @isnumeric);
+
     addParameter(ip, "Output", "d11");
     addParameter(ip, "Display", false);
     addParameter(ip, "Cleanup", true);
+    addParameter(ip, "Range", Inf);
 
     addParameter(ip, "Series_Title", string.empty(1, 0));
     addParameter(ip, "Series_Span", double.empty(1, 0));
@@ -307,10 +308,14 @@ specs = rmfield(opt, ["Output", "Display", "Cleanup"]);
 % <=R2019a
 
 
-if ~isequal(range, Inf)
-    [from, to] = resolveRange(inputSeries, range);
+if ~isequal(range, Inf) && isequal(opt.Range, Inf)
+    opt.Range = range;
+end
+if ~isequal(opt.Range, Inf)
+    [from, to] = resolveRange(inputSeries, opt.Range);
     inputSeries = clip(inputSeries, from, to);
 end
+
 
 outputTables = x13.resolveOutputTables(opt.Output);
 specs = local_writeOutputTablesToSpecs(specs, outputTables);

@@ -92,7 +92,7 @@ opt = ip.Results;
 % <=R2019a
 
 
-opt = iris.utils.resolveOptionAliases(opt, [], true);
+opt = iris.utils.resolveOptionAliases(opt, [], Except("Frequency"));
 
 
 fileName = textual.stringify(fileName);

@@ -12,6 +12,7 @@ arguments
     this iris.mixin.Kalman
     range double
 
+    opt.Persist (1, 1) logical = false
     opt.FlatOutput (1, 1) logical = true
     opt.MatrixFormat (1, 1) string {validate.mustBeMatrixFormat} = "namedMatrix"
     opt.OutputData (1, :) string = "smooth"
@@ -27,16 +28,17 @@ arguments
     opt.Initials {local_validateInitials} = "steady"
 
     opt.UnitRootInitials {local_validateUnitRootInitials} = "approxDiffuse"
-        opt.InitUnitRoot__UnitRootInitials = [];
+        opt.InitUnitRoot__UnitRootInitials = []
 
     opt.LastSmooth (1, 1) double = Inf
-    opt.OutOfLik (1, :) string = string.empty(1, 0)
+    opt.Outlik (1, :) string = string.empty(1, 0)
+        opt.OutOfLik__Outlik = []
 
     opt.ObjFunc (1, 1) string {mustBeMember(opt.ObjFunc, ["loglik", "prederr"])} = "loglik"
-        opt.Objective__ObjFunc = [];
+        opt.Objective__ObjFunc = []
 
     opt.ReturnObjFuncContribs (1, 1) logical = false
-        opt.ObjDecomp__ReturnObjFuncContribs = [];
+        opt.ObjDecomp__ReturnObjFuncContribs = []
 
     opt.ObjFuncRange {local_validateObjFuncRange} = @all
 
@@ -78,6 +80,7 @@ persistent ip
 if isempty(ip)
     ip = inputParser(); 
 
+    addParameter(ip, "Persist", false);
     addParameter(ip, "FlatOutput", true);
     addParameter(ip, "MatrixFormat", "namedMatrix");
     addParameter(ip, "OutputData", "smooth");
@@ -96,7 +99,8 @@ if isempty(ip)
         addParameter(ip, "InitUnitRoot__UnitRootInitials", []);
 
     addParameter(ip, "LastSmooth", Inf);
-    addParameter(ip, "OutOfLik", string.empty(1, 0));
+    addParameter(ip, "Outlik", string.empty(1, 0));
+        addParameter(ip, "OutOfLik__Outlik", []);
 
     addParameter(ip, "ObjFunc", "loglik");
         addParameter(ip, "Objective__ObjFunc", [];);
@@ -132,7 +136,8 @@ if isempty(ip)
     addParameter(ip, "CheckSteady", {"run", false});
     addParameter(ip, "Solve", {"run", true});
 end
-opt = parse(ip, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
@@ -182,26 +187,26 @@ opt.Condition = [];
 %
 % Out-of-lik parameters
 %
-if isempty(opt.OutOfLik)
-    opt.OutOfLik = [ ];
+if isempty(opt.Outlik)
+    opt.Outlik = [ ];
 else
-    if ischar(opt.OutOfLik)
-        opt.OutOfLik = regexp(opt.OutOfLik, '\w+', 'match');
+    if ischar(opt.Outlik)
+        opt.Outlik = regexp(opt.Outlik, '\w+', 'match');
     end
-    opt.OutOfLik = opt.OutOfLik(:)';
-    ell = lookup(this.Quantity, cellstr(opt.OutOfLik), 4);
+    opt.Outlik = opt.Outlik(:)';
+    ell = lookup(this.Quantity, cellstr(opt.Outlik), 4);
     pos = ell.PosName;
     inxNaN = isnan(pos);
     if any(inxNaN)
         throw( exception.Base('Model:InvalidName', 'error'), ...
-               'parameter ', opt.OutOfLik{inxNaN} ); %#ok<GTARG>
+               'parameter ', opt.Outlik{inxNaN} ); %#ok<GTARG>
     end
-    opt.OutOfLik = pos;
+    opt.Outlik = pos;
 end
-opt.OutOfLik = reshape(opt.OutOfLik, 1, [ ]);
-if numel(opt.OutOfLik)>0 && ~opt.EvalTrends
+opt.Outlik = reshape(opt.Outlik, 1, [ ]);
+if numel(opt.Outlik)>0 && ~opt.EvalTrends
     thisError  = [
-        "Model:CannotEstimateOutOfLik"
+        "Model:CannotEstimateOutlik"
         "Cannot estimate out-of-likelihood parameters with the option DTrends=false"
     ];
     throw(exception.Base(thisError, 'error'));

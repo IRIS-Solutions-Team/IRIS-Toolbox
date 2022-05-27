@@ -1,16 +1,17 @@
 
 for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
     echo $f
-    gsed -i 's/\r//g' $f
-    cp $f temp.orig
-    gtr '\n' '\v' < temp.orig > temp.replaced
-    gsed -i 's/% >=R2019b[ ]*\v%(/% >=R2019b\v%{/g' temp.replaced
-    gsed -i 's/%)\v% >=R2019b[ ]*/%}\v% >=R2019b/g' temp.replaced
-    gsed -i 's/% <=R2019a[ ]*\v%{/% <=R2019a\v%(/g' temp.replaced
-    gsed -i 's/%}\v% <=R2019a[ ]*/%)\v% <=R2019a/g' temp.replaced
-    gtr '\v' '\n' < temp.replaced > temp.final
+    gsed -iz 's/\r//g' $f
+    new_name=$f.new.m
+    cp $f $new_name
+    # gtr '\n' '\v' < temp.orig > temp.replaced
+    gsed -iz 's/% >=R2019b[ ]*\n%(/% >=R2019b\n%{/g' $new_name
+    gsed -iz 's/%)\n% >=R2019b[ ]*/%}\n% >=R2019b/g' $new_name
+    gsed -iz 's/% <=R2019a[ ]*\n%{/% <=R2019a\n%(/g' $new_name
+    gsed -iz 's/%}\n% <=R2019a[ ]*/%)\n% <=R2019a/g' $new_name
+    # gtr '\v' '\n' < temp.replaced > temp.final
     # cat temp.final
-    cp temp.final $f
-    rm temp.orig temp.replaced temp.final
+    # cp temp.final $f
+    # rm temp.orig temp.replaced temp.final
 done
 

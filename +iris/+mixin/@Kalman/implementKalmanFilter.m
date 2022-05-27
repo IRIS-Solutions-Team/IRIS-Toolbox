@@ -1,10 +1,5 @@
 % implementKalmanFilter  Kalman filter
 %
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
-
-function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
-
 % This Kalman filter handles the following special cases:
 %
 % * non-stationary initial conditions
@@ -27,6 +22,8 @@ function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
 %
 % * contributions of measurement variables to transition variables.
 %
+
+function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
 
 inputData = argin.InputData;
 outputData = argin.OutputData;
@@ -54,6 +51,7 @@ if ~isempty(timeVarying)
     opt.Multiply = [];
 end
 %}
+
 
 [ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);
 nv = countVariants(this);
@@ -88,7 +86,7 @@ s.NumG  = ng;
 s.NeedsSimulate = ~isequal(opt.Simulate, false);
 
 % Out-of-lik params cannot be used with ~opt.EvalTrends
-numOutlik = length(opt.OutOfLik);
+numOutlik = length(opt.Outlik);
 
 % Struct with currently processed information. Initialise the invariant
 % fields
@@ -223,6 +221,7 @@ for run = 1 : numRuns
 
         s.Tf = T(1:nf, :, :);
         s.Ta = T(nf+1:end, :, :);
+
         % Keep forward expansion for computing the effect of tunes on shock
         % means. Cut off the expansion within subfunctions.
         s.Rf = R(1:nf, 1:ne, :);
@@ -248,10 +247,13 @@ for run = 1 : numRuns
     end
 
 
-    % __Deterministic Trends__
+    %
+    % Measurement trends
+    %
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
+    %
     if nz==0 && (numOutlik>0 || opt.EvalTrends)
-        [s.D, s.X] = evalTrendEquations(this, opt.OutOfLik, s.g, run);
+        [s.D, s.X] = evalTrendEquations(this, opt.Outlik, s.g, run);
     else
         s.D = [];
         s.X = zeros(ny, 0, numExtendedPeriods);

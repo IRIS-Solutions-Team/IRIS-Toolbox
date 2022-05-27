@@ -6,10 +6,7 @@
 
 % >=R2019b
 %(
-function ...
-    [this, priorValue, reciprocal] ...
-    = rebase(this, basePeriods, baseValue, opt)
-
+function [this, priorValue, reciprocal] = rebase(this, basePeriods, baseValue, opt)
 arguments
     this Series
     basePeriods double
@@ -25,15 +22,13 @@ end
 
 % <=R2019a
 %{
-function ...
-    [this, priorValue, reciprocal] ...
-    = rebase(this, basePeriods, baseValue, varargin)
+function [this, priorValue, reciprocal] = rebase(this, basePeriods, baseValue, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser();
     addParameter(ip, 'Mode', "auto", @local_validateMode);
-    addParameter(ip, 'Reciprocal', [], @local_validateReciprocal);
+    addParameter(ip, 'Reciprocal', []);
     addParameter(ip, 'Aggregator', "auto");
 end
 parse(ip, varargin{:});

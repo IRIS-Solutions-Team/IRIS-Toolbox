@@ -132,7 +132,7 @@ isCond = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'cond');
 % Exogenizing
 isSwap = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'tunes');
 
-% TODO: Remove 'missing', 'contributions' options from jforecast, 
+% TODO: Remove 'missing', 'contributions' options from jforecast,
 % 'anticipate' scalar.
 
 %--------------------------------------------------------------------------
@@ -285,13 +285,13 @@ end
 
 % /////////////////////////////////////////////////////////////////////////
 for iLoop = 1 : numOfRuns
-    
+
     % Get exogenous data and compute deterministic trends if requested.
     g = G(:, :, min(iLoop, end));
     if opt.EvalTrends
         W = evalTrendEquations(this, [ ], g, iLoop);
     end
-    
+
     if iLoop<=nAlt
         % Expansion needed to t+k.
         k = max(1, last) - 1;
@@ -313,12 +313,12 @@ for iLoop = 1 : numOfRuns
         end
         [sxAn, sxUn] = createStdCorr( );
     end
-    
+
     % Solution not available.
     if inxOfNaNSolutions(min(iLoop, end));
         continue
     end
-    
+
     % Initial condition
     xb0 = xbInit(:, 1, min(end, iLoop));
     if isempty(xbInitMse) || isequal(opt.InitCond, 'fixed')
@@ -328,11 +328,11 @@ for iLoop = 1 : numOfRuns
         Pxb0 = xbInitMse(:, :, 1, min(iLoop, end));
         Dxinit = diag(Pxb0);
     end
-    
+
     % Anticipated and unanticipated shocks.
     ea = inpEa(:, :, min(end, iLoop));
     eu = inpEu(:, :, min(end, iLoop));
-    
+
     if isSwap
         % Tunes on measurement variables.
         y = inpY(:, 1:last, min(end, iLoop));
@@ -346,10 +346,10 @@ for iLoop = 1 : numOfRuns
         y = nan(ny, last);
         x = nan(nXCurr, last);
     end
-    
+
     % Pre-allocate mean arrays.
     xCurr = nan(nXCurr, nPer);
-    
+
     % Pre-allocate variance arrays.
     if ~opt.MeanOnly
         Dy = nan(ny, nPer);
@@ -357,7 +357,7 @@ for iLoop = 1 : numOfRuns
         Du = nan(ne, nPer);
         De = nan(ne, nPer);
     end
-    
+
     % Solve the swap system.
     if last > 0
         eu1 = eu(:, 1:last);
@@ -368,17 +368,17 @@ for iLoop = 1 : numOfRuns
                 xb0(:)
                 eu1(:)
                 ea1(:) ];
-        
+
         % outp := [y;x].
         outp = [ y(:) ; x(:) ];
-        
+
         % Swap exogenized outputs and endogenized inputs.
         % rhs := [inp(~endi);outp(exi)].
         % lhs := [outp(~exi);inp(endi)].
         rhs = [ inp(~ixEndg) ; outp(ixExog) ];
         lhs = M*rhs;
         xb = Mxb*rhs;
-        
+
         Prhs = [ ];
         if ~opt.MeanOnly || isCond
             % Prhs is the MSE/Cov matrix of the RHS in the swapped system.
@@ -391,7 +391,7 @@ for iLoop = 1 : numOfRuns
             % Plhs is the cov matrix of the LHS in the swapped system.
             calcPlhsPa( );
         end
-        
+
         if isCond
             Yd = Y(:, :, min(end, iLoop));
             Yd(~yAnchC) = NaN;
@@ -421,9 +421,9 @@ for iLoop = 1 : numOfRuns
                 Pxb = (Pxb + Pxb')/2;
             end
         end
-        
+
         lhsRhs2Yxuea( );
-        
+
     else
         eu = zeros(ne, last);
         ea = zeros(ne, last);
@@ -432,22 +432,22 @@ for iLoop = 1 : numOfRuns
             Pxb = Pxb0;
         end
     end
-    
+
     % Forecast between `last+1` and `nper`.
     beyond( );
-    
+
     % Free memory.
     xb = [ ];
     Pxb = [ ];
-    
+
     % Add measurement detereministic trends.
     if opt.EvalTrends
         y = y + W;
     end
-    
+
     % Store final results.
     assignOutp( );
-    
+
     if opt.Progress
         % Update progress bar.
         update(progress, iLoop/numOfRuns);
@@ -493,7 +493,7 @@ return
         end
         % Check number of exogenized and endogenized data points.
         if nnzexog(opt.Plan)~=nnzendog(opt.Plan)
-            WARNING_MISMATCH_EXOG_ENDOG = { 'Model:MismatchExogenizedEndogenized' 
+            WARNING_MISMATCH_EXOG_ENDOG = { 'Model:MismatchExogenizedEndogenized'
                                              [ 'Number of exogenized data points (%g) fails to match ', ...
                                                'number of endogenized data points (%g)' ] };
             throw( exception.Base(WARNING_MISMATCH_EXOG_ENDOG, 'warning'), ...
@@ -524,7 +524,7 @@ return
         if any(ixExog)
             Prhs = blkdiag(Prhs, zeros(sum(ixExog)));
         end
-    end 
+    end
 
 
 
@@ -534,7 +534,7 @@ return
         Pxb = Nxb*Prhs*Nxb.';
         Plhs = (Plhs + Plhs')/2;
         Pxb = (Pxb + Pxb')/2;
-    end 
+    end
 
 
 
@@ -546,12 +546,12 @@ return
         outp(ixExog) = rhs(sum(~ixEndg)+1:end);
         inp(~ixEndg) = rhs(1:sum(~ixEndg));
         inp(ixEndg) = lhs(sum(~ixExog)+1:end);
-        
+
         y = reshape(outp(1:ny*last), [ny, last]);
         outp(1:ny*last) = [ ];
         xCurr(:, 1:last) = reshape(outp, [nXCurr, last]);
         outp(1:nXCurr*last) = [ ];
-        
+
         inp(1) = [ ];
         xb0 = inp(1:nb);
         inp(1:nb) = [ ];
@@ -559,18 +559,18 @@ return
         inp(1:ne*last) = [ ];
         ea = reshape(inp(1:ne*last), [ne, last]);
         inp(1:ne*last) = [ ];
-        
+
         if opt.MeanOnly
             return
         end
-        
+
         Poutp = zeros((ny+nXCurr)*last);
         Pinp = zeros((ne+ne)*last);
         Poutp(~ixExog, ~ixExog) = Plhs(1:sum(~ixExog), 1:sum(~ixExog));
         Poutp(ixExog, ixExog) = Prhs(sum(~ixEndg)+1:end, sum(~ixEndg)+1:end);
         Pinp(~ixEndg, ~ixEndg) = Prhs(1:sum(~ixEndg), 1:sum(~ixEndg));
         Pinp(ixEndg, ixEndg) = Plhs(sum(~ixExog)+1:end, sum(~ixExog)+1:end);
-        
+
         if ny > 0
             pos = 1 : ny;
             for t = 1 : last
@@ -580,7 +580,7 @@ return
             Poutp(1:ny*last, :) = [ ];
             Poutp(:, 1:ny*last) = [ ];
         end
-        
+
         pos = 1 : nXCurr;
         for t = 1 : last
             DxCurr(:, t) = diag(Poutp(pos, pos));
@@ -588,13 +588,13 @@ return
         end
         % Poutp(1:nxcurr*last, :) = [ ];
         % Poutp(:, 1:nxcurr*last) = [ ];
-        
+
         Pinp(1, :) = [ ];
         Pinp(:, 1) = [ ];
         Dxinit = diag(Pinp(1:nb, 1:nb));
         Pinp(1:nb, :) = [ ];
         Pinp(:, 1:nb) = [ ];
-        
+
         if ne > 0
             pos = 1 : ne;
             for t = 1 : last
@@ -611,21 +611,21 @@ return
         end
         % Pinput(1:ne*last, :) = [ ];
         % Pinput(:, 1:ne*last) = [ ];
-    end 
+    end
 
 
 
 
     function beyond( )
-        % beyond  Simulate from `last+1` to `nPer`. 
-        
+        % beyond  Simulate from `last+1` to `nPer`.
+
         % When expanding the vectors we must use `1:end` and not of just `:` in 1st
         % dimension because of a bug in Matlab causing unexpected behaviour when
         % the original vector is empty.
         xCurr(1:end, last+1:nPer) = 0;
         y(1:end, last+1:nPer) = 0;
         ea(1:end, last+1:nPer) = 0;
-        eu(1:end, last+1:nPer) = 0;        
+        eu(1:end, last+1:nPer) = 0;
         TfCurr = Tf(ixXfCurr, :);
         KfCurr = Kf(ixXfCurr, :);
         for t = last+1 : nPer
@@ -644,11 +644,11 @@ return
                 end
             end
         end
-        
+
         if opt.MeanOnly
             return
         end
-        
+
         Du(1:end, last+1:nPer) = sxUn(1:ne, last+1:nPer).^2;
         De(1:end, last+1:nPer) = sxAn(1:ne, last+1:nPer).^2;
         RfCurr = Rf(ixXfCurr, :);
@@ -657,18 +657,18 @@ return
                 + covfun.stdcorr2cov(sxAn(:, t), ne);
             PxfCurr = TfCurr*Pxb*TfCurr.' + RfCurr*Pue*RfCurr.';
             Pxb = Tb*Pxb*Tb.' + Ra*Pue*Ra.';
-            PxbCurr = Pxb(ixXbCurr, ixXbCurr); 
+            PxbCurr = Pxb(ixXbCurr, ixXbCurr);
             DxCurr(:, t) = [diag(PxfCurr);diag(PxbCurr)];
             if ny > 0
                 Py = Z*Pxb*Z.' + H*Pue*H.';
                 Dy(:, t) = diag(Py);
             end
         end
-    end% 
+    end%
 
 
 
-    
+
     function checkNaNSolutions( )
         if any(inxOfNaNSolutions)
             throw( exception.Base('Model:SolutionNotAvailable', 'warning'), ...
@@ -678,7 +678,7 @@ return
 
 
 
-    
+
     function varargout = createStdCorr( )
         % TODO: use `combineStdCorr` here
         % Combine sx from the current parameterisation and
@@ -693,14 +693,14 @@ return
         if ~all(inxOfNaN(:))
             stdCorrReal(~inxOfNaN) = overrideStdCorrReal(~inxOfNaN);
         end
-        
+
         stdCorrImag = this.Variant.StdCorr(:, :, iLoop);
         stdCorrImag = repmat(stdCorrImag(:), 1, nPer);
         inxOfNaN = isnan(overrideStdCorrImag);
         if ~all(inxOfNaN(:))
             stdCorrImag(~inxOfNaN) = overrideStdCorrImag(~inxOfNaN);
         end
-        
+
         % Set the stdevs of endogenized shocks to zero. Otherwise an
         % anticipated endogenized shock would have a non-zero unanticipated
         % stdev, and vice versa.
@@ -714,7 +714,7 @@ return
             temp(euAnchX) = 0;
             stdCorrImag(1:ne, 1:last) = temp;
         end
-        
+
         scale = opt.StdScale;
         if strcmpi(scale, 'normalize')
             scale = complex(1/sqrt(2), 1/sqrt(2));
@@ -726,8 +726,8 @@ return
             varargout = { stdCorrReal, stdCorrImag };
         else
             varargout = { stdCorrImag, stdCorrReal };
-        end            
-    end 
+        end
+    end
 
 
 
@@ -735,11 +735,11 @@ return
     function assignOutp( )
         % Final point forecast.
         outpY = [nan(ny, 1), y];
-        
+
         outpX = nan(nxx, nXPer);
         outpX(ixXCurr, 2:end) = xCurr;
         outpX(nf+1:end, 1) = xb0;
-        
+
         if opt.Anticipate
             realOutpE = ea;
             imagOutpE = eu;
@@ -752,12 +752,12 @@ return
         else
             outpE = [nan(ne, 1)*(1+1i), complex(realOutpE, imagOutpE)];
         end
-        
+
         outpG = [nan(ng, 1), g];
-        
+
         hdataassign(hData.mean, iLoop, ...
             { outpY, outpX, outpE, [ ], outpG });
-        
+
         % Final std forecast.
         if ~opt.MeanOnly
             outpDy = [ nan(ny, 1), Dy ];
@@ -771,11 +771,11 @@ return
             end
             outpDe = [ nan(ne, 1), outpDe ];
             outpDg = [ nan(ng, 1), zeros(size(g)) ];
-            
+
             hdataassign(hData.std, iLoop, ...
                 { outpDy, outpDx, outpDe, [ ], outpDg });
         end
-    end 
+    end
 
 
 

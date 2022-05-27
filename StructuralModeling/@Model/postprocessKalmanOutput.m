@@ -1,18 +1,18 @@
-% postprocessFilterOutput  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% postprocessKalmanOutput  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
 
-function [F, predictError, V, delta, PDelta, initials, this] ...
-    = postprocessFilterOutput(this, regOutp, extdRange, opt)
-
-try
-    isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
-catch
-    isNamedMat = false;
-end
+function info = postprocessKalmanOutput(this, regOutp, extdRange, opt)
 
 TIME_SERIES_TEMPLATE = Series();
+MEAN_OUTPUT = iris.mixin.Kalman.MEAN_OUTPUT;
+MSE_OUTPUT = iris.mixin.Kalman.MSE_OUTPUT;
+
+info = struct();
+
+try
+    isNamedMatrix = contains(opt.MatrixFormat, "NamedMat", "ignoreCase", true);
+catch
+    isNamedMatrix = false;
+end
 
 inxY = this.Quantity.Type==1;
 inxE = this.Quantity.Type==31 | this.Quantity.Type==32;
@@ -20,57 +20,82 @@ nv = countVariants(this);
 
 startDate = extdRange(1);
 
-F = [ ];
+
+%
+% FMSE for measurement variables and prediction errors
+%
+F = [];
 if isfield(regOutp, 'F')
     F = TIME_SERIES_TEMPLATE;
     F = replace(F, permute(regOutp.F, [3, 1, 2, 4]), startDate);
 end
+info.FMSE = F;
 
-predictError = [ ];
+
+%
+% Prediction errors
+%
+pe = [];
 if isfield(regOutp, 'Pe')
     logPrefix = string(model.component.Quantity.LOG_PREFIX);
-    predictError = struct( );
+    pe = struct();
     for i = find(inxY)
         name = string(this.Quantity.Name(i));
         data = permute(regOutp.Pe(i, :, :), [2, 3, 1]);
         if this.Quantity.IxLog(i)
             name = logPrefix + name;
         end
-        predictError.(name) = TIME_SERIES_TEMPLATE;
-        predictError.(name) = fill(predictError.(name), data, startDate, "Prediction error");
+        pe.(name) = TIME_SERIES_TEMPLATE;
+        pe.(name) = fill(pe.(name), data, startDate, "Prediction error");
     end
 end
+info.Error = pe;
 
-V = [ ];
+
+%
+% Common variance and std factor
+%
+V = [];
 if isfield(regOutp, 'V')
     V = regOutp.V;
 end
+info.VarScale = V;
+info.StdScale = sqrt(V);
 
+
+%
 % Update out-of-lik parameters in the model object
-delta = struct( );
-namesOutLik = string(this.Quantity.Name(opt.OutOfLik));
+%
+info.Outlik = struct();
+delta = struct();
+namesOutLik = string(this.Quantity.Name(opt.Outlik));
 if isfield(regOutp, 'Delta')
-    for i = 1 : numel(opt.OutOfLik)
+    for i = 1 : numel(opt.Outlik)
         name = namesOutLik(i);
-        posQty = opt.OutOfLik(i);
+        posQty = opt.Outlik(i);
         this.Variant.Values(:, posQty, :) = regOutp.Delta(i, :);
         delta.(name) = regOutp.Delta(i, :);
     end
 end
+info.Outlik.(MEAN_OUTPUT) = delta;
 
-PDelta = [ ];
+
+PDelta = [];
 if isfield(regOutp, 'PDelta')
     PDelta = regOutp.PDelta;
-    if isNamedMat
+    if isNamedMatrix
         PDelta = namedmat(PDelta, namesOutLik, namesOutLik);
     end
 end
+info.Outlik.(MSE_OUTPUT) = PDelta;
+
 
 
 %
 % Initials for the original transition vector
 %
 initials = regOutp.Initials;
+info.TriangularInitials = initials;
 for v = 1 : size(initials{1}, 3)
     U = regOutp.U{v};
     if ~isempty(U)
@@ -79,11 +104,14 @@ for v = 1 : size(initials{1}, 3)
         initials{3}(:, :, v) = U * initials{3}(:, :, v) * U';
     end
 end
+info.Initials = initials;
 
 
 
+%
 % Update the std parameters in the model object.
-if opt.Relative && nargout>6
+%
+if opt.Relative 
     numE = nnz(inxE);
     se = sqrt(V);
     for v = 1 : nv

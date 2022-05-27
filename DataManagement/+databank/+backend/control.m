@@ -28,8 +28,8 @@ if isempty(ip)
     addParameter(ip, 'AddToDatabank', @auto);
 end
 parse(ip, varargin{:});
+opt = ip.Results;
 controlDb = ip.Results.controlDb;
-opt = rmfield(ip.Results, "controlDb");
 %}
 % <=R2019a
 

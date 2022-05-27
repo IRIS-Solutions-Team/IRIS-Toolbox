@@ -16,22 +16,22 @@ end
 % >=R2019b
 
 
-allOldNames = access(this, "names");
-allNewNames = allOldNames;
-for pair = [oldNames; newNames]
-    inx = allOldNames==pair(1);
-    allNewNames(inx) = pair(2);
-end
+    allOldNames = access(this, "names");
+    allNewNames = allOldNames;
+    for pair = [oldNames; newNames]
+        inx = allOldNames==pair(1);
+        allNewNames(inx) = pair(2);
+    end
 
-[flag, list] = textual.nonunique(allNewNames);
-if flag
-    exception.error([
-        "Model:NonuniqueNames"
-        "This new name now exists multiple times in the Model object: %s"
-    ], list);
-end
+    [flag, list] = textual.nonunique(allNewNames);
+    if flag
+        exception.error([
+            "Model:NonuniqueNames"
+            "This new name now exists multiple times in the Model object: %s"
+        ], list);
+    end
 
-this.Name = allNewNames;
+    this.Name = allNewNames;
 
 end%
 

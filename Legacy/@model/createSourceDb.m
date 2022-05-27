@@ -105,11 +105,11 @@ if ~opt.Deviation
 end
 
 if opt.EvalTrends
-    W = evalTrendEquations(this, [ ], X(inxG, :, :), @all);
+    W = evalTrendEquations(this, [ ], X(inxG, :, :), 1:nv);
     X(1:ny, :, :) = X(1:ny, :, :) + W;
 end
 
-X(inxLog, :, :) = real(exp( X(inxLog, :, :) ));
+X(inxLog, :, :) = real(exp(X(inxLog, :, :)));
 
 if numColumnsToCreate>1 && nv==1
     X = repmat(X, 1, 1, numColumnsToCreate);

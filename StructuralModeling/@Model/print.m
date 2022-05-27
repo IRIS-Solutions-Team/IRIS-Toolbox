@@ -23,14 +23,15 @@ function code = print(modelObject, modelFile, varargin)
 
 persistent ip
 if isempty(ip)
-ip = inputParser();
+    ip = inputParser();
     addParameter(ip, 'SaveAs', "");
     addParameter(ip, 'Parameters', true);
     addParameter(ip, 'Steady' , true);
     addParameter(ip, 'Markdown', false);
     addParameter(ip, 'Braces', ["<", ">"]);
 end
-opt = parse(ip, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 

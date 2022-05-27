@@ -15,6 +15,7 @@ arguments
     opt.StartDate {local_validateDate} = "unbalanced"
     opt.EndDate {local_validateDate} = "unbalanced"
     opt.Frequency {local_validateFrequency} = @any
+    opt.MultiFrequencies (1, 1) logical = true
     opt.Filter (1, :) cell = cell.empty(1, 0)
 end
 %)
@@ -96,6 +97,14 @@ elseif sum(~inxEmpty)==1
 else
     outputRange = outputRange(~inxEmpty);
     listFreq = listFreq(~inxEmpty);
+end
+
+if ~opt.MultiFrequencies && iscell(outputRange) && numel(outputRange)>1
+    exception.error([
+        "Databank"
+        "Multiple date frequencies found in the input databank "
+        "but disallowed by setting MultiFrequencies=false."
+    ]);
 end
 
 return

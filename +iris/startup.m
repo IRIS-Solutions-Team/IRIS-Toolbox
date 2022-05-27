@@ -12,7 +12,7 @@ MINIMUM_MATLAB = 'R2019b';
 
 % <=R2019a
 %{
-MINIMUM_MATLAB = 'R2017b';
+MINIMUM_MATLAB = 'R2018a';
 %}
 % <=R2019a
 
@@ -56,28 +56,12 @@ end
 return
 
     function here_displayIntro()
+        %(
         release = config.Release;
-        % Intro message
-        fprintf('\n');
-        fprintf('\t[IrisToolbox] for Macroeconomic Modeling ');
-
-% >=R2019b
-%(
-        fprintf('Release %s', release);
-%)
-% >=R2019b
-
-% <=R2019a
-%{
-        fprintf('**Legacy** Release %s', release);
-%}
-% <=R2019a
-
-        fprintf('\n');
-        % Copyright
-        fprintf('\tCopyright (c) 2007-%s ', datestr(now, 'YYYY'));
-        fprintf('[IrisToolbox] Solutions Team');
+        fprintf('\n\t[IrisToolbox] for Macroeconomic Modeling Release %s', release);
+        fprintf('\n\tCopyright (c) 2007-%s [IrisToolbox] Solutions Team', datestr(now, 'YYYY'));
         fprintf('\n\n');
+        %)
     end%
 
 

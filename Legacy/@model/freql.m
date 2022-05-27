@@ -15,7 +15,7 @@ opt = argin.Options;
 %--------------------------------------------------------------------------
 
 s = struct( );
-s.NumOutOfLik = numel(argin.Options.OutOfLik);
+s.NumOutlik = numel(argin.Options.Outlik);
 s.isObjOnly = nargout==1;
 
 nv = countVariants(this);
@@ -65,8 +65,8 @@ obj = nan(numObjFuncs, numRuns);
 if ~s.isObjOnly
     regOutp = struct( );
     regOutp.V = nan(1, numRuns);
-    regOutp.Delta = nan(s.NumOutOfLik, numRuns);
-    regOutp.PDelta = nan(s.NumOutOfLik, s.NumOutOfLik);
+    regOutp.Delta = nan(s.NumOutlik, numRuns);
+    regOutp.PDelta = nan(s.NumOutlik, s.NumOutlik);
 end
 
 for i = 1 : numRuns
@@ -123,7 +123,7 @@ for i = 1 : numRuns
     isTrendEquations = false;
     numOutlik = 0;
     if argin.Options.EvalTrends
-        [W, M] = evalTrendEquations(this, argin.Options.OutOfLik, g, i);
+        [W, M] = evalTrendEquations(this, argin.Options.Outlik, g, i);
         isTrendEquations = any(W(:)~=0);
         if isTrendEquations
             W = fft(W.').';

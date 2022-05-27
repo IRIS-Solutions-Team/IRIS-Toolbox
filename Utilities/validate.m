@@ -10,10 +10,7 @@
 classdef validate
     methods (Static)
         function flag = matrixFormat(x)
-            flag = startsWith( ...
-                x, ["plain", "numeric", "namedMat"] ...
-                , "ignoreCase", true ....
-            );
+            flag = validate.anyText(x, "namedMat", "namedMatrix", "numeric", "plain");
         end%
 
 

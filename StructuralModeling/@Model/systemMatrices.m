@@ -114,7 +114,6 @@ where
 %(
 function output = systemMatrices(this, opt)
 
-
 arguments
     this
 

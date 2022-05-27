@@ -6,7 +6,7 @@ data.NeedsUpdateShocks = true;
 
 calculateShockMultipliers(this, data);
 flat(this, data);
-locallyUpdateEndogenizedE(this, data);
+local_updateEndogenizedE(this, data);
 flat(this, data);
 
 end%
@@ -15,13 +15,13 @@ end%
 % Local Functions
 %
 
-function locallyUpdateEndogenizedE(this, data)
+function local_updateEndogenizedE(this, data)
 % Evaluate discrepancy between the inxExogenized values and their targets,
 % and calculate the implied increments to the endogenized shocks
     inxEndogenizedE = data.InxEndogenizedE;
     inxAnticipatedE = data.InxAnticipatedE;
     inxUnanticipatedE = data.InxUnanticipatedE;
-    discrepancy = locallyEvaluateDiscrepancy(data);
+    discrepancy = local_evaluateDiscrepancy(data);
     if ~isempty(this.KalmanGain)
         vecAddToE = this.KalmanGain * discrepancy(:);
     else
@@ -43,7 +43,7 @@ function locallyUpdateEndogenizedE(this, data)
 end%
 
 
-function discrepancy = locallyEvaluateDiscrepancy(data)
+function discrepancy = local_evaluateDiscrepancy(data)
 % Evaluate discrepancy between the inxExogenized values and their targets
     inxExogenizedYX = data.InxExogenizedYX;
     target = data.TargetYX(inxExogenizedYX);

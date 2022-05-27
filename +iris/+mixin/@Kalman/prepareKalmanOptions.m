@@ -27,7 +27,7 @@ if isempty(ip)
     addParameter(ip, {'UnitRootInitials', 'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'fixedUnknown', @(x) isstruct(x) || ((ischar(x) || isstring(x)) && ismember(lower(string(x)), lower(["fixedUnknown", "approxDiffuse"]))));
 
     addParameter(ip, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
-    addParameter(ip, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addParameter(ip, {'Outlik', 'OutOfLik'}, { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     addParameter(ip, {'ReturnObjFuncContribs', 'ObjDecomp'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, {'ObjFunc', 'Objective'}, 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'})));
     addParameter(ip, {'ObjFuncRange', 'ObjectiveSample'}, @all, @(x) isnumeric(x) || isequal(x, @all));
@@ -89,26 +89,26 @@ end
 %
 % Out-of-lik parameters
 %
-if isempty(opt.OutOfLik)
-    opt.OutOfLik = [ ];
+if isempty(opt.Outlik)
+    opt.Outlik = [ ];
 else
-    if ischar(opt.OutOfLik)
-        opt.OutOfLik = regexp(opt.OutOfLik, '\w+', 'match');
+    if ischar(opt.Outlik)
+        opt.Outlik = regexp(opt.Outlik, '\w+', 'match');
     end
-    opt.OutOfLik = opt.OutOfLik(:)';
-    ell = lookup(this.Quantity, cellstr(opt.OutOfLik), 4);
+    opt.Outlik = opt.Outlik(:)';
+    ell = lookup(this.Quantity, cellstr(opt.Outlik), 4);
     pos = ell.PosName;
     inxNaN = isnan(pos);
     if any(inxNaN)
         throw( exception.Base('Model:InvalidName', 'error'), ...
-               'parameter ', opt.OutOfLik{inxNaN} ); %#ok<GTARG>
+               'parameter ', opt.Outlik{inxNaN} ); %#ok<GTARG>
     end
-    opt.OutOfLik = pos;
+    opt.Outlik = pos;
 end
-opt.OutOfLik = reshape(opt.OutOfLik, 1, [ ]);
-if numel(opt.OutOfLik)>0 && ~opt.EvalTrends
+opt.Outlik = reshape(opt.Outlik, 1, [ ]);
+if numel(opt.Outlik)>0 && ~opt.EvalTrends
     thisError  = [ 
-        "Model:CannotEstimateOutOfLik"
+        "Model:CannotEstimateOutlik"
         "Cannot estimate out-of-likelihood parameters with the option DTrends=false"
     ];
     throw(exception.Base(thisError, 'error'));

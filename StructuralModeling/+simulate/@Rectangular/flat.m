@@ -27,7 +27,6 @@ stepForLinx = size(YXEPG, 1);
 
 deviation = this.Deviation;
 simulateY = this.SimulateY && ny>0;
-needsEvalTrends = this.NeedsEvalTrends;
 
 if ignoreShocks
     ne = 0;
@@ -180,14 +179,6 @@ for t = columnsToRun
 end
 %===========================================================================
 
-
-%
-% Deterministic Trends in Measurement Equations
-% 
-if simulateY && needsEvalTrends
-    YXEPG(inxY, columnsToRun) = ...
-        YXEPG(inxY, columnsToRun) + data.Trends(:, columnsToRun);
-end
 
 if any(inxLog)
     YXEPG(inxLog, :) = exp(YXEPG(inxLog, :));

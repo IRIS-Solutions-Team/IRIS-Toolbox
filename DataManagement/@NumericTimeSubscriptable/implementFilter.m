@@ -57,7 +57,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 range__ = ip.Results.range__;
-opt = rmfield(ip, ["range__"]);
+opt = ip.Results;
 %}
 % <=R2019a
 

@@ -14,7 +14,6 @@ end
 
 runningData = systemProperty.CallerData;
 method = runningData.Method(min(run, end));
-deviation = runningData.Deviation(min(run, end));
 
 prepared = [];
 outputYXEPG = [];
@@ -44,20 +43,23 @@ if isequal(method, solver.Method.NONE)
 end
 
 %
-% Set up @simulate.Data from @Model and @Plan, fill in parameters,
-% steady trends and measurement trends from @Model
+% Set up @simulate.Data from @Model and @Plan, remove measurement trends,
+% fill in parameters, steady trends.
 %
 data = simulate.Data.fromModelAndPlan(this, run, plan, runningData);
 data.IgnoreShocks = needsIgnoreShocks(method);
 
-if method==solver.Method.STACKED || method==solver.Method.PERIOD
-    if deviation
-        data.YXEPG = addSteadyTrends(data, data.YXEPG);
-        data.Deviation = false;
-    end
-else
-    data.Deviation = deviation;
+if ~data.Deviation
+    data.YXEPG = removeMeasurementTrends(data, data.YXEPG);
 end
+
+resetDeviation = data.Deviation;
+if data.Deviation && (method==solver.Method.STACKED || method==solver.Method.PERIOD)
+    data.YXEPG = addSteadyTrends(data, data.YXEPG);
+    data.Deviation = false;
+end
+preserveTargetValues(data);
+
 
 % Set up @Rectangular object for simulation
 flag = needsFirstOrderSolution( ...
@@ -69,7 +71,6 @@ rect.Deviation = data.Deviation;
 rect.SimulateY = true;
 rect.Method = method;
 rect.PlanMethod = plan.Method;
-rect.NeedsEvalTrends = data.NeedsEvalTrends;
 
 %
 % Equation-selective specific properties
@@ -195,8 +196,13 @@ if any(needsUpdateShocks)
     storeE(data);
 end
 
-if deviation && (method==solver.Method.STACKED || method==solver.Method.PERIOD)
+data.Deviation = resetDeviation;
+if data.Deviation && (method==solver.Method.STACKED || method==solver.Method.PERIOD)
     data.YXEPG = removeSteadyTrends(data, data.YXEPG);
+end
+
+if ~data.Deviation
+    data.YXEPG = addMeasurementTrends(data, data.YXEPG);
 end
 
 %

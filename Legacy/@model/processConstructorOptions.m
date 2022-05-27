@@ -5,10 +5,10 @@ persistent ip ipOptimal ipParser
 if isempty(ip) || isempty(ipParser) || isempty(ipOptimal)
     ip = extend.InputParser();
     ip.KeepUnmatched = true;
-    % ip.PartialMatching = false;
+    ip.PartialMatching = false;
     addParameter(ip, 'AllowExogenous', false, @validate.logicalScalar);
     addParameter(ip, 'Context', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
-        addParameter(ip, 'Assign__Context', [ ]);
+    addParameter(ip, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
     addParameter(ip, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(ip, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, "ThrowErrorAs", "error", @(x) ismember(lower(x), ["error", "warning"]));
@@ -50,7 +50,10 @@ end
 opt = parse(ip, varargin{:});
 %)
 
-opt = iris.utils.resolveOptionAliases(opt, [], Except("Assign"));
+
+if ~isequal(opt.Assign, []) && isequal(opt.Context, [])
+    opt.Context = opt.Assign;
+end
 
 
 % Optimal policy options

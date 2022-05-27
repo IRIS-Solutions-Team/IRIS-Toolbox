@@ -174,6 +174,7 @@ for the description of all settings.
 
 %---8<---
 
+
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
@@ -188,7 +189,6 @@ arguments
 
     opt.Anticipate {local_validateAnticipateOption} = []
     opt.Deviation (1, 1) logical = false
-    opt.EvalTrends (1, :) logical = logical.empty(1, 0)
     opt.Contributions (1, 1) logical = false
     opt.IgnoreShocks (1, 1) logical = false
     opt.MaxFrames (1, 1) double {mustBeInteger, mustBeNonnegative} = intmax()
@@ -232,7 +232,6 @@ if isempty(ip)
     ip = inputParser();
     addParameter(ip, "Anticipate", []);
     addParameter(ip, "Deviation", false);
-    addParameter(ip, "EvalTrends", logical.empty(1, 0))
     addParameter(ip, "Contributions", false);
     addParameter(ip, "IgnoreShocks", false);
     addParameter(ip, "MaxFrames", intmax());
@@ -273,10 +272,6 @@ opt = ip.Results;
 opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
-if isempty(opt.EvalTrends)
-    opt.EvalTrends = ~opt.Deviation;
-end
-
 if ~isequal(baseRange, @auto)
     baseRange = double(baseRange);
 end
@@ -316,8 +311,9 @@ runningData.IsAsynchronous = isAsynchronous;
 runningData.PrepareOutputInfo = nargout>=2;
 runningData.PrepareFrameData = nargout>=3;
 
-% Retrieve data from intput databank, set up ranges
-here_extractInputData();
+% Retrieve data from intput databank, set up ranges, evaluate measurement
+% trends if needed
+runningData = here_extractInputData(runningData);
 
 % Check Contributions= only after preparing data and resolving the number
 % of runs (variants, pages)
@@ -423,13 +419,12 @@ return
         runningData.SparseShocks = opt.SparseShocks;
         runningData.Method = repmat(opt.Method, 1, numRuns);
         runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
-        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
         runningData.SolverOptions = opt.Solver;
         %)
     end%
 
 
-    function here_extractInputData()
+    function runningData = here_extractInputData(runningData)
         %(
         numDummyPeriods = here_calculateNumDummyPeriods();
         baseRangePlusDummy = [baseRange(1), baseRange(end) + numDummyPeriods];
@@ -485,7 +480,6 @@ return
         runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
         runningData.Method = repmat(opt.Method, 1, numRuns);
         runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
-        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
         %)
     end%
 
@@ -527,8 +521,6 @@ return
         end
         runningData.Deviation = true(1, numRuns);
         runningData.Deviation(end-1:end) = opt.Deviation;
-        runningData.NeedsEvalTrends = false(1, numRuns);
-        runningData.NeedsEvalTrends(end-1:end) = opt.EvalTrends;
         %)
     end%
 

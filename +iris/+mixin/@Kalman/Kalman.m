@@ -5,6 +5,11 @@ classdef (Abstract) Kalman
         VARIANCE_FACTOR_TOLERANCE = eps()^(7/9)
         MEASUREMENT_MATRIX_TOLERANCE = eps()^(5/9)
         OBJ_FUNC_PENALTY = 1e+10
+        MEAN_OUTPUT = "Mean"
+        MEDIAN_OUTPUT = "Median"
+        CONTRIBS_OUTPUT = "Contribs"
+        STD_OUTPUT = "Std"
+        MSE_OUTPUT = "MSE"
     end
 
 

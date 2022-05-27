@@ -343,7 +343,7 @@ classdef Model ...
         end%
 
 
-        varargout = postprocessFilterOutput(varargin)
+        varargout = postprocessKalmanOutput(varargin)
         varargout = getIdInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
         varargout = getIthRectangularSolution(varargin)

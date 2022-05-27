@@ -52,8 +52,8 @@ classdef DateWrapper ...
         end%
 
 
-        function inx = ismember(this, that)
-            inx = ismember(round(100*this), round(100*that));
+        function inx = ismember(varargin)
+            inx = dater.ismember(varargin{:});
         end%
 
 
@@ -425,41 +425,6 @@ classdef DateWrapper ...
                     yp(:, end, :) = [ ];
                     yp = double(yp);
                     date = mm(yp(:, :, 1), yp(:, :, 2));
-            end
-        end%
-
-
-        function output = roundEqual(this, that)
-            output = round(100*this)==round(100*that);
-        end%
-
-
-
-
-        function output = roundColon(from, varargin)
-            if nargin==2
-                to = varargin{1};
-                step = 1;
-            elseif nargin==3
-                step = double(varargin{1});
-                to = varargin{2};
-            end
-            convertToDateWrapper = isa(from, 'DateWrapper') || isa(to, 'DateWrapper');
-            from = double(from);
-            to = double(to);
-            if ~isinf(from) && ~isinf(to)
-                output = (round(100*from) : round(100*step) : round(100*to))/100;
-            else
-                if isinf(from)
-                    from = -Inf;
-                end
-                if isinf(to)
-                    to = Inf;
-                end
-                output = [from, to];
-            end
-            if convertToDateWrapper
-                output = DateWrapper(output);
             end
         end%
     end

@@ -81,18 +81,8 @@ for i = 1 : numel(inputs)
         isEmpty = false;
     else
         outputData = cat(n, outputData, data__);
-% >=R2019b
-%(
-        outputComment = cat(n, outputComment, comment__);
-%)
-% >=R2019b
-
-% <=R2019a
-%{
         % Patch for bug in builtin string/cat in pre-R2019b
         outputComment = string(cat(n, cellstr(outputComment), cellstr(comment__)));
-%}
-% <=R2019a
     end
 end
 

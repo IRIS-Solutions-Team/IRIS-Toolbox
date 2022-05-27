@@ -21,13 +21,12 @@ if isempty(ip)
     addParameter(ip, "Sections", string.empty(1, 0));
 end
 opt = parse(ip, varargin{:});
-opt.Sections = textual.stringify(opt.Sections);
 %}
 % <=R2019a
 
 
 code = string(fileread(fileName));
-code = local_extractCode(code, fileName, sections);
+code = local_extractCode(code, fileName, opt.Sections);
 
 if code~=""
     disp(code);
@@ -42,6 +41,7 @@ end%
 
 function outputCode = local_extractCode(inputCode, fileName, sections)
     %(
+    sections = textual.stringify(sections);
     if isempty(sections)
         outputCode = extractBetween(inputCode, "```matlab", "```", "boundaries", "inclusive");
         if isempty(outputCode)

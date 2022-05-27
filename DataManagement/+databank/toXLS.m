@@ -15,7 +15,7 @@ end
 % >=R2019b
 
 
-% >=R2019b
+% <=R2019a
 %{
 function namesSaved = toXLS(inputDb, fileName, varargin)
 
@@ -29,7 +29,7 @@ end
 parse(ip, varargin{:});
 opt = ip.Results;
 %}
-% >=R2019b
+% <=R2019a
 
 
 [filePath, fileTitle, fileExt] = fileparts(fileName);

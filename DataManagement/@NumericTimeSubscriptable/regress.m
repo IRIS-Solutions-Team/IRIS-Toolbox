@@ -39,7 +39,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 dates = ip.Results.dates__;
-opt = rmfield(ip.Results, ["Constant", "dates__"]);
+opt = ip.Results;
 %}
 % <=R2019a
 

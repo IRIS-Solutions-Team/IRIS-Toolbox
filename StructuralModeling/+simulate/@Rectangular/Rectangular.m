@@ -51,7 +51,6 @@ classdef Rectangular ...
 
         Deviation = false
         SimulateY = true
-        NeedsEvalTrends = true
         UpdateEntireXib = false
 
         SparseShocks = false

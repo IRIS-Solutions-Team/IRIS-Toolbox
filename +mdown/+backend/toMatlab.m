@@ -15,19 +15,18 @@ end
 %{
 function output = toMatlab(input, varargin)
 
-input = string(input);
-
-persistent pp
-if isempty(pp)
-    pp = inputParser();
-    pp = addParameter("Language", ["matlab", "iris"]);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    ip = addParameter("Language", ["matlab", "iris"]);
 end
-opt = parse(pp, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 %}
 % <=R2019a
 
 
-input = textual.stringify(split(input, newline()));
+input = textual.stringify(split(string(input), newline()));
 opt.Language = reshape(string(opt.Language), 1, []);
 output = string.empty(1, 0);
 

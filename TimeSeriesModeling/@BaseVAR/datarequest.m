@@ -1,9 +1,5 @@
-function outp = datarequest(req, this, inp, range)
 % datarequest  Request input data
 %
-% Backend IRIS function
-% No help provided
-
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
@@ -13,29 +9,33 @@ function outp = datarequest(req, this, inp, range)
 % Outp.E
 % Outp.Format
 
-%--------------------------------------------------------------------------
 
-retY = ~isempty( strfind(req, 'y') );
-mustY = ~isempty( strfind(req, 'y*') );
-retE = ~isempty( strfind(req, 'e') );
-mustE = ~isempty( strfind(req, 'e*') );
+function outp = datarequest(request, this, inputDb, range)
+
+retY = contains(request, "y");
+mustY = contains(request, "y*");
+retE = contains(request, "e");
+mustE = contains(request, "e*");
 
 Y = [ ];
 E = [ ];
 
 range = double(range);
-if any(isinf(range))
+isInfRange = any(isinf(range));
+if isInfRange
     range = Inf;
-    isInfRange = true;
 else
     if ~isempty(range)
         range = range(1) : range(end);
     end
-    isInfRange = false;
 end
 
 if isInfRange
-    range = dbrange(inp, cellstr(this.EndogenousNames));
+    range = databank.range( ...
+        inputDb ...
+        , "sourceNames", textual.stringify(this.EndogenousNames) ...
+        , "multiFrequencies", false ...
+    );
 end
 
 sw = struct( );
@@ -44,13 +44,13 @@ sw.BaseYear = this.BaseYear;
 if retY
     sw.Warn.NotFound = mustY;
     sw.Warn.NonTseries = mustY;
-    Y = db2array(inp, range, this.EndogenousNames, sw);
+    Y = db2array(inputDb, range, this.EndogenousNames, sw);
 end
 
 if retE
     sw.Warn.NotFound = mustE;
     sw.Warn.NonTseries = mustE;
-    E = db2array(inp, range, this.ResidualNames, sw);
+    E = db2array(inputDb, range, this.ResidualNames, sw);
 end
 
 outp.Range = range;

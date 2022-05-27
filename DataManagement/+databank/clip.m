@@ -34,7 +34,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 newEnd = ip.Results.newEnd;
-opt = rmfied(ip.Results, ["newEnd"]);
+opt = ip.Results;
 %}
 % <=R2019a
 

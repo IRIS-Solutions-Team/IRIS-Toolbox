@@ -6,11 +6,11 @@
 function outputDb = finalize(Y, options)
 
 TIME_SERIES = Series();
-MEAN_OUTPUT = "Mean";
-MEDIAN_OUTPUT = "Median";
-BREAKDOWN_OUTPUT = "Contribs";
-STD_OUTPUT = "Std";
-MSE_OUTPUT = "MSE";
+MEAN_OUTPUT = iris.mixin.Kalman.MEAN_OUTPUT;
+MEDIAN_OUTPUT = iris.mixin.Kalman.MEDIAN_OUTPUT;
+CONTRIBS_OUTPUT = iris.mixin.Kalman.CONTRIBS_OUTPUT;
+STD_OUTPUT = iris.mixin.Kalman.STD_OUTPUT;
+MSE_OUTPUT = iris.mixin.Kalman.MSE_OUTPUT;
 
 outputDb = struct();
 
@@ -59,7 +59,7 @@ return
         end
 
         if isfield(Y, contInput)
-            outputDb.(prefix).(BREAKDOWN_OUTPUT) = seriesFromData(Y.(contInput), "breakdown");
+            outputDb.(prefix).(CONTRIBS_OUTPUT) = seriesFromData(Y.(contInput), "breakdown");
             Y.(contInput).Data = [];
         end
 

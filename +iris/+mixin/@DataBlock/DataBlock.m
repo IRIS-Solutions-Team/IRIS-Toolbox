@@ -33,7 +33,7 @@ classdef DataBlock ...
     methods
         function value = get.BaseRange(this)
             extendedRange = double(this.ExtendedRange);
-            extendedRange = DateWrapper.roundColon(extendedRange(1), extendedRange(end));
+            extendedRange = dater.colon(extendedRange(1), extendedRange(end));
             value = extendedRange(this.BaseRangeColumns);
         end%
 

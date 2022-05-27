@@ -2,26 +2,66 @@ classdef Dater ...
     < DateWrapper
 
     methods
-        function output = plus(varargin)
-            output = plus@DateWrapper(varargin{:});
-            if isa(output, 'DateWrapper')
-                output = Dater(output);
+        function out = plus(varargin)
+            out = plus@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
             end
         end%
 
 
-        function output = minus(varargin)
-            output = minus@DateWrapper(varargin{:});
-            if isa(output, 'DateWrapper')
-                output = Dater(output);
+        function out = minus(varargin)
+            out = minus@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
             end
         end%
 
 
-        function output = colon(varargin)
-            output = colon@DateWrapper(varargin{:});
-            if isa(output, 'DateWrapper')
-                output = Dater(output);
+        function out = uplus(varargin)
+            out = uplus@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
+            end
+        end%
+
+
+        function out = uminus(varargin)
+            out = uminus@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
+            end
+        end%
+
+
+        function out = colon(varargin)
+            out = colon@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
+            end
+        end%
+
+
+        function out = max(varargin)
+            out = max@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
+            end
+        end%
+
+
+        function out = min(varargin)
+            out = min@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
+            end
+        end%
+
+
+        function out = real(varargin)
+            out = real@DateWrapper(varargin{:});
+            if isa(out, 'DateWrapper')
+                out = Dater(out);
             end
         end%
     end

@@ -26,17 +26,18 @@ else
     if validate.numericScalar(varargin{1})
         varargin = [{"constant"}, varargin(1)];
     end
+
     % Call built-in `fillmissing` and supply the locations of missing values
-    % >=R2019b
-    %{
+% >=R2019b
+%(
     data = fillmissing(data, varargin{:}, "missingLocations", inxMissing);
-    %}
-    % >=R2019b
-    % <=R2019a
-    %(
+%)
+% >=R2019b
+% <=R2019a
+%{
     data = fillmissing(data, varargin{:});
-    %)
-    % <=R2019a
+%}
+% <=R2019a
 end
 
 end%

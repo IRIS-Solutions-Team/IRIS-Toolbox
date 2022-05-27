@@ -31,9 +31,9 @@ if isempty(ip)
     addParameter(ip, "Period", false);
     addParameter(ip, "Range", Inf);
 end
-ip.parse(this, varargin{:});
+parse(ip, varargin{:});
 range = ip.Results.range__;
-opt = rmfield(opt, "range__");
+opt = ip.Results;
 %}
 % <=R2019a
 

@@ -66,7 +66,8 @@ if isempty(ip)
     addParameter(ip, "Aggregation", @mean);
     addParameter(ip, "Mode", "mult");
 end
-opt = ip.parse(this, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;;
 %}
 % <=R2019a
 

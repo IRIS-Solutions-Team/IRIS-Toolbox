@@ -12,9 +12,10 @@ arguments
     operator {validate.anyString(operator, ["*", "+", "/", "-", "diff", "difflog", "roc", "pct"])}
     change {local_validateGrowthInput(change)}
     dates {validate.properDates(dates)}
-    shift {local_validateShift(shift)} = -1
+    shift (1, :) double {mustBeInteger} = double.empty(1, 0)
 
     opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
+    opt.Shift (1, 1) double {mustBeInteger} = -1
 end
 %)
 % >=R2019b
@@ -22,30 +23,33 @@ end
 
 % <=R2019a
 %{
-function this = grow(this, operator, change, dates, shift, varargin)
-
-try, shift;
-    catch, shift = -1; end
+function this = grow(this, operator, change, dates, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
+    addOptional(ip, "shift", [], @isnumeric);
     addParameter(ip, "Direction", "forward");
 end
 parse(ip, varargin{:});
+shift = ip.Results.shift;
 opt = ip.Results;
 %}
 % <=R2019a
 
 
+% Legacy positional argument
+if isscalar(shift) && opt.Shift==-1
+    opt.Shift = shift;
+end
 
-%--------------------------------------------------------------------------
 
 func = local_chooseFunction(operator, opt.Direction);
 
 dates = reshape(double(dates), 1, [ ]);
 
-shift = dater.resolveShift(dates, shift);
+shift = dater.resolveShift(dates, opt.Shift);
+
 if startsWith(opt.Direction, "b", "ignoreCase", true)
     % Backward direction
     shift = -shift;
@@ -96,7 +100,7 @@ end
 %==========================================================================
 
 
-hereCheckMissingObs( );
+here_checkMissingObs( );
 
 % Reshape output data back
 if numel(sizeLevelData)>2
@@ -112,7 +116,7 @@ end
 
 return
 
-    function hereCheckMissingObs( )
+    function here_checkMissingObs( )
         if isa(this, 'NumericTimeSubscriptable')
             missingTest = this.MissingTest;
         else
@@ -132,7 +136,7 @@ return
 end%
 
 %
-% Local Functions
+% Local functions
 %
 
 function func = local_chooseFunction(operator, direction)
@@ -170,6 +174,9 @@ function func = local_chooseFunction(operator, direction)
     %)
 end%
 
+%
+% Local validators
+%
 
 function local_validateGrowthInput(input)
     %(
@@ -190,9 +197,6 @@ function local_validateShift(input)
     %)
 end%
 
-%
-% Local Validators
-%
 
 function local_validateLevelInput(input)
     if isa(input, 'NumericTimeSubscriptable') || validate.numericScalar(input)
@@ -200,73 +204,4 @@ function local_validateLevelInput(input)
     end
     error("Validation:Failed", "Input value for the level series must be a time series or a numeric scalar");
 end%
-
-
-
-
-%
-% Unit Tests 
-%
-%{
-##### SOURCE BEGIN #####
-% saveAs=Series/growUnitTest.m
-
-% Set Up Once
-this = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
-
-%% Test Grow Default Multiplicative
-    x = Series(qq(2001,1):qq(2010,4), @rand);
-    g = 1 + Series(qq(2005,1):qq(2020,4), @rand) / 10;
-    y = grow(x, '*', g, g.Range);
-    z = y / y{-1};
-    assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
-    assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
-    assertEqual(this, z(g.Range), g(g.Range), 'AbsTol', 1e-10);
-
-
-%% Test Grow Default Additive
-
-x = Series(qq(2001,1):qq(2010,4), @rand);
-g = 1 + Series(qq(2005,1):qq(2020,4), @rand) / 10;
-
-y = grow(x, '+', g, g.Range);
-z = y - y{-1};
-
-assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
-assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
-assertEqual(this, z(g.Range), g(g.Range), 'AbsTol', 1e-10);
-
-
-%% Test Grow with Shift=-4
-
-x = Series(qq(2001,1):qq(2010,4), @rand);
-g = 1 + Series(qq(2005,1):qq(2020,4), @rand) / 10;
-
-y = grow(x, '*', g, g.Range, -4);
-z = y / y{-4};
-
-assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
-assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
-assertEqual(this, z(g.Range), g(g.Range), 'AbsTol', 1e-10);
-
-
-%% Test Grow with Discrete Dates
-
-x = Series(qq(2001,1):qq(2010,4), @rand);
-g = 1 + Series(qq(2005,1):qq(2010,4), @rand) / 10;
-
-dates = qq(2005,1) : 3 : qq(2010,4);
-y = grow(x, '*', g, dates);
-z = roc(y);
-
-assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
-assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
-assertEqual(this, z(dates), g(dates), 'AbsTol', 1e-10);
-
-z1 = z;
-z(dates) = -9999;
-assertNotEqual(this, round(z(g.Range), 8), round(g(g.Range), 8));
-
-##### SOURCE END #####
-%}
 

@@ -1,3 +1,24 @@
+%{
+---
+title: today
+---
+
+# `dater.today`
+
+{== Create today's dater of a given frequency ==}
+
+
+## Syntax
+
+    t = dater.today(freq)
+
+
+%}
+
+
+%---8<---
+
+
 function dateCode = today(freq)
 
 % >=R2019b

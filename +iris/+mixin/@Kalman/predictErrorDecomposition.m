@@ -9,7 +9,6 @@ numY = s.NumY;
 numF = s.NumF;
 numB = s.NumB;
 numE = s.NumE;
-numG = s.NumG;
 numExtdPeriods = s.NumExtdPeriods;
 
 numOutlik = s.NumOutlik; % Number of dtrend params concentrated out of lik function
@@ -64,6 +63,8 @@ PInf = s.InitMseInf;
 P = PReg;
 if ~isempty(PInf) && any(diag(PInf)>0)
     P = P + PInf;
+else
+    PInf = zeros(size(P));
 end
 
 
@@ -204,6 +205,7 @@ for t = 2 : numExtdPeriods
     %
     % Index of observations available at time t, `jy`, and index of
     % conditioning observables available at time t, `cy`.
+    %
     jy = s.yindex(:, t);
     if isempty(opt.Condition)
         cy = false(numY, 1);
@@ -213,14 +215,20 @@ for t = 2 : numExtdPeriods
         isCondition = any(cy);
     end
 
+
+    %
     % Z matrix at time t
+    %
     Z = s.Z(:, :, min(t, end));
     Zj = Z(jy, :);
 
     ZP = Zj*P;
     PZt = ZP';
 
+
+    %
     % Mean prediction for observables available, y0(t|t-1)
+    %
     if ~isempty(s.d)
         d = s.d(:, min(t, end));
     end
@@ -256,6 +264,7 @@ for t = 2 : numExtdPeriods
     lastwarn('');
     K1 = PZt/Fj;
 
+
     %
     % Effect of out-of-liks on `-pe(t)`
     %
@@ -265,10 +274,12 @@ for t = 2 : numExtdPeriods
         M = [M1, M2];
     end
 
+
     %
     % Update to `Ta(t+1<-t)` here
     %
     Ta = s.Ta(:, :, min(t+1, end));
+
 
     %
     % Kalman gain in next prediction step
@@ -280,6 +291,7 @@ for t = 2 : numExtdPeriods
     else
         K0 = NaN;
     end
+
 
     %
     % Objective Function Components

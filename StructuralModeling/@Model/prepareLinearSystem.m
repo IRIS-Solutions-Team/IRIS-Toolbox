@@ -137,8 +137,6 @@ return
     end%
 
 
-
-
     function here_assignCovarianceMatrices( )
         Omega = covfun.stdcorr2cov(defaultStdCorr, numE);
         defaultMatrices = { Omega(inxV, inxV), Omega(inxW, inxW) };
@@ -159,8 +157,6 @@ return
             previousMatrices = matrices__;
         end
     end%
-
-
 
 
     function initCond = here_initialize( )

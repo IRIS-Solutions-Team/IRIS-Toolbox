@@ -18,10 +18,10 @@ sumLogDetF = sum(logDetF, 2);
 sumPeFiPe = sum(peFiPe, 2);
 sumMtFiM = sum(MtFiM, 3);
 sumMtFiPe = sum(MtFiPe, 2);
-isOutOfLik = ~isempty(sumMtFiM) && ~isempty(sumMtFiPe);
+isOutlik = ~isempty(sumMtFiM) && ~isempty(sumMtFiPe);
 
 % Estimate user-requested out-of-lik parameters
-if isOutOfLik
+if isOutlik
     L2i = pinv(sumMtFiM);
     Est = L2i * sumMtFiPe;
     PEst = L2i;
@@ -61,7 +61,7 @@ end
 % 
 % Objective Function Components
 %
-if isOutOfLik
+if isOutlik
     peFiPe = peFiPe - Est.'*MtFiPe;
 end
 if V~=1

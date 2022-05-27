@@ -6,13 +6,16 @@ classdef Data ...
         ForceInit = double.empty(0)
 
         % InitYX  Sparse matrix of the original input data for YX
-        InitYX = [ ]
+        InitYX = []
 
         % BarYX  NumYX-by-NumOfPeriods matrix of steady levels for [observed; endogenous]
-        BarYX = double.empty(0)
+        BarYX = []
+
+        % MeasurementTrends  NumY-by-NumPeriods array of measurement trends
+        MeasurementTrends = []
 
         % NonlinAddf  Add-factors in hash equations
-        NonlinAddf = double.empty(0)
+        NonlinAddf = []
 
         % InxY  True for measurement variables within rows of YXEPG
         InxY = logical.empty(1, 0)
@@ -63,11 +66,7 @@ classdef Data ...
         % UnanticipatedE  Values of unanticipated shocks within the current simulation range
         UnanticipatedE = double.empty(0)
 
-        % Trends  Measurement trend equations evaluated
-        Trends = double.empty(0)
-
-        Deviation = false
-        NeedsEvalTrends = true
+        Deviation 
 
         FirstColumnSimulation
         LastColumnSimulation
@@ -126,22 +125,48 @@ classdef Data ...
         end%
 
 
-        function YXEPG = addSteadyTrends(this, YXEPG)
-            inx = this.InxYX & this.InxLog;
-            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxLog(this.InxYX), :);
+        function YXEPG = addMeasurementTrends(this, YXEPG)
+            %(
+            if ~any(this.InxY)
+                return
+            end
+            inx = this.InxY & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) + this.MeasurementTrends(~this.InxLog(this.InxY), :);
+            inx = this.InxY & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) .* this.MeasurementTrends(this.InxLog(this.InxY), :);
+            %)
+        end%
 
+
+        function YXEPG = removeMeasurementTrends(this, YXEPG)
+            %(
+            if ~any(this.InxY)
+                return
+            end
+            inx = this.InxY & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) - this.MeasurementTrends(~this.InxLog(this.InxY), :);
+            inx = this.InxY & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) ./ this.MeasurementTrends(this.InxLog(this.InxY), :);
+            %)
+        end%
+
+
+        function YXEPG = addSteadyTrends(this, YXEPG)
+            %(
             inx = this.InxYX & ~this.InxLog;
             YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxLog(this.InxYX), :);
+            inx = this.InxYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxLog(this.InxYX), :);
+            %)
         end%
 
 
         function YXEPG = removeSteadyTrends(this, YXEPG)
             %(
-            inx = this.InxYX & this.InxLog;
-            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxLog(this.InxYX), :);
-
             inx = this.InxYX & ~this.InxLog;
             YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxLog(this.InxYX), :);
+            inx = this.InxYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxLog(this.InxYX), :);
             %)
         end%
 
@@ -217,6 +242,12 @@ classdef Data ...
             this.YXEPG(this.InxE, columnsFrame) = E(this.InxE, columnsFrame);
             %)
         end%
+
+
+        function preserveTargetValues(this)
+            this.TargetYX = this.YXEPG;
+        end%
+
 
 
         function updateTargetsWithinFrame(this)
@@ -374,11 +405,6 @@ classdef Data ...
                 planVariant = 1;
             end
 
-            dataPage = run;
-            if size(runningData.YXEPG, 3)==1
-                dataPage = 1;
-            end
-
             this = simulate.Data( );
             this.FirstColumnSimulation = runningData.BaseRangeColumns(1);
             this.LastColumnSimulation = runningData.BaseRangeColumns(end);
@@ -386,7 +412,8 @@ classdef Data ...
             columnsSimulation = this.FirstColumnSimulation : this.LastColumnSimulation;
             numQuantities = size(this.YXEPG, 1);
 
-            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, runningData.YXEPG(:, :, dataPage), modelVariant, [ ]);
+            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, runningData.YXEPG(:, :, run), modelVariant, [ ]);
+            this.MeasurementTrends = evalTrendEquations(model, [], this.YXEPG, modelVariant);
             quantity = getp(model, 'Quantity');
             this.InxY = getIndexByType(quantity, 1);
             this.InxX = getIndexByType(quantity, 2);
@@ -396,17 +423,7 @@ classdef Data ...
             this.InxExogenizedYX = logical(this.EmptySparse);
             this.InxEndogenizedE = logical(this.EmptySparse);
 
-            %
-            % Preserve the exogenized YX input data outside YXEPG
-            %
-            this.TargetYX = this.EmptySparse;
-            if plan.NumOfExogenizedPoints>0
-                inxAllExogenized = plan.InxOfAnticipatedExogenized | plan.InxOfUnanticipatedExogenized;
-                input = runningData.YXEPG(this.InxYX, :, dataPage);
-                target = sparse(size(input, 1), size(input, 2));
-                target(inxAllExogenized) = input(inxAllExogenized);
-                this.TargetYX(this.InxYX, :) = target;
-            end
+            this.TargetYX = [];
 
             this.SigmasE = this.EmptySparse;
             if isempty(plan.SigmasExogenous)
@@ -430,14 +447,7 @@ classdef Data ...
                 this.InxUnanticipatedE(this.InxE) = not(plan);
             end
 
-            %
-            % Prepare data for measurement trend equations
-            %
-            this.NeedsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
-            if this.NeedsEvalTrends
-                this.Trends = evalTrendEquations(model, [ ], this.YXEPG);
-                this.NeedsEvalTrends = any(this.Trends(:)~=0);
-            end
+            this.Deviation = runningData.Deviation(run);
         end%
 
 

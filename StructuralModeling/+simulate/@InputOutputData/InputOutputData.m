@@ -22,8 +22,8 @@ classdef InputOutputData ...
         ExitFlags 
         DiscrepancyTables (1, :) cell = cell.empty(1, 0)
         Method (1, :) solver.Method = solver.Method.empty(1, 0) 
+
         Deviation (1, :) logical = logical.empty(1, 0)
-        NeedsEvalTrends (1, :) logical = logical.empty(1, 0)
 
         % PrepareOutputInfo  True if output info is requested by the user
         PrepareOutputInfo (1, 1) logical = false
