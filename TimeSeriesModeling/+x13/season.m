@@ -78,9 +78,9 @@ arguments
 
     specs.Arima logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Arima_Model (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
+    specs.Arima_Title (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Arima_AR (1, :) { mustBeNumeric } = double.empty(1, 0)
     specs.Arima_MA (1, :) { mustBeNumeric } = double.empty(1, 0)
-    specs.Arima_Title string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
     specs.Force logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Force_Type string { local_validateForceType } = string.empty(1, 0)
@@ -230,9 +230,9 @@ if isempty(ip)
 
     addParameter(ip, "Arima", logical.empty(1, 0));
     addParameter(ip, "Arima_Model", string.empty(1, 0));
+    addParameter(ip, "Arima_Title", string.empty(1, 0));
     addParameter(ip, "Arima_AR", double.empty(1, 0));
     addParameter(ip, "Arima_MA", double.empty(1, 0));
-    addParameter(ip, "Arima_Title", string.empty(1, 0));
 
     addParameter(ip, "Force", logical.empty(1, 0));
     addParameter(ip, "Force_Type", string.empty(1, 0));
@@ -330,6 +330,7 @@ outputData = cell(numColumns, numOutputTables);
 outputInfo = [];
 inxError = false(1, numColumns);
 
+regularSpecsOrder = local_getRegularSpecsOrder();
 specs = local_removeEmptySpecs(specs);
 x13.checkSpecsConflicts(specs);
 specs = local_resolveDataAttributes(specs);
@@ -360,7 +361,7 @@ for i = find(~isnan(startDates))
     %
     % Translate the specs struct into a specs code
     %
-    specsCode__ = x13.encodeSpecs(specs__);
+    specsCode__ = x13.encodeSpecs(specs__, regularSpecsOrder);
     info__.InputFiles.spc = specsCode__;
 
     %
@@ -706,4 +707,153 @@ function local_validateOutlierMethod(x)
     %)
 end%
 
+
+function list = local_getRegularSpecsOrder()
+    %
+    % Some specs arguments need to in a specific ordere although not
+    % documented in X13. Example:
+    % Arima_Model has to preceed Arima_AR and Arima_MA
+    %
+    %(
+    list = [
+        "Series_Title"
+        "Series_Start"
+        "Series_Span"
+        "Series_ModelSpan"
+        "Series_Data"
+        "Series_Period"
+        "Series_Decimals"
+        "Series_Precision"
+        "Series_CompType"
+        "Series_CompWeight"
+        "Series_Save"
+        "Series_AppendBcst"
+        "Series_AppendFcst"
+        "Series_Type"
+
+        "X11_Mode"
+        "X11_SeasonalMA"
+        "X11_TrendMA"
+        "X11_SigmaLim"
+        "X11_Title"
+        "X11_AppendFcst"
+        "X11_AppendBcst"
+        "X11_Final"
+        "X11_Print"
+        "X11_Save"
+        "X11_SaveLog"
+
+        "Transform"
+        "Transform_Function"
+        "Transform_Power"
+        "Transform_Adjust"
+        "Transform_Title"
+        "Transform_AicDiff"
+        "Transform_Print"
+        "Transform_Save"
+        "Transform_SaveLog"
+
+        "Estimate"
+        "Estimate_Tol"
+        "Estimate_MaxIter"
+        "Estimate_Exact"
+        "Estimate_OutOfSample"
+        "Estimate_Print"
+        "Estimate_Save"
+        "Estimate_SaveLog"
+
+        "Automdl"
+        "Automdl_MaxOrder"
+        "Automdl_MaxDiff"
+        "Automdl_Diff"
+        "Automdl_AcceptDefault"
+        "Automdl_CheckMu"
+        "Automdl_LjungBoxLimit"
+        "Automdl_Mixed"
+        "Automdl_Print"
+        "Automdl_SaveLog"
+
+        "Pickmdl"
+        "Pickmdl_Method"
+        "Pickmdl_Mode"
+        "Pickmdl_Print"
+        "Pickmdl_SaveLog"
+
+        "Arima"
+        "Arima_Model"
+        "Arima_Title"
+        "Arima_AR"
+        "Arima_MA"
+
+        "Force"
+        "Force_Type"
+        "Force_Lambda"
+        "Force_Rho"
+        "Force_Round"
+        "Force_Start"
+        "Force_Target"
+        "Force_UseFcst"
+        "Force_Print"
+        "Force_Save"
+
+        "Forecast"
+        "Forecast_MaxLead"
+        "Forecast_MaxBack"
+        "Forecast_Exclude"
+        "Forecast_LogNormal"
+        "Forecast_Print"
+        "Forecast_Save"
+
+        "Regression"
+        "Regression_Variables"
+        "Regression_TestAllEaster"
+        "Regression_Data"
+        "Regression_User"
+        "Regression_UserType"
+        "Regression_AicTest"
+        "Regression_AicDiff"
+        "Regression_PVAicTest"
+        "Regression_TLimit"
+        "Regression_Chi2Test"
+        "Regression_Chi2TestCV"
+        "Regression_Print"
+        "Regression_Save"
+        "Regression_SaveLog"
+
+        "X11Regression"
+        "X11Regression_Variables"
+        "X11Regression_Data"
+        "X11Regression_User"
+        "X11Regression_UserType"
+        "X11Regression_AicTest"
+        "X11Regression_AicDiff"
+        "X11Regression_TDPrior"
+        "X11Regression_Prior"
+        "X11Regression_Span"
+        "X11Regression_Sigma"
+        "X11Regression_Critical"
+        "X11Regression_OutlierMethod"
+        "X11Regression_OutlierSpan"
+        "X11Regression_Print"
+        "X11Regression_Save"
+        "X11Regression_SaveLog"
+
+        "Seats"
+        "Seats_AppendFcst"
+        "Seats_HpCycle"
+        "Seats_NoAdmiss"
+        "Seats_QMax"
+        "Seats_RMod"
+        "Seats_Out"
+        "Seats_StatSeas"
+        "Seats_TabTables"
+        "Seats_PrintPhtrf"
+        "Seats_Print"
+        "Seats_Save"
+        "Seats_SaveLog"
+    ];
+    list = reshape(list, 1, []);
+    list(~contains(list, "_")) = [];
+    %)
+end%
 

@@ -1,12 +1,20 @@
-function code = encodeSpecs(specs)
+function code = encodeSpecs(specs, regularSpecsOrder)
 
 specsNames = reshape(string(fieldnames(specs)), 1, [ ]);
 
-% Regular specs: specs.X11_Mode
-% Force specs: specs.Automdl
+%
+% Regular spec example: specs.X11_Mode
+% Force spec example: specs.Automdl
+%
 inxRegular = contains(specsNames, "_");
 regularSpecsNames = specsNames(inxRegular);
 forceSpecsNames = specsNames(~inxRegular);
+
+%
+% Make sure the regular specs follow the prescribed order
+%
+local_checkInternalMissing(regularSpecsNames, regularSpecsOrder);
+regularSpecsNames = intersect(regularSpecsOrder, regularSpecsNames, 'stable');
 
 store = struct( );
 for n = regularSpecsNames
@@ -116,4 +124,20 @@ function isDate = local_tellDate(name)
     isDate = endsWith(name, ["Start", "Span"], "IgnoreCase", true);
 end%
 
+
+function local_checkInternalMissing(regularSpecsNames, regularSpecsOrder)
+    %
+    % Catch possible internal inconsistency between the input argument
+    % validator and the local_getRegularSpecsOrder function
+    %
+    %(
+    missing = setdiff(regularSpecsNames, regularSpecsOrder);
+    if ~isempty(missing)
+        exception.error([
+            "X13"
+            "Internal error; this X13 specs is not included in the order array: %s "
+        ], missing);
+    end
+    %)
+end%
 
