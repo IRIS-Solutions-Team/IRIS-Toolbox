@@ -33,7 +33,7 @@ end
 
 % <=R2019a
 %{
-function [outputDb, info] = data(dataset, freq, areas, items, counters, varargin{:})
+function [outputDb, info] = data(dataset, freq, areas, items, counters, varargin)
 
 persistent ip
 if isempty(ip)
@@ -49,7 +49,7 @@ if isempty(ip)
     addParameter(ip, "IncludeArea", true);
     addParameter(ip, "IncludeCounter", true);
     addParameter(ip, "Separator", "_");
-    addParameter(ip, "NameFunc", [ ]);
+    addParameter(ip, "NameFunc", []);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
