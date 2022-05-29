@@ -263,7 +263,22 @@ if ~isinf(opt.Round)
     outputTable = roundTable(outputTable, opt.Round);
 end
 
-outputTable.Properties.Description = join(opt.Title, newline());
+
+%
+% Table description (title)
+%
+try
+    description = join(opt.Title, newline());
+catch
+    % Make it work for older Matlab versions too
+    if isempty(opt.Title)
+        description = '';
+    else
+        description = char(join(opt.Title, ' // '));
+    end
+end
+outputTable.Properties.Description = description;
+
 
 % 
 % Write table to file
