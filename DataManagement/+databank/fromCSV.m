@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputDb, info] = fromCSV(fileName, opt)
 
 arguments
@@ -42,12 +42,12 @@ arguments
         opt.Frequency__EnforceFrequency = []
     opt.Months = iris.Configuration.Months
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputDb = fromCSV(fileName, varargin)
 
 persistent ip
@@ -88,7 +88,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function outputDb = generate(inputDb, valueFunc, targetNames, inputArgNames, opt)
 
 arguments
@@ -11,12 +11,12 @@ arguments
 
     opt.TargetDb {validate.databank} = inputDb
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputDb = generate(inputDb, valueFunc, targetNames, inputArgNames, varargin)
 
 persistent ip
@@ -26,7 +26,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

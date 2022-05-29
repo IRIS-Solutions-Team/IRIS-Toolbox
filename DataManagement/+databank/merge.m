@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function mainDb = merge(method, mainDb, mergeWith, opt)
 
 arguments
@@ -20,12 +20,12 @@ arguments
     opt.MissingField = @remove
     opt.Names { locallyValidateNames(opt.Names) } = @all
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function mainDb = merge(method, mainDb, varargin)
 
 if isempty(varargin)
@@ -55,7 +55,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

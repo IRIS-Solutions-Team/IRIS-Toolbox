@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [plotHandles, unitHandle, quadrantHandles] = eigen(x, opt)
 
 arguments
@@ -10,12 +10,12 @@ arguments
     opt.UnitCircle (1, 1) logical = true
     opt.UnitCircleSettings (1, :) cell = {"color", 0.5*[1, 1, 1]}
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [plotHandles, unitHandle, quadrantHandles] = eigen(x, varargin)
 
 persistent ip
@@ -27,7 +27,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

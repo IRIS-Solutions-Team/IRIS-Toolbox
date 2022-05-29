@@ -17,7 +17,7 @@ classdef Chart ...
     methods
         function this = Chart(title, range, varargin)
 % >=R2019b
-%(
+%{
             arguments
                 title (1, :) string
                 range double
@@ -26,7 +26,7 @@ classdef Chart ...
             arguments (Repeating)
                 varargin
             end
-%)
+%}
 % >=R2019b
 
             [startDate, endDate, varargin] = local_parseInputDates(range, varargin);

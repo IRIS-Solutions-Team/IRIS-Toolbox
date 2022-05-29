@@ -21,7 +21,7 @@ title: band
 
 
 % >=R2019b
-%(
+%{
 function [plotHandle, info] = band(mid, lower, upper, opt)
 
 arguments
@@ -38,12 +38,12 @@ arguments
     opt.Relative (1, 1) logical = true
     opt.ExcludeFromLegend (1, 1) logical = true
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [plotHandle, info] = band(mid, varargin)
 
 persistent ip
@@ -65,7 +65,7 @@ parse(ip, varargin{:});
 lower = ip.Results.lower;
 upper = ip.Results.upper;
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

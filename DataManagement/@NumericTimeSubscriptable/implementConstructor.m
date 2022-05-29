@@ -1,7 +1,7 @@
 function this = implementConstructor(this, dates, values, comment, userData, skipInputParser)
 
 % >=R2019b
-%(
+%{
 arguments
     this
     dates {validate.mustBeDate}
@@ -11,12 +11,12 @@ arguments
     skipInputParser
 end
 skip = ~isempty(skipInputParser);
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 persistent ip
 if isempty(ip)
     ip = extend.InputParser();
@@ -31,7 +31,7 @@ skip = maybeSkip(ip, skipInputParser{:});
 if ~skip
     parse(ip, dates, values, comment, userData);
 end
-%}
+%)
 % <=R2019a
 
 

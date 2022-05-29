@@ -111,7 +111,7 @@ where
 
 
 % >=R2019b
-%(
+%{
 function output = systemMatrices(this, opt)
 
 arguments
@@ -127,12 +127,12 @@ arguments
 
     opt.Select (1, 1) logical = true 
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function output = system(this, varargin)
 
 persistent ip
@@ -149,7 +149,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

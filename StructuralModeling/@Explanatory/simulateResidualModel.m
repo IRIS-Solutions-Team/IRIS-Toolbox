@@ -1,7 +1,7 @@
 % simulateResidualModels  Project residuals using ResidualModels
 
 % >=R2019b
-%(
+%{
 function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, opt)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     opt.Journal = false
     opt.IncludeInnovations (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [runningDb, innovations] = simulateResidualModel(this, runningDb, range, varargin)
 
 persistent ip
@@ -32,7 +32,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

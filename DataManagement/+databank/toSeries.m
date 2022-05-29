@@ -45,7 +45,7 @@
 
 
 % >=R2019b
-%(
+%{
 function [outputSeries, names, dates] = toSeries(inputDb, names, dates, columns)
 
 arguments
@@ -55,12 +55,12 @@ arguments
     dates {locallyValidateDates(dates)} = @all
     columns (1, :) {mustBeInteger, mustBePositive} = 1
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [outputSeries, names, dates] = toSeries(inputDb, varargin)
 
 persistent ip
@@ -74,7 +74,7 @@ parse(ip, varargin{:});
 names = ip.Results.names;
 dates = ip.Results.dates;
 columns = ip.Results.columns;
-%}
+%)
 % <=R2019a
 
 

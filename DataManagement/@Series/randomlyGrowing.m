@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function this = randomlyGrowing(range, params, opt)
 
 arguments
@@ -13,12 +13,12 @@ arguments
     opt.Comment = ""
     opt.UserData = []
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = randomlyGrowing(range, params, varargin)
 
 persistent ip
@@ -32,7 +32,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

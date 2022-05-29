@@ -179,7 +179,7 @@ for the description of all settings.
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, opt)
 
 arguments
@@ -219,12 +219,12 @@ arguments
     opt.AddToDatabank = false
     opt.IncludeLog (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [outputDb, outputInfo, frameDb] = simulate(this, inputDb, baseRange, varargin)
 
 persistent ip
@@ -265,7 +265,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

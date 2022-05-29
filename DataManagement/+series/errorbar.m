@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, opt)
 
 
@@ -13,12 +13,12 @@ arguments
     opt.PlotSettings (1, :) cell = cell.empty(1, 0)
     opt.LinkColor = true
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, varargin)
 
 persistent ip
@@ -30,7 +30,7 @@ if isempty(ip)
 end
 ip.parse(axesHandle, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

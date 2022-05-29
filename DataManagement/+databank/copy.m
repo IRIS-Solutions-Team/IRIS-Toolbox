@@ -2,7 +2,7 @@
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function targetDb = copy(sourceDb, opt)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     opt.Transform {locallyValidateTransform(opt.Transform)} = cell.empty(1, 0)
     opt.WhenTransformFails {locallyValidateWhenTransformFails} = "error"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function targetDb = copy(sourceDb, varargin)
 
 persistent ip
@@ -33,7 +33,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

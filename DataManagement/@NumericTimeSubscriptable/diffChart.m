@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [plotHandles, axesHandle, diffPlotHandle] = diffChart(inputSeries, opt)
 
 arguments
@@ -16,12 +16,12 @@ arguments
     opt.SecondPlot (1, :) cell = cell.empty(1, 0)
     opt.DiffPlot (1, :) cell = {"lineStyle", "none", "faceAlpha", 0.75}
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [axesHandle, plotHandles, diffPlotHandle] = diffChart(inputSeries, varargin)
 
 persistent ip
@@ -39,7 +39,7 @@ ip = inputParser();
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

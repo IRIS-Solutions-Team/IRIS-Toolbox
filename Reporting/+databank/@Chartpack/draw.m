@@ -60,12 +60,12 @@ __`info`__ [ struct ]
 function info = draw(this, inputDb)
 
 % >=R2019b
-%(
+%{
 arguments
     this (1, 1) databank.Chartpack
     inputDb (1, 1) {validate.mustBeDatabank}
 end
-%)
+%}
 % >=R2019b
 
 

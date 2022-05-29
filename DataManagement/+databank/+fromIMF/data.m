@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputDb, info] = data(dataset, freq, areas, items, counters, opt)
 
 arguments
@@ -27,12 +27,12 @@ arguments
     opt.Separator (1, 1) string = "_"
     opt.NameFunc = [ ]
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [outputDb, info] = data(dataset, freq, areas, items, counters, varargin)
 
 persistent ip
@@ -53,7 +53,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

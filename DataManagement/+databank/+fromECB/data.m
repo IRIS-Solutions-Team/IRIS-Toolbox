@@ -19,7 +19,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function [outputDb, info] = data(dataset, skeys, varargin)
 
 persistent ip
@@ -39,7 +39,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

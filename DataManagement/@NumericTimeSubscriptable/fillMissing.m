@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [this, datesMissing] = fillMissing(this, range, method)
 
 arguments
@@ -11,16 +11,16 @@ end
 arguments (Repeating)
     method
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [this, datesMissing] = fillMissing(this, range, varargin)
 
 method = varargin;
-%}
+%)
 % <=R2019a
 
 

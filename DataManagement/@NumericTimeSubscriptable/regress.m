@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, legacyDates, opt)
 
 arguments
@@ -19,12 +19,12 @@ arguments
         opt.Constant__Intercept = []
     opt.Weights {local_validateWeights} = []
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, varargin)
 
 persistent ip
@@ -40,7 +40,7 @@ end
 parse(ip, varargin{:});
 legacyDates = ip.Results.legacyDates;
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

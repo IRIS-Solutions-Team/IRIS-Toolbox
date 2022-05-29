@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [summaryTable, json, info] = datasets(opt)
 
 arguments
@@ -8,12 +8,12 @@ arguments
     opt.WebOptions = databank.fromIMF.Config.WebOptions
     opt.WriteTable (1, 1) string = ""
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [summaryTable, json, info] = datasets(varargin)
 
 persistent ip
@@ -25,7 +25,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

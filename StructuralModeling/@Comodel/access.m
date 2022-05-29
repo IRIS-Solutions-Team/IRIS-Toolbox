@@ -58,7 +58,7 @@
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [output, beenHandled] = access(this, input, opt)
 
 arguments
@@ -67,12 +67,12 @@ arguments
 
     opt.Error (1, 1) logical = true
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [output, beenHandled] = access(this, input, varargin)
 
 persistent ip
@@ -82,7 +82,7 @@ if isempty(ip)
 end
 parser(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

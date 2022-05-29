@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2021 IRIS Solutions Team
 
 % >=R2019b
-%(
+%{
 function outputDb = clip(inputDb, newStart, newEnd, opt)
 
 arguments
@@ -16,12 +16,12 @@ arguments
     opt.SourceNames {locallyValidateNames(opt.SourceNames)} = @all
     opt.TargetDb {locallyValidateDb(opt.TargetDb)} = @auto
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputDb = clip(inputDb, newStart, varargin)
 
 persistent ip
@@ -35,7 +35,7 @@ end
 parse(ip, varargin{:});
 newEnd = ip.Results.newEnd;
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

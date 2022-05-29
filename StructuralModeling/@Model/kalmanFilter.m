@@ -7,7 +7,7 @@
 function [outputDb, this, info] = kalmanFilter(this, inputDb, baseRange, varargin)
 
 % >=R2019b
-%(
+%{
 arguments
     this Model
     inputDb {local_validateInputDb}
@@ -17,7 +17,7 @@ end
 arguments (Repeating)
     varargin
 end
-%)
+%}
 % >=R2019b
 
 
