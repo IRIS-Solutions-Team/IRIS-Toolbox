@@ -5,7 +5,7 @@ function this = createAffected(this)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 numEquations = length(this.Equation);
 numQuantities = length(this.Quantity);

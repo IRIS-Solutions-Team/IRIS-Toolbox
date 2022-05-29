@@ -5,7 +5,7 @@ function [epsCurrent, epsShifted] = getIncidenceEps(equationStrings, inxEquation
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 PTR = @int32;
 STRING_TO_NUM = @(x) sscanf(join(string(x)), '%g');

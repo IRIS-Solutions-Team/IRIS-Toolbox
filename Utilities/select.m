@@ -40,7 +40,7 @@ function [X, Pos, Select, NotFound] = select(X, Descript, Select)
 %     C0 = select(C, {'X', 'Y', 'Z', 'Z{-1}'});
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 pp = inputParser( );
 pp.addRequired('X', @isnumeric);

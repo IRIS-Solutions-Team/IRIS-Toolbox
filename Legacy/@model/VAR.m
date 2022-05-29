@@ -36,7 +36,7 @@ function outputVAR = VAR(this, select, range, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 % Parse required arguments.
 pp = inputParser( );

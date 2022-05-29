@@ -1,7 +1,7 @@
 % resolveRange  Resolve start and end dates of series specific range
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [from, to, range] = resolveRange(this, varargin)
 

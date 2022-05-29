@@ -1,7 +1,7 @@
 % Type `web Grouping/index.md` for help on this class
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 classdef Grouping < iris.mixin.UserDataContainer ...
                   & iris.mixin.CommentContainer ...
@@ -75,7 +75,7 @@ classdef Grouping < iris.mixin.UserDataContainer ...
             %
 
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2021 IRIS Solutions Team.
+            % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
             this = this@iris.mixin.UserDataContainer( );
             this = this@iris.mixin.GetterSetter( );

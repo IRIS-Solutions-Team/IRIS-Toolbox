@@ -1,7 +1,7 @@
 % Type `web Dynafit/estimate.md` for help on this function
 %
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function ...
     [this, outputDb, contribDb, range] ...

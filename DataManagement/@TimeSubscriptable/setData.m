@@ -1,7 +1,7 @@
 % setData  Assign data to TimeSubscriptable object
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function this = setData(this, s, y)
 

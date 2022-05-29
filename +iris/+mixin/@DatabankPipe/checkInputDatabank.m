@@ -1,7 +1,7 @@
 % checkInputDatabank  Check input databank for missing or non-compliant variables
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function info = checkInputDatabank( ...
     this, inputDb, dates ...

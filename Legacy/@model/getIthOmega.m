@@ -5,7 +5,7 @@ function [Omg, stdcorr] = getIthOmega(this, variantsRequested, overrideStdcorr, 
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 if nargin<=1
     variantsRequested = 1 : countVariants(this);

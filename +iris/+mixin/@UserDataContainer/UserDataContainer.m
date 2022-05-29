@@ -1,7 +1,7 @@
 % UserDataContainer  Helper class to implement user data and comments
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 classdef UserDataContainer
     properties

@@ -48,7 +48,7 @@ function varargout = scatter(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 % AREA, BAND, BAR, BARCON, BUBBLE, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 

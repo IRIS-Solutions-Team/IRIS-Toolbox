@@ -1,7 +1,7 @@
 % visual.style  Style graphics objects
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function style(handles, specs, varargin)
 

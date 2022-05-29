@@ -5,7 +5,7 @@ function [lsExgName, lsEndgName, lsCondName] = myinfo4plan(this)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 ixy = this.Quantity.Type==1;
 ixx = this.Quantity.Type==2;

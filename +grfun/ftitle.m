@@ -44,7 +44,7 @@ function aa = ftitle(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 DEFAULT_FONT_NAME = get(0, 'DefaultAxesFontName');
 

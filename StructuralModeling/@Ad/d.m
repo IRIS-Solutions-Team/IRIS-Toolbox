@@ -1,7 +1,7 @@
 % d  Compute user-supplied derivatives of non-analytic functions or force numeric derivatives
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function df = d(func, k, varargin)
 

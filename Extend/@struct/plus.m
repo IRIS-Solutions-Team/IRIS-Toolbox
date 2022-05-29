@@ -2,7 +2,7 @@ function this = plus(this, d2)
 % See help on dbase/dbplus
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 f2 = fieldnames(d2);
 for i = 1 : numel(f2)

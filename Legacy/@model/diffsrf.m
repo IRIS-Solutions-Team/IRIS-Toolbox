@@ -39,7 +39,7 @@ function [s, this] = diffsrf(this, time, listParams, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % Convert char list to cellstr.
 if ischar(listParams)

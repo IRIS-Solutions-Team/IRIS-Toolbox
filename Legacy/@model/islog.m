@@ -26,7 +26,7 @@ function flag = islog(this, lsName)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('Name', @(x) ischar(x) || iscellstr(x) || isstring(x));

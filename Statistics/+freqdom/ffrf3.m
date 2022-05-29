@@ -5,7 +5,7 @@ function [YY, count] = ffrf3(model, systemProperty, variant)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 [T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderTriangular{:};
 Omega = systemProperty.CovShocks;

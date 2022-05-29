@@ -4,7 +4,7 @@ function varargout = bwf2(varargin)
 % See help on [`tseries/bwf`](tseries/bwf).
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % BWF2, HPF2, LLF2
 

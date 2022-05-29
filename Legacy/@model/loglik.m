@@ -119,7 +119,7 @@
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % These variables are cleared at the end of the file unless the user
 % specifies `persist=true`.

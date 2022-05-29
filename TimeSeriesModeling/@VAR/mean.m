@@ -41,7 +41,7 @@ function [meanY, initY] = mean(this)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 isYInit = nargout>1;
 

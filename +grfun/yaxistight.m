@@ -26,7 +26,7 @@ function yaxistight(handlesAxes)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 if nargin==0
     handlesAxes = visual.backend.getCurrentAxesIfExists( );

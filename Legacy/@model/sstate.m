@@ -1,7 +1,7 @@
 % Legacy function
 %
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [this, flag, outputInfo] = sstate(this, varargin)
 

@@ -1,7 +1,7 @@
 % fmse  Forecast mean square error matrices for general state space
 %
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 function X = fmse(T, R, K, Z, H, D, U, Omega, nper)
 

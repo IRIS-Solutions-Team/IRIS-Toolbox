@@ -70,7 +70,7 @@
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
     
 classdef (CaseInsensitiveProperties=true) ...
     DFM < BaseVAR
@@ -173,7 +173,7 @@ classdef (CaseInsensitiveProperties=true) ...
             %
             
             % -[IrisToolbox] for Macroeconomic Modeling
-            % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+            % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
             
             this = this@BaseVAR(varargin{:});
             if numel(varargin)==1

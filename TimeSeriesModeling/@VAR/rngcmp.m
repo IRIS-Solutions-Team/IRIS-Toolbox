@@ -25,7 +25,7 @@ function flag = rngcmp(V1, V2)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('V1', @(x) isa(x, 'VAR'));

@@ -24,7 +24,7 @@ function this = backward(this)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 ny = size(this.A, 1);
 p = size(this.A, 2) / max(ny, 1);

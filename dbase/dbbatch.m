@@ -122,7 +122,7 @@ function [d, list0, list, flag] = dbbatch(d, newName, userExpression, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 % TODO: Streamline dbquery/unmask.
 

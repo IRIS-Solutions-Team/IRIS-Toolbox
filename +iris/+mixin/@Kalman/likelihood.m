@@ -1,7 +1,7 @@
 % likelihood  Estimate out-of-lik parameters and sum up log-likelihood function components
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [objFunc, V, Est, PEst] = likelihood(logDetF, peFiPe, MtFiM, MtFiPe, numObs, opt)
 

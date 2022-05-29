@@ -1,7 +1,7 @@
 % checkStructureBefore  Check model structure before loss function
 %
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [exc, args] = checkStructureBefore(this, quantity, equation, opt)
 

@@ -1,7 +1,7 @@
 % ProgressBar  Display command line progress bar
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 classdef ProgressBar < handle
     properties

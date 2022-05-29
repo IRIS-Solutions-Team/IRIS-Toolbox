@@ -69,7 +69,7 @@
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 classdef (CaseInsensitiveProperties=true) ...
     Dynafit < BaseVAR
@@ -207,7 +207,7 @@ classdef (CaseInsensitiveProperties=true) ...
             %
 
             % -[IrisToolbox] for Macroeconomic Modeling
-            % -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+            % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
             arguments
                 list (1, :) string

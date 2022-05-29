@@ -1,7 +1,7 @@
 % cov2stdcorr  Convert covariance matrix to stdcorr vector
 %
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 function vecStdCorr = cov2stdcorr(omg, stdOnly)
 

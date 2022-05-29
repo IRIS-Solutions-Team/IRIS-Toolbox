@@ -53,7 +53,7 @@ function [scatterHandle, arrowHandle, dates] = bubble(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 DEFAULT_ARROW_OPTIONS = { 'LineWidth'; 0.5 };
 

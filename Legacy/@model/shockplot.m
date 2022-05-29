@@ -60,7 +60,7 @@ function [s, ff, aa] = shockplot(this, shockName, range, listOfNamesToPlot, vara
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 try
     if ischar(listOfNamesToPlot)

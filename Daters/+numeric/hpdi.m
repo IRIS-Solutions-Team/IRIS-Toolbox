@@ -5,7 +5,7 @@ function int = hpdi(x, coverage, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team & Troy Matheson
+% -Copyright (c) 2007-2022 IRIS Solutions Team & Troy Matheson
 
 persistent inputParser
 if isempty(inputParser)

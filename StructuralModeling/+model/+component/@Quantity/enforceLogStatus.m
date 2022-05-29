@@ -5,7 +5,7 @@ function this = enforceLogStatus(this)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % Enforce false log status of shocks
 inxEnforced = this.Type==31 | this.Type==32;

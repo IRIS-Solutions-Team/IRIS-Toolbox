@@ -1,7 +1,7 @@
 % PbFromPa  Convert MSE matrix of the alpha vector to MSE matrix of the vector of predetermined variables
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function P = PbFromPa(U, P)
 
