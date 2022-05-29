@@ -268,7 +268,7 @@ end
 % Table description (title)
 %
 try
-    description = join(opt.Title, newline());
+    outputTable.Properties.Description = join(opt.Title, newline());
 catch
     % Make it work for older Matlab versions too
     if isempty(opt.Title)
@@ -276,8 +276,8 @@ catch
     else
         description = char(join(opt.Title, ' // '));
     end
+    outputTable.Properties.Description = description;
 end
-outputTable.Properties.Description = description;
 
 
 % 
