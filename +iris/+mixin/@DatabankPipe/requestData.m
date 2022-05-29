@@ -8,7 +8,7 @@ function X = requestData(~, dbInfo, inputDb, namesInRows, dates)
 numPeriods = numel(dates);
 numNames = numel(namesInRows);
 
-if isequal(inputDb, "asynchronous")
+if all(strcmpi(inputDb, 'asynchronous'))
     X = nan(numNames, numPeriods, 1);
     return
 end

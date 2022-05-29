@@ -150,7 +150,7 @@ end
 function C = parseNormalCell(X)
 br = sprintf('\n');
 title = strtrim(latex.xml.xpath(X,'steptitle','string'));
-if isequal(title,'...')
+if all(strcmpi(title, '...'))
     cBegin = '\begin{splitcell}';
     cEnd = '\end{splitcell}';
 else
@@ -367,7 +367,7 @@ if exist([fTitle, fExt], 'file')~=2
         'Image file not found: %s.',[fTitle,fExt]);
     return
 end
-if isequal(fExt,'.eps')
+if all(strcmpi(fExt, '.eps'))
     latex.epstopdf([fTitle,fExt]);
     fExt = '.pdf';
 end

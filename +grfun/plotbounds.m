@@ -14,7 +14,7 @@ xlim = get(ax, 'XLim');
 plotOpt = { };
 if iscell(opt)
     plotOpt = opt;
-elseif isequal(opt, 'auto') || isequal(opt, @auto)
+elseif all(strcmpi(opt, 'auto')) || isequal(opt, @auto)
     % Plot bounds only if they fall within the current x-lims.
     if low<xlim(1) || low>xlim(2)
         low = NaN;

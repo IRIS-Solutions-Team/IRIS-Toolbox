@@ -82,7 +82,7 @@ if isempty(inputParser)
     inputParser.addRequired('Range', @isnumeric);
     inputParser.addParameter('Cross', true, ...
         @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
-    inputParser.addParameter('InvFunc', 'auto', @(x) isequal(x, 'auto') || isa(x, 'function_handle'));
+    inputParser.addParameter('InvFunc', 'auto', @(x) all(strcmpi(x, 'auto')) || isa(x, 'function_handle'));
     inputParser.addParameter('MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Persist', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Tolerance', 0, @(x) isnumeric(x) && isscalar(x));
@@ -122,7 +122,7 @@ end
 % Inversion method for the FMSE matrix. It is safe to use `inv` if
 % cross-correlations are pulled down because then the idiosyncratic cov
 % matrix is non-singular.
-if isequal(opt.InvFunc, 'auto')
+if all(strcmpi(opt.InvFunc, 'auto'))
     if this.Cross==1 && opt.Cross==1
         invFunc = @pinv;
     else

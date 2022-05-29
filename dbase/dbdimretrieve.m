@@ -26,7 +26,7 @@ for i = 1 : numOfFields
     end
     reference = cell(1, ndimsOfField);
     reference(:) = {':'};
-    if isequal(pos, 'end')
+    if all(strcmpi(pos, 'end'))
         reference{dimension} = sizeOfField(dimension);
     elseif sizeOfField(dimension)==1
         reference{dimension} = 1;

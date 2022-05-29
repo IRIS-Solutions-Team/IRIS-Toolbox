@@ -11,7 +11,7 @@ function h = mychkforpeers(hAx)
 
 peer = getappdata(hAx, 'graphicsPlotyyPeer');
 
-if isempty(peer) || ~isequal(get(hAx, 'color'), 'none')
+if isempty(peer) || ~all(strcmpi(get(hAx, 'color'), 'none'))
     h = hAx;
 else
     h = peer;

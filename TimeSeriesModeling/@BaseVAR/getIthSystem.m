@@ -24,7 +24,7 @@ if nargout<5
     return
 end
 
-if ischar(variantsRequested) && isequal(variantsRequested, ':')
+if ischar(variantsRequested) && all(strcmpi(variantsRequested, ':'))
     numVariantsRequested = countVariants(this);
 else
     numVariantsRequested = numel(variantsRequested);

@@ -45,7 +45,7 @@ info.NumPages = NaN;
 info.NamesAvailable = string.empty(1, 0);
 info.LogNames = logNames;
 
-if isequal(inputDb, "asynchronous")
+if all(strcmpi(inputDb, 'asynchronous'))
     return
 end
 

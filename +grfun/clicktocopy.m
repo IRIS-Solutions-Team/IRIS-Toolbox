@@ -44,7 +44,7 @@ end
 
 function copyAxes(h, varargin)
 POSITION = [0.1300, 0.1100, 0.7750, 0.8150];
-if ~isequal(get(h, 'type'), 'axes')
+if ~all(strcmpi(get(h, 'type'), 'axes'))
     h = get(h, 'parent');
 end
 new = copyobj(h, figure( ));

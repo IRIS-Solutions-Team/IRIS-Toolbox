@@ -81,7 +81,7 @@ else
     newPos = get(helperAx, 'position');
     %close(helperFig);
     delete(helperAx);
-    if isequal(get(ax, 'tag'), 'legend')
+    if all(strcmpi(get(ax, 'tag'), 'legend'))
         newPos(1) = newPos(1) + (newPos(3) - oldPos(3))/2;
         newPos(2) = newPos(2) + (newPos(4) - oldPos(4))/2;
         newPos(3:4) = oldPos(3:4);

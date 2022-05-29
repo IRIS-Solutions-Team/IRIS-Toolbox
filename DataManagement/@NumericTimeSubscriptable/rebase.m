@@ -46,14 +46,14 @@ if startsWith(opt.Mode, "add") ...
     func = @plus;
     invFunc = @minus;
     aggregator = opt.Aggregator;
-    if isequal(aggregator, "auto")
+    if all(strcmpi(aggregator, 'auto'))
         aggregator = @mean;
     end
 else
     func = @times;
     invFunc = @rdivide;
     aggregator = opt.Aggregator;
-    if isequal(aggregator, "auto")
+    if all(strcmpi(aggregator, 'auto'))
         aggregator = @geomean;
     end
 end

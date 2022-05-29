@@ -163,9 +163,9 @@ function q = evalExpr(q, d, opt)
     invalidBase = { };
     for j = 1 : length(q.children)
         ch = q.children{j};
-        if isequal(ch.func, 'empty') ...
-                || isequal(ch.func, 'subplot') ...
-                || isequal(ch.func, 'figure')
+        if all(strcmpi(ch.func, 'empty')) ...
+                || all(strcmpi(ch.func, 'subplot')) ...
+                || all(strcmpi(ch.func, 'figure'))
             continue
         end
         nSeries = length(ch.eval);
@@ -247,9 +247,9 @@ function q = handleEmptyTitles(q, opt)
     end
     for j = 1 : numel(q.children)
         ch = q.children{j};
-        if isequal(ch.func, 'empty') ...
-                || isequal(ch.func, 'subplot') ...
-                || isequal(ch.func, 'figure')
+        if all(strcmpi(ch.func, 'empty')) ...
+                || all(strcmpi(ch.func, 'subplot')) ...
+                || all(strcmpi(ch.func, 'figure'))
             continue
         end
         if isempty(ch.caption)
@@ -316,7 +316,7 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
             createNewFigure( );
         end
         
-        if isequal(func, 'empty')
+        if all(strcmpi(func, 'empty'))
             pos = pos + 1;
             continue    
         end

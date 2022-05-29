@@ -33,9 +33,9 @@ opt = ip.Results;
 
 stringify = @(x) reshape(string(x), 1, []);
 
-isNameFilter = ~(isequal(opt.Name, @all) || isequal(opt.Name, "__all__"));
-isClassFilter = ~(isequal(opt.Class, @all) || isequal(opt.Class, "__all__"));
-isValueFilter = ~(isequal(opt.Value, @all) || isequal(opt.Value, "__all__"));
+isNameFilter = ~(isequal(opt.Name, @all) || all(strcmpi(opt.Name, '__all__')));
+isClassFilter = ~(isequal(opt.Class, @all) || all(strcmpi(opt.Class, '__all__')));
+isValueFilter = ~(isequal(opt.Value, @all) || all(strcmpi(opt.Value, '__all__')));
 
 allKeys = stringify(fieldnames(inputDb));
 if ~isNameFilter && ~isClassFilter && ~isValueFilter

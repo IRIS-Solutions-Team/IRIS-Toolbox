@@ -58,7 +58,7 @@ if any(~inxOfRegular & ~inxOfZero & ~inxOfDaily & ~inxOfWeekly)
 end
 
 if any(inxOfRegular)
-    if isequal(per, 'end')
+    if all(strcmpi(per, 'end'))
         per = nan(size(freq));
         per(inxOfRegular) = freq(inxOfRegular);
     end
@@ -75,7 +75,7 @@ if any(inxOfDaily)
 end
 
 if any(inxOfWeekly)
-    if isequal(per, 'end')
+    if all(strcmpi(per, 'end'))
         per = nan(size(year));
         per(inxOfWeekly) = weeksinyear(year(inxOfWeekly));
     end

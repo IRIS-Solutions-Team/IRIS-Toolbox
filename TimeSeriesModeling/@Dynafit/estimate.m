@@ -17,7 +17,7 @@ if isempty(pp)
         @(x) isnumeric(x) && numel(x)==2 && x(1)>0 && x(1)<=1 && x(2)==round(x(2)) && x(2)>=1);
     pp.addParameter('Cross', true, ...
         @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
-    pp.addParameter('Method', 'auto', @(x) isequal(x, 'auto') || isequal(x, 1) || isequal(x, 2));
+    pp.addParameter('Method', 'auto', @(x) all(strcmpi(x, 'auto')) || isequal(x, 1) || isequal(x, 2));
     pp.addParameter('Order', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x)))
     pp.addParameter('Rank', Inf, @(x) isnumeric(x) && isscalar(x));
     pp.addParameter('Mean', []);

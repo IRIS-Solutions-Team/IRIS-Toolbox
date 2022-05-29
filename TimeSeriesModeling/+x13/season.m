@@ -440,7 +440,7 @@ end%
 
 function [specs, flipSign] = local_resolveAutoMode(data, specs)
     flipSign = 1;
-    if isfield(specs, "X11_Mode") && isequal(specs.X11_Mode, "auto")
+    if isfield(specs, 'X11_Mode') && all(strcmpi(specs.X11_Mode, 'auto'))
         inxNaN = ~isfinite(data);
         if all(data(~inxNaN)>0)
             specs.X11_Mode = "mult";

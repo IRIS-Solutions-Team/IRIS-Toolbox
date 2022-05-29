@@ -163,7 +163,7 @@ else
     Be = e;
 end
 
-if ~isequal(opt.method, 'bootstrap')
+if ~all(strcmpi(opt.method, 'bootstrap'))
     % Safely factorize (chol/svd) the covariance matrix of reduced-form
     % residuals so that we can draw from uncorrelated multivariate normal.
     F = covfun.factorise(this.Omega);
@@ -253,7 +253,7 @@ return
 
     function [X, draw] = drawResiduals( )
         draw = nan(1, numExtendedPeriods-p);
-        if isequal(opt.method, 'bootstrap')
+        if all(strcmpi(opt.method, 'bootstrap'))
             if opt.wild
                 % Wild bootstrap.
                 % Setting draw = ones(1, nper-p) would reproduce sample.

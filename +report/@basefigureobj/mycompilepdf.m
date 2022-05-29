@@ -12,8 +12,8 @@ function inclGraph = mycompilepdf(this, opt)
 set(this.handle, 'PaperType', this.options.papertype);
 
 % Set orientation, rotation, and raise box.
-if (isequal(opt.orientation, 'landscape') && ~this.options.sideways) ...
-        || (isequal(opt.orientation, 'portrait') && this.options.sideways)
+if (all(strcmpi(opt.orientation, 'landscape')) && ~this.options.sideways) ...
+        || (all(strcmpi(opt.orientation, 'portrait')) && this.options.sideways)
     orient(this.handle, 'landscape');
     angle = 0;
     raise = 10;
@@ -117,8 +117,8 @@ return
         end
         ch = get(this.handle, 'children');
         for i = ch(:).'
-            if isequal(get(i, 'tag'), 'legend') ...
-                    || ~isequal(get(i, 'type'), 'axes')
+            if all(strcmpi(get(i, 'tag'), 'legend')) ...
+                    || ~all(strcmpi(get(i, 'type'), 'axes'))
                 continue
             end
             try %#ok<TRYNC>

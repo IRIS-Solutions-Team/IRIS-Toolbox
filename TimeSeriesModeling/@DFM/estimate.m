@@ -80,7 +80,7 @@ if isempty(ip)
         @(x) isnumeric(x) && numel(x)==2 && x(1)>0 && x(1)<=1 && x(2)==round(x(2)) && x(2)>=1);
     ip.addParameter('Cross', true, ...
         @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
-    ip.addParameter('Method', 'auto', @(x) isequal(x, 'auto') || isequal(x, 1) || isequal(x, 2));
+    ip.addParameter('Method', 'auto', @(x) all(strcmpi(x, 'auto')) || isequal(x, 1) || isequal(x, 2));
     ip.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x))
     ip.addParameter('Rank', Inf, @(x) isnumeric(x) && isscalar(x));
 end

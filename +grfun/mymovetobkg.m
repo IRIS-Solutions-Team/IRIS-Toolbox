@@ -30,13 +30,13 @@ bandPos = [ ];
 otherPos = [ ];
 for i = 1 : length(ch)
     bkgLabel = getappdata(ch(i),'IRIS_BACKGROUND');
-    if isequal(bkgLabel,'Highlight')
+    if all(strcmpi(bkgLabel,'Highlight'))
         highlightPos = [highlightPos,i]; %#ok<AGROW>
-    elseif isequal(bkgLabel,'VLine')
+    elseif all(strcmpi(bkgLabel,'VLine'))
         vLinePos = [vLinePos,i]; %#ok<AGROW>
-    elseif isequal(bkgLabel,'HLine')
+    elseif all(strcmpi(bkgLabel,'HLine'))
         hLinePos = [hLinePos,i]; %#ok<AGROW>
-    elseif isequal(bkgLabel,'Band')
+    elseif all(strcmpi(bkgLabel,'Band'))
         bandPos = [bandPos,i]; %#ok<AGROW>
     else
         otherPos = [otherPos,i]; %#ok<AGROW>

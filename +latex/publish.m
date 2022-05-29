@@ -114,7 +114,7 @@ defaults = {
     'linespread', 'auto', @(x) (ischar(x) && strcmpi(x, 'auto')) || isnumericscalar(x) && x>0
     'matlabversion', true, @(x) isequal(x, true) || isequal(x, false)
     'numbered', true, @(x) isequal(x, true) || isequal(x, false)
-    'papersize', 'letterpaper', @(x) isequal(x, 'a4paper') || isequal(x, 'letterpaper')
+    'papersize', 'letterpaper', @(x) all(strcmpi(x, 'a4paper')) || all(strcmpi(x, 'letterpaper'))
     'preamble', '', @ischar
     'package', { }, @(x) iscellstr(x) || ischar(x) || isempty(x)
     'supertitle', '', @(x) isempty(x) || ischar(x)
@@ -185,7 +185,7 @@ try %#ok<TRYNC>
     copyfile('*.tex', wDir);
 end
 
-needsTempFile = ~isequal(inpExt, '.m');
+needsTempFile = ~all(strcmpi(inpExt, '.m'));
 if needsTempFile
     tempFileName = [tempname(pwd( )), '.m'];
     copyfile([inpTitle,inpExt], tempFileName);

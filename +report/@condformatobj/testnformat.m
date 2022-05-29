@@ -52,7 +52,7 @@ end
 % Print the value in a box.
 doPrintValue( );
 
-if ~isequal(C1,'?')
+if ~all(strcmpi(C1,'?'))
     C = strrep(C1,'?',C);
 end
 

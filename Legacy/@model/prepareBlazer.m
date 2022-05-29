@@ -16,7 +16,7 @@ inxMT = inxM | inxT;
 
 classBlazer = string(class(blz));
 
-if isequal(classBlazer, "solver.blazer.Steady")
+if all(strcmpi(classBlazer, 'solver.blazer.Steady'))
     %
     % Steady state solution
     %
@@ -45,7 +45,7 @@ if isequal(classBlazer, "solver.blazer.Steady")
     blz.QuantitiesToExclude = find(inxPwL);
 
 
-elseif isequal(classBlazer, "solver.blazer.Period") 
+elseif all(strcmpi(classBlazer, 'solver.blazer.Period'))
     %
     % Period by period simulations
     % 
@@ -60,7 +60,7 @@ elseif isequal(classBlazer, "solver.blazer.Period")
     blz.Assignments = this.Pairing.Assignments.Dynamic;
 
 
-elseif isequal(classBlazer, "solver.blazer.Stacked")
+elseif all(strcmpi(classBlazer, 'solver.blazer.Stacked'))
     %
     % Stacked time simulation
     %
@@ -74,7 +74,7 @@ elseif isequal(classBlazer, "solver.blazer.Stacked")
     blz.Incidence = this.Incidence.Dynamic;
     blz.Assignments = this.Pairing.Assignments.Dynamic;
 
-elseif isequal(classBlazer, "solver.blazer.Selective")
+elseif all(strcmpi(classBlazer, 'solver.blazer.Selective'))
     %
     % Legacy equation selective simulation
     %

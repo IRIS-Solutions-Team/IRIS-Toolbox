@@ -75,7 +75,7 @@ end%
 function [listFields, tokens] = local_filterNames(listFields, opt)
     %(
     tokens = repmat({string.empty(1, 0)}, size(listFields));
-    if isequal(opt.Name, @all) || isequal(opt.Name, "--all")
+    if isequal(opt.Name, @all) || all(strcmpi(opt.Name, '--all'))
         return
     end
     isRegular = false;
@@ -109,7 +109,7 @@ end%
 
 function [listFields, tokens] = local_filterClass(inputDb, listFields, tokens, opt)
     %(
-    if isempty(listFields) || isequal(opt.Class, @all) || isequal(opt.Class, "--all")
+    if isempty(listFields) || isequal(opt.Class, @all) || all(strcmpi(opt.Class, '--all'))
         return
     end
     numFields = numel(listFields);

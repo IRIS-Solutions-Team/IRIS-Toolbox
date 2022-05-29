@@ -72,7 +72,7 @@ if strlength(x)>opt.MaxLength
     x = extractBefore(x, opt.MaxLength) + string(opt.Ellipsis);
 end
 
-if isequal(inputClass, 'char')
+if all(strcmpi(inputClass, 'char'))
     x = char(x);
 end
 

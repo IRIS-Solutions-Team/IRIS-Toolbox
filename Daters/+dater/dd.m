@@ -33,13 +33,7 @@ if any(month(:)<1 | month(:)>12)
     [year, month] = local_fixMonths(year, month);
 end
 
-if isequal(day, "end")
-    day = eomday(year, month);
-end
-
-if nargin<3
-    day = 1;
-elseif strcmpi(day, 'end')
+if all(strcmpi(day, 'end'))
     day = eomday(year, month);
 end
 

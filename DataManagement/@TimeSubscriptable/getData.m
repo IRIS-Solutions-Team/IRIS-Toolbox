@@ -5,7 +5,7 @@
 
 function [data, dates, this] = getData(this, timeRef, varargin)
 
-testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
+testColon = @(x) (ischar(x) || isstring(x)) && all(strcmpi(x, ':'));
 
 % References to 2nd and higher dimensions
 if ~isempty(varargin)
@@ -117,8 +117,6 @@ function output = locallyDetermineCase(start, timeRef)
         ref = '[]';
     elseif isnumeric(timeRef)
         ref = 'Date';
-    % elseif isequal(timeRef, Inf) || (ischar(x) && isequal(x, ':'))
-        % ref = ':';
     else
         exception.error([
             "Series:InvalidSubscript"

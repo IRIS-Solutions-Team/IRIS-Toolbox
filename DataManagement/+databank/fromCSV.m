@@ -113,7 +113,10 @@ end
 % Loop over all input databanks subcontracting `databank.fromCSV` and
 % merging the resulting databanks in one.
 if numel(fileName)>1
-    cellOptions = namedargs2cell(opt);
+    cellOptions = cell.empty(1, 0);
+    for n = textual.fields(opt)
+        celOptions = [cellOptions, {n, opt.(n)}];
+    end
     for n = textual.stringify(fileName)
         outputDb = databank.fromCSV( ...
             n, cellOptions{:}, ...
@@ -180,7 +183,7 @@ if numel(commentRow)<numel(nameRow)
 end
 
 % Apply user selection, white out all names that user did not select
-if ~isequal(opt.Select, "__all__")
+if ~all(strcmpi(opt.Select, '__all__'))
     if ischar(opt.Select)
         opt.Select = regexp(opt.Select, '\w+', 'match');
     end
@@ -301,7 +304,7 @@ return
         ident = '';
         rowCount = 0;
 
-        if ~isequal(opt.VariableNames, "__auto__")
+        if ~all(strcmpi(opt.VariableNames, '__auto__'))
             nameRow = textual.stringify(opt.VariableNames);
             isNameRowDone = true;
         end

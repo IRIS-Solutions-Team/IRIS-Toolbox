@@ -83,7 +83,7 @@ return
 
     function sourceNames = hereResolveSourceNames()
         %(
-        if isequal(opt.SourceNames, @all) || isequal(opt.SourceNames, "__all__")
+        if isequal(opt.SourceNames, @all) || all(strcmpi(opt.SourceNames, '__all__'))
             sourceNames = databank.fieldNames(sourceDb);
         elseif isa(opt.SourceNames, 'function_handle') 
             sourceNames = databank.fieldNames(sourceDb);
@@ -110,7 +110,7 @@ return
 
     function targetNames = hereResolveTargetNames()
         %(
-        if isequal(opt.TargetNames, @auto) || isequal(opt.TargetNames, "__auto__")
+        if isequal(opt.TargetNames, @auto) || all(strcmpi(opt.TargetNames, '__auto__'))
             targetNames = sourceNames;
         elseif isa(opt.TargetNames, 'function_handle') || (iscell(opt.TargetNames) && ~iscellstr(opt.TargetNames))
             targetNames = sourceNames;

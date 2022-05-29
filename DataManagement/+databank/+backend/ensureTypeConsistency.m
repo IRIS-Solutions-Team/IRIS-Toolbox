@@ -7,13 +7,13 @@
 function runningDb = ensureTypeConsistency(runningDb, outputType)
 
 if isequal(runningDb, []) || isequal(runningDb, false)
-    if isequal(outputType, "Dictionary")
+    if all(strcmpi(outputType, 'Dictionary'))
         runningDb = Dictionary( );
     else
         runningDb = struct( );
     end
 else
-    if isequal(outputType, @auto) || isequal(outputType, "__auto__") || isa(runningDb, outputType)
+    if isequal(outputType, @auto) || all(strcmpi(outputType, '__auto__')) || isa(runningDb, outputType)
         return
     end
     exception.error([

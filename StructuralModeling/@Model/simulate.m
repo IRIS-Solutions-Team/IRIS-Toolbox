@@ -289,7 +289,7 @@ end
 
 [opt.Window, baseRange, opt.Plan] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange, opt.Plan);
 plan = local_resolvePlan(this, baseRange, opt.Plan, opt.Anticipate);
-isAsynchronous = isequal(inputDb, "asynchronous");
+isAsynchronous = all(strcmpi(inputDb, 'asynchronous'));
 numVariants = countVariants(this);
 opt.Solver = local_parseSolverOption(opt.Solver, opt.Method);
 opt.Terminal = local_resolveTerminal(opt.Terminal, opt.Method);
@@ -929,7 +929,7 @@ function local_validateInputDb(x)
     if validate.databank(x)
         return
     end
-    if isequal(x, "asynchronous")
+    if all(strcmpi(x, 'asynchronous'))
         return
     end
     error("Input value must be a databank.")

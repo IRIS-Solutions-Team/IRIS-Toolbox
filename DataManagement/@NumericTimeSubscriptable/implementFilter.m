@@ -92,7 +92,7 @@ elseif ~isempty(opt.Cutoff)
 else
     if isequal(opt.Lambda, @auto) ...
             || isempty(opt.Lambda) ...
-            || isequal(opt.Lambda, 'auto')
+            || all(strcmpi(opt.Lambda, 'auto'))
         if freq==Frequency.INTEGER || freq==Frequency.DAILY
             exception.error([
                 "NumericTimeSubscriptable:implementFilter"

@@ -7,7 +7,8 @@ function this = setData(this, s, y)
 
 ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
                      'Error when assigning to time series\nMatlab says: %s ' };
-testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
+
+testColon = @(x) (ischar(x) || isstring(x)) && all(strcmpi(x, ':'));
 
 % Simplified call
 if isa(s, 'DateWrapper') || isnumeric(s)
@@ -93,7 +94,8 @@ function [this, s, dates, freqTest] = locallyExpand(this, s)
     %(
     ERROR_GROW_AMBIGUOUS_DIM = { 'TimeSubscriptale:subsasgn', ...
                                  'Attempt to grow time series data array along ambiguous dimension' };
-    testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
+
+    testColon = @(x) (ischar(x) || isstring(x)) && all(strcmpi(x, ':'));
 
     thisStart = double(this.Start);
     thisEnd = this.EndAsNumeric;

@@ -321,7 +321,7 @@ for iLoop = 1 : numOfRuns
 
     % Initial condition
     xb0 = xbInit(:, 1, min(end, iLoop));
-    if isempty(xbInitMse) || isequal(opt.InitCond, 'fixed')
+    if isempty(xbInitMse) || all(strcmpi(opt.InitCond, 'fixed'))
         Pxb0 = zeros(nb);
         Dxinit = zeros(nb, 1);
     else

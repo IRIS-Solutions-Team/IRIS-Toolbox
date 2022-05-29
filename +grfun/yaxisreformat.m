@@ -45,7 +45,7 @@ end
 
 for ax = Ax(:).'
     yTick = get(ax,'yTick');
-    if isequal(NewFormat,'auto')
+    if all(strcmpi(NewFormat,'auto'))
         d = max([0,-floor(log10(yTick(2)-yTick(1)))]);
         NewFormat = ['%.',sprintf('%g',d),'f'];
     end

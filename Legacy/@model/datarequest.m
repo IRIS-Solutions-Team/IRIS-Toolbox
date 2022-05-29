@@ -136,7 +136,7 @@ switch lower(req)
         varargout{1} = assembleAlphaData( );
 end
 
-if ~isequal(whichSet, ':') && ~isequal(whichSet, Inf)
+if ~all(strcmpi(whichSet, ':')) && ~isequal(whichSet, Inf)
     for i = 1 : length(varargout)
         varargout{i} = varargout{i}(:, :, whichSet);
     end

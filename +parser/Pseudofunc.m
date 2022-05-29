@@ -207,7 +207,7 @@ classdef Pseudofunc
             if ~isempty(this.ExtraWrap)
                 c = [this.ExtraWrap, '(', c, ')'];
             end
-            if isequal(this.Type, 'avg')
+            if all(strcmpi(this.Type, 'avg'))
                 switch this.Operator
                     case '+'
                         format = this.ARITHMETIC_AVG_FORMAT;
