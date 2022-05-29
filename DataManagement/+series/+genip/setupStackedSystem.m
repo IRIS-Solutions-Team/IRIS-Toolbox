@@ -1,7 +1,7 @@
 % setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function ...
     [stacked, Y, Xi0, transition, indicator] = ...

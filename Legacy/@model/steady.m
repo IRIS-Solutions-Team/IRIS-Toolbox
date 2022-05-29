@@ -1,7 +1,7 @@
 % Type `web Model/steady.md` for help on this function
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function [this, flag, outputInfo] = steady(this, varargin)
 

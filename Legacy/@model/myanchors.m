@@ -5,7 +5,7 @@ function [YA, XA, Ea, Eu, YC, XC, wReal, wImag] = myanchors(this, p, rng, isAnt)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 
 % Check date frequencies

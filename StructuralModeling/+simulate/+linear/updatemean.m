@@ -5,7 +5,7 @@ function Upd = updatemean(Z,Px,PErr)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 % Update X subject to Z X = Data and PErr = Data - Z X
 % X = X + Upd

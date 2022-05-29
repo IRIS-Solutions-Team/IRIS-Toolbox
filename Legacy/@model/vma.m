@@ -41,7 +41,7 @@ function [phi, list] = vma(this, nPer, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 defauls = {
     'MatrixFormat', 'namedmat', @validate.matrixFormat

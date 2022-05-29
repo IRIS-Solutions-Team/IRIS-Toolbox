@@ -1,7 +1,7 @@
 % resetComment  Reset time series comments to empty 
 %
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function this = resetComment(this)
 

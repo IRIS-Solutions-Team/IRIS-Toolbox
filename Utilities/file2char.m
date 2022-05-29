@@ -32,7 +32,7 @@ function [file, flag] = file2char(fileName, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 splitByLines = false;
 if nargin==1

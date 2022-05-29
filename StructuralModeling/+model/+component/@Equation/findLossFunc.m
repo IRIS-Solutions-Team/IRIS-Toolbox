@@ -1,7 +1,7 @@
 % findLossFunc  Find loss function equation and move them down to last position
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [equation, euc, isLoss] = findLossFunc(equation, euc)
 

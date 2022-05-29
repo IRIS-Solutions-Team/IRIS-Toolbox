@@ -35,7 +35,7 @@ function [q, dim] = quantile(x, w, tau, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 if ~isnumeric(tau)
     switch lower(char(tau))

@@ -5,7 +5,7 @@ function [Pe0, A0, Y0, YDelta] = correct(s, Pe0, A0, Y0, est, D)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

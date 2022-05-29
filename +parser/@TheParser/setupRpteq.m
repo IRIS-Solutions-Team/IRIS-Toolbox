@@ -5,7 +5,7 @@ function setupRpteq(this)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 x = parser.theparser.Equation( );
 x.Keyword = '!reporting';

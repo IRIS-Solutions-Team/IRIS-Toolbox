@@ -69,7 +69,7 @@ function X = arma(X, E, AR, MA, Range)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 validate.mustBeProperRange(Range);
 

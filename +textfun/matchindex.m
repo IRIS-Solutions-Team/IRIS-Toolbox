@@ -1,7 +1,7 @@
 function [Ind,Match,Tkn] = matchindex(List,Ptn)
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 if isstruct(List)
    List = fieldnames(List);

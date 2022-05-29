@@ -1,7 +1,7 @@
 % linearTrend  Create time series with linear trend
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function this = linearTrend(constructor, range, varargin)
 

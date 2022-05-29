@@ -5,7 +5,7 @@ function [Y, Xx, Ea, Eu, W] = run(S, numPeriods, V)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 try
     V; %#ok<VUNUS>

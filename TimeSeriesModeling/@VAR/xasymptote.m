@@ -46,7 +46,7 @@ function varargout = xasymptote(This,X0)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 try
     X0; %#ok<VUNUS>

@@ -2,7 +2,7 @@ function This = merge(This,varargin)
 % merge  Help provided in +report/merge.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

@@ -88,7 +88,7 @@ function [outp, flag, listErrors, listWarnings] = dbfun(func, primary, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % Find last secondary input databank in varargin.
 inxDatabanks = cellfun(@validate.databank, varargin);

@@ -4,7 +4,7 @@ function varargout = plotneigh(varargin)
 % See help on [`grfun.plotneigh`](grfun/plotneigh).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 [varargout{1:nargout}] = grfun.plotneigh(varargin{:});
 

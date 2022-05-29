@@ -1,7 +1,7 @@
 % prepareKalmanOptions  Prepare Kalman filter options
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 %
 function [opt, timeVarying] = prepareKalmanOptions(this, range, varargin)
 

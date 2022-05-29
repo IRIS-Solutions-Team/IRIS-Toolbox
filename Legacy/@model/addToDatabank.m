@@ -59,7 +59,7 @@ function d = addToDatabank(what, this, d, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 if nargin<3
     d = struct( );

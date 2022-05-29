@@ -5,7 +5,7 @@ function checkSyntax(this, qty, eqn)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 numQuan = length(qty);
 sh0 = this.Incidence.Dynamic.PosZeroShift;

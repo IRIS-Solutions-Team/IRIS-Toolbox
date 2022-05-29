@@ -32,7 +32,7 @@ function [Stat,Crit] = lrtest(V1,V2,Level)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 try
     Level; %#ok<VUNUS>

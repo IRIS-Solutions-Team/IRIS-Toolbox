@@ -52,7 +52,7 @@ function [lineHandles, textHandles] = vline(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 [lineHandles, textHandles] = visual.backend.plotInfiniteLine('vline', varargin{:});
 

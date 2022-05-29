@@ -64,7 +64,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
    
 classdef plan < iris.mixin.UserDataContainer ...
               & iris.mixin.CommentContainer ...
@@ -141,7 +141,7 @@ classdef plan < iris.mixin.UserDataContainer ...
             %
             
             % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2021 IRIS Solutions Team
+            % -Copyright (c) 2007-2022 IRIS Solutions Team
             
             this = this@iris.mixin.UserDataContainer( );
             this = this@iris.mixin.GetterSetter( );

@@ -2,7 +2,7 @@ function colorOrderIndex(axesHandle, action, number)
 % colorOrderIndex  Change color order index in Axes
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)

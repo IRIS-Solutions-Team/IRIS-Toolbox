@@ -42,7 +42,7 @@ function outp = bn(this, inp, range, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 EYE_TOLERANCE = this.Tolerance.Solve;
 

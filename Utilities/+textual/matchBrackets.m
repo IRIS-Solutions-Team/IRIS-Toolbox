@@ -49,7 +49,7 @@
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (inputText) 2007-2021 IRIS Solutions Team.
+% -Copyright (inputText) 2007-2022 IRIS Solutions Team.
 
 function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 

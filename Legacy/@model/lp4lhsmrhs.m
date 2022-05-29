@@ -1,7 +1,7 @@
 % lp4lhsmrhs  Fill in parameters and steady trends in YXEPG data matrix
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL)
 

@@ -42,7 +42,7 @@ function [T, R, k, Z, H, d, U, Cov] = sspace(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 if ~isempty(varargin) && validate.numericScalar(varargin{1}) 
    variantsRequested = varargin{1};

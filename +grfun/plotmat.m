@@ -52,7 +52,7 @@ function [HPos, HNeg, HNaNInf, HMax] = plotmat(X, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 defaults = { 
     'colnames, colname', 'auto', @(x) isempty(x) || iscellstr(x) || ischar(x)

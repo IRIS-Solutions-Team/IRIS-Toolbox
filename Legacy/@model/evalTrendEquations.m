@@ -1,20 +1,20 @@
 % evalTrendEquations  Evaluate and differentiate trend equations for measurement variables
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 
 function [W, dW] = evalTrendEquations(this, posOutlikParams, inputData, variantsRequested)
 
 % >=R2019b
-%{
+%(
 arguments
     this
     posOutlikParams (1, :) double
     inputData (:, :, :) double
     variantsRequested (1, :) double
 end
-%}
+%)
 % >=R2019b
 
 
@@ -89,7 +89,6 @@ for r = 1 : numRuns
 end
 
 return
-
 
     function exogenousData = here_prepareExogenousData( )
         %(

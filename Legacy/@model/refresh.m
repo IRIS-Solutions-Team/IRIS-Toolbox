@@ -34,7 +34,7 @@ function this = refresh(this, variantsRequested);
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 if ~any(this.Link)
     return

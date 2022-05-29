@@ -1,7 +1,7 @@
 % initializeLogStatus  Initialize log status of variables from !log-variables
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function this = initializeLogStatus(this, logNames, processorLhsNames)
 

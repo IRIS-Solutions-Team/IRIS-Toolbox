@@ -37,7 +37,7 @@ function Flag = isintscalar(X)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

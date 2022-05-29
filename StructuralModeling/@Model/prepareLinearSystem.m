@@ -1,6 +1,6 @@
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 
 function [obj, initCond] = prepareLinearSystem(this, filterRange, override, multiply, variant, returnEarly, steadyOpt, checkSteadyOpt, solveOpt)

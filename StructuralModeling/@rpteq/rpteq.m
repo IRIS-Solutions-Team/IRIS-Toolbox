@@ -33,7 +33,7 @@
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 classdef rpteq < iris.mixin.GetterSetter ...
                & iris.mixin.UserDataContainer ...
@@ -118,7 +118,7 @@ classdef rpteq < iris.mixin.GetterSetter ...
 %         Export Files: [0]
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
             
             %( Input parser
             persistent pp ppParser

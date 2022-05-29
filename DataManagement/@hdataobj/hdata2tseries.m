@@ -5,7 +5,7 @@ function outp = hdata2tseries(this, varargin)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES = TIME_SERIES_CONSTRUCTOR();

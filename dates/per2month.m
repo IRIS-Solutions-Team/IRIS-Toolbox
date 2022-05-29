@@ -5,7 +5,7 @@ function month = per2month(period, freq, conversionMonth)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

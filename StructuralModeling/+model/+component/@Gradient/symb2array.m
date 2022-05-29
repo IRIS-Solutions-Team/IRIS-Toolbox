@@ -1,7 +1,7 @@
 % symb2array  Replace symbolic names with references to variable array.
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function eqtn = symb2array(eqtn, type, varargin)
 

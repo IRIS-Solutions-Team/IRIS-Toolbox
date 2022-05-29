@@ -5,7 +5,7 @@ function [Phi, sizeOfShocks] = srf(T, R, ~, Z, H, ~, U, ~, numOfPeriods, sizeOfS
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 %#ok<*CTCH>
 %#ok<*VUNUS>

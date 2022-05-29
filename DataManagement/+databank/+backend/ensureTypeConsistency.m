@@ -2,7 +2,7 @@
 % of input/output databank and option OutputType
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function runningDb = ensureTypeConsistency(runningDb, outputType)
 

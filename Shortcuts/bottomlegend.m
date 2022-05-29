@@ -4,7 +4,7 @@ function varargout = bottomlegend(varargin)
 % See help on [`grfun.bottomlegend`](grfun/bottomlegend).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

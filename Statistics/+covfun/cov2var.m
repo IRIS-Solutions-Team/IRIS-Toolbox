@@ -5,7 +5,7 @@ function D = cov2var(P,varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

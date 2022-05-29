@@ -1,7 +1,7 @@
 % setAutoswaps  Set parameter-variable or shock-variable autoswap pairs
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function p = setAutoswaps(p, type, quantity, namesToExogenize, namesToEndogenize)
 

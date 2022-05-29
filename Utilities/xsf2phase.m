@@ -37,11 +37,11 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 
 % >=R2019b
-%{
+%(
 function [rad, per] = xsf2phase(S, freq, opt)
 
 arguments
@@ -49,12 +49,12 @@ arguments
     freq
     opt.Unwrap (1, 1) logical = false
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [rad, per] = xsf2phase(S, freq, varargin)
 
 persistent ip
@@ -64,7 +64,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 

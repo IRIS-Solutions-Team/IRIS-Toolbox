@@ -152,7 +152,7 @@ percent sign as an escape character: `'%Y'`, `'%P'`, `'%F'`, `'%f'`,
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 
 function [s, field] = dat2str(dat, varargin)

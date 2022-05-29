@@ -5,7 +5,7 @@ function flag = chkQty(this, variantsRequested, varargin)
 % No help provided 
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 if isequal(variantsRequested, Inf)
     variantsRequested = ':';

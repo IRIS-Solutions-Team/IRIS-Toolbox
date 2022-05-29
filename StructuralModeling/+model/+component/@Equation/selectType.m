@@ -5,7 +5,7 @@ function this = selectType(this, type)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2021 IRIS Solutions Team.
+% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 ix = this.Type==type;
 this.Input = this.Input(ix);

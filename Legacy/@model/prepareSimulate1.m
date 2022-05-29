@@ -5,7 +5,7 @@ function s = prepareSimulate1(this, s, opt, displayMode, varargin)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 [ny, nxx] = sizeSolution(this.Vector);
 ixLog = this.Quantity.IxLog;

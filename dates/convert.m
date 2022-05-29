@@ -54,7 +54,7 @@ function outputDate = convert(inputDate, toFreq, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)

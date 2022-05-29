@@ -1,7 +1,7 @@
 % Type `web poster/stats.md` for help on this function
 %
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function outputStats = stats(this, theta, logPost, varargin)
 
@@ -179,7 +179,7 @@ return
         % here_calcMdd  Modified harmonic mean estimator of minus the log marginal data
         % density; Geweke (1999).
 
-        % Copyright (c) 2010-2021 IRIS Solutions Team & Troy Matheson.
+        % Copyright (c) 2010-2022 IRIS Solutions Team & Troy Matheson.
         logDetSgm = log(det(covarMatrix));
 
         % Compute g(theta) := f(theta) / post(theta) for all thetas,

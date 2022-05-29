@@ -1,7 +1,7 @@
 % solveFail  Create error/warning message when function solve fails
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 IRIS Solutions Team
+% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function [body, args] = solveFail(this, solveInfo)
 

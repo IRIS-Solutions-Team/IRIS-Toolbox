@@ -1,11 +1,11 @@
 % Type `web Series/rebase.md` to get help on this function
 %
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2021 [IrisToolbox] Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 
 % >=R2019b
-%{
+%(
 function [this, priorValue, reciprocal] = rebase(this, basePeriods, baseValue, opt)
 arguments
     this Series
@@ -16,12 +16,12 @@ arguments
     opt.Reciprocal {local_validateReciprocal} = []
     opt.Aggregator = "auto"
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [this, priorValue, reciprocal] = rebase(this, basePeriods, baseValue, varargin)
 
 persistent ip
@@ -33,7 +33,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
