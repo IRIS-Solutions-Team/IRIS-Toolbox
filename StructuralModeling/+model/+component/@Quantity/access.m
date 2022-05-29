@@ -63,7 +63,7 @@ elseif any(what==F(["log-status", "is-log"]))
 
 
 elseif any(what==F(["names-descriptions", "names-labels", "names-descriptions", "names-descriptions-struct"]))
-    labels = arrayfun(@(x) string(x), this.Label, "uniformOutput", false);
+    labels = arrayfun(@(x) string(x), this.Label, 'uniformOutput', false);
     output = cell2struct(labels, this.Name, 2);
 
 
