@@ -171,16 +171,16 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
     methods (Static)
         function this = fromString(inputString, varargin)
-            % >=R2019b
-            %(
+% >=R2019b
+%(
             arguments
                 inputString (1, :) string
             end
             arguments (Repeating)
                 varargin
             end
-            %)
-            % >=R2019b
+%)
+% >=R2019b
 
             inputString = textual.stringify(inputString);
             this = databank.chartpack.Chart.empty(1, 0);
@@ -202,13 +202,13 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
 
         function [caption, expression, applyTransform] = parseInputString(inputString)
-            % >=R2019b
-            %(
+% >=R2019b
+%(
             arguments
                 inputString (1, 1) string
             end
-            %)
-            % >=R2019b
+%)
+% >=R2019b
 
             inputString = string(inputString);
             temp = strip(split(inputString, databank.chartpack.Chart.SEPARATE_CAPTION));
