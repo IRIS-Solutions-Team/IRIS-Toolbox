@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function varargout = implementFilter(order, inputSeries, legacyRange, opt)
 
 arguments
@@ -26,12 +26,12 @@ arguments
     opt.Log (1, 1) logical = false
     opt.Swap (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function varargout = implementFilter(order, inputSeries, varargin)
 
 order = double(order);
@@ -58,7 +58,7 @@ end
 parse(ip, varargin{:});
 legacyRange = ip.Results.legacyRange;
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
