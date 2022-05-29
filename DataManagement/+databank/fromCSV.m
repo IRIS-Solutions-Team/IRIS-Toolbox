@@ -115,7 +115,7 @@ end
 if numel(fileName)>1
     cellOptions = cell.empty(1, 0);
     for n = textual.fields(opt)
-        celOptions = [cellOptions, {n, opt.(n)}];
+        cellOptions = [cellOptions, {n, opt.(n)}];
     end
     for n = textual.stringify(fileName)
         outputDb = databank.fromCSV( ...
