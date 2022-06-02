@@ -24,7 +24,7 @@ end
 % <=R2019a
 %(
 function this = grow(this, operator, change, dates, varargin)
-
+keyboard
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
@@ -177,12 +177,6 @@ function func = local_chooseFunction(operator, direction)
     end
     %)
 end%
-
-function dates = local_checkRangeDirection(dates)
-    if dates(1) > dates(end)
-        dates(1:end) = dates(end:-1:1);
-    end
-end
 
 %
 % Local validators
