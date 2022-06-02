@@ -81,7 +81,7 @@
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % >=R2019b
-%(
+%{
 function varargout = comment(this, newComment)
 
 arguments
@@ -89,18 +89,18 @@ arguments
 
     newComment {local_validateNewComment} = @get
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function varargout = comment(this, newComment)
 
 if nargin<2
     newComment = @get;
 end
-%}
+%)
 % <=R2019a
 
 

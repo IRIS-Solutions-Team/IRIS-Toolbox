@@ -79,7 +79,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [blocks, variableBlocks, equationBlocks, period] = blazer(this, opt)
 
 arguments
@@ -89,12 +89,12 @@ arguments
     opt.SaveAs (1, 1) string = ""
     opt.Period (1, 1) = @auto
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [blocks, variableBlocks, equationBlocks, period] = blazer(this, varargin)
 
 persistent ip
@@ -106,7 +106,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

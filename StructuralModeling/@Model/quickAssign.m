@@ -1,12 +1,12 @@
 function this = quickAssign(this, from)
 
 % >=R2019b
-%(
+%{
 arguments
     this Model
     from (1, 1) struct
 end
-%)
+%}
 % >=R2019b
 
 

@@ -1,12 +1,12 @@
 function [output, beenHandled] = access(this, what)
 
 % >=R2019b
-%(
+%{
 arguments
     this (1, :) model.component.Quantity
     what (1, 1) string
 end
-%)
+%}
 % >=R2019b
 
 

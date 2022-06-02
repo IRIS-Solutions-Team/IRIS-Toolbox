@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = grow(this, operator, change, dates, legacyShift, opt)
 
 arguments
@@ -17,12 +17,12 @@ arguments
     opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
     opt.Shift (1, 1) double {mustBeInteger} = -1
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = grow(this, operator, change, dates, varargin)
 
 persistent ip
@@ -36,7 +36,7 @@ end
 parse(ip, varargin{:});
 legacyShift = ip.Results.legacyShift;
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

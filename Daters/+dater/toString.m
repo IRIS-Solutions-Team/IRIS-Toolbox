@@ -5,7 +5,7 @@
 
 
 % >=R2019b
-%(
+%{
 function outputString = toString(inputDate, dateFormat, opt)
 
 arguments
@@ -15,12 +15,12 @@ arguments
     opt.Open (1, 1) string = ""
     opt.Close (1, 1) string = ""
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputString = toString(inputDate, dateFormat, varargin)
 
 persistent ip
@@ -31,7 +31,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

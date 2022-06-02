@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function opt = prepareCheckSteady(this, opt)
 
 arguments
@@ -16,12 +16,12 @@ arguments
     opt.Error (1, 1) logical = true
     opt.Warning (1, 1) logical = true
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function opt = prepareCheckSteady(this, varargin)
 
 persistent ip
@@ -35,7 +35,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 end%

@@ -1,7 +1,7 @@
 
 
 % >=R2019b
-%(
+%{
 function outputData = moving(inputData, freq, window, func, missingValue, missingTest, periodByPeriod)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     missingTest = @isnan
     periodByPeriod = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputData = moving(inputData, freq, varargin)
 
 persistent ip
@@ -37,7 +37,7 @@ func = ip.Results.func;
 missingValue = ip.Results.missingValue;
 missingTest = ip.Results.missingTest;
 periodByPeriod = ip.Results.periodByPeriod;
-%}
+%)
 % <=R2019a
 
 

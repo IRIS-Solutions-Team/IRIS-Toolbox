@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function code = fromTable(t, opt)
 
 arguments
@@ -16,12 +16,12 @@ arguments
     opt.SaveAs (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
     opt.AppendTo (1, :) string {mustBeScalarOrEmpty} = string.empty(1, 0)
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function code = fromTable(t, opt)
 
 persistent ip
@@ -39,7 +39,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

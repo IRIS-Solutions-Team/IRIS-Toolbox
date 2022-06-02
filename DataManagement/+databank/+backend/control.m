@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function outputDb = control(func, model, inputDb, controlDb, opt)
 
 arguments
@@ -12,12 +12,12 @@ arguments
     opt.Range {validate.mustBeRange} = Inf
     opt.AddToDatabank (1, 1) {local_validateDatabank} = @auto
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputDb = control(func, model, inputDb, varargin)
 
 persistent ip
@@ -30,7 +30,7 @@ end
 parse(ip, varargin{:});
 opt = ip.Results;
 controlDb = ip.Results.controlDb;
-%}
+%)
 % <=R2019a
 
 

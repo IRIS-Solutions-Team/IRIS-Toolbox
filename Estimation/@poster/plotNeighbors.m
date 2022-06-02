@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function info = plotNeighbors(this, d, opt)
 
 arguments
@@ -19,12 +19,12 @@ arguments
     opt.Captions (1, :) string = string.empty(1, 0)
     opt.LinkYAxes (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function info = plotNeighbors(this, d, varargin)
 
 persistent ip
@@ -44,7 +44,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

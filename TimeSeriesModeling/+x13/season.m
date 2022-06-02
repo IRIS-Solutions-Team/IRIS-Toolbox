@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function varargout = season(inputSeries, legacyRange, opt, specs)
 
 arguments
@@ -151,12 +151,12 @@ arguments
     specs.Seats_Save (1, :) string = string.empty(1, 0)
     specs.Seats_SaveLog (1, :) string = string.empty(1, 0)
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function varargout = season(inputSeries, varargin)
 
 persistent ip
@@ -309,7 +309,7 @@ parse(ip, varargin{:});
 legacyRange = ip.Results.legacyRange;
 opt = ip.Results;
 specs = rmfield(ip.Results, ["Output", "Display", "Cleanup", "Range", "legacyRange"]);
-%}
+%)
 % <=R2019a
 
 

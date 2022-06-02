@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputArray, names, dates, headers, comments] = toArray(inputDb, names, dates, column)
 
 arguments
@@ -21,12 +21,12 @@ arguments
 
     column (1, 1) double {mustBeNonnegative} = 1 
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [outputArray, names, dates, headers, comments] = toArray(inputDb, varargin)
 
 persistent ip
@@ -40,7 +40,7 @@ parse(ip, varargin{:});
 names = ip.Results.names;
 dates = ip.Results.dates;
 column = ip.Results.column;
-%}
+%)
 % <=R2019a
 
 

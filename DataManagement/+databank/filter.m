@@ -5,7 +5,7 @@
 
 
 % >=R2019b
-%(
+%{
 function [listFields, tokens, outputDb] = filter(inputDb, opt)
 
 arguments
@@ -15,12 +15,12 @@ arguments
     opt.Class {local_validateClass} = @all
     opt.Filter {local_validateFilter} = []
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [listFields, tokens, outputDb] = filter(inputDb, varargin)
 
 persistent ip
@@ -32,7 +32,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

@@ -1,7 +1,7 @@
 function [outputDates, varargout] = getDataFromMultiple(dates, context, varargin)
 
 % >=R2019b
-%(
+%{
 arguments
     dates
     context (1, 1) string
@@ -10,7 +10,7 @@ end
 arguments (Repeating)
     varargin
 end
-%)
+%}
 % >=R2019b
 
 inputSeries = varargin;

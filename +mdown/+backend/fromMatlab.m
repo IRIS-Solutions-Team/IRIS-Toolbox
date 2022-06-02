@@ -1,18 +1,18 @@
 
 % >=R2019b
-%(
+%{
 function output = fromMatlab(input, opt)
 
 arguments
     input (1, 1) string
     opt.Language (1, 1) string = "matlab"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function output = fromMatlab(input, varargin)
 
 input = string(input);
@@ -24,7 +24,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 opt = pp.Results;
-%}
+%)
 % <=R2019a
 
 

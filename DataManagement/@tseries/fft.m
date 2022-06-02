@@ -44,7 +44,7 @@
 
 
 % >=R2019b
-%(
+%{
 function [y, range, freq, per] = fft(this, opt)
 
 arguments
@@ -53,12 +53,12 @@ arguments
     opt.Range {validate.mustBeRange} = Inf
     opt.Full (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [y, range, freq, per] = fft(this, varargin)
 
 persistent ip
@@ -69,7 +69,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

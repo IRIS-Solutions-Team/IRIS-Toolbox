@@ -1,18 +1,18 @@
 
 % >=R2019b
-%(
+%{
 function output = toMatlab(input, opt)
 
 arguments
     input (1, 1) string
     opt.Language (1, :) string = ["matlab", "iris"]
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function output = toMatlab(input, varargin)
 
 persistent ip
@@ -22,7 +22,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputRange, listFreq, namesApplied] = range(inputDb, opt)
 
 arguments
@@ -18,12 +18,12 @@ arguments
     opt.MultiFrequencies (1, 1) logical = true
     opt.Filter (1, :) cell = cell.empty(1, 0)
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [outputRange, listFreq, namesApplied] = range(inputDb, varargin)
 
 % Input parser
@@ -41,7 +41,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

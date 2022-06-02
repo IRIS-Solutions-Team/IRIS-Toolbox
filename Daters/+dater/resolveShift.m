@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [shift, power] = resolveShift(dates, shift, opt)
 
 arguments
@@ -13,12 +13,12 @@ arguments
 
     opt.Annualize (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [shift, power] = resolveShift(dates, shift, varargin)
 
 persistent ip
@@ -28,7 +28,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

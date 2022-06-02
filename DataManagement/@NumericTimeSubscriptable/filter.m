@@ -58,7 +58,7 @@
 
 
 % >=R2019b
-%(
+%{
 function this = filter(this, armani, range, opt)
 
 arguments
@@ -68,12 +68,12 @@ arguments
 
     opt.FillMissing = 0
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = filter(this, armani, range, varargin)
 
 persistent ip
@@ -83,7 +83,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

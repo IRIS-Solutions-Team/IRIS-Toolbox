@@ -22,11 +22,11 @@ title: today
 function dateCode = today(freq)
 
 % >=R2019b
-%(
+%{
 arguments
     freq (1, 1) Frequency
 end
-%)
+%}
 % >=R2019b
 
 

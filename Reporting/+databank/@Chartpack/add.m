@@ -66,7 +66,7 @@ __`Transform=@parent`__ [ function | empty | `@parent` ]
 function this = add(this, inputString, varargin)
 
 % >=R2019b
-%(
+%{
 arguments
     this
     inputString (1, :) string 
@@ -75,7 +75,7 @@ end
 arguments (Repeating)
     varargin
 end
-%)
+%}
 % >=R2019b
 
 

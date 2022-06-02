@@ -1,12 +1,12 @@
 function this = assignComment(this, newComment)
 
 % >=R2019b
-%(
+%{
 arguments
     this iris.mixin.CommentContainer
     newComment (1, 1) string
 end
-%)
+%}
 % >=R2019b
 
 

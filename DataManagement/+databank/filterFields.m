@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function outputNames = filterFields(inputDb, opt)
 
 arguments
@@ -10,12 +10,12 @@ arguments
     opt.Class (1, :) {locallyValidateClass} = @all
     opt.Value = @all
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputNames = filterFields(inputDb, varargin)
 
 persistent ip
@@ -27,7 +27,7 @@ ip = inputParser();
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

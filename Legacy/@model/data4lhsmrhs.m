@@ -53,7 +53,7 @@
 
 
 % >=R2019b
-%(
+%{
 function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
@@ -70,12 +70,12 @@ arguments
     opt.ResetShocks (1, 1) logical = false
     opt.NumDummyPeriods (1, 1) double {mustBeInteger, mustBeNonnegative} = 0
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
@@ -92,7 +92,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

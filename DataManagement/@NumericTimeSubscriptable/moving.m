@@ -2,7 +2,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = moving(this, legacyRange, opt)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     opt.Period (1, 1) logical = false
     opt.Range (1, :) {validate.mustBeRange} = Inf
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = moving(this, varargin)
 
 persistent ip
@@ -35,7 +35,7 @@ end
 parse(ip, varargin{:});
 legacyRange = ip.Results.legacyRange;
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

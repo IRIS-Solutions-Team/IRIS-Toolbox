@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function namesSaved = toXLS(inputDb, fileName, opt)
 
 arguments
@@ -11,12 +11,12 @@ arguments
     opt.Column (1, 1) double = 1
     opt.Range (1, 1) string = "A1"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function namesSaved = toXLS(inputDb, fileName, varargin)
 
 persistent ip
@@ -28,7 +28,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % >=R2019b
-%(
+%{
 function this = arf(this, A, Z, range, opt)
 
 arguments
@@ -16,12 +16,12 @@ arguments
     opt.PrependInput (1, 1) logical = false
     opt.AppendInput (1, 1) logical = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function this = arf(this, A, Z, range, varargin)
 
 persistent ip
@@ -32,7 +32,7 @@ if isempty(ip)
 end%
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

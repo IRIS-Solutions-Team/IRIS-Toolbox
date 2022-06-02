@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function d = neighbor(this, multiplicativeNeighbors, opt)
 
 arguments
@@ -14,12 +14,12 @@ arguments
     opt.Neighbors (1, 1) struct = struct()
     opt.Min (1, 1) double = 1
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function d = neighbor(this, multiplicativeNeighbors, varargin)
 
 persistent ip
@@ -30,7 +30,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

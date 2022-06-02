@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
 
 arguments
@@ -32,12 +32,12 @@ arguments
         opt.AddToDatabank__TargetDb = []
     opt.WhenError (1, 1) string {mustBeMember(opt.WhenError, ["keep", "remove", "error"])} = "keep"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, varargin)
 
 persistent ip
@@ -66,7 +66,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

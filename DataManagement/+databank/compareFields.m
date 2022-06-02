@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [success, info] = compareFields(d1, d2, opt)
 
 arguments
@@ -12,12 +12,12 @@ arguments
     opt.Error = false
     opt.Warning = false
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [success, info] = compareFields(d1, d2, varargin)
 
 persistent ip
@@ -30,7 +30,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

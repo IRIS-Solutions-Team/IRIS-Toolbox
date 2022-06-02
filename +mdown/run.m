@@ -1,18 +1,18 @@
 
 % >=R2019b
-%(
+%{
 function run(fileName, opt)
 
 arguments
     fileName (1, 1) string
     opt.Sections (1, :) string = string.empty(1, 0)
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function run(fileName, varargin)
 
 persistent ip
@@ -21,7 +21,7 @@ if isempty(ip)
     addParameter(ip, "Sections", string.empty(1, 0));
 end
 opt = parse(ip, varargin{:});
-%}
+%)
 % <=R2019a
 
 

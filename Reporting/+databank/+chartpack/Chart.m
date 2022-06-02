@@ -172,14 +172,14 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
     methods (Static)
         function this = fromString(inputString, varargin)
 % >=R2019b
-%(
+%{
             arguments
                 inputString (1, :) string
             end
             arguments (Repeating)
                 varargin
             end
-%)
+%}
 % >=R2019b
 
             inputString = textual.stringify(inputString);
@@ -203,11 +203,11 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
         function [caption, expression, applyTransform] = parseInputString(inputString)
 % >=R2019b
-%(
+%{
             arguments
                 inputString (1, 1) string
             end
-%)
+%}
 % >=R2019b
 
             inputString = string(inputString);

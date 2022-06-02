@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function code = print(modelObject, modelFile, opt)
 
 arguments
@@ -13,12 +13,12 @@ arguments
     opt.Markdown (1, 1) logical = false
     opt.Braces (1, 2) string = ["<", ">"]
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function code = print(modelObject, modelFile, varargin)
 
 persistent ip
@@ -32,7 +32,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [this, namesAssigned] = assignFromModel(this, that, opt)
 
 arguments
@@ -13,12 +13,12 @@ arguments
     opt.Change (1, 1) logical = true
     opt.ClonePattern (1, 2) string = ["", ""]
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [this, namesAssigned] = assignFromModel(this, that, varargin)
 
 persistent ip
@@ -31,7 +31,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

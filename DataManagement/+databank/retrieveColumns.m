@@ -5,7 +5,7 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
-%(
+%{
 function db = retrieveColumns(db, refs, opt)
 
 arguments
@@ -14,12 +14,12 @@ arguments
 
     opt.WhenFails (1, 1) string {mustBeMember(opt.WhenFails, ["error", "remove", "keep"])} = "remove";
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function db = retrieveColumns(db, refs, varargin)
 
 persistent pp
@@ -29,7 +29,7 @@ if isempty(pp)
 end
 parse(pp, varargin{:});
 opt = pp.Results;
-%}
+%)
 % <=R2019a
 
 

@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [aggregateLevel, aggregateRate, info] = chainlink(levels, weights, opt)
 
 arguments
@@ -12,12 +12,12 @@ arguments
     opt.NormalizeWeights (1, 1) logical = true
     opt.WhenMissing (1, 1) string {mustBeMember(opt.WhenMissing, ["error", "warning", "silent"])} = "error"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [aggregateLevel, aggregateRate, info] = chainlink(levels, weights, varargin)
 
 persistent ip
@@ -30,7 +30,7 @@ ip = inputParser();
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

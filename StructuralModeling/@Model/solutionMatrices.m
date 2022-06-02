@@ -4,7 +4,7 @@
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % >=R2019b
-%(
+%{
 function output = solutionMatrices(this, opt)
 
 arguments
@@ -15,12 +15,12 @@ arguments
     opt.KeepExpansion (1, 1) logical = true
     opt.MatrixFormat (1, 1) string = "NamedMat"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function output = solutionMatrices(this, varargin)
 
 persistent ip
@@ -33,7 +33,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
