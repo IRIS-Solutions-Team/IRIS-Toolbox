@@ -71,9 +71,19 @@ end
 %
 % Parse input strings into Chart objects
 %
-chartObjects = databank.chartpack.Chart.fromString(this.Charts);
-setParent(chartObjects, this);
 
+info = struct();
+info.FigureHandles = gobjects(1, 0);
+info.AxesHandles = cell(1, 0);
+info.TitleHandles = cell(1, 0);
+info.SubtitleHandles = cell(1, 0);
+info.PlotHandles = cell(1, 0);
+
+chartObjects = databank.chartpack.Chart.fromString(this.Charts);
+if isempty(chartObjects)
+    return
+end
+setParent(chartObjects, this);
 
 tiles = resolveTiles(this, chartObjects);
 numTilesPerWindow = prod(tiles);
@@ -86,12 +96,6 @@ end
 for x = chartObjects
     evaluate(x, inputDb);
 end
-
-figureHandles = gobjects(1, 0);
-axesHandles = cell(1, 0);
-titleHandles = cell(1, 0);
-subtitleHandles = cell(1, 0);
-plotHandles = cell(1, 0);
 
 countFigures = 0;
 countChartsInWindow = 0;
@@ -112,11 +116,11 @@ for x = reshape(chartObjects, 1, [])
         elseif length(this.FigureTitle)>=countFigures
             visual.heading(this.FigureTitle(countFigures));
         end
-        figureHandles(end+1) = currentFigure;
-        axesHandles{end+1} = gobjects(1, 0);
-        titleHandles{end+1} = gobjects(1, 0);
-        subtitleHandles{end+1} = gobjects(1, 0);
-        plotHandles{end+1} = cell(1, 0);
+        info.FigureHandles(end+1) = currentFigure;
+        info.AxesHandles{end+1} = gobjects(1, 0);
+        info.TitleHandles{end+1} = gobjects(1, 0);
+        info.SubtitleHandles{end+1} = gobjects(1, 0);
+        info.PlotHandles{end+1} = cell(1, 0);
     end
     countChartsInWindow = countChartsInWindow + 1;
 
@@ -125,12 +129,12 @@ for x = reshape(chartObjects, 1, [])
     end
 
     currentAxes = subplot(tiles(1), tiles(2), countChartsInWindow);
-    axesHandles{end}(end+1) = currentAxes;
+    info.AxesHandles{end}(end+1) = currentAxes;
 
     chartInfo = draw(x, range, currentAxes);
-    plotHandles{end}{end+1} = chartInfo.PlotHandles;
-    titleHandles{end}(end+1) = chartInfo.TitleHandle;
-    subtitleHandles{end}(end+1) = chartInfo.SubtitleHandle;
+    info.PlotHandles{end}{end+1} = chartInfo.PlotHandles;
+    info.TitleHandles{end}(end+1) = chartInfo.TitleHandle;
+    info.SubtitleHandles{end}(end+1) = chartInfo.SubtitleHandle;
 
     if countChartsInWindow==numTilesPerWindow
         countChartsInWindow = 0;
@@ -141,19 +145,12 @@ if ~isempty(currentFigure)
     runFigureExtras(this, currentFigure);
 end
 
-info = struct();
-info.FigureHandles = figureHandles;
-info.AxesHandles = axesHandles;
-info.TitleHandles = titleHandles;
-info.SubtitleHandles = subtitleHandles;
-info.PlotHandles = plotHandles;
-
-if ~isempty(figureHandles) && ~isnan(this.ShowFigure)
+if ~isempty(info.FigureHandles) && ~isnan(this.ShowFigure)
     showFigure = this.ShowFigure;
     if isequal(showFigure, Inf)
-        showFigure = numel(figureHandles);
+        showFigure = numel(info.FigureHandles);
     end
-    figure(figureHandles(showFigure));
+    figure(info.FigureHandles(showFigure));
 end
 
 end%
