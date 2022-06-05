@@ -285,7 +285,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 % >=R2019b
 
             inputString = textual.stringify(inputString);
-            this = databank.chartpack.Chart.empty(1, 0);
+            this = [];
             for n = inputString
                 temp = databank.chartpack.Chart(varargin{:});
                 temp.InputString = strip(n);
@@ -297,7 +297,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
                     [temp.Caption, temp.Expression, temp.ApplyTransform] ...
                         = databank.chartpack.Chart.parseInputString(temp.InputString);
                 end
-                this(end+1) = temp;
+                this = [this, temp];
             end
             %)
         end%
