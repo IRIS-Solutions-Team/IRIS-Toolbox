@@ -17,70 +17,49 @@
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function clickToExpand(axesHandles)
 
-if nargin<1
-    axesHandles = gca();
-end
+    if nargin<1
+        axesHandles = gca();
+    end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('visual.clickToExpand');
-    parser.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')));
-end
-parser.parse(axesHandles);
-
-%--------------------------------------------------------------------------
-
-set(axesHandles, 'ButtonDownFcn', @copyAxes);
-h = findobj(axesHandles, 'Tag', 'highlight');
-set(h, 'ButtonDownFcn', @copyAxes);
-h = findobj(axesHandles, 'Tag', 'vline');
-set(h, 'ButtonDownFcn', @copyAxes);
+    set(axesHandles, 'ButtonDownFcn', @local_copyAxes);
 
 end%
 
-
 %
-% Local Production
+% Local functions
 %
 
-
-function copyAxes(axesHandle, varargin)
-    POSITION = [0.1300, 0.1100, 0.7750, 0.8150];
-    LEGEND_PROPERTIES_NOT_TO_REASSIGN = { 'Parent'
-                                          'Children' 
-                                          'UIContextMenu'
-                                          'BeingDeleted'
-                                          'BusyAction'
-                                          'CreateFcn'
-                                          'DeleteFcn'
-                                          'ItemHitFcn'
-                                          'Type'            };
-
+function local_copyAxes(axesHandle, varargin)
+    %(
     if ~strcmpi(get(axesHandle, 'Type'), 'Axes')
         axesHandle = get(axesHandle, 'Parent');
     end
+
+    legendHandle = get(axesHandle, 'Legend');
+
     newFigureHandle = figure( );
-    newAxesHandle = copyobj(axesHandle, newFigureHandle);
-    set( newAxesHandle, ...
-         'Position', POSITION, ...
-         'Units', 'normalized', ...
-         'ButtonDownFcn', '' );
-    legendHandle = getappdata(axesHandle, 'IRIS_OutsideLegend');
-    if ~isempty(legendHandle)
-        newLegendHandle = legend(newAxesHandle);
-        temp = get(legendHandle);
-        temp = rmfield(temp, LEGEND_PROPERTIES_NOT_TO_REASSIGN);
-        list = fieldnames(temp);
-        for i = 1 : numel(list)
-            try
-                set(newLegendHandle, list{i}, temp.(list{i}));
-            end
-        end
+    new = copyobj([legendHandle, axesHandle], newFigureHandle);
+    newAxesHandle = new(end);
+
+    set( ...
+        newAxesHandle ...
+        , 'Position', get(0, 'defaultAxesPosition') ...
+        , 'Units', get(0, 'defaultAxesUnits') ...
+        , 'ButtonDownFcn', '' ...
+    );
+
+    if isempty(legendHandle)
+        figureHandle = get(axesHandle, 'Parent');
+        outsideLegend = getappdata(figureHandle, 'IRIS_OutsideLegend');
+        location = outsideLegend{1};
+        outsideLegend(1) = [];
+        visual.hlegend(location, newAxesHandle, outsideLegend{:});
     end
+    %)
 end%
 
