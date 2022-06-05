@@ -63,7 +63,7 @@ __`Transform=@parent`__ [ function | empty | `@parent` ]
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 
-function this = add(this, inputString, varargin)
+function this = add(this, inputString)
 
 % >=R2019b
 %(
@@ -71,26 +71,10 @@ arguments
     this
     inputString (1, :) string 
 end
-
-arguments (Repeating)
-    varargin
-end
 %)
 % >=R2019b
 
-
-if ~isempty(inputString)
-    addCharts = databank.chartpack.Chart.fromString(inputString, varargin{:});
-else
-    addCharts = databank.chartpack.Chart(varargin{:});
-    addCharts.Data = inputString;
-end
-
-for x = addCharts
-    x.ParentChartpack = this;
-end
-
-this.Charts = [this.Charts, addCharts];
+this.Charts = [this.Charts, textual.stringify(inputString)];
 
 end%
 

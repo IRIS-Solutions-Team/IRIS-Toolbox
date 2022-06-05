@@ -134,11 +134,11 @@ classdef (CaseInsensitiveProperties=true) Chartpack ...
     < matlab.mixin.Copyable
 
     properties
-        Charts (1, :) databank.chartpack.Chart = databank.chartpack.Chart.empty(1, 0)
+        Charts string = string.empty(1, 0)
+        ChartObjects (1, :) databank.chartpack.Chart = databank.chartpack.Chart.empty(1, 0)
 
         Range = Inf
         PlotFunc {validate.mustBeFunc} = @plot
-        Extra = []
         Transform {validate.mustBeScalarOrEmpty} = []
         NewLine (1, 1) string = "//"
         CaptionFromComment = []
@@ -151,9 +151,11 @@ classdef (CaseInsensitiveProperties=true) Chartpack ...
 
         Expansion (1, :) cell = cell.empty(1, 0)
 
+        Grid (1, 2) logical = [true, true]
         Highlight {local_validateHighlight} = double.empty(1, 0)
         XLine = cell.empty(1, 0)
         YLine = cell.empty(1, 0)
+        ClickToExpand (1, 1) logical = true
 
         Tiles = @auto
         MaxTilesPerWindow (1, 1) double {mustBeInteger, mustBePositive} = 40
@@ -222,11 +224,20 @@ classdef (CaseInsensitiveProperties=true) Chartpack ...
             this.Autocaption = x;
             this.CaptionFromComment = x;
         end%
+
+
+        function this = set.Grid(this, x)
+            if isscalar(x)
+                this.Grid = [x, x];
+            elseif numel(x)==2
+                this.Grid = reshape(x, 1, []);
+            end
+        end%
     end
 
 
     methods (Access=protected)
-        function tiles = resolveTiles(this)
+        function tiles = resolveTiles(this, chartObjects)
             if isnumeric(this.Tiles)
                 tiles = this.Tiles;
                 if isscalar(tiles)
@@ -234,7 +245,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack ...
                 end
                 return
             end
-            maxNumCharts = getMaxNumCharts(this.Charts);
+            maxNumCharts = getMaxNumCharts(chartObjects);
             [numRows, numColumns] = visual.backend.optimizeSubplot(min(maxNumCharts, this.MaxTilesPerWindow));
             tiles = [numRows, numColumns];
         end%

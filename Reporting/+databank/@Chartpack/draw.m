@@ -68,8 +68,14 @@ end
 %)
 % >=R2019b
 
+%
+% Parse input strings into Chart objects
+%
+chartObjects = databank.chartpack.Chart.fromString(this.Charts);
+setParent(chartObjects, this);
 
-tiles = resolveTiles(this);
+
+tiles = resolveTiles(this, chartObjects);
 numTilesPerWindow = prod(tiles);
 
 range = this.Range;
@@ -77,7 +83,7 @@ if ~iscell(range)
     range = {range};
 end
 
-for x = this.Charts
+for x = chartObjects
     evaluate(x, inputDb);
 end
 
@@ -90,7 +96,7 @@ plotHandles = cell(1, 0);
 countFigures = 0;
 countChartsInWindow = 0;
 currentFigure = gobjects(0);
-for x = this.Charts
+for x = reshape(chartObjects, 1, [])
     if x.PageBreak
         countChartsInWindow = 0;
         continue
@@ -113,21 +119,18 @@ for x = this.Charts
         plotHandles{end+1} = cell(1, 0);
     end
     countChartsInWindow = countChartsInWindow + 1;
+
+    if x.Empty
+        continue
+    end
+
     currentAxes = subplot(tiles(1), tiles(2), countChartsInWindow);
     axesHandles{end}(end+1) = currentAxes;
-    if this.Round<Inf
-        x.Data = round(x.Data, this.Round);
-    end
-    plotHandles__ = this.PlotFunc(range{:}, x.Data);
-    runPlotExtras(x, plotHandles__);
-    plotHandles{end}{end+1} = plotHandles__;
 
-    [titleHandles{end}(end+1), subtitleHandles{end}(end+1)] ...
-        = local_createTitle(x, currentAxes);
-
-    local_drawBackground(x);
-
-    runAxesExtras(x, currentAxes);
+    chartInfo = draw(x, range, currentAxes);
+    plotHandles{end}{end+1} = chartInfo.PlotHandles;
+    titleHandles{end}(end+1) = chartInfo.TitleHandle;
+    subtitleHandles{end}(end+1) = chartInfo.SubtitleHandle;
 
     if countChartsInWindow==numTilesPerWindow
         countChartsInWindow = 0;
@@ -155,49 +158,4 @@ if ~isempty(figureHandles)
 end
 
 end%
-
-%
-% Local Functions
-%
-
-function [titleHandle, subtitleHandle] = local_createTitle(x, currentAxes)
-    %(
-    PLACEHOLDER = gobjects(1);
-    parent = x.ParentChartpack;
-    caption = resolveCaption(x);
-    if ~ismissing(caption)
-        try
-            [titleHandle, subtitleHandle] = title(currentAxes, caption(1), caption(2:end));
-        catch
-            titleHandle = title(currentAxes, caption);
-            subtitleHandle = PLACEHOLDER;
-        end
-        set(titleHandle, "interpreter", parent.Interpreter, parent.TitleSettings{:});
-        if numel(caption)>1 && ~isempty(subtitleHandle) && ~isequal(subtitleHandle, PLACEHOLDER)
-            set(subtitleHandle, "interpreter", parent.Interpreter, parent.SubtitleSettings{:});
-        end
-    else
-        titleHandle = gobjects(1);
-    end
-    %)
-end%
-
-
-function local_drawBackground(x)
-    %(
-    parent = x.ParentChartpack;
-    if ~isempty(parent.Highlight)
-        visual.highlight(parent.Highlight);
-    end
-    if ~isempty(parent.XLine)
-        visual.xline(parent.XLine{1}, parent.XLine{2:end});
-    end
-    if ~isempty(parent.YLine)
-        visual.yline(parent.YLine{1}, parent.YLine{2:end});
-    end
-    %)
-end%
-
-
-%#ok<*AGROW>
 
