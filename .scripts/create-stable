@@ -1,10 +1,8 @@
 
-# git switch --quiet bleeding
-# 
-# if ! git diff --quiet --exit-code || ! git diff --quiet --cached --exit-code; then
-    # echo "Working tree not clean; stopping immediately"
-    # exit 1
-# fi
+if ! git switch stablex; then
+    echo "Cannot switch to stable"
+    exit 1
+fi
 
 echo > ./logbook
 
@@ -18,16 +16,4 @@ for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
     echo $f >> .scripts/logbook
 done
 
-
-# git switch -C stable
-# if [[ $(git branch --show-current) == "stable" ]]; then
-    # git add -u .
-    # git commit -m "Auto commit of stable branch"
-# else
-    # echo "Something's not right, we're not on stable"
-    # exit 2
-# fi
-# 
-# 
-# git switch bleeding
 
