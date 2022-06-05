@@ -9,10 +9,28 @@ title: band
 
 ## Syntax
 
-    [plotHandle, info] = band([mid, lower], ___)
     [plotHandle, info] = band([mid, lower, upper], ___)
     [plotHandle, info] = band(mid, lower, upper, ___)
 
+
+## Input arguments
+
+__`mid`__ [ Series ]
+> 
+> Time series with the mid point for the band.
+>
+
+__`lower`__ [ Series ]
+>
+> Time series with the lower band or lower bands.
+>
+
+__`upper`__ [ Series ]
+>
+> Time series with the upper band or upper bands.
+>
+
+## Output arguments
 
 %}
 
@@ -22,7 +40,7 @@ title: band
 
 % >=R2019b
 %(
-function [plotHandle, info] = band(mid, lower, upper, opt)
+function varargout = band(mid, lower, upper, opt)
 
 arguments
     mid Series
@@ -33,6 +51,7 @@ arguments
     opt.AxesHandle (1, 1) = @gca
     opt.PlotSettings (1, :) cell = cell.empty(1, 0)
     opt.Layer (1, 1) string = "top"
+    opt.ZData (1, 1) double = 1;
 
     opt.White (1, 1) double {mustBeInRange(opt.White, 0, 1)} = 0.85
     opt.Relative (1, 1) logical = true
@@ -94,13 +113,25 @@ lowerData = getData(lower, dates);
 upperData = getData(upper, dates);
 bandHandles = series.band(axesHandle, plotHandle, midData, xCoor, lowerData, upperData, opt);
 
+set(plotHandle, "zData", opt.ZData*ones(size(get(plotHandle, "yData"))));
 set(axesHandle, 'layer', opt.Layer);
+
+if nargout==0
+    return
+end
+
+if nargout==1
+    varargout = {plotHandle};
+    return
+end
 
 info = struct();
 info.BandHandles = bandHandles;
 info.Dates = dates;
 info.MidData = midData;
 info.XCoor = xCoor;
+
+varargout = {plotHandle, info};
 
 end%
 
