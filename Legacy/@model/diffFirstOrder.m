@@ -46,7 +46,7 @@ if any(inxToDiff)
 
     % Numerical differentiation 
     if any(inxNumeric)
-        if this.IsLinear
+        if this.LinearStatus
             % Linear models 
             deriv = here_diffNumericallyLinear(deriv);
         else
@@ -60,7 +60,7 @@ if any(inxToDiff)
     deriv.n(inxToDiff, :) = eyeAddf(inxToDiff, this.Equation.IxHash);
 
     % Normalize derivatives by largest number in nonlinear models
-    if ~this.IsLinear && opt.Normalize
+    if ~this.LinearStatus && opt.Normalize
         for iEq = find(inxToDiff)
             inx = deriv.f(iEq, :)~=0;
             if any(inx)
@@ -204,7 +204,7 @@ return
 
     function deriv = here_diffSymbolically(deriv)
         %(
-        if this.IsLinear
+        if this.LinearStatus
             x = zeros(numQuantities, 1);
             x(inxLog) = 1;
             x(inxP) = real(asgn(inxP));
@@ -259,7 +259,7 @@ return
         end
 
         % Evaluate all equations at x=0, log(x)=0 to get constant terms
-        if this.IsLinear
+        if this.LinearStatus
             equationFunc = str2func([this.Equation.PREAMBLE, '[', this.Equation.Dynamic{inxSymbolic}, ']', ]);
             deriv.c(inxSymbolic) = equationFunc(x, sh0, L);
         end

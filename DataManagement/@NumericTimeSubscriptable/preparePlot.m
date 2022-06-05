@@ -10,7 +10,7 @@ if isempty(parser)
     parser = extend.InputParser('@Series/preparePlot');
     parser.KeepUnmatched = true;
     parser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('PlotSpec', cell.empty(1, 0), @locallyValidatePlotSpec);
+    parser.addOptional('PlotSpec', cell.empty(1, 0), @local_validatePlotSpec);
     parser.addParameter('Range', Inf);
     parser.addParameter('Transform', []);
 end
@@ -65,10 +65,10 @@ end
 end%
 
 %
-% Local Functions
+% Local functions
 %
 
-function flag = locallyValidatePlotSpec(x)
+function flag = local_validatePlotSpec(x)
     %(
     if iscell(x)
         flag = true;

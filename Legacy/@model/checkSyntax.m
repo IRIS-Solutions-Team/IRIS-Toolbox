@@ -21,7 +21,7 @@ L = x;
 % Create a random vector `x` for dynamic links. In dynamic links, we allow
 % std and corr names to occurs, and append them to the assign vector.
 if any(ixl)
-    if this.IsLinear
+    if this.LinearStatus
         std = this.DEFAULT_STD_LINEAR;
     else
         std = this.DEFAULT_STD_NONLINEAR;

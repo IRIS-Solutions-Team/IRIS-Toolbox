@@ -1,26 +1,66 @@
-function outputDb = fromArray(array, names, startDate, varargin)
+%
+% Type <a href="matlab: ihelp databank.fromArray">ihelp databank.fromArray</a> for help on this function
+%
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
+%
 
-%( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('+databank/fromArray');
+% >=R2019b
+%(
+function outputDb = fromArray(array, names, startDate, opt)
 
-    addRequired(pp, 'array', @(x) isnumeric(x) && ndims(x)==2);
-    addRequired(pp, 'names', @(x) isstring(x) || ischar(x) || iscellstr(x));
-    addRequired(pp, 'startDate', @validate.properDate);
+arguments
+    array double
+    names (1, :) string
+    startDate (1, 1) double
 
-    addParameter(pp, 'Comments', [ ], @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x));
-    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
-    addParameter(pp, 'AddToDatabank', false, @(x) isempty(x) || isequal(x, false) || validate.databank(x));
+    opt.Comments (1, :) string = string.empty(1, 0)
+    opt.OutputType (1, 1) string {mustBeMember(opt.OutputType, ["struct", "Dictionary", "__auto__"])} = "__auto__"
+    opt.TargetDb {local_validateTargetDb} = false
+        opt.AddToDatabank__TargetDb = []
 end
 %)
-opt = parse(pp, array, names, startDate, varargin{:});
+% >=R2019b
 
-%--------------------------------------------------------------------------
 
-outputDb = databank.backend.fromDoubleArrayNoFrills( ...
+% <=R2019a
+%{
+function outputDb = fromArray(array, names, startDate, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+
+    addParameter(ip, 'Comments', [], @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x));
+    addParameter(ip, 'OutputType', "__auto__", @(x) mustBeMember(x, ["struct", "Dictionary", "__auto__"]));
+    addParameter(ip, 'TargetDb', false, @local_validateTargetDb);
+        addParameter(ip, 'AddToDatabank__TargetDb', []);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
+%}
+% <=R2019a
+
+
+opt = iris.utils.resolveOptionAliases(opt, [], Except("AddToDatabank"));
+
+outputDb = databank.backend.fromArrayNoFrills( ...
     permute(array, [2, 1, 3:ndims(array)]), names, startDate ...
-    , opt.Comments, @all, @default, opt.OutputType, opt.AddToDatabank ...
+    , opt.Comments, @all, @default, opt.OutputType, opt.TargetDb ...
 );
 
 end%
+
+%
+% Local functions
+%
+
+function local_validateTargetDb(x)
+    %(
+    if isequal(x, false) || isstruct(x) || isa(x, 'Dictionary')
+        return
+    end
+    error("Input values must be false, a struct, or a Dictionary.");
+    %)
+end%
+

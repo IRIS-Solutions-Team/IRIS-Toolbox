@@ -104,8 +104,6 @@ function varargout = plot(varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
-
 [varargout{1:nargout}] = Series.implementPlot(@plot, varargin{:});
 
 end%

@@ -61,9 +61,6 @@ end
 
 return
 
-
-
-
     function hereSmoothData( )
         numData = numel(xData);
         dt = datetime(xData);
@@ -72,8 +69,6 @@ return
         xData = newXData;
         yData = newYData;
     end%
-
-
 
 
     function numOfYDataColumns = testNumOfYDataColumns(x)
@@ -88,20 +83,19 @@ return
     end%
 
 
-
-
     function plotHandle = implementBinScatter( )
         testNumOfYDataColumns(2);
-        inxOfNaN = any(isnan(yData), 2);
-        plotHandle = binscatter( axesHandle, ...
-                                 yData(~inxOfNaN, 1), ...
-                                 yData(~inxOfNaN, 2), ...
-                                 varargin{:} );
+        inxNa = any(isnan(yData), 2);
+        plotHandle = binscatter( ...
+            axesHandle ...
+            , yData(~inxNa, 1), yData(~inxNa, 2) ...
+            , plotSpec{:}, varargin{:} ...
+        );
     end%
 
 
 
-        
+
     function plotHandle = implementScatter( )
         numYDataColumns = testNumOfYDataColumns([2, 3, 4]);
         if numYDataColumns==2
@@ -199,7 +193,7 @@ return
                         color = opt.BaseColor;
                         faceAlpha = 1 - whitening;
                     else
-                        color = (1-whitening)*opt.BaseColor + whitening*opt.WhiteColor; 
+                        color = (1-whitening)*opt.BaseColor + whitening*opt.WhiteColor;
                         faceAlpha = 1;
                     end
                 end
@@ -207,11 +201,9 @@ return
     end%
 end%
 
-
 %
 % Local Functions
 %
-
 
 function hereModifyDataTip(plotHandle, xData)
     r = dataTipTextRow('X', 'XData', xData.Format);

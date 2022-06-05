@@ -1,3 +1,7 @@
+---
+title: fromIMF.data
+---
+
 # databank.fromIMF.data
 
 {== Download databank of time series from IMF Data Portal ==}

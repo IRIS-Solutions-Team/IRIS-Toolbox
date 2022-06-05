@@ -1,4 +1,3 @@
-function output = subsref(this, s)
 % subsref  Subscripted reference for model objects
 %{
 % ## Syntax for Retrieving Object with Subset of Parameter Variants ##
@@ -46,7 +45,7 @@ function output = subsref(this, s)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function output = subsref(this, s)
 
 nv = countVariants(this);
 
@@ -98,8 +97,7 @@ if isequal(s(1).type,'.') && validate.string(s(1).subs)
     return
 end
 
-if strcmp(s(1).type, '()') && numel(s(1).subs)==1 ...
-        && isnumeric(s(1).subs{1})
+if strcmp(s(1).type, '()') && numel(s(1).subs)==1 && isnumeric(s(1).subs{1})
     % m(pos)
     variantsRequested = s(1).subs{1};
     output = getVariant(this, variantsRequested);
@@ -110,9 +108,17 @@ if strcmp(s(1).type, '()') && numel(s(1).subs)==1 ...
     return
 end
 
-throw( ...
-    exception.Base('General:InvalidReference', 'error'), ...
-    class(this) ...
-);
+if strcmp(s(1).type, '{}') && numel(s(1).subs)==1 ...
+        && (ischar(s(1).subs{1}) || isstring(s(1).subs{1}))
+    % m{'query'} or m{"query"}
+    output = access(this, s(1).subs{1});
+    return
+end
+
+exception.error([
+    "Model"
+    "Invalid subscripted reference to a Model object."
+]);
 
 end%
+

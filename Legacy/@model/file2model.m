@@ -8,8 +8,8 @@
 
 function [this, opt] = file2model(this, modelSource, opt, preparserOpt, parserOpt, optimalOpt, varargin)
 
-this.IsLinear = opt.Linear;
-this.IsGrowth = opt.Growth;
+this.LinearStatus = opt.Linear;
+this.GrowthStatus = opt.Growth;
 
 
 %

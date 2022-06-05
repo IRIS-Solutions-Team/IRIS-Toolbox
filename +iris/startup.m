@@ -19,8 +19,8 @@ MINIMUM_MATLAB = 'R2018a';
 
 options = local_resolveInputOptions(varargin{:});
 
-if options.CheckMatlab ...
-        && local_getMatlabRelease()<local_releaseToNum(MINIMUM_MATLAB)
+matlabRelease = local_getMatlabRelease();
+if options.CheckMatlab && string(matlabRelease)<string(MINIMUM_MATLAB)
     error( ...
         "IrisToolbox:StartupError" ...
         , "Matlab %s or later is needed to run this [IrisToolbox] release" ...
@@ -119,28 +119,8 @@ function r = local_getMatlabRelease()
         if any(ixMatlab)
             s = s(find(ixMatlab, 1));
             r = regexp(s.Release, 'R\d{4}[ab]', 'match', 'once');
-            if ~isempty(r)
-                r = local_releaseToNum(r);
-            end
         end
     end
-    %)
-end%
-
-
-function n = local_releaseToNum(r)
-    %(
-    n = uint16(0);
-    r = lower(r);
-    if length(r)~=6 || r(1)~='r' || ~any(r(6)=='ab')
-        return
-    end
-    year = sscanf(r(2:5), '%i', 1);
-    if length(year)~=1
-        return
-    end
-    ab = 1 + double(r(6)) - double('a');
-    n = uint16(10*year + ab);
     %)
 end%
 

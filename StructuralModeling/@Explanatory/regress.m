@@ -134,7 +134,7 @@ for q = find(inxToEstimate)
 
     residualModel = this__.ResidualModel;
     maxLag = this__.MaxLag;
-    isLinear = this__.IsLinear;
+    isLinear = this__.LinearStatus;
     residualName__ = this__.ResidualName;
     
     %
@@ -427,7 +427,7 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
     exitFlag = NaN;
     optimOutput = [];
 
-    if this.IsLinear
+    if this.LinearStatus
         %
         % Linear regression
         %

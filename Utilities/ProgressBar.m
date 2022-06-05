@@ -20,8 +20,8 @@ classdef ProgressBar < handle
     properties (Constant)
         % FULL_BAR = '#' % char(9608)
         % PARTIAL_BAR =  '.oO@#' % char(9615:-1:9608)
-        FULL_BAR = '-'
-        PARTIAL_BAR = '-'
+        FULL_BAR = char(8226)
+        PARTIAL_BAR = char(8226)
         EMPTY_BAR = ' '
         TITLE_FILL = '.'
         LEFT_EDGE = '['

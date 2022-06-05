@@ -203,17 +203,7 @@ for t = 2 : numExtdPeriods
     %
     % Prediction step t|t-1 for measurement variables
     %
-    % Index of observations available at time t, `jy`, and index of
-    % conditioning observables available at time t, `cy`.
-    %
     jy = s.yindex(:, t);
-    if isempty(opt.Condition)
-        cy = false(numY, 1);
-        isCondition = false;
-    else
-        cy = jy & opt.Condition(:);
-        isCondition = any(cy);
-    end
 
 
     %
@@ -305,11 +295,6 @@ for t = 2 : numExtdPeriods
         xy = jy;
         if isEst
             Mx = M(xy, :);
-        end
-
-        if isCondition
-            % Condition the prediction step
-            here_condition( );
         end
 
         if isEst
@@ -443,9 +428,8 @@ return
     end%
 
 
-
-
     function [a0, f0, y0] = here_simulatePredict(alphaInit)
+        %(
         if needsTransform
             U = s.U(:, :, min(t, end));
             xibInit = U*alphaInit;
@@ -472,48 +456,7 @@ return
 
         y0 = data.YXEPG(rect.LinxY);
         y0(rect.InxLogWithinY) = log(y0(rect.InxLogWithinY));
-    end%
-
-
-
-
-    function here_condition( )
-        % Condition time t predictions upon time t outcomes of conditioning
-        % measurement variables
-        Zc = Z(cy, :);
-        y0c = Zc*a;
-        if ~isempty(s.d)
-            y0c = y0c + d(cy, 1);
-        end
-        pec = y1(cy, t) - y0c;
-        Fc = Zc*P*Zc.' + Sy(cy, cy);
-        Kc = (Zc*P).' / Fc;
-        ac = a + Kc*pec;
-        Pc = P - Kc*Zc*P;
-        Pc = (Pc + Pc')/2;
-        % Index of available non-conditioning observations
-        xy = jy & ~cy;
-        if any(xy)
-            Zx = Z(xy, :);
-            y0x = Zx*ac;
-            if ~isempty(s.d)
-                y0x = y0x + d(xy, 1);
-            end
-            pex = y1(xy, t) - y0x;
-            Fx = Zx*Pc*Zx.' + Sy(xy, xy);
-            if isEst
-                ZZ = Zx - Zx*Kc*Zc;
-                M1x = ZZ*Q1 + X(xy, :, t);
-                M2x = ZZ*Q2;
-                Mx = [M1x, M2x];
-            end
-        else
-            pex = double.empty(0, 1);
-            Fx = double.empty(0);
-            if isEst
-                Mx = double.empty(0, numOutlik+numEstimInit);
-            end
-        end
+        %)
     end%
 end%
 

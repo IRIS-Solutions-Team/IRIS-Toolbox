@@ -15,6 +15,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         PlotSettings = cell.empty(1, 0)
 
         PageBreak (1, 1) logical = false
+        Empty (1, 1) logical = false
     end
 
 
@@ -35,6 +36,100 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         function this = Chart(varargin)
             for i = 1 : 2 : numel(varargin)
                 this.(varargin{i}) = varargin{i+1};
+            end
+        end%
+
+
+        function info = draw(this, range, currentAxes)
+            %(
+            parent = this.ParentChartpack;
+
+            dataToPlot = this.Data;
+            if parent.Round<Inf
+                dataToPlot = round(dataToPlot, parent.Round);
+            end
+            plotHandles = parent.PlotFunc(range{:}, dataToPlot);
+
+            runPlotExtras(this, plotHandles);
+
+            [titleHandle, subtitleHandle] = createTitle(this, currentAxes);
+
+            drawGrid(this, currentAxes);
+            drawBackground(this);
+
+            runAxesExtras(this, currentAxes);
+
+            if parent.ClickToExpand
+                visual.clickToExpand(currentAxes);
+            end
+
+            info = struct();
+            info.PlotHandles = plotHandles;
+            info.TitleHandle = titleHandle;
+            info.SubtitleHandle = subtitleHandle;
+            %)
+        end%
+
+
+        function [titleHandle, subtitleHandle] = createTitle(this, currentAxes)
+            %(
+            PLACEHOLDER = gobjects(1);
+            parent = this.ParentChartpack;
+            caption = resolveCaption(this);
+            if ~ismissing(caption)
+                try
+                    [titleHandle, subtitleHandle] = title(currentAxes, caption(1), caption(2:end));
+                catch
+                    titleHandle = title(currentAxes, caption);
+                    subtitleHandle = PLACEHOLDER;
+                end
+                set(titleHandle, "interpreter", parent.Interpreter, parent.TitleSettings{:});
+                if numel(caption)>1 && ~isempty(subtitleHandle) && ~isequal(subtitleHandle, PLACEHOLDER)
+                    set(subtitleHandle, "interpreter", parent.Interpreter, parent.SubtitleSettings{:});
+                end
+            else
+                titleHandle = gobjects(1);
+            end
+            %)
+        end%
+
+
+        function drawGrid(this, currentAxes)
+            %(
+            parent = this.ParentChartpack;
+            if parent.Grid(1)
+                set(currentAxes, 'XGrid', 'on');
+            else
+                set(currentAxes, 'XGrid', 'off');
+            end
+            if parent.Grid(2)
+                set(currentAxes, 'YGrid', 'on');
+            else
+                set(currentAxes, 'YGrid', 'off');
+            end
+            %)
+        end%
+
+
+        function drawBackground(this)
+            %(
+            parent = this.ParentChartpack;
+            if ~isempty(parent.Highlight)
+                visual.highlight(parent.Highlight);
+            end
+            if ~isempty(parent.XLine)
+                visual.xline(parent.XLine{1}, parent.XLine{2:end});
+            end
+            if ~isempty(parent.YLine)
+                visual.yline(parent.YLine{1}, parent.YLine{2:end});
+            end
+            %)
+        end%
+
+
+        function setParent(this, parent)
+            for x = reshape(this, 1, [])
+                x.ParentChartpack = parent;
             end
         end%
 
@@ -76,14 +171,15 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
 
         function evaluate(this, inputDb)
-            if ~ismissing(this.Expression) && strlength(this.Expression)>0
-                this = expand(this);
-                this.Data = databank.eval(inputDb, this.ExpressionExpanded);
-                if this.ApplyTransform
-                    transform = getTransform(this);
-                    if ~isempty(transform)
-                        this.Data = transform(this.Data);
-                    end
+            expand(this);
+            if this.Empty
+                return
+            end
+            this.Data = databank.eval(inputDb, this.ExpressionExpanded);
+            if this.ApplyTransform
+                transform = getTransform(this);
+                if ~isempty(transform)
+                    this.Data = transform(this.Data);
                 end
             end
         end%
@@ -91,6 +187,12 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
 
         function this = expand(this, expression)
             expression = this.Expression;
+            if ismissing(expression) || expression==""
+                this.Empty = true;
+                this.Expression = "";
+                this.ExpressionExpanded = "";
+                return
+            end
             expansion = getExpansion(this);
             if ~isempty(expansion)
                 for i = 1 : 2 : numel(expansion)

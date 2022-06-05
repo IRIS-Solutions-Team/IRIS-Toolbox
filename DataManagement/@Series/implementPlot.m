@@ -3,31 +3,27 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function [ ...
-    plotHandle, dates, yData, ...
-    axesHandle, xData, ...
-    unmatchedOptions ...
-] = implementPlot(plotFunc, varargin)
+function varargout = implementPlot(plotFunc, varargin)
 
 [axesHandle, dates, this, plotSpec, varargin] = ...
     NumericTimeSubscriptable.preparePlot(varargin{:});
 
 %( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('Series.implementPlot');
-    pp.KeepUnmatched = true;
-    pp.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || validate.date(x));
-    pp.addParameter('DateFormat', @default, @(x) isequal(x, @default) || isstring(x) || ischar(x) || iscellstr(x));
-    pp.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('Series.implementPlot');
+    ip.KeepUnmatched = true;
+    ip.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || validate.date(x));
+    ip.addParameter('DateFormat', @default, @(x) isequal(x, @default) || isstring(x) || ischar(x) || iscellstr(x));
+    ip.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
                          || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
-    pp.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    pp.addParameter('Smooth', false, @validate.logicalScalar);
-    pp.addParameter('Highlight', [], @validate.properRange);
-    pp.addParameter('PlotSettings', cell.empty(1, 0), @iscell);
+    ip.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    ip.addParameter('Smooth', false, @validate.logicalScalar);
+    ip.addParameter('Highlight', [], @validate.properRange);
+    ip.addParameter('PlotSettings', cell.empty(1, 0), @iscell);
 end
-opt = pp.parse(varargin{:});
-unmatchedOptions = pp.UnmatchedInCell;
+opt = ip.parse(varargin{:});
+unmatchedOptions = ip.UnmatchedInCell;
 %)
 
 
@@ -40,7 +36,7 @@ elseif isempty(dates) || all(isnan(dates))
     dates = double.empty(0, 1);
 else
     dates = reshape(dates, 1, []);
-    locallyCheckUserFrequency(this, dates);
+    local_checkUserFrequency(this, dates);
 end
 
 %--------------------------------------------------------------------------
@@ -63,37 +59,45 @@ end
 if isempty(plotFunc)
     plotHandle = gobjects(0);
     return
+else
+    if ~ishold(axesHandle)
+        here_resetAxes( );
+    end
+
+    set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
+    [plotHandle, isTimeAxis] = this.plotSwitchboard( ...
+        plotFunc, axesHandle, xData, yData, plotSpec, opt.Smooth, unmatchedOptions{:}, opt.PlotSettings{:} ...
+    );
+
+    try %#ok<TRYNC>
+        axesHandle.XAxis.TickLabelFormat = char(dateFormat);
+    end
+
+    if isTimeAxis && ~isempty(xData)
+        here_addXLimMargins( );
+        here_setXLim( );
+        here_setXTick( );
+        here_setXTickLabelFormat( );
+
+        set(axesHandle, 'XTickLabelRotation', 0);
+        setappdata(axesHandle, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
+        setappdata(axesHandle, 'IRIS_TimeSeriesPlot', true);
+    end
+
+    local_after(axesHandle, opt);
 end
 
-if ~ishold(axesHandle)
-    hereResetAxes( );
-end
+varargout = { 
+    plotHandle, dates, yData, ...
+    axesHandle, xData, ...
+    unmatchedOptions
+};
 
-set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
-[plotHandle, isTimeAxis] = this.plotSwitchboard( ...
-    plotFunc, axesHandle, xData, yData, plotSpec, opt.Smooth, unmatchedOptions{:}, opt.PlotSettings{:} ...
-);
-
-try %#ok<TRYNC>
-    axesHandle.XAxis.TickLabelFormat = char(dateFormat);
-end
-
-if isTimeAxis && ~isempty(xData)
-    hereAddXLimMargins( );
-    hereSetXLim( );
-    hereSetXTick( );
-    hereSetXTickLabelFormat( );
-
-    set(axesHandle, 'XTickLabelRotation', 0);
-    setappdata(axesHandle, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
-    setappdata(axesHandle, 'IRIS_TimeSeriesPlot', true);
-end
-
-locallyAfter(axesHandle, opt);
+varargout = varargout(1:nargout);
 
 return
 
-    function hereAddXLimMargins( )
+    function here_addXLimMargins( )
         % Leave a half period on either side of the horizontal axis around
         % the currently added data
         %(
@@ -120,7 +124,7 @@ return
     end%
 
 
-    function hereSetXLim( )
+    function here_setXLim( )
         %(
         xLimHere = [min(xData), max(xData)];
         xLimOld = getappdata(axesHandle, 'IRIS_XLim');
@@ -140,7 +144,7 @@ return
         else
             xLimNew = xLimOld;
         end
-        xLimActual = hereGetXLimActual(xLimNew);
+        xLimActual = here_getXLimActual(xLimNew);
         if enforceXLimHere && ~isempty(xLimActual)
             try
                 set(axesHandle, 'XLim', xLimActual);
@@ -152,7 +156,7 @@ return
     end%
 
 
-    function hereSetXTick( )
+    function here_setXTick( )
         %(
         if isequal(opt.DateTick, @auto) || isempty(opt.DateTick)
             return
@@ -165,7 +169,7 @@ return
     end%
 
 
-    function hereSetXTickLabelFormat( )
+    function here_setXTickLabelFormat( )
         %(
         if isempty(dates) || timeFrequency==Frequency.INTEGER
             return
@@ -177,7 +181,7 @@ return
     end%
 
 
-    function xLim = hereGetXLimActual(xLim)
+    function xLim = here_getXLimActual(xLim)
         %(
         xLimMargins = getappdata(axesHandle, 'IRIS_XLimMargins');
         if isempty(xLimMargins)
@@ -195,7 +199,7 @@ return
     end%
 
 
-    function hereResetAxes( )
+    function here_resetAxes( )
         %(
         list = [
             "IRIS_PositionWithinPeriod"
@@ -219,7 +223,7 @@ end%
 % Local functions
 %
 
-function locallyAfter(axesHandle, opt);
+function local_after(axesHandle, opt);
     %(
     if ~isempty(opt.Highlight)
         visual.highlight(axesHandle, opt.Highlight);
@@ -231,7 +235,7 @@ end%
 % Local validation functions
 %
 
-function locallyCheckUserFrequency(this, dates)
+function local_checkUserFrequency(this, dates)
     %(
     if numel(dates)==1 || numel(dates)==2
         validFrequencies = isnan(this.Start) || all(validateFrequencyOrInf(this, dates));

@@ -24,7 +24,6 @@ function output = prepareSteady(this, varargin)
     %( Input parser
     persistent parserLinear parserNonlinear
     if isempty(parserLinear) || isempty(parserNonlinear)
-
         % Linear
         parserLinear = extend.InputParser();
         addRequired(parserLinear, 'model', @(x) isa(x, 'model'));
@@ -63,7 +62,7 @@ function output = prepareSteady(this, varargin)
     end
     %)
 
-    if this.IsLinear
+    if this.LinearStatus
         %
         % __Linear steady state solver__
         %
@@ -94,7 +93,7 @@ function output = prepareSteady(this, varargin)
         end
 
         if isempty(options.Growth)
-            options.Growth = this.IsGrowth;
+            options.Growth = this.GrowthStatus;
         end
 
         if ~options.Growth && isempty(options.Fix) && isempty(options.FixLevel) && isempty(options.FixChange)

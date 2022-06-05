@@ -31,7 +31,7 @@ end
 
 % Assign default std deviations
 if isequal(opt.DefaultStd, @auto)
-    if this.IsLinear
+    if this.LinearStatus
         defaultStd = opt.stdlinear;
     else
         defaultStd = opt.stdnonlinear;

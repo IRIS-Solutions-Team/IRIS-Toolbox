@@ -1,7 +1,9 @@
-% Type `web +databank/fromCSV.md` for help on this function
+%
+% Type <a href="matlab: ihelp databank.fromCSV">ihelp databank.fromCSV</a> for help on this function
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
+%
 
 % >=R2019b
 %{
@@ -132,7 +134,7 @@ if isequal(opt.FirstDateOnly, true)
 end
 
 % Preprocess options
-hereProcessOptions( );
+here_processOptions( );
 
 
 % Read the CSV file, and apply user-supplied function(s) to pre-process the
@@ -141,7 +143,7 @@ file = '';
 
 
 %==========================================================================
-hereReadAndPreprocessFile();
+here_readAndPreprocessFile();
 %==========================================================================
 
 
@@ -162,7 +164,7 @@ seriesUserdata = struct( );
 
 
 %==========================================================================
-hereReadHeaders( );
+here_readHeaders( );
 %==========================================================================
 
 
@@ -197,14 +199,14 @@ end
 
 
 %==========================================================================
-[data, inxMissing, datesColumn] = hereReadNumericData( );
+[data, inxMissing, datesColumn] = here_readNumericData( );
 %==========================================================================
 
 
 %
 % Parse dates
 %
-[dates, inxNaNDates] = hereParseDates( );
+[dates, inxNaNDates] = here_parseDates( );
 
 if ~isempty(dates)
     maxDate = max(dates);
@@ -220,15 +222,15 @@ end
 % Change variable names.
 % * Apply user function to variables names.
 % * Convert variable name case.
-hereChangeNames( );
+here_changeNames( );
 
 % Make sure the databank entry names are all valid and unique Matlab names.
-hereCheckNames( );
+here_checkNames( );
 
 % Populated the user data field; this is NOT Series user data, but a
 % separate entry in the output databank
 if ~isempty(opt.DatabankUserData) && isUserData
-    hereCreateUserdataField( );
+    here_createUserdataField( );
 end
 
 
@@ -236,7 +238,7 @@ end
 % Create database
 % Populate the output databank with Series and numeric data
 %
-[outputDb, info.NamesCreated] = herePopulateDatabank(outputDb);
+[outputDb, info.NamesCreated] = here_populateDatabank(outputDb);
 
 
 %
@@ -247,7 +249,7 @@ outputDb = databank.backend.postprocess(outputDb, info.NamesCreated, opt.Postpro
 
 return
 
-    function hereReadAndPreprocessFile( )
+    function here_readAndPreprocessFile( )
         %(
         % Read CSV file to char
         file = fileread(fileName);
@@ -270,7 +272,7 @@ return
     end%
 
 
-    function hereProcessOptions( )
+    function here_processOptions( )
         % Headers for rows to be skipped
         if validate.text(opt.SkipRows)
             opt.SkipRows = textual.stringify(opt.SkipRows);
@@ -298,7 +300,7 @@ return
 
 
 
-    function hereReadHeaders( )
+    function here_readHeaders( )
         isDate = false;
         isNameRowDone = false;
         ident = '';
@@ -318,7 +320,7 @@ return
                 line = file(start:eol-1);
             end
             if validate.numericScalar(opt.NamesHeader) && rowCount<opt.NamesHeader
-                hereMoveToNextEol( );
+                here_moveToNextEol( );
                 continue
             end
 
@@ -340,14 +342,14 @@ return
             end
 
             if isnumeric(opt.SkipRows) && any(rowCount==opt.SkipRows)
-                hereMoveToNextEol( );
+                here_moveToNextEol( );
                 continue
             end
 
-            if hereTestNameRow( )
+            if here_testNameRow( )
                 nameRow = textual.stringify(tkn(2:end));
                 isNameRowDone = true;
-                hereMoveToNextEol( );
+                here_moveToNextEol( );
                 continue
             end
 
@@ -393,7 +395,7 @@ return
             elseif contains(ident, "Class[Size]", "ignoreCase", true)
                 classRow = tkn(2:end);
                 isDate = false;
-            elseif hereTestCommentsHeader( )
+            elseif here_testCommentsHeader( )
                 commentRow = tkn(2:end);
                 isDate = false;
             elseif contains(ident, "Units", "ignoreCase", true)
@@ -406,14 +408,14 @@ return
             end
 
             if ~isDate
-                hereMoveToNextEol( );
+                here_moveToNextEol( );
             end
         end%
 
         return
 
 
-            function hereMoveToNextEol( )
+            function here_moveToNextEol( )
                 if ~isempty(eol)
                     file(eol) = ' ';
                     start = eol + 1;
@@ -423,7 +425,7 @@ return
             end%
 
 
-            function flag = hereTestNameRow( )
+            function flag = here_testNameRow( )
                 if isNameRowDone
                     flag = false;
                     return
@@ -438,7 +440,7 @@ return
             end%
 
 
-            function flag = hereTestCommentsHeader( )
+            function flag = here_testCommentsHeader( )
                 if isnumeric(opt.CommentsHeader) && any(opt.CommentsHeader==rowCount)
                     flag = true;
                     return
@@ -453,7 +455,7 @@ return
 
 
 
-    function [data, inxMissing, datesColumn] = hereReadNumericData( )
+    function [data, inxMissing, datesColumn] = here_readNumericData( )
         data = double.empty(0, 0);
         inxMissing = logical.empty(1, 0);
         datesColumn = cell.empty(1, 0);
@@ -547,7 +549,7 @@ return
 
 
 
-    function [dates, inxNaDates] = hereParseDates( )
+    function [dates, inxNaDates] = here_parseDates( )
         numDates = numel(datesColumn);
         % dates = DateWrapper(nan(1, numDates));
         dates = nan(1, numDates);
@@ -603,7 +605,7 @@ return
 
 
 
-    function [outputDb, namesCreated] = herePopulateDatabank(outputDb)
+    function [outputDb, namesCreated] = here_populateDatabank(outputDb)
         TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
         TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
@@ -614,7 +616,7 @@ return
         while count<lenNameRow
             name = nameRow(count+1);
             if numSeriesUserData>0
-                thisUserData = hereCreateSeriesUserdata( );
+                thisUserData = here_createSeriesUserdata( );
             end
             if strlength(name)==0
                 % Skip columns with empty names
@@ -680,7 +682,7 @@ return
         return
 
 
-        function userData = hereCreateSeriesUserdata( )
+        function userData = here_createSeriesUserdata( )
             userData = struct( );
             for ii = 1 : numSeriesUserData
                 try
@@ -696,7 +698,7 @@ return
 
 
 
-    function hereChangeNames( )
+    function here_changeNames( )
         % Apply user function(s) to each name.
         if ~isempty(opt.NameFunc)
             func = opt.NameFunc;
@@ -722,7 +724,7 @@ return
     end%
 
 
-    function hereCheckNames( )
+    function here_checkNames( )
         inxEmpty = strlength(nameRow)==0;
         if isstruct(outputDb)
             inxValid = strlength(regexp(nameRow, "^[a-zA-Z]\w*$", "once", "match"))>0;
@@ -741,7 +743,7 @@ return
         end
     end%
 
-    function hereCreateUserdataField( )
+    function here_createUserdataField( )
         if ischar(opt.DatabanUserData) || isempty(databankUserDataFieldName)
             databankUserDataFieldName = opt.DatabankUserData;
         end

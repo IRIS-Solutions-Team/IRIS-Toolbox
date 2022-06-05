@@ -17,7 +17,7 @@ if opt.Warning
     % Warning if some parameters are NaN, or some log-lin variables have
     % non-positive steady state
     chkList = { 'parameters.dynamic', 'log' };
-    if ~this.IsLinear
+    if ~this.LinearStatus
         chkList = [ chkList, {'sstate'} ];
     end
     chkQty(this, Inf, chkList{:});

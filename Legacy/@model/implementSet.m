@@ -53,10 +53,10 @@ switch lower(query)
             isValidValue = false;
         end
 
-        
+
     case 'userdata'
         this = userdata(this, value);
-        
+
 
     case 'epsilon'
         if isnumericscalar(value) && value>0
@@ -64,14 +64,14 @@ switch lower(query)
         else
             isValidValue = false;
         end
-        
+
 
     case {'islinear', 'linear'}
-        this.IsLinear = isequal(value, true);
+        this.LinearStatus = isequal(value, true);
 
 
     case {'isgrowth', 'growth'}
-        this.IsGrowth = isequal(value, true);
+        this.GrowthStatus = isequal(value, true);
 
 
     case 'rlabel'
@@ -81,7 +81,7 @@ switch lower(query)
         else
             isValidValue = false;
         end
-        
+
     otherwise
         isValidRequest = false;
 end

@@ -53,7 +53,7 @@ if ~any(inxValues) && ~beenRefreshed
 end
 
 
-if this.IsLinear
+if this.LinearStatus
     %
     % Linear Models
     %
