@@ -59,7 +59,7 @@ arguments
     opt.AxesHandle (1, 1) = @gca
     opt.PlotSettings (1, :) cell = cell.empty(1, 0)
     opt.Layer (1, 1) string = "top"
-    opt.ZData (1, 1) double = 1;
+    opt.ZData (1, 1) double = 1
 
     opt.White (1, 1) double {mustBeInRange(opt.White, 0, 1)} = 0.85
     opt.Relative (1, 1) logical = true
@@ -83,6 +83,7 @@ if isempty(ip)
     addParameter(ip, "AxesHandle", @gca);
     addParameter(ip, "PlotSettings", cell.empty(1, 0));
     addParameter(ip, "Layer", "top");
+    addParameter(ip, "ZData", 1);
 
     addParameter(ip, "White", 0.85);
     addParameter(ip, "Relative", true);
