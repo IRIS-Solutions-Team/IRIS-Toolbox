@@ -141,7 +141,6 @@ if ~isempty(currentFigure)
     runFigureExtras(this, currentFigure);
 end
 
-
 info = struct();
 info.FigureHandles = figureHandles;
 info.AxesHandles = axesHandles;
@@ -149,7 +148,7 @@ info.TitleHandles = titleHandles;
 info.SubtitleHandles = subtitleHandles;
 info.PlotHandles = plotHandles;
 
-if ~isempty(figureHandles)
+if ~isempty(figureHandles) && ~isnan(this.ShowFigure)
     showFigure = this.ShowFigure;
     if isequal(showFigure, Inf)
         showFigure = numel(figureHandles);
