@@ -5,17 +5,16 @@
 
 function [axesHandle, dates, inputSeries, plotSpec, unmatched] = preparePlot(varargin)
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('@Series/preparePlot');
-    parser.KeepUnmatched = true;
-    parser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('PlotSpec', cell.empty(1, 0), @local_validatePlotSpec);
-    parser.addParameter('Range', Inf);
-    parser.addParameter('Transform', []);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('@Series/preparePlot');
+    ip.KeepUnmatched = true;
+    ip.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    ip.addOptional('PlotSpec', cell.empty(1, 0), @local_validatePlotSpec);
+    ip.addParameter('Range', Inf);
+    ip.addParameter('Transform', []);
+    ip.addParameter('AxesHandle', []);
 end
-
-%--------------------------------------------------------------------------
 
 if ~isempty(varargin) && all(isgraphics(varargin{1}, 'Axes')) 
     axesHandle = varargin{1};
@@ -41,12 +40,12 @@ else
     inputSeries = [ ];
 end
 
-options = parser.parse(inputSeries, varargin{:});
-plotSpec = parser.Results.PlotSpec;
-unmatched = parser.UnmatchedInCell;
+opt = ip.parse(inputSeries, varargin{:});
+plotSpec = ip.Results.PlotSpec;
+unmatched = ip.UnmatchedInCell;
 
-if ~isequal(options.Range, Inf)
-    dates = double(options.Range);
+if ~isequal(opt.Range, Inf)
+    dates = double(opt.Range);
 end
 
 % Always wrap PlotSpec up in a cell array
@@ -54,12 +53,15 @@ if ~iscell(plotSpec)
     plotSpec = { plotSpec };
 end
 
+if ~isempty(opt.AxesHandle)
+    axesHandle = opt.AxesHandle;
+end
 if isa(axesHandle, 'function_handle')
     axesHandle = axesHandle();
 end
 
-if isa(options.Transform, 'function_handle')
-    inputSeries = options.Transform(inputSeries);
+if isa(opt.Transform, 'function_handle')
+    inputSeries = opt.Transform(inputSeries);
 end
 
 end%

@@ -67,9 +67,8 @@ __`Transform=@parent`__ [ function | empty | `@parent` ]
 >
 %}
 
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
+
+%---8<---
 
 
 function this = add(this, inputString)
