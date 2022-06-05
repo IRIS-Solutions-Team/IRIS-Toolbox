@@ -44,37 +44,35 @@ if opt.Relative && opt.ObjFunc==1
     end
 end
 
-% Put together the requested objective function
-if opt.ObjFunc==1
-    % Minus log likelihood
-    log2Pi = log(2*pi);
-    objFunc = (sumNumObs*log2Pi + sumLogDetF + sumPeFiPe) / 2;
-else
-    % Weighted prediction errors
-    objFunc = sumPeFiPe / 2;
-end
+log2Pi = log(2*pi);
 
 if ~opt.ReturnObjFuncContribs
-    return
-end
-
-% 
-% Objective Function Components
-%
-if isOutlik
-    peFiPe = peFiPe - Est.'*MtFiPe;
-end
-if V~=1
-    logDetF = logDetF + numObs*log(V);
-    peFiPe = peFiPe / V;
-end
-sumObj = objFunc;
-if opt.ObjFunc==1
-    objFunc = (numObs*log2Pi + logDetF + peFiPe) / 2;
+    % Put together the requested objective function
+    if opt.ObjFunc==1
+        % Minus log likelihood
+        objFunc = (sumNumObs*log2Pi + sumLogDetF + sumPeFiPe) / 2;
+    else
+        % Weighted prediction errors
+        objFunc = sumPeFiPe / 2;
+    end
 else
-    objFunc = peFiPe / 2;
+    % 
+    % Objective Function Components
+    %
+    if isOutlik
+        peFiPe = peFiPe - Est.'*MtFiPe;
+    end
+    if V~=1
+        logDetF = logDetF + numObs*log(V);
+        peFiPe = peFiPe / V;
+    end
+
+    if opt.ObjFunc==1
+        objFunc = (numObs*log2Pi + logDetF + peFiPe) / 2;
+    else
+        objFunc = peFiPe / 2;
+    end
 end
-objFunc(1) = sumObj;
 
 end%
 
