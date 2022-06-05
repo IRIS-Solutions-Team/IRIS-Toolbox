@@ -135,7 +135,6 @@ classdef (CaseInsensitiveProperties=true) Chartpack ...
 
     properties
         Charts string = string.empty(1, 0)
-        ChartObjects (1, :) databank.chartpack.Chart = databank.chartpack.Chart.empty(1, 0)
 
         Range = Inf
         PlotFunc {validate.mustBeFunc} = @plot
