@@ -1,4 +1,9 @@
-% Type `web +databank/Chartpack/add` for help on this function
+%
+% Type <a href="matlab: ihelp databank.Chartpack/add">ihelp databank.Chartpack/add</a> for help on this function
+%
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
+%
 
 %{
 ---
@@ -13,8 +18,12 @@ title: add
 ## Syntax
 
     add(ch, inputString, ___)
-    ch < inputString
-    ch < [inputString, inputString, inputString]
+
+
+## Short-cut syntax
+
+    ch + inputString
+    ch + [inputString, inputString, inputString]
 
 
 ## Input arguments
