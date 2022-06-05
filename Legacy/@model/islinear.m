@@ -43,6 +43,6 @@ function flag = islinear(this)
 
 %--------------------------------------------------------------------------
 
-flag = this.IsLinear;
+flag = this.LinearStatus;
 
 end

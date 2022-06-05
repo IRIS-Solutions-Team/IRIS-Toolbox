@@ -44,7 +44,7 @@ if numOfVariantsRequested==nv
     % Do nothing.
     return
 elseif nv==0 && numOfVariantsRequested>0
-    if this.IsLinear
+    if this.LinearStatus
         defaultStd = this.DEFAULT_STD_LINEAR;
     else
         defaultStd = this.DEFAULT_STD_NONLINEAR;

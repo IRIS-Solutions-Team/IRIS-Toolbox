@@ -14,7 +14,7 @@ CONFIG = iris.get( );
 
 isEmpty = isempty(this.Variant.Values);
 
-if this.IsLinear
+if this.LinearStatus
     attribute = 'Linear';
 else
     attribute = 'Nonlinear';

@@ -454,13 +454,13 @@ else
 
 
         case {'islinear', 'linear'}
-            response = this.IsLinear;
+            response = this.LinearStatus;
 
 
 
 
         case {'isgrowth', 'growth'}
-            response = this.IsGrowth;
+            response = this.GrowthStatus;
 
 
 

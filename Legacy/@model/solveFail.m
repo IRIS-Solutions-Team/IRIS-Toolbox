@@ -79,7 +79,7 @@ while true
                 args{end+1} = exception.Base.alt2str(solveInfo.Singularity(ieq, :));
                 args{end+1} = this.Equation.Input{ieq};
             end
-        elseif ~this.IsLinear && isnan(this, 'sstate')
+        elseif ~this.LinearStatus && isnan(this, 'sstate')
             body = [body, BRX, ...
                 'Model is declared nonlinear but some steady states are NaN', ...
                 ];

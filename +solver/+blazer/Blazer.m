@@ -23,7 +23,7 @@ classdef (Abstract) Blazer ...
         InxCanBeEndogenized
         InxCanBeExogenized
         IsBlocks = true
-        IsGrowth = false
+        GrowthStatus = false
 
         % IsSingular  True if there is structural singularity in the system of equations
         IsSingular = false

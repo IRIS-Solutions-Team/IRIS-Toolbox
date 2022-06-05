@@ -7,7 +7,7 @@ function [this, flag, outputInfo] = sstate(this, varargin)
 
 steady = prepareSteady(this, varargin{:});
 
-if this.IsLinear
+if this.LinearStatus
     [this, flag, outputInfo] = steadyLinear(this, steady, Inf);
 else
     [this, flag, outputInfo] = steadyNonlinear(this, steady, Inf);

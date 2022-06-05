@@ -15,7 +15,7 @@ end
 numEquations = countEquations(model);
 this = solver.blazer.Steady(numEquations);
 this.SuccessOnly = opt.SuccessOnly;
-this.IsGrowth = opt.Growth;
+this.GrowthStatus = opt.Growth;
 if isempty(opt.SaveAs)
     opt.SaveAs = "";
 end

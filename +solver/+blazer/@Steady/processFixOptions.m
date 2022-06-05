@@ -52,7 +52,7 @@ inxFixLevel(opt.Fix) = true;
 inxFixLevel(opt.FixLevel) = true;
 
 inxFixChange = false(1, numQuantities);
-if this.IsGrowth
+if this.GrowthStatus
     inxFixChange(opt.Fix) = true;
     inxFixChange(opt.FixChange) = true;
     anyFixedByUser = any(inxFixLevel) || any(inxFixChange);

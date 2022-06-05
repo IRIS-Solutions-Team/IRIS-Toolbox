@@ -150,7 +150,7 @@ for v = variantsRequested
 
 
     if info.ExitFlag(v)==1
-        if ~this.IsLinear
+        if ~this.LinearStatus
             % Steady-state levels needed in hereTransitionEquations() and
             % hereMeasurementEquations()
             isDelog = false;
@@ -176,7 +176,7 @@ for v = variantsRequested
         end
         if ~flagTransition || ~flagMeasurement
             checkSteadyOptions = prepareCheckSteady(this, "EquationSwitch", "dynamic");
-            if ~this.IsLinear && ~implementCheckSteady(this, v, checkSteadyOptions);
+            if ~this.LinearStatus && ~implementCheckSteady(this, v, checkSteadyOptions);
                 info.ExitFlag(v) = -4;
                 continue;
             else
@@ -287,7 +287,7 @@ return
         % Steady state for nonlinear models. They are needed in nonlinear
         % models to back out the constant vectors.
 
-        if ~this.IsLinear
+        if ~this.LinearStatus
             ssA = U \ ssXb;
             if any(isnan(ssA(:)))
                 flag = false;
@@ -320,7 +320,7 @@ return
             end
         end
         
-        if this.IsLinear
+        if this.LinearStatus
             Ku = -(S22+T22)\C2;
         else
             Ku = zeros(numXif, 1);
@@ -363,7 +363,7 @@ return
             flag = false;
             return
         end
-        if this.IsLinear
+        if this.LinearStatus
             Ka = -(Xa0 + Xa1)*Ku - S11\C1;
         else
             Ka = ssA(:, 2) - Ta*ssA(:, 1);
@@ -384,7 +384,7 @@ return
         if isHash
             Yf = Xf*Yu;
         end
-        if this.IsLinear
+        if this.LinearStatus
             Kf = Xf*Ku;
         else
             Kf = ssXf(:, 2) - Tf*ssA(:, 1);
@@ -474,7 +474,7 @@ return
                 flag = false;
                 return
             end
-            if this.IsLinear
+            if this.LinearStatus
                 D = full(-system.A{1}\system.K{1});
             else
                 D = ssY - Zb*ssXb(:, 2);

@@ -23,7 +23,7 @@ end
 % Changes in steady states and parameters
 currentValues = this.Variant.Values(:, :, variantRequested);
 inxChanged = currentValues~=lastValues & (~isnan(currentValues) | ~isnan(lastValues));
-if this.IsLinear
+if this.LinearStatus
     % Only parameter changes matter in linear models
     inxChanged = inxChanged & inxP;
 end

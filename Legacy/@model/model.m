@@ -12,14 +12,14 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         % FileName  Name of model file or files from which the model object was created
         FileName (1, :) string = string.empty(1, 0)
 
-        % IsLinear  True for models designated by user as linear
-        IsLinear = false
+        % LinearStatus  True for models designated by user as linear
+        LinearStatus (1, 1) logical = false
     end
 
 
     properties (GetAccess=public, SetAccess=protected, Hidden)
-        % IsGrowth  True for models with nonzero deterministic growth in steady state
-        IsGrowth = false
+        % GrowthStatus  True for models with nonzero deterministic growth in steady state
+        GrowthStatus (1, 1) logical = false
 
         % Tolerance  Tolerance levels for different contexts
         Tolerance = iris.mixin.Tolerance
@@ -202,7 +202,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = getActualMinMaxShifts(varargin)
 
         function flag = hasGrowth(this)
-            flag = this.IsGrowth;
+            flag = this.GrowthStatus;
         end%
 
         varargout = horzcat(varargin)

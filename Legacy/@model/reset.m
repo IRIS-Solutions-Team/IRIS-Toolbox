@@ -12,7 +12,7 @@ inxP = this.Quantity.Type==4;
 inxG = this.Quantity.Type==5;
 numE = nnz(inxE);
 
-if this.IsLinear
+if this.LinearStatus
     defaultStd = this.DEFAULT_STD_LINEAR;
 else
     defaultStd = this.DEFAULT_STD_NONLINEAR;
