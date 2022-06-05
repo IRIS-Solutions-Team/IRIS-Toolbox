@@ -1,4 +1,4 @@
 function flag = isLinear(m)
-flag = m.IsLinear;
+flag = m.LinearStatus;
 end%
 

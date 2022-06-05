@@ -51,17 +51,21 @@ MARGIN = 0.01;
 
 % When called with Axes handles, allow for Figure handles as well, and
 % extract the current Axes from each Figure.
+axesHandle = {};
 if ~isempty(varargin) && all(isgraphics(varargin{1}, 'Axes') | isgraphics(varargin{1}, 'Figure'))
-    varargin{1} = visual.backend.resolveAxesHandles('Current', varargin{1});
+    axesHandle = varargin(1);
+    varargin(1) = [];
+    axesHandle{1} = visual.backend.resolveAxesHandles('Current', axesHandle{1});
 end
 
-legendHandle = legend(varargin{:});
+legendHandle = legend(axesHandle{:}, varargin{:});
 
 if ~isempty(legendHandle)
     set(legendHandle, 'Orientation', 'Horizontal');
     currentAxesHandle = visual.backend.getCurrentAxesIfExists( );
     if ~isempty(currentAxesHandle)
-        setappdata(currentAxesHandle, 'IRIS_OutsideLegend', legendHandle);
+        currentFigureHandle = get(currentAxesHandle, 'Parent');
+        setappdata(currentFigureHandle, 'IRIS_OutsideLegend', [{location}, varargin]);
     end
     for i = 1 : numel(legendHandle)
         moveLegend(legendHandle(i), location, MARGIN);

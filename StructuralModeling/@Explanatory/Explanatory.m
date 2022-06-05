@@ -98,8 +98,8 @@ classdef Explanatory ...
         IsIdentity (1, 1) logical = false
 
 
-% IsLinear  True if the RHS is linear in parameters
-        IsLinear (1, 1) logical = false
+% LinearStatus  True if the RHS is linear in parameters
+        LinearStatus (1, 1) logical = false
 
 
 % LhsReference  Symbol used to create lags of LHS variables (aka AR terms) on
@@ -254,7 +254,7 @@ classdef Explanatory ...
                 hereReportCurrentLhsName( );
             end
             this.ExplanatoryTerms(1, end+1) = term;
-            if this.IsLinear
+            if this.LinearStatus
                 this = addParameters(this, fixed);
             end
             return
@@ -270,7 +270,7 @@ classdef Explanatory ...
 
 
         function this = seal(this)
-            if this.IsLinear
+            if this.LinearStatus
                 build = "";
                 for i = 1 : this.NumExplanatoryTerms
                     build = build + "+p(:," + string(i) + ",v)*(" + this.ExplanatoryTerms(i).Expression + ")";

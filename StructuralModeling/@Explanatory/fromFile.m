@@ -162,7 +162,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     for i = 1 : numel(control.list)
         exd = Explanatory( );
         s = control.list(i);
-        exd = setp(exd, "IsLinear", true);
+        exd = setp(exd, "LinearStatus", true);
         exd = setp(exd, 'VariableNames', ["x_"+s, "y", "z"]);
         exd = setp(exd, 'FileName', string(f.FileName));
         exd = setp(exd, 'InputString', "x_"+s+"=@+@*x_"+s+"{-1}-@*y+y*z;");

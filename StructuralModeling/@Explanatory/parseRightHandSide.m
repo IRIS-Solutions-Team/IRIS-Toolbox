@@ -22,9 +22,9 @@ end
 % Switch between linear regression and nonlinear regression depending on
 % the presence of @(k) in the equation
 %
-this.IsLinear = ~contains(rhsString, "@(");
+this.LinearStatus = ~contains(rhsString, "@(");
 
-if this.IsLinear
+if this.LinearStatus
     [this, rhsString] = locallyParseExplanatoryTerms(this, rhsString);
 end
 
