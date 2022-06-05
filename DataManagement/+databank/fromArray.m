@@ -6,7 +6,7 @@
 %
 
 % >=R2019b
-%(
+%{
 function outputDb = fromArray(array, names, startDate, opt)
 
 arguments
@@ -19,12 +19,12 @@ arguments
     opt.TargetDb {local_validateTargetDb} = false
         opt.AddToDatabank__TargetDb = []
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function outputDb = fromArray(array, names, startDate, varargin)
 
 persistent ip
@@ -38,7 +38,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
