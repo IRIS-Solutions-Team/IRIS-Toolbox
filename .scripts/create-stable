@@ -1,5 +1,5 @@
 
-if ! git switch stablex; then
+if ! git switch stable; then
     echo "Cannot switch to stable"
     exit 1
 fi
