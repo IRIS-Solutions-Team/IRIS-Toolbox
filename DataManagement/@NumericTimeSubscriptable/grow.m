@@ -48,10 +48,11 @@ end
 
 func = local_chooseFunction(operator, opt.Direction);
 
+% Make sure dates run forward in time at this point
 dates = reshape(double(dates), 1, [ ]);
+dates = local_ensureRangeDirection(dates);
 
 shift = dater.resolveShift(dates, opt.Shift);
-
 if startsWith(opt.Direction, "b", "ignoreCase", true)
     % Backward direction
     shift = -shift;
@@ -172,6 +173,15 @@ function func = local_chooseFunction(operator, direction)
                     func = @(x, y) x./(1 + y/100);
                 end
         end
+    end
+    %)
+end%
+
+
+function dates = local_ensureRangeDirection(dates)
+    %(
+    if dates(1)>dates(end)
+        dates = fliplr(dates);
     end
     %)
 end%

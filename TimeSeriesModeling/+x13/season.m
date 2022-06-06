@@ -76,6 +76,8 @@ arguments
     specs.Pickmdl_Print (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Pickmdl_SaveLog (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
 
+    specs.Outlier logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
+
     specs.Arima logical { validate.mustBeScalarOrEmpty } = logical.empty(1, 0)
     specs.Arima_Model (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
     specs.Arima_Title (1, :) string { validate.mustBeScalarOrEmpty } = string.empty(1, 0)
@@ -227,6 +229,8 @@ if isempty(ip)
     addParameter(ip, "Pickmdl_Mode", string.empty(1, 0));
     addParameter(ip, "Pickmdl_Print", string.empty(1, 0));
     addParameter(ip, "Pickmdl_SaveLog", string.empty(1, 0));
+
+    addParameter(ip, "Outlier", logical.empty(1, 0));
 
     addParameter(ip, "Arima", logical.empty(1, 0));
     addParameter(ip, "Arima_Model", string.empty(1, 0));
@@ -449,6 +453,12 @@ function [specs, flipSign] = local_resolveAutoMode(data, specs)
             flipSign = -1;
         else
             specs.X11_Mode = "add";
+        end
+
+        if strcmpi(specs.X11_Mode, "mult") && isempty(specs.Transform_Function)
+            specs.Transform_Function = "log";
+        else
+            specs.Transform_Function = "none"; 
         end
     end
 end%
@@ -779,6 +789,8 @@ function list = local_getRegularSpecsOrder()
         "Pickmdl_Mode"
         "Pickmdl_Print"
         "Pickmdl_SaveLog"
+
+        "Outlier"
 
         "Arima"
         "Arima_Model"

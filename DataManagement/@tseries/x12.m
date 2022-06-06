@@ -296,7 +296,7 @@ if opt.Log
 end
 
 % __Run Backend X13__
-[y, Outp, Logbk, Err, Mdl] = numeric.x13(data, startDate, dummy, opt);
+[y, Outp, Logbk, Err, Mdl] = series.x13Legacy(data, startDate, dummy, opt);
 
 % Convert output data to time series
 for i = 1 : numOutputs
