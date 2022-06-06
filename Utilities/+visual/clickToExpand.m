@@ -36,11 +36,11 @@ end%
 
 function local_copyAxes(axesHandle, varargin)
     %(
-    if ~strcmpi(get(axesHandle, 'Type'), 'Axes')
-        axesHandle = get(axesHandle, 'Parent');
+    if ~strcmpi(get(axesHandle, 'type'), 'axes')
+        axesHandle = get(axesHandle, 'parent');
     end
 
-    legendHandle = get(axesHandle, 'Legend');
+    legendHandle = get(axesHandle, 'legend');
 
     newFigureHandle = figure( );
     new = copyobj([legendHandle, axesHandle], newFigureHandle);
@@ -48,17 +48,19 @@ function local_copyAxes(axesHandle, varargin)
 
     set( ...
         newAxesHandle ...
-        , 'Position', get(0, 'defaultAxesPosition') ...
-        , 'Units', get(0, 'defaultAxesUnits') ...
-        , 'ButtonDownFcn', '' ...
+        , 'position', get(0, 'defaultAxesPosition') ...
+        , 'units', get(0, 'defaultAxesUnits') ...
+        , 'buttonDownFcn', '' ...
     );
 
     if isempty(legendHandle)
-        figureHandle = get(axesHandle, 'Parent');
+        figureHandle = get(axesHandle, 'parent');
         outsideLegend = getappdata(figureHandle, 'IRIS_OutsideLegend');
-        location = outsideLegend{1};
-        outsideLegend(1) = [];
-        visual.hlegend(location, newAxesHandle, outsideLegend{:});
+        if ~isempty(outsideLegend)
+            location = outsideLegend{1};
+            outsideLegend(1) = [];
+            visual.hlegend(location, newAxesHandle, outsideLegend{:});
+        end
     end
     %)
 end%
