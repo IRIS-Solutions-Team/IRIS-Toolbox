@@ -434,15 +434,18 @@ end%
 %
 
 function specs = local_writeOutputTablesToSpecs(specs, outputTables)
+    %(
     prefixes = extractBefore(outputTables, "_");
     attributes = extractAfter(outputTables, "_");
     for i = 1 : numel(outputTables)
         specs.(prefixes(i) + "_Save")(end+1) = attributes(i); 
     end
+    %)
 end%
 
 
 function [specs, flipSign] = local_resolveAutoMode(data, specs)
+    %(
     flipSign = 1;
     if isfield(specs, 'X11_Mode') && all(strcmpi(specs.X11_Mode, 'auto'))
         inxNaN = ~isfinite(data);
@@ -455,23 +458,32 @@ function [specs, flipSign] = local_resolveAutoMode(data, specs)
             specs.X11_Mode = "add";
         end
 
-        if strcmpi(specs.X11_Mode, "mult") && isempty(specs.Transform_Function)
+        %
+        % Add a log transform only if no other transform is specified by
+        % the user; if not specified, the Transform_Function will have been
+        % removed by from specs by now
+        %
+        if strcmpi(specs.X11_Mode, "mult") && ~isfield(specs, 'Transform_Function')
             specs.Transform_Function = "log";
         else
             specs.Transform_Function = "none"; 
         end
     end
+    %)
 end%
 
 
 function specs = local_removeEmptySpecs(specs)
+    %(
     specsNames = reshape(string(fieldnames(specs)), 1, [ ]);
     inxRemove = structfun(@isempty, specs);
     specs = rmfield(specs, specsNames(inxRemove));
+    %)
 end%
 
 
 function specs = local_resolveDataAttributes(specs)
+    %(
     specsNames = reshape(string(fieldnames(specs)), 1, [ ]);
     inxData = endsWith(specsNames, "_Data");
     if ~any(inxData)
@@ -495,19 +507,23 @@ function specs = local_resolveDataAttributes(specs)
             "This data specs needs to be assigned a time series object: %s "
         ], invalidDataSpecs);
     end
+    %)
 end%
 
 
 function data = local_adjustDataForNaNs(data)
+    %(
     standin = -99999;
     data(data==standin) = standin - 0.01;
     data(~isfinite(data)) = standin;
+    %)
 end%
 
 function specs = local_requestArimaForSeats(specs)
 % Does not make sense to run Seats without an ARIMA model; make sure either
 % Arima or Automdl is included when Seats is unless Automld=false by the
 % user.
+    %(
     specsNames = reshape(string(fieldnames(specs)), 1, [ ]);
     if ~any(startsWith(specsNames, "Seats", "IgnoreCase", true))
         return
@@ -528,35 +544,43 @@ function specs = local_requestArimaForSeats(specs)
         "An Automdl spec with default settings was included in this X13 run "
         "to force an ARIMA model to be estimated for the Seats spec. "
     ]);
+    %)
 end%
 
 
 %
-% Local Validators
+% Local validators
 %
 
 function local_validateInputSeries(x)
+    %(
     if any(x.FrequencyAsNumeric==[2, 4, 6, 12])
         return
     end
     error("Local:Validator", "Invalid date frequency of the input time series.");
+    %)
 end%
 
 
 function local_validateX11Mode(x)
+    %(
     mustBeMember(x, ["auto", "add", "mult", "pseudoadd", "logadd"]);
+    %)
 end%
 
 
 function local_validateTDPrior(x)
+    %(
     if isempty(x) || numel(x)==7
         return
     end
     error("Local:Validator", "X11Regression_TDPrior must be a 1-by-7 vector of non-negative numbers.");
+    %)
 end%
 
 
 function local_validateSpan(x)
+    %(
     if isempty(x) 
         return
     end
@@ -564,6 +588,7 @@ function local_validateSpan(x)
         return
     end
     error("Local:Validator", "Time span must be a 1-by-2 vector of dates.");
+    %)
 end%
 
 
