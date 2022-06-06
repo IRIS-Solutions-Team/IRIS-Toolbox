@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function outputDb = generate(inputDb, valueFunc, targetNames, sourceNames, opt)
 
 arguments
@@ -16,7 +16,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function outputDb = generate(inputDb, valueFunc, targetNames, sourceNames, varargin)
 
 persistent ip
