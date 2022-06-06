@@ -1,4 +1,3 @@
-function [Y, Outp, Logbk, Err, arimaModel] = x13(inputData, startDate, dummy, opt)
 % x13  Matlab interface for X13-ARIMA-Seats
 %
 % Backend IRIS function
@@ -6,6 +5,8 @@ function [Y, Outp, Logbk, Err, arimaModel] = x13(inputData, startDate, dummy, op
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
+
+function [Y, Outp, Logbk, Err, arimaModel] = x13Legacy(inputData, startDate, dummy, opt)
 
 switch lower(opt.Mode)
     case {0, 'mult', 'm'}

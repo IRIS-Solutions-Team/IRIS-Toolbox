@@ -1,3 +1,4 @@
+
 function [dataColumns, startDates, freq] = splitDataColumns(inputSeries)
 
     inputData = inputSeries.Data;
