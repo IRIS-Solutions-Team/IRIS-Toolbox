@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, plotSpec, opt)
 
 
