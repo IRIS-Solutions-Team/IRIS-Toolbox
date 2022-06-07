@@ -1,9 +1,29 @@
 
+
+% >=R2019b
+%(
+function varargout = radar(X, opt)
+
+arguments
+    X double
+
+    opt.AxesHandle = @polaraxes
+    opt.AxesSettings (1, :) cell = cell.empty(1, 0)
+    opt.ColumnNames (1, :) string = string.empty(1, 0)
+    opt.PlotSettings (1, :) cell = cell.empty(1, 0)
+end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
 function varargout = radar(X, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser();
+
     addParameter(ip, "AxesHandle", @polaraxes);
     addParameter(ip, "AxesSettings", cell.empty(1, 0));
     addParameter(ip, "ColumnNames", string.empty(1, 0));
@@ -11,6 +31,9 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
+%}
+% <=R2019a
+
 
 if isa(opt.AxesHandle, 'function_handle')
     opt.AxesHandle = opt.AxesHandle();
