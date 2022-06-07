@@ -16,4 +16,5 @@ for f in $( ggrep -rl --include=*.m "% [><]=R2019[ab]" .); do
     echo $f >> .scripts/logbook
 done
 
+git status
 
