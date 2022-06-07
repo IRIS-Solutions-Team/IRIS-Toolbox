@@ -45,11 +45,11 @@ if ~flag
     status(inxOne) = 0;
 end
 
-names = textual.stringify(this.Quantity.Name);
 switch extra
     case "list"
         output = cell(1, nv);
         for vv = 1 : nv
+            names = textual.stringify(this.Quantity.Name);
             output{vv} = names(status(:, vv)==1);
             output{vv} = reshape(output{vv}, 1, []);
         end
@@ -57,7 +57,8 @@ switch extra
             output = output{1};
         end
     case "struct"
-        output = cell2struct(num2cell(status, 2), reshape(names, [], 1), 1);
+        names = reshape(cellstr(this.Quantity.Name), [], 1);
+        output = cell2struct(num2cell(status, 2), names, 1);
     otherwise
         output = [];
 end
