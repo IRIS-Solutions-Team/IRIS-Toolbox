@@ -1,159 +1,30 @@
-function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(this, numDraws, varargin)
-% arwm  Adaptive random-walk Metropolis posterior simulator
-%{
-% __Syntax__
-%
-%
-%     [Theta, LogPost, AcceptRatio, Poster, Scale, FinalCov] = arwm(Pos, NumOfDraws, ...)
-%
-%
-% __Input Arguments__
-%
-% __`Pos`__ [ poster ]
-% Initialised posterior simulator object.
-%
-% __`numDraws`__ [ numeric ]
-% Length of the chain not including burn-in.
-%
-%
-% __Output Arguments__
-%
-% __`Theta`__ [ numeric ]
-% MCMC chain with individual parameters in rows.
-%
-% __`LogPost`__ [ numeric ]
-% Vector of log posterior density (up to a
-% constant) in each draw.
-%
-% __`AcceptRatio`__ [ numeric ]
-% Vector of cumulative acceptance ratios.
-%
-% __`Poster`__ [ poster ]
-% Posterior simulator object with its properties
-% updated so to capture the final state of the simulation.
-%
-% __`Scale`__ [ numeric ]
-% Vector of proposal scale factors in each draw.
-%
-% __`FinalCov`__ [ numeric ]
-% Final proposal covariance matrix; the final
-% covariance matrix of the random walk step is Scale(end)^2*FinalCov.
-%
-%
-% __Options__
-%
-%
-% __`AdaptShape=0.5`__ [ numeric ]
-% >
-% Speed of adaptation of the Cholesky factor of the proposal covariance
-% matrix towards the target acceptanace ratio, `TargetAR`; zero means no
-% adaptation.
-%
-%
-% __`AdaptScale=1`__ [ numeric ]
-% >
-% Speed of adaptation of the scale factor to
-% deviations of acceptance ratios from the target ratio, `targetAR`.
-%
-%
-% __`BurnIn=0.10`__ [ numeric ]
-% Number of burn-in draws entered
-% either as a percentage of total draws (between 0 and 1) or directly as a
-% number (integer greater that one). Burn-in draws will be added to the
-% requested number of draws `NumOfDraws` and discarded after the posterior
-% simulation.
-%
-% __`FirstPrefetch=Inf`__ [ numeric | `Inf` ]
-% First draw where
-% parallelized pre-fetching will be used; `Inf` means no pre-fetching.
-%
-% __`Gamma=0.8`__ [ numeric ]
-% The rate of decay at which the scale and/or
-% the proposal covariance will be adapted with each new draw.
-%
-% __`InitScale=1/3`__ [ numeric ]
-% Initial scale factor by which the initial
-% proposal covariance will be multiplied; the initial value will be adapted
-% to achieve the target acceptance ratio.
-%
-% __`LastAdapt=Inf`__ [ numeric | `Inf` ]
-% Last point at which the proposal
-% covariance will be adapted; `Inf` means adaptation will continue until
-% the last draw. Can also be entered as a percentage of total draws (a
-% number strictly between 0 and 1). 
-%
-% __`NStep=1`__ [ numeric ]
-% Number of pre-fetched steps computed in
-% parallel; only works with `FirstPrefetch=` smaller than `NumOfDraws`.
-%
-% __`Progress=false`__ [ `true` | `false` ]
-% Display a progress bar in the
-% command window.
-%
-% __`SaveAs=''`__ [ char ]
-% File name where results will be saved when the
-% option `SaveEvery=` is used.
-%
-% __`SaveEvery=Inf`__ [ numeric | `Inf` ]
-% Every N draws will be saved to an
-% HDF5 file, and removed from workspace immediately; no values will be
-% returned in the output arguments `Theta`, `LogPosterior`, `AcceptRatio`,
-% `Scale`; the option `SaveAs=` must be used to specify the file name;
-% `Inf` means a normal run with no saving.
-%
-% __`TargetAR=0.234`__ [ numeric ]
-% Target acceptance ratio.
-%
-%
-% __Description__
-%
-% The function `poster/arwm` returns the simulated chain of parameters and
-% the corresponding value of the log posterior density. To obtain simulated
-% sample statistics for each parameter (such as posterior mean, median, 
-% percentiles, etc.) use the function [`poster/stats`](poster/stats) to
-% process the simulated chain and calculate the statistics.
-%
-% The properties of the posterior object returned as the 4th output
-% argument are updated so that they capture the final state of the
-% posterior simulations. This can be used to initialize a next simulation
-% at the point where the previous ended.
-%
-%
-% __Example__
-%
-%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 IRIS Solutions Team & Bojan Bejanov & Troy Matheson
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('poster.arwm');
-    %
-    % Required arguments
-    %
-    addRequired(pp, 'poster', @(x) isa(x, 'poster'));
-    addRequired(pp, 'numOfDraws', @(x) validate.roundScalar(x, 1, Inf));
-    %
-    % Options
-    %
-    addParameter(pp, {'AdaptScale'}, 1, @(x) validate.numericScalar(x, 0, Inf));
-    addParameter(pp, {'AdaptShape', 'AdaptProposalCov'}, 0.5, @(x) validate.numericScalar(x, 0, Inf));
-    addParameter(pp, 'burnin', 0.10, @(x) validate.numericScalar(x, 0, 1) || validate.roundScalar(x, 1, Inf));
-    addParameter(pp, {'firstPrefetch', 'firstParallel'}, 1, @(x) validate.roundScalar(x, 1, Inf));
-    addParameter(pp, 'gamma', 0.8, @(x) validate.numericScalar(x, 0.5, 1) || isequaln(x, NaN)); 
-    addParameter(pp, 'initscale', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x, 0+eps));
-    addParameter(pp, 'lastadapt', Inf, @(x) validate.nummericScalar(x, 0, 1) || validate.roundScalar(x, 1, Inf));
-    addParameter(pp, 'progress', false, @validate.logicalScalar);
-    addParameter(pp, 'saveevery', Inf, @(x) validate.roundScalar(x, 1, Inf));
-    addParameter(pp, 'saveas', '', @(x) ischar(x) || isstring(x));
-    addParameter(pp, 'targetar', 0.234, @(x) validate.numericScalar(x, 0+eps, 0.5));
-	addParameter(pp, {'nstep', 'nsteps'}, 1, @(x) validate.roundScalar(x, 1, Inf));
+function ...
+    [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] ...
+    = arwm(this, numDraws, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('poster.arwm');
+    addParameter(ip, {'AdaptScale'}, 1, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(ip, {'AdaptShape', 'AdaptProposalCov'}, 0.5, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(ip, 'burnin', 0.10, @(x) validate.numericScalar(x, 0, 1) || validate.roundScalar(x, 1, Inf));
+    addParameter(ip, 'gamma', 0.8, @(x) validate.numericScalar(x, 0.5, 1) || isequaln(x, NaN));
+    addParameter(ip, 'initscale', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x, 0+eps));
+    addParameter(ip, 'lastadapt', Inf, @(x) validate.nummericScalar(x, 0, 1) || validate.roundScalar(x, 1, Inf));
+    addParameter(ip, 'progress', false, @validate.logicalScalar);
+    addParameter(ip, 'saveevery', Inf, @(x) validate.roundScalar(x, 1, Inf));
+    addParameter(ip, 'SaveAs', '', @(x) ischar(x) || isstring(x));
+    addParameter(ip, 'targetar', 0.234, @(x) validate.numericScalar(x, 0+eps, 0.5));
+    addParameter(ip, {'nstep', 'nsteps'}, 1, @(x) validate.roundScalar(x, 1, Inf));
 end
-opt = parse(pp, this, numDraws, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 
-
-%--------------------------------------------------------------------------
+opt.SaveAs = char(opt.SaveAs);
 
 allTheta = [ ];
 logPosterior = [ ];
@@ -169,7 +40,7 @@ nPar = numel(this.ParameterNames);
 nAlloc = min(numDraws, opt.saveevery);
 isSave = opt.saveevery<=numDraws;
 if isSave
-    prepareSave( );
+    here_prepareSave( );
 end
 
 if opt.burnin<1
@@ -242,37 +113,37 @@ while j<=numDrawsTotal
         nStep = 1;
         nPath = 1;
     end
-    
+
     if nStep==1
-        
+
         % Serial implementation
         %-----------------------
-        
+
         % Propose a new theta, and evaluate log posterior.
         u = randn(nPar, 1);
         newTheta = theta + sgm*P*u;
         [newLogPost, ~, ~, ~, isWithinBounds] = mylogpost(this, newTheta); %#ok<ASGLU>
-        
+
         % Generate random acceptance.
         randAccept = rand( );
         acceptAndStore( );
         j = j + 1;
-        
+
     else
-        
+
         % Parallel implementation
         %-------------------------
-        
+
         % Number of steps, number of parallel paths.
-                
-        % Propose new thetas, evaluate log posteriors for all of them in parallel, 
+
+        % Propose new thetas, evaluate log posteriors for all of them in parallel,
         % and pre-generate random acceptance.
         [thetaPf, logPostPf, randAcceptPrefetched, uPf] = prefetch( );
-        
+
         % Find path through lattice prefetch; `pos0` is a zero-based position
         % beween `0` and `2^nsteps`.
         pos0 = 0;
-        
+
         for iStep = 1 : nStep
             % New proposals.
             newPos0 = bitset(pos0, iStep);
@@ -281,7 +152,7 @@ while j<=numDrawsTotal
             isWithinBounds = true; %#ok<NASGU>
             randAccept = randAcceptPrefetched(iStep);
             u = uPf(:, iStep);
-            
+
             isAccepted = acceptAndStore( );
             if isAccepted
                 pos0 = newPos0;
@@ -335,18 +206,18 @@ return
         else
             P = transpose(chol(this.InitProposalCov));
         end
-    end% 
+    end%
 
-    
+
     function isAccepted = acceptAndStore( )
         % acceptAndStore  Accept or reject the current proposal, and store this
         % step.
-        
+
         % Prob of new proposal being accepted; `newLogPost` can be `-Inf`, in which
         % case `alpha` is zero. If both `logPost` and `newLogPost` are `-Inf` the
         % inner max function returns `0` and the new proposal is never accepted.
         alpha = min(1, max(0, exp(newLogPost-logPost)));
-        
+
         % Decide if we accept the new theta.
         isAccepted = randAccept<alpha;
 
@@ -354,14 +225,14 @@ return
             logPost = newLogPost;
             theta = newTheta;
         end
-        
+
         isAdaptive = isAdaptive && j-burnin<=opt.lastadapt;
-        
+
         % Adapt the scale and/or proposal covariance.
         if isAdaptive
             hereAdapt( );
         end
-        
+
         % Add the j-th theta to the chain unless still burning in
         if j>burnin
             count = count + 1;
@@ -382,19 +253,19 @@ return
                 count = 0;
             end
         end
-        
+
         % Update the progress bar or estimated time.
         if opt.progress
             update(progress, j/numDrawsTotal);
         end
-        
+
         return
 
-        
+
         function saveH5( )
-            h5write( opt.saveas, ...
+            h5write( opt.SaveAs, ...
                      '/theta', allTheta, [1, saveCount+1], size(allTheta) );
-            h5write( opt.saveas, ...
+            h5write( opt.SaveAs, ...
                      '/logPost', logPosterior, [1, saveCount+1], size(logPosterior) );
             saveCount = saveCount + size(allTheta, 2);
             n = numDrawsTotal - j;
@@ -412,8 +283,8 @@ return
                 end
             end
         end%
-        
-        
+
+
         function hereAdapt( )
             nu = (j+j0)^(-gamma);
             phi = nu*(alpha - targetAr);
@@ -430,21 +301,21 @@ return
         end%
     end%
 
-    
-    function prepareSave( )
-        if strlength(opt.saveas)==0
+
+    function here_prepareSave( )
+        if strlength(opt.SaveAs)==0
             utils.error('poster', ...
                 'The option SaveAs must be a valid file name.');
         end
-        % Create an HDF5.
-        h5create(opt.saveas, '/theta', [nPar, numDraws], 'fillValue', NaN);
-        h5create(opt.saveas, '/logPost', [1, numDraws], 'fillValue', NaN);
-        h5writeatt(opt.saveas, '/', 'paramList', char(join(this.ParameterNames, " ")));
-        h5writeatt(opt.saveas, '/', 'numDraws', numDraws);
-        h5writeatt(opt.saveas, '/', 'saveEvery', opt.saveevery');
+        % Create an HDF5
+        h5create(opt.SaveAs, '/theta', [nPar, numDraws], 'fillValue', NaN);
+        h5create(opt.SaveAs, '/logPost', [1, numDraws], 'fillValue', NaN);
+        h5writeatt(opt.SaveAs, '/', 'paramList', char(join(this.ParameterNames, " ")));
+        h5writeatt(opt.SaveAs, '/', 'numDraws', numDraws);
+        h5writeatt(opt.SaveAs, '/', 'saveEvery', opt.saveevery');
     end%
 
-    
+
     function [thetaPf, LogPostPf, RandAccPf, uPf] = prefetch( )
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %  The wisdom behind the indexing in the prefetching array
@@ -481,7 +352,7 @@ return
         %  Copyright (c) 2012-2022 Boyan Bejanov and the IRIS Solutions Team
         %
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
+
         % Pre-generate random increments. The increments are path-independent so
         % that we can reproduce the results of a no-prefetch algorithm (turning off
         % adaptation): in each step, a single unique random vector is used
@@ -497,13 +368,13 @@ return
             X(:, iiStep) = sgm*P*uPf(:, iiStep);
             RandAccPf(iiStep) = rand( );
         end
-        
+
         % Pre-allocate path-dependent end-points, nPath = 2^nStep.
         thetaPf = nan(nPar, nPath);
-        
+
         % Generate all possible paths.
         generatePaths(theta, 1, 0);
-        
+
         % Evaluate log posterior for each path.
         LogPostPf = nan(nPath, 1);
         LogPostPf(1) = logPost;
@@ -512,7 +383,7 @@ return
         end
 
         return
-        
+
         function generatePaths(theta0, Step, PathSoFar)
             % Proposal rejected.
             thetaRej = theta0;
