@@ -1,8 +1,5 @@
 % subsref  Subscripted reference to NamedMatrix objects
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modelingk
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
@@ -32,7 +29,7 @@ if strcmp(s(1).type, '()')
             && ~isequal(s(1).subs{1}, ':')
         s(1).subs{1} = locallyPositionsFromNames(s(1).subs{1}, this, "Row");
     end
-    
+
     % Convert column names to positions
     if numel(s(1).subs)>=2 ...
             && (isstring(s(1).subs{2}) || ischar(s(1).subs{2}) || iscellstr(s(1).subs{2})) ...
