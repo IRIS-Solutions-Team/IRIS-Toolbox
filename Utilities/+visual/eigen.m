@@ -1,6 +1,6 @@
 
 % >=R2019b
-%{
+%(
 function [plotHandles, unitHandle] = eigen(x, opt)
 
 arguments
@@ -10,12 +10,12 @@ arguments
     opt.UnitCircle (1, 1) logical = true
     opt.UnitCircleSettings (1, :) cell = {"color", 0.5*[1, 1, 1]}
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [plotHandles, unitHandle] = eigen(x, varargin)
 
 persistent ip
@@ -27,7 +27,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -42,8 +42,8 @@ if opt.UnitCircle
     nextPlot = get(ax, "nextplot");
     set(ax, "nextPlot", "add");
     unitHandle = local_plotUnitCircle(ax, opt);  
-    visual.xline(0);
-    visual.yline(0);
+    visual.vline(0);
+    visual.hline(0);
     visual.excludeFromLegend(unitHandle);
     visual.backend.moveToBackground(unitHandle);
     set(ax, "nextPlot", nextPlot);
