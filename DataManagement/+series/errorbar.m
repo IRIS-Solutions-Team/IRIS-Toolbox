@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [lineHandle, errorHandle, obj] = errorbar(time, data, opt)
 
 arguments
@@ -18,7 +18,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function [lineHandle, errorHandle, obj] = errorbar(time, data, varargin)
 
 persistent ip
