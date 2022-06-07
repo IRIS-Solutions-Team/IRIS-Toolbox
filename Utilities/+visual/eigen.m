@@ -1,7 +1,7 @@
 
 % >=R2019b
 %(
-function [plotHandles, unitHandle, quadrantHandles] = eigen(x, opt)
+function [plotHandles, unitHandle] = eigen(x, opt)
 
 arguments
     x (:, :, :) double
@@ -16,7 +16,7 @@ end
 
 % <=R2019a
 %{
-function [plotHandles, unitHandle, quadrantHandles] = eigen(x, varargin)
+function [plotHandles, unitHandle] = eigen(x, varargin)
 
 persistent ip
 if isempty(ip)
@@ -38,12 +38,12 @@ end
 plotHandles = plot(real(x), imag(x), opt.PlotSettings{:});
 
 if opt.UnitCircle
-    ax = gca( );
+    ax = gca();
     nextPlot = get(ax, "nextplot");
     set(ax, "nextPlot", "add");
-    unitHandle = locallyPlotUnitCircle(ax, opt);  
-    xline(0);
-    yline(0);
+    unitHandle = local_plotUnitCircle(ax, opt);  
+    visual.xline(0);
+    visual.yline(0);
     visual.excludeFromLegend(unitHandle);
     visual.backend.moveToBackground(unitHandle);
     set(ax, "nextPlot", nextPlot);
@@ -55,14 +55,14 @@ end%
 % Local functions
 %
 
-function unitHandle = locallyPlotUnitCircle(ax, opt)
+function unitHandle = local_plotUnitCircle(ax, opt)
     %(
     n = 128;
     th = 2*pi*(0:n)/n;
-    unitHandle = plot(cos(th), sin(th), opt.UnitCircleSettings{:});
+    unitHandle = plot(ax, cos(th), sin(th), opt.UnitCircleSettings{:});
     label = cellstr(get(gca, "yTickLabel"));
     label = regexprep(label, "\s*([\+-\.\d]+).*", "$1 i");
-    set(gca, "yTickLabel", label, "yTickMode", "manual");
+    set(ax, "yTickLabel", label, "yTickMode", "manual");
     axis equal
     %)
 end%  
