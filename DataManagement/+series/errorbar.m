@@ -1,15 +1,14 @@
 
 % >=R2019b
-%{
-function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, plotSpec, opt)
-
+%(
+function [lineHandle, errorHandle, obj] = errorbar(time, data, opt)
 
 arguments
-    axesHandle (1, 1) {mustBeA(axesHandle, "handle")}
     time 
     data (:, :) double
-    plotSpec (1, :) cell = cell.empty(1, 0)
 
+    opt.Relative (1, 1) logical = true
+    opt.AxesHandle = @gca
     opt.ErrorBarSettings (1, :) cell = cell.empty(1, 0)
     opt.PlotSettings (1, :) cell = cell.empty(1, 0)
     opt.LinkColor = true
@@ -19,19 +18,19 @@ end
 
 
 % <=R2019a
-%(
-function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, varargin)
+%{
+function [lineHandle, errorHandle, obj] = errorbar(time, data, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    addOptional(ip, 'plotSpec', cell.empty(1, 0), @iscell);
+    addParameter(ip, 'Relative', true);
+    addParameter(ip, 'AxesHandle', @gca);
     addParameter(ip, 'ErrorBarSettings', cell.empty(1, 0));
     addParameter(ip, 'PlotSettings', cell.empty(1, 0));
     addParameter(ip, 'LinkColor', true);
 end
-ip.parse(axesHandle, varargin{:});
-plotSpec = ip.Results.plotSpec;
+ip.parse(varargin{:});
 opt = ip.Results;
 %)
 % <=R2019a
@@ -44,6 +43,10 @@ DEFAULT_ERRORBAR_SETTINGS = {
     "lineStyle"; ":"
 };
 
+axesHandle = opt.AxesHandle;
+if isa(axesHandle, 'function_handle')
+    axesHandle = axesHandle();
+end
 isHold = ishold(axesHandle);
 hold(axesHandle, "on");
 
@@ -51,9 +54,13 @@ time = reshape(time, [], 1);
 lineHandle = plot(axesHandle, time, data(:, 1), opt.PlotSettings{:});
 
 numPeriods = size(data, 1);
-negativeError = data(:, 2);
-positiveError = data(:, end);
-errorYData = [data(:, 1)-negativeError, data(:, 1)+positiveError, nan(numPeriods, 1)];
+lower = data(:, 2);
+upper = data(:, end);
+if opt.Relative
+    errorYData = [data(:, 1)-lower, data(:, 1)+upper, nan(numPeriods, 1)];
+else
+    errorYData = [lower, upper, nan(numPeriods, 1)];
+end
 errorYData = reshape(transpose(errorYData), [], 1);
 
 errorXData = [time, time, time];

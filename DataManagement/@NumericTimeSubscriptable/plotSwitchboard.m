@@ -20,7 +20,7 @@ if isa(plotFuncString, 'function_handle')
 end
 
 if ~isequal(smooth, false) && numel(yData)>1
-    hereSmoothData( );
+    here_smoothData( );
 end
 
 switch plotFuncString
@@ -40,6 +40,10 @@ switch plotFuncString
     case {'bands'}
         isTimeAxis = true;
         plotHandle = implementBands( );
+    case {'errorbar', 'series.errorbar'}
+        isTimeAxis = true;
+        [plotHandle, errorHandle, ~] = series.errorbar(xData, yData, "axesHandle", axesHandle, varargin{:});
+        plotHandle = [reshape(plotHandle, 1, []), reshape(errorHandle, 1, [])];
     otherwise
         isTimeAxis = true;
         % DataInf = grfun.myreplacenancols(yData, Inf);
@@ -55,13 +59,13 @@ end
 % Modify how dates are displayed in data tips
 % if isTimeAxis && isa(xData, 'datetime')
 %     try % Works in R2019a+
-%         hereModifyDataTip(plotHandle, xData);
+%         here_modifyDataTip(plotHandle, xData);
 %     end
 % end
 
 return
 
-    function hereSmoothData( )
+    function here_smoothData( )
         numData = numel(xData);
         dt = datetime(xData);
         newXData = reshape(linspace(dt(1), dt(end), 10*numData-1), [ ], 1);
@@ -205,7 +209,7 @@ end%
 % Local Functions
 %
 
-function hereModifyDataTip(plotHandle, xData)
+function here_modifyDataTip(plotHandle, xData)
     r = dataTipTextRow('X', 'XData', xData.Format);
     for i = 1 : numel(plotHandle)
         plotHandle(i).DataTipTemplate.DataTipRows(1) = r;
