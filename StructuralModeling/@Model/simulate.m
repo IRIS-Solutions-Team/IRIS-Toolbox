@@ -346,7 +346,7 @@ if ~isequal(opt.SystemProperty, false)
     return
 end
 
-progress = [ ];
+progress = [];
 if opt.Progress
     progress = ProgressBar('[IrisToolbox] @Model/simulate Progress');
 end
@@ -534,7 +534,7 @@ return
                 if opt.Blocks
                     exogenizedBlazer = solver.blazer.Stacked.forModel(this, opt);
                 else
-                    exogenizedBlazer = [ ];
+                    exogenizedBlazer = [];
                 end
             case solver.Method.PERIOD
                 defaultBlazer = solver.blazer.Period.forModel(this, opt);
@@ -542,14 +542,14 @@ return
                 if opt.Blocks
                     exogenizedBlazer = solver.blazer.Period.forModel(this, opt);
                 else
-                    exogenizedBlazer = [ ];
+                    exogenizedBlazer = [];
                 end
             case solver.Method.SELECTIVE
                 defaultBlazer = solver.blazer.Selective();
                 exogenizedBlazer = defaultBlazer;
             otherwise
                 defaultBlazer = solver.blazer.FirstOrder();
-                exogenizedBlazer = [ ];
+                exogenizedBlazer = [];
         end
         runningData.DefaultBlazer = defaultBlazer;
         runningData.ExogenizedBlazer = exogenizedBlazer;
@@ -745,7 +745,7 @@ function solverOption = local_parseSolverOption(solverOption, methodOption)
 
     switch methodOption
         case solver.Method.FIRSTORDER
-            solverOption = [ ];
+            solverOption = [];
         case solver.Method.SELECTIVE
             defaultSolver = 'Iris-QaD';
             silent = false;

@@ -11,7 +11,7 @@ classdef Data ...
         % BarYX  NumYX-by-NumOfPeriods matrix of steady levels for [observed; endogenous]
         BarYX = []
 
-        % MeasurementTrends  NumY-by-NumPeriods array of measurement trends
+        % MeasurementTrends  NumY-by-NumPeriods array of measurement trends; the trends are delogarithmized for log-variables
         MeasurementTrends = []
 
         % NonlinAddf  Add-factors in hash equations
@@ -412,13 +412,17 @@ classdef Data ...
             columnsSimulation = this.FirstColumnSimulation : this.LastColumnSimulation;
             numQuantities = size(this.YXEPG, 1);
 
-            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, runningData.YXEPG(:, :, run), modelVariant, [ ]);
-            this.MeasurementTrends = evalTrendEquations(model, [], this.YXEPG, modelVariant);
             quantity = getp(model, 'Quantity');
             this.InxY = getIndexByType(quantity, 1);
             this.InxX = getIndexByType(quantity, 2);
             this.InxE = getIndexByType(quantity, 31, 32);
             this.InxLog = quantity.InxLog;
+
+            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, runningData.YXEPG(:, :, run), modelVariant, [ ]);
+
+            this.MeasurementTrends = evalTrendEquations(model, [], this.YXEPG, modelVariant);
+            inxDelog = this.InxLog(this.InxY);
+            this.MeasurementTrends(inxDelog, :, :) = exp(this.MeasurementTrends(inxDelog, :, :));
 
             this.InxExogenizedYX = logical(this.EmptySparse);
             this.InxEndogenizedE = logical(this.EmptySparse);

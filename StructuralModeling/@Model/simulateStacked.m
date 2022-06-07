@@ -1,8 +1,5 @@
 % simulateStacked  Run stacked-time simulation on one time frame
 %
-% Backend [IrisToolbox] method
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
