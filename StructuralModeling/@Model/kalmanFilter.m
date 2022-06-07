@@ -27,7 +27,7 @@ nv = countVariants(this);
 
 
 %
-% Resolve Kalman filter options.
+% Resolve Kalman filter options
 %
 opt = prepareKalmanOptions2(this, baseRange, varargin{:});
 
@@ -287,10 +287,10 @@ end%
 
 function inputArray = local_prepareInputArray(this, inputDb, baseRange)
     %(
+    inxYG = getIndexByType(this.Quantity, 1, 5);
+    numYG = nnz(inxYG);
     if ~isempty(inputDb) && ~isempty(fieldnames(inputDb))
         requiredNames = string.empty(1, 0);
-        inxYG = getIndexByType(this.Quantity, 1, 5);
-        numYG = nnz(inxYG);
         optionalNames = string(this.Quantity.Name(inxYG));
         allowedNumeric = @all;
         logNames = optionalNames(this.Quantity.InxLog(inxYG));
