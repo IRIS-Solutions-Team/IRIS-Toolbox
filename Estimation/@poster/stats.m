@@ -34,6 +34,9 @@ here_preprocessOptions();
 
 % Simulated chain has been saved in a collection of mat files
 isFile = ischar(theta) || isstring(theta);
+if isFile
+    theta = char(theta);
+end
 
 if opt.mdd && isempty(logPost) && ~isFile
     exception.error([
