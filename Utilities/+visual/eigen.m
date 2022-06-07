@@ -42,8 +42,8 @@ if opt.UnitCircle
     nextPlot = get(ax, "nextplot");
     set(ax, "nextPlot", "add");
     unitHandle = local_plotUnitCircle(ax, opt);  
-    visual.xline(0);
-    visual.yline(0);
+    visual.vline(0);
+    visual.hline(0);
     visual.excludeFromLegend(unitHandle);
     visual.backend.moveToBackground(unitHandle);
     set(ax, "nextPlot", nextPlot);
