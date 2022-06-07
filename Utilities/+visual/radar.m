@@ -1,7 +1,7 @@
 
 
 % >=R2019b
-%(
+%{
 function varargout = radar(X, opt)
 
 arguments
@@ -12,12 +12,12 @@ arguments
     opt.ColumnNames (1, :) string = string.empty(1, 0)
     opt.PlotSettings (1, :) cell = cell.empty(1, 0)
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function varargout = radar(X, varargin)
 
 persistent ip
@@ -31,7 +31,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
