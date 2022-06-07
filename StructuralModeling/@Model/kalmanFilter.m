@@ -22,6 +22,7 @@ end
 
 
 baseRange = double(baseRange);
+numBasePeriods = round(baseRange(end)-baseRange(1)+1);
 nv = countVariants(this);
 [ny, ~, nb, nf, ~, ~] = sizeSolution(this.Vector);
 
