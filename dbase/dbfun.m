@@ -191,7 +191,7 @@ end
 if any(inxKeep)    
     if opt.Fresh || numel(inputDatabanks{1})>1
         % Only processed fields are included
-        outp = cell2struct(X(inxKeep), fieldNames(inxKeep), 2);
+        outp = cell2struct(X(inxKeep), cellstr(fieldNames(inxKeep)), 2);
     else
         % Keep unprocessed fields in the output databank
         for i = find(inxKeep)

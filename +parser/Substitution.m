@@ -141,7 +141,7 @@ classdef Substitution < handle
             s = parser.Substitution(c); % Construct substitution object
             c = writeFinal(s); % Write final code
             p.Code = c;
-            p.StoreSubstitutions = cell2struct(s.Body, s.Name, 2);
+            p.StoreSubstitutions = cell2struct(s.Body, cellstr(s.Name), 2);
         end%
     end
 end

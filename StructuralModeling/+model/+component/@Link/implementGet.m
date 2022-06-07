@@ -20,7 +20,7 @@ if any(strcmpi(query1, {'LinksStruct', 'Links', 'Link'}))
     lsLhs(ixStd) = getStdNames(qty, lhs(ixStd)-nQty);
     ixCorr = lhs>nQty+ne;
     lsLhs(ixCorr) = getCorrNames(qty, lhs(ixCorr)-nQty-ne);
-    answ = cell2struct(this.Input, lsLhs, 2);
+    answ = cell2struct(this.Input, cellstr(lsLhs), 2);
 
 
 
@@ -28,14 +28,14 @@ if any(strcmpi(query1, {'LinksStruct', 'Links', 'Link'}))
 elseif any(strcmpi(query1, {'LinksList'}))
     answ = this.Input;
     answ = answ.';
-    
-    
-    
+
+
+
 elseif any(strcmpi(query1, {'LEqtnOrdered', 'LinksOrdered'}))
     answ = this.Input(this.Order);
     answ = answ.';
-    
-    
+
+
 else
     isValid = false;
 end

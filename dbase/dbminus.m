@@ -1,4 +1,3 @@
-function this = dbminus(this, list)
 % minus  Remove entries from a database.
 %
 % Syntax
@@ -40,22 +39,18 @@ function this = dbminus(this, list)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-pp = inputParser( );
-pp.addRequired('d', @isstruct);
-pp.addRequired('list', @(x) iscellstr(x) || ischar(x));
-pp.parse(this, list);
+function this = dbminus(this, list)
 
-%--------------------------------------------------------------------------
+    if ischar(list)
+        list = regexp(list, '\w+', 'match');
+    elseif isstruct(list)
+        list = fieldnames(list);
+    end
 
-if ischar(list)
-    list = regexp(list, '\w+', 'match');
-elseif isstruct(list)
-    list = fieldnames(list);
-end
+    f = reshape(fieldnames(this), 1, []);
+    c = reshape(struct2cell(this), 1, []);
+    [fNew, ix] = setdiff(f, list, 'stable');
+    this = cell2struct(c(ix), cellstr(fNew), 2);
 
-f = fieldnames(this).';
-c = struct2cell(this).';
-[fNew, ix] = setdiff(f, list, 'stable');
-this = cell2struct(c(ix), fNew, 2);
+end%
 
-end

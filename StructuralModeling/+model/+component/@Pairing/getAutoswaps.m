@@ -23,7 +23,7 @@ if ~isempty(namesExogenized)
     if nargin>=3
         namesEndogenized = cellfun(namesFunc, namesEndogenized, "uniformOutput", false);
     end
-    autoswaps = cell2struct(namesEndogenized, namesExogenized, 2);
+    autoswaps = cell2struct(cellstr(namesEndogenized), cellstr(namesExogenized), 2);
 end
 
 end%

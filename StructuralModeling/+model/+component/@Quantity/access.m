@@ -59,12 +59,12 @@ elseif any(what==F(["log-status", "is-log"]))
     inxType = getIndexByType(this, 1, 2, 5);
     inxType(allNames==ttrendName) = false;
     status = num2cell(reshape(this.InxLog(inxType), 1, []));
-    output = cell2struct(status, allNames(inxType), 2);
+    output = cell2struct(status, cellstr(allNames(inxType)), 2);
 
 
 elseif any(what==F(["names-descriptions", "names-labels", "names-descriptions", "names-descriptions-struct"]))
     labels = arrayfun(@(x) string(x), this.Label, 'uniformOutput', false);
-    output = cell2struct(labels, this.Name, 2);
+    output = cell2struct(labels, cellstr(this.Name), 2);
 
 
 elseif any(what==F(["shocks-descriptions"]))
@@ -74,16 +74,16 @@ elseif any(what==F(["shocks-descriptions"]))
 
 elseif any(what==F("names-aliases"))
     output = arrayfun(@(x) string(x), this.Alias, "uniformOutput", false);
-    output = cell2struct(output, this.Name, 2);
+    output = cell2struct(output, cellstr(this.Name), 2);
 
 
 elseif any(what==F("names-attributes"))
-    output = cell2struct(this.Attributes, this.Name, 2);
+    output = cell2struct(this.Attributes, cellstr(this.Name), 2);
 
 
 elseif any(what==F(["names-positions", "positions"]))
     positions = num2cell(1 : numQuantities);
-    output = cell2struct(positions, allNames, 2);
+    output = cell2struct(positions, cellstr(allNames), 2);
 
 
 elseif any(what==F("names-types"))
@@ -95,7 +95,7 @@ elseif any(what==F("names-types"))
     types(this.Type==4) = "parameters";
     types(this.Type==5) = "exogenous-variables";
     types = num2cell(types);
-    output = cell2struct(types, allNames, 2);
+    output = cell2struct(types, celstr(allNames), 2);
 
 
 elseif what==F("names-attributes-list")

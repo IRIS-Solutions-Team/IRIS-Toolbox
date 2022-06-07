@@ -43,11 +43,14 @@ absPtr = abs(ptr);
 if action==0
     % Get status (Action==0), active=true, inactive=false.
     if isequal(list, @all)
-        indexOfActive = ptr>PTR(0);
-        indexOfInactive = ptr<PTR(0);
-        indexToInclude = indexOfActive | indexOfInactive;
-        varargout{1} = cell2struct( num2cell(indexOfActive(indexToInclude)), ...
-                                    names(absPtr(indexToInclude)), 2 );        
+        inxActive = ptr>PTR(0);
+        inxInactive = ptr<PTR(0);
+        indexToInclude = inxActive | inxInactive;
+        varargout{1} = cell2struct( ...
+            num2cell(inxActive(indexToInclude)) ...
+            , cellstr(names(absPtr(indexToInclude))) ...
+            , 2 ...
+        );
     else
         posQuery = matchNames( );
         varargout{1} = ptr(posQuery)>PTR(0);

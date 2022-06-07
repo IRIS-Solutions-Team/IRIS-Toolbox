@@ -785,7 +785,7 @@ classdef Plan ...
 
         function value = get.StructWithAnticipationStatus(this)
             temp = num2cell(this.AnticipationStatusExogenous);
-            value = cell2struct(temp, this.NamesOfExogenous, 1);
+            value = cell2struct(temp, cellstr(this.NamesOfExogenous), 1);
         end%
 
 

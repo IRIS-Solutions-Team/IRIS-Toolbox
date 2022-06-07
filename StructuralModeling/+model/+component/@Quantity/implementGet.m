@@ -11,7 +11,7 @@ query1 = replace(query1, "description", "descript");
 query1 = replace(query1, "aliases", "alias");
 
 if startsWith(query1, ["Quantity.", "Quantity:"], "ignoreCase", true)
-    property = extractAfter(query1, 9);; 
+    property = extractAfter(query1, 9);;
     try
         answ = this.(property);
         return
@@ -31,13 +31,13 @@ elseif compare(query1, { ...
     prop = getProperty(extractAfter(query1, 1));
     answ = this.(prop)(ixType);
     return
-        
+
 elseif compare(query1, {'Descript', 'Desc', 'Description', 'Descriptions'})
-    answ = cell2struct(this.Label, this.Name, 2);
+    answ = cell2struct(this.Label, cellstr(this.Name), 2);
     return
-        
+
 elseif compare(query1, 'Alias')
-    answ = cell2struct(this.Alias, this.Name, 2);
+    answ = cell2struct(this.Alias, cellstr(this.Name), 2);
     return
 
 elseif compare(query1, 'CanBeExogenized:Simulate')
@@ -49,7 +49,7 @@ elseif compare(query1, 'CanBeEndogenized:Simulate')
     return
 
 elseif compare(query1, 'LogStatus')
-    answ = cell2struct(num2cell(this.InxLog), this.Name, 2);
+    answ = cell2struct(num2cell(this.InxLog), cellstr(this.Name), 2);
     return
 
 else
@@ -65,7 +65,7 @@ return
             ixType = this.Type==1;
         elseif strcmpi(query, 'x')
             ixType = this.Type==2;
-        elseif strcmpi(query, 'e') 
+        elseif strcmpi(query, 'e')
             ixType = this.Type==31 | this.Type==32;
         elseif strcmpi(query, 'w')
             ixType = this.Type==(31);
@@ -79,7 +79,7 @@ return
     end%
 
 
-    function prop = getProperty(query) 
+    function prop = getProperty(query)
         if compare(query, ["List", "Name", "Names"])
             prop = "Name";
         elseif compare(query, ["Descript", "Description", "Descriptions"])

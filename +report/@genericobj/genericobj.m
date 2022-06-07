@@ -58,7 +58,6 @@ classdef genericobj < handle
                 % Make option names lower-case and remove equal signs.
                 userName = lower(userName);
                 userName = strrep(userName,'=','');
-                % useropt = cell2struct(uservalues,usernames,2);
             catch Error
                 utils.error('report:genericobj:genericobj',...
                     ['Invalid structure of optional input arguments.\n', ...

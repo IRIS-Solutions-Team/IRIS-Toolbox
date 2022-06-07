@@ -26,7 +26,7 @@ end
 % Create lists of replacements
 [rpl, rplSx] = pattern4postparse(quantity, lsStdCorr);
 
-d = cell2struct(rpl, quantity.Name, 2);
+d = cell2struct(rpl, cellstr(quantity.Name), 2);
 FN_GET_RPL = @hereReplaceName; %#ok<NASGU>
 listUndeclaredName = cell(1, 0);
 listUndeclaredEqtn = cell(1, 0);
@@ -63,7 +63,7 @@ end
 % Dynamic links
 %
 if any(inxL)
-    d = cell2struct([rpl, rplSx], [quantity.Name, lsStdCorr], 2);
+    d = cell2struct([rpl, rplSx], cellstr([quantity.Name, lsStdCorr]), 2);
     isLinks = true;
     equation.Dynamic(inxL) = regexprep( ...
         equation.Dynamic(inxL), ...

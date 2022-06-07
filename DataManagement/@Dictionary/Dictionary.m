@@ -1,51 +1,51 @@
-% Dictionary  
+% Dictionary
 %{
 % Dictionary is a databank like object similar to the standard Matlab
 % `struct`.
-% 
-% 
+%
+%
 % Dictionary methods:
 %
 % ## Summary of Dictionary Functions by Category ##
 %
 % ### Constructor ###
 % ------------------------------------------------------------------------------------------------------------
-%   Dictionary                - 
+%   Dictionary                -
 %
 %
 % ### Creating New Copies of Existing Dictionary Objects ###
 % ------------------------------------------------------------------------------------------------------------
-%   copy                      - 
+%   copy                      -
 %
 %
 % ### Getting Information about Dictionary Objects ###
 % ------------------------------------------------------------------------------------------------------------
-%   keys                      - 
-%   list                      - 
-%   values                    - 
-%   isKey                     - 
-%   isempty                   - 
+%   keys                      -
+%   list                      -
+%   values                    -
+%   isKey                     -
+%   isempty                   -
 %
 %
 % ### Manipulating Dictionary Fields ###
 % ------------------------------------------------------------------------------------------------------------
-%   add                       - 
-%   subsref                   - 
-%   subsasgn                  - 
-%   store                     - 
-%   rename                    - 
-%   retrieve                  - 
-%   remove                    - 
-%   updateSeries              - 
+%   add                       -
+%   subsref                   -
+%   subsasgn                  -
+%   store                     -
+%   rename                    -
+%   retrieve                  -
+%   remove                    -
+%   updateSeries              -
 %
 %
 % #### Alternative Function Names ###
 % ------------------------------------------------------------------------------------------------------------
-%   setfield                  - 
-%   getfield                  - 
-%   fieldnames                - 
-%   isfield                   - 
-%   rmfield                   - 
+%   setfield                  -
+%   getfield                  -
+%   fieldnames                -
+%   isfield                   -
+%   rmfield                   -
 %
 %}
 
@@ -450,21 +450,15 @@ classdef Dictionary ...
         end%
 
 
-
-
         function s = toStruct(this)
             s = cell2struct(this.Values, cellstr(this.Keys), 2);
         end%
 
 
-
-
         function list(varargin)
             databank.list(varargin{:});
         end%
-    end        
-
-
+    end
 
 
     methods (Hidden)
@@ -485,8 +479,6 @@ classdef Dictionary ...
     end
 
 
-
-
     methods (Hidden, Access=protected)
         function pos = lookupKeys(this, keys)
             numOfInquiries = numel(keys);
@@ -503,8 +495,6 @@ classdef Dictionary ...
         end%
 
 
-
-
         function key = preprocessKeyString(this, key)
             key = strtrim(key);
             if ~isempty(this.EnforceKey)
@@ -512,8 +502,6 @@ classdef Dictionary ...
             end
         end%
     end
-
-
 
 
     methods (Hidden, Static)
@@ -524,7 +512,7 @@ classdef Dictionary ...
             for i = 1 : numFields
                 this = store(this, names{i}, input.(names{i}));
             end
-        end% 
+        end%
     end
 end
 

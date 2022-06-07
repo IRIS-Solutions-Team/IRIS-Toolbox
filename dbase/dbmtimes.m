@@ -48,7 +48,7 @@ end
 f = fieldnames(this).';
 c = struct2cell(this).';
 [fNew, ix] = intersect(f, list, 'stable');
-this = cell2struct(c(ix), fNew, 2);
+this = cell2struct(c(ix), cellstr(fNew), 2);
 
 end%
 
