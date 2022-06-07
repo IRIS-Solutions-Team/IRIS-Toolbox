@@ -53,10 +53,9 @@ end
 [xData, positionWithinPeriod, dateFormat] ...
     = TimeSubscriptable.createDateAxisData(axesHandle, dates, opt.PositionWithinPeriod, opt.DateFormat);
 
-if isempty(plotFunc)
-    plotHandle = gobjects(0);
-    return
-else
+
+plotHandle = gobjects(0);
+if ~isempty(plotFunc)
     if ~ishold(axesHandle)
         here_resetAxes( );
     end
