@@ -1,13 +1,14 @@
 
 % >=R2019b
-%{
-function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, opt)
+%(
+function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, plotSpec, opt)
 
 
 arguments
     axesHandle (1, 1) {mustBeA(axesHandle, "handle")}
     time 
     data (:, :) double
+    plotSpec (1, :) cell = cell.empty(1, 0)
 
     opt.ErrorBarSettings (1, :) cell = cell.empty(1, 0)
     opt.PlotSettings (1, :) cell = cell.empty(1, 0)
@@ -24,11 +25,13 @@ function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, varar
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    ip.addParameter('ErrorBarSettings', cell.empty(1, 0));
-    ip.addParameter('PlotSettings', cell.empty(1, 0));
-    ip.addParameter('LinkColor', true);
+    addParameter(ip, 'plotSpec', cell.emtpy(1, 0), @iscell);
+    addParameter(ip, 'ErrorBarSettings', cell.empty(1, 0));
+    addParameter(ip, 'PlotSettings', cell.empty(1, 0));
+    addParameter(ip, 'LinkColor', true);
 end
 ip.parse(axesHandle, varargin{:});
+plotSpec = ip.Results.plotSpec;
 opt = ip.Results;
 %)
 % <=R2019a
