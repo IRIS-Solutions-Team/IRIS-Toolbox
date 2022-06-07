@@ -1,18 +1,14 @@
-function d = createTemplateDbase(this)
 % createTemplateDbase  Create empty template database based for Quantity object
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
+function outputDb = createTemplateDbase(this)
 
-%--------------------------------------------------------------------------
-
-numOfQuantities = length(this);
-x = cell(1, numOfQuantities);
-c = this.Name;
-d = cell2struct(x, c, 2);
-d = d([ ]);
+    numQuantities = numel(this);
+    x = cell(1, numQuantities);
+    names = reshape(cellstr(this.Name), 1, []);
+    outputDb = cell2struct(x, names, 2);
+    outputDb = outputDb([]);
 
 end%

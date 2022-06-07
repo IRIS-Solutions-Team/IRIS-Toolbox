@@ -48,8 +48,8 @@ if nargin==1
     return
 end
 
-names = fieldnames(varargin{1}).';
-values = struct2cell(varargin{1}).';
+names = reshape(fieldnames(varargin{1}), 1, []);
+values = reshape(struct2cell(varargin{1}), 1, []);
 
 if nargin==3 && iscellstr(varargin{2})
     % dbmerge(d, names, values)
@@ -72,6 +72,6 @@ else
     end
 end
 
-d = cell2struct(values, names, 2);
+d = cell2struct(values, cellstr(names), 2);
 
 end%

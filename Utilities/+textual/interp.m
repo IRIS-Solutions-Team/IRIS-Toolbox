@@ -159,7 +159,7 @@ end
 %
 inxList = cellfun(@(x) iscell(x) && numel(x)==2 && iscellstr(x{1}) && iscell(x{2}) && numel(x{1})==numel(x{2}), varargin);
 for i = find(inxList)
-    inputs{i} = cell2struct(reshape(inputs{i}{2}, [ ], 1), reshape(inputs{i}{1}, [ ], 1));
+    inputs{i} = cell2struct(reshape(inputs{i}{2}, [], 1), cellstr(reshape(inputs{i}{1}, [], 1)), 1);
 end 
 
 inxValid = inxStruct | inxSingleString | inxDoubleCell | inxDoubleString | inxList;
