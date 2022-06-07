@@ -22,7 +22,6 @@ end
 
 
 baseRange = double(baseRange);
-numBasePeriods = round(baseRange(end)-baseRange(1)+1);
 nv = countVariants(this);
 [ny, ~, nb, nf, ~, ~] = sizeSolution(this.Vector);
 
@@ -308,6 +307,7 @@ function inputArray = local_prepareInputArray(this, inputDb, baseRange)
         );
         inputArray = ensureLog(this, dbInfo, inputArray, [requiredNames, optionalNames]);
     else
+        numBasePeriods = dater.rangeLength(baseRange);
         inputArray = nan(numYG, numBasePeriods);
     end
     %)
