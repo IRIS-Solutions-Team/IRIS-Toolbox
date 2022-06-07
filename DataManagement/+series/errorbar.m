@@ -25,7 +25,7 @@ function [lineHandle, errorHandle, obj] = errorbar(axesHandle, time, data, varar
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    addParameter(ip, 'plotSpec', cell.empty(1, 0), @iscell);
+    addOptional(ip, 'plotSpec', cell.empty(1, 0), @iscell);
     addParameter(ip, 'ErrorBarSettings', cell.empty(1, 0));
     addParameter(ip, 'PlotSettings', cell.empty(1, 0));
     addParameter(ip, 'LinkColor', true);
