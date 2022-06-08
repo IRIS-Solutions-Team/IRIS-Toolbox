@@ -18,14 +18,11 @@ classdef ProgressBar < handle
 
 
     properties (Constant)
-        % FULL_BAR = '#' % char(9608)
-        % PARTIAL_BAR =  '.oO@#' % char(9615:-1:9608)
-        FULL_BAR = char(8226)
-        PARTIAL_BAR = char(8226)
-        EMPTY_BAR = ' '
-        TITLE_FILL = '.'
-        LEFT_EDGE = '['
-        RIGHT_EDGE = ']'
+        FULL_BAR = char(8213)
+        TIP_BAR = char(9724)
+        EMPTY_BAR = char(8213)
+        LEFT_EDGE = ' '
+        RIGHT_EDGE = ' '
     end
 
 
@@ -38,14 +35,7 @@ classdef ProgressBar < handle
                 this.TotalCount = double(varargin{2});
                 this.RunningCount = 0;
             end
-            %{
-            this.TitleRow = [this.TITLE_FILL , repmat(this.TITLE_FILL, 1, this.NumProgress), this.TITLE_FILL];
-            if ~isempty(this.Title)
-                this.Title = this.Title(1:min(end, this.NumProgress-4));
-                this.TitleRow(3+(1:length(this.Title))) = this.Title;
-            end
-            %}
-            this.TitleRow = string(repmat(' ', 1, strlength(this.LEFT_EDGE)-1)) + this.Title;
+            this.TitleRow = string(repmat(' ', 1, strlength(this.LEFT_EDGE))) + this.Title;
             textual.looseLine( );
             fprintf("%s", this.TitleRow);
             this.LastIndicatorRow = sprintf('%s%*s%s', this.LEFT_EDGE, this.NumProgress, ' ', this.RIGHT_EDGE);
@@ -59,18 +49,19 @@ classdef ProgressBar < handle
             if this.Done
                 return
             end
-            [numFullBars, posPartialBar, permille] = getNumBars(this, varargin{:});
-            fullBars = repmat(this.FULL_BAR, 1, numFullBars);
-            if posPartialBar>0
-                partialBar = this.PARTIAL_BAR(posPartialBar);
+            [numCompleted, permille] = getNumBars(this, varargin{:});
+            fullBars = repmat(this.FULL_BAR, 1, numCompleted);
+            if numCompleted<this.NumProgress
+                tipBar = this.TIP_BAR;
+                emptyBars = repmat(this.EMPTY_BAR, 1, this.NumProgress-numCompleted-1);
             else
-                partialBar = char.empty(1, 0);
+                tipBar = '';
+                emptyBars = repmat(this.EMPTY_BAR, 1, this.NumProgress-numCompleted);
             end
-            emptyBars = repmat(this.EMPTY_BAR, 1, this.NumProgress - numel(fullBars) - numel(partialBar));
             indicatorRow = [
-                this.LEFT_EDGE, fullBars, partialBar, emptyBars, this.RIGHT_EDGE ...
+                this.LEFT_EDGE, fullBars, tipBar, emptyBars, this.RIGHT_EDGE ...
                 sprintf(' %g%% ', round(permille/10))
-            ];
+                ];
             if ~isequal(indicatorRow, this.LastIndicatorRow)
                 deleteLastIndicatorRow(this);
                 fprintf('%s', indicatorRow);
@@ -87,7 +78,7 @@ classdef ProgressBar < handle
             if ~this.Done
                 this.Done = true;
                 fprintf('\n');
-                textual.looseLine( );
+                textual.looseLine();
             end
         end%
 
@@ -109,7 +100,7 @@ classdef ProgressBar < handle
         end%
 
 
-        function [numFullBars, partialBar, permille] = getNumBars(this, varargin)
+        function [numCompleted, permille] = getNumBars(this, varargin)
             if numel(varargin)==1
                 fraction = varargin{1};
             else
@@ -120,14 +111,9 @@ classdef ProgressBar < handle
             if ~isfinite(fraction)
                 fraction = 1;
             end
-            numPartialBarsAvailable = numel(this.PARTIAL_BAR);
-            numFullBars = floor(this.NumProgress*fraction);
-            partialBar = floor((this.NumProgress*fraction - numFullBars)*numPartialBarsAvailable);
-            if partialBar==numPartialBarsAvailable
-                numFullBars = numFullBars + 1;
-                partialBar = 0;
-            end
-            permille = floor(fraction*1000);
+            numCompleted = floor(this.NumProgress*fraction);
+            permille = round(fraction*1000);
         end%
     end
 end
+
