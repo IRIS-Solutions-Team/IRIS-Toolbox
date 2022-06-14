@@ -437,27 +437,57 @@ TimeSubscriptable ...
     end
 
 
-
-
-
-%----------------------------------
     methods % Plotting
-        varargout = bubble(varargin)
-
-        function varargout = area(this, varargin)
-            [varargout{1:nargout}] = this.implementPlot(@area, this, varargin{:});
+        function varargout = area(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@area, varargin{:});
         end%
 
-        function varargout = bar(this, varargin)
-            [varargout{1:nargout}] = this.implementPlot(@bar, this, varargin{:});
+        function varargout = bar(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@bar, varargin{:});
         end%
 
-        function varargout = binscatter(this, varargin)
-            [varargout{1:nargout}] = this.implementPlot(@binscatter, this, varargin{:});
+        function varargout = binscatter(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@binscatter, varargin{:});
         end%
 
-        function varargout = scatter(this, varargin)
-            [varargout{1:nargout}] = this.implementPlot(@scatter, this, varargin{:});
+        function varargout = bubblechart(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@bubblechart, varargin{:});
+        end%
+
+        function varargout = histogram(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@histogram, varargin{:});
+        end%
+
+        function varargout = scatter(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@scatter, varargin{:});
+        end%
+
+        function varargout = stairs(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@stairs, varargin{:});
+        end%
+
+        function varargout = stem(varargin)
+            this = TimeSubscriptable.lookupObject(varargin{:});
+            [varargout{1:nargout}] = this.implementPlot(@stem, varargin{:});
+        end%
+    end
+
+
+    methods (Static)
+        function this = lookupObject(varargin)
+            for v = varargin
+                if isa(v{:}, 'TimeSubscriptable')
+                    this = v{:};
+                    return
+                end
+            end
         end%
     end
 
