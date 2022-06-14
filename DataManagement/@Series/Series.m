@@ -110,21 +110,6 @@ classdef ( ...
         end%
 
 
-        function varargout = histogram(varargin)
-            [varargout{1:nargout}] = Series.implementPlot(@histogram, varargin{:});
-        end%
-
-
-        function varargout = stem(varargin)
-            [varargout{1:nargout}] = Series.implementPlot(@stem, varargin{:});
-        end%
-
-
-        function varargout = stairs(varargin)
-            [varargout{1:nargout}] = Series.implementPlot(@stairs, varargin{:});
-        end%
-
-
         function varargout = barcon(varargin)
             [varargout{1:nargout}] = Series.implementPlot(@numeric.barcon, varargin{:});
         end%

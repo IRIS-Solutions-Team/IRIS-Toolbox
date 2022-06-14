@@ -198,7 +198,6 @@ classdef ( ...
 
 
         varargout = get(varargin)
-        varargout = histogram(varargin)
         varargout = hpdi(varargin)
         varargout = infoset2line(varargin)
         varargout = interp(varargin)
@@ -229,7 +228,6 @@ classdef ( ...
         varargout = singledata(varargin)
         varargout = sort(varargin)
         varargout = spy(varargin)
-        varargout = stem(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)
         varargout = trend(varargin)

@@ -1,18 +1,11 @@
 % plotSwitchboard  Choose plot function
 %
-% Backend function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function [plotHandle, isTimeAxis] = plotSwitchboard( plotFunc, ...
-                                                     axesHandle, ...
-                                                     xData, ...
-                                                     yData, ...
-                                                     plotSpec,...
-                                                     smooth, ...
-                                                     varargin )
+function ...
+    [plotHandle, isTimeAxis] ...
+    = plotSwitchboard(plotFunc, axesHandle, xData, yData, plotSpec, smooth, varargin)
 
 plotFuncString = plotFunc;
 if isa(plotFuncString, 'function_handle')
@@ -24,15 +17,9 @@ if ~isequal(smooth, false) && numel(yData)>1
 end
 
 switch plotFuncString
-    case {'binscatter'}
+    case {'histogram', 'scatter', 'binscatter', 'bubblechart'}
         isTimeAxis = false;
-        plotHandle = implementBinScatter( );
-    case {'scatter'}
-        isTimeAxis = false;
-        plotHandle = implementScatter( );
-    case {'histogram'}
-        isTimeAxis = false;
-        plotHandle = histogram(axesHandle, yData, plotSpec{:}, varargin{:});
+        plotHandle = local_implementNoTimeAxis(axesHandle, plotFunc, yData, plotSpec, varargin);
     case {'barcon', 'numeric.barcon'}
         % Do not pass plotSpec but do pass user options
         isTimeAxis = true;
@@ -59,7 +46,7 @@ end
 % Modify how dates are displayed in data tips
 % if isTimeAxis && isa(xData, 'datetime')
 %     try % Works in R2019a+
-%         here_modifyDataTip(plotHandle, xData);
+%         local_modifyDataTip(plotHandle, xData);
 %     end
 % end
 
@@ -73,49 +60,6 @@ return
         xData = newXData;
         yData = newYData;
     end%
-
-
-    function numOfYDataColumns = testNumOfYDataColumns(x)
-        numOfYDataColumns = size(yData, 2);
-        if any(numOfYDataColumns==x)
-            return
-        end
-        THIS_ERROR = { 'TimeSubscriptable:PlotInvalidNumColumns'
-                       'Invalid number of columns in input time series in %s(~)' };
-        throw( exception.Base(THIS_ERROR, 'error'), ...
-               plotFuncString );
-    end%
-
-
-    function plotHandle = implementBinScatter( )
-        testNumOfYDataColumns(2);
-        inxNa = any(isnan(yData), 2);
-        plotHandle = binscatter( ...
-            axesHandle ...
-            , yData(~inxNa, 1), yData(~inxNa, 2) ...
-            , plotSpec{:}, varargin{:} ...
-        );
-    end%
-
-
-
-
-    function plotHandle = implementScatter( )
-        numYDataColumns = testNumOfYDataColumns([2, 3, 4]);
-        if numYDataColumns==2
-            tempData = { yData(:, 1), yData(:, 2) };
-        elseif numYDataColumns==3
-            tempData = { yData(:, 1), yData(:, 2), yData(:, 3) };
-        elseif numYDataColumns==4
-            tempData = { yData(:, 1), yData(:, 2), yData(:, 3), yData(:, 4) };
-        end
-        plotHandle = scatter(axesHandle, tempData{:}, plotSpec{:});
-        if ~isempty(varargin)
-            set(plotHandle, varargin{:});
-        end
-    end%
-
-
 
 
     function plotHandle = implementBands( )
@@ -209,10 +153,24 @@ end%
 % Local Functions
 %
 
-function here_modifyDataTip(plotHandle, xData)
+function local_modifyDataTip(plotHandle, xData)
     r = dataTipTextRow('X', 'XData', xData.Format);
     for i = 1 : numel(plotHandle)
         plotHandle(i).DataTipTemplate.DataTipRows(1) = r;
+    end
+end%
+
+
+function plotHandle = local_implementNoTimeAxis(axesHandle, plotFunc, yData, plotSpec, settings)
+    yData = yData(:, :);
+    numColumns = size(yData, 2);
+    temp = cell(1, numColumns);
+    for i = 1 : numColumns
+        temp{i} = yData(:, i);
+    end
+    plotHandle = plotFunc(axesHandle, temp{:}, plotSpec{:});
+    if ~isempty(settings)
+        set(plotHandle, settings{:});
     end
 end%
 
