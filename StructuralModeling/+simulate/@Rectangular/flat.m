@@ -43,6 +43,7 @@ lastAnticipatedE = 0;
 lastUnanticipatedE = 0;
 if ne>0
     if this.HasLeads
+        % Forward looking model
         anticipatedE = data.AnticipatedE(data.InxE, :);
         unanticipatedE = data.UnanticipatedE(data.InxE, :);
         if data.MixinUnanticipated
@@ -52,16 +53,17 @@ if ne>0
         end
         lastAnticipatedE = data.LastAnticipatedE;
     else
+        % Backward looking model; combine anticipated and unanticipated
+        % shocks and handle them as unanticipated to accelerate the
+        % simulation
         unanticipatedE = data.UnanticipatedE(data.InxE, :) + data.AnticipatedE(data.InxE, :);
         anticipatedE = zeros(size(unanticipatedE));
         lastUnanticipatedE = max(data.LastUnanticipatedE, data.LastAnticipatedE);
         lastAnticipatedE = 0;
-        mixinUnanticipated = true;
     end
-end
-
-if isempty(anticipatedE) && isempty(unanticipatedE)
-    ne = 0;
+    if isempty(anticipatedE) && isempty(unanticipatedE)
+        ne = 0;
+    end
 end
 
 
