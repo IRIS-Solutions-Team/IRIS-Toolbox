@@ -36,7 +36,7 @@ function this = linearTrend(range, varargin)
 
 %--------------------------------------------------------------------------
 
-this = NumericTimeSubscriptable.linearTrend(@tseries, range, varargin{:});
+this = TimeSubscriptable.linearTrend(@tseries, range, varargin{:});
 
 end%
 

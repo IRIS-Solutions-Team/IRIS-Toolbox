@@ -151,7 +151,7 @@ elseif iscell(plotSpec)
     plotSpec = plotSpec{1};
 end
 
-[~, H1, range, data, time] = tseries.implementPlot(@plot, axesHandle, range, X, plotSpec, ip.UnmatchedInCell{:});
+[H1, range, data, time] = tseries.implementPlot(@plot, axesHandle, range, X, plotSpec, ip.UnmatchedInCell{:});
 
 status = get(axesHandle, 'nextPlot');
 set(axesHandle, 'nextPlot', 'add');

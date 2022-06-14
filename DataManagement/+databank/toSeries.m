@@ -80,7 +80,7 @@ columns = ip.Results.columns;
 
 if isequal(names, @all)
     names = keys(inputDb);
-    inxSeries = cellfun(@(n) isa(inputDb.(n), "NumericTimeSubscriptable"), names);
+    inxSeries = cellfun(@(n) isa(inputDb.(n), "TimeSubscriptable"), names);
     names = names(inxSeries);
 else
     names = reshape(string(names), 1, [ ]);

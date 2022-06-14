@@ -76,7 +76,7 @@ function varargout = plot(varargin)
 
 %--------------------------------------------------------------------------
 
-[~, varargout{1:nargout}] = tseries.implementPlot(@plot, varargin{:});
+[varargout{1:nargout}] = tseries.implementPlot(@plot, varargin{:});
 
 end%
 

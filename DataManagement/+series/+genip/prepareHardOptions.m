@@ -23,7 +23,7 @@ invalidFreq = string.empty(1, 0);
 for g = ["Level", "Rate", "Diff"]
     hard.(g) = [ ];
     x__ = opt.("Hard_" + g);
-    if isa(x__, 'NumericTimeSubscriptable') && ~isempty(x__) 
+    if isa(x__, 'TimeSubscriptable') && ~isempty(x__) 
         if isfreq(x__, highFreq)
             x = getDataFromTo(x__, initStart, highEnd);
             if any(isfinite(x(:)))
@@ -56,7 +56,7 @@ else
                 hereReportInvalidNumInitial( );
             end
         end
-    elseif isa(opt.Initial, 'NumericTimeSubscriptable')
+    elseif isa(opt.Initial, 'TimeSubscriptable')
         Xi0 = getDataFromTo(opt.Initial, initStart, initEnd);
     end
     hard.Level(1:numInit) = Xi0;

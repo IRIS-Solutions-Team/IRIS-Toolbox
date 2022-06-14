@@ -39,7 +39,7 @@ for i = 1 : numNames
         field__ = inputDb.(names(i));
     end
 
-    if ~isa(field__, 'NumericTimeSubscriptable')
+    if ~isa(field__, 'TimeSubscriptable')
         continue
     end
 

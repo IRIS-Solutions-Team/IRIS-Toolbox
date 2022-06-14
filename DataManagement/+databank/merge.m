@@ -8,7 +8,7 @@
 function mainDb = merge(method, mainDb, mergeWith, opt)
 
 arguments
-    method (1, 1) string { mustBeMember(method, ["horzcat", "vertcat", "replace", "discard", "error"]) }
+    method (1, 1) string { mustBeMember(method, ["horzcat", "vertcat", "replace", "warning", "discard", "error"]) }
     mainDb (1, 1) { validate.databank(mainDb) }
 end
 
@@ -60,18 +60,20 @@ opt = ip.Results;
 
 
 numMergeWith = numel(mergeWith);
-method = char(method);
 
-if strcmpi(method, 'horzcat')
-    mergeNext = @(varargin) concatenateNext(@horzcat, varargin{:});
-elseif strcmpi(method, 'vertcat')
-    mergeNext = @(varargin) concatenateNext(@vertcat, varargin{:});
-elseif strcmpi(method, 'replace')
-    mergeNext = @replaceNext;
-elseif strcmpi(method, 'discard')
-    mergeNext = @discardNext;
-else
-    mergeNext = @errorNext;
+switch string(method)
+    case "horzcat"
+        mergeNext = @(varargin) concatenateNext(@horzcat, varargin{:});
+    case "vertcat"
+        mergeNext = @(varargin) concatenateNext(@vertcat, varargin{:});
+    case "replace"
+        mergeNext = @(varargin) replaceNext(false, varargin{:});
+    case "warning"
+        mergeNext = @(varargin) replaceNext(true, varargin{:});
+    case "discar"
+        mergeNext = @discardNext;
+    otherwise
+        mergeNext = @errorNext;
 end
 
 if isequal(opt.Names, @all)
@@ -131,15 +133,25 @@ function [mainDb, fieldsToMerge] = concatenateNext(func, mainDb, mergeWith, fiel
 end%
 
 
-function [mainDb, fieldsToMerge] = replaceNext(mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge] = replaceNext(needsWarn, mainDb, mergeWith, fieldsToMerge, opt)
     %(
+    overwrites = string.empty(1, 0);
     for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
             continue
         end
         if isfield(mergeWith, n)
+            if needsWarn && isfield(mainDb, n)
+                overwrites(end+1) = n;
+            end
             mainDb.(n) = mergeWith.(n);
         end
+    end
+    if ~isempty(overwrites)
+        exception.warning([
+            "Databank"
+            "This field name occurs in more than one input databank: %s "
+        ], overwrites);
     end
     %)
 end%

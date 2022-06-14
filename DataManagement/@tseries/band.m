@@ -163,7 +163,7 @@ end
 if isa(axesHandle, 'function_handle')
     axesHandle = axesHandle( );
 end
-[axesHandle, h, range, cData, xCoor] = tseries.implementPlot(@plot, axesHandle, range, X, plotSpec, varargin{:});
+[h, range, cData, xCoor] = tseries.implementPlot(@plot, axesHandle, range, X, plotSpec, varargin{:});
 
 loData = getData(Lo, range);
 hiData = getData(Hi, range);

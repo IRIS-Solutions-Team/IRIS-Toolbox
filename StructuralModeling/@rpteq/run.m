@@ -239,7 +239,7 @@ return
             if ~isField
                 continue
             end
-            if isa(inputData.(iithName), 'NumericTimeSubscriptable')
+            if isa(inputData.(iithName), 'TimeSubscriptable')
                 D.(iithName) = getDataFromTo(inputData.(iithName), extdRange);
                 continue
             end

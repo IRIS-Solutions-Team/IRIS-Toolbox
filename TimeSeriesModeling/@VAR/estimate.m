@@ -162,7 +162,7 @@ if isempty(pp)
     addParameter(pp, 'Progress', false, @validate.logicalScalar);
     addParameter(pp, 'Schur', true, @validate.logicalScalar);
     addParameter(pp, {'StartDate', 'Start'}, 'Presample', @(x) validate.anyString(x, 'Presample', 'Fit', 'Fitted'));
-    addParameter(pp, 'TimeWeights', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'TimeWeights', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
     addParameter(pp, 'Warning', true, @validate.logicalScalar);
     addParameter(pp, 'SmallSampleCorrection', false, @validate.logicalScalar);
 

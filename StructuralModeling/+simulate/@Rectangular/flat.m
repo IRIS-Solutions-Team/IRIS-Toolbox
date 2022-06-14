@@ -42,18 +42,26 @@ lenR = size(R, 2);
 lastAnticipatedE = 0;
 lastUnanticipatedE = 0;
 if ne>0
-    anticipatedE = data.AnticipatedE(data.InxE, :);
-    unanticipatedE = data.UnanticipatedE(data.InxE, :);
-    if isempty(anticipatedE) && isempty(unanticipatedE)
-        ne = 0;
-    else
+    if this.HasLeads
+        anticipatedE = data.AnticipatedE(data.InxE, :);
+        unanticipatedE = data.UnanticipatedE(data.InxE, :);
         if data.MixinUnanticipated
             lastUnanticipatedE = data.LastUnanticipatedE;
         else
             lastUnanticipatedE = min(data.LastUnanticipatedE, firstColumnToRun);
         end
         lastAnticipatedE = data.LastAnticipatedE;
+    else
+        unanticipatedE = data.UnanticipatedE(data.InxE, :) + data.AnticipatedE(data.InxE, :);
+        anticipatedE = zeros(size(unanticipatedE));
+        lastUnanticipatedE = max(data.LastUnanticipatedE, data.LastAnticipatedE);
+        lastAnticipatedE = 0;
+        mixinUnanticipated = true;
     end
+end
+
+if isempty(anticipatedE) && isempty(unanticipatedE)
+    ne = 0;
 end
 
 % Nonlinear add-factors
@@ -91,7 +99,7 @@ else
 end
 
 % Required initial conditions already checked for NaNs; here reset any
-% remaining (seeming) initial conditions 
+% remaining (seeming) initial conditions
 Xib_0(isnan(Xib_0)) = 0;
 
 
@@ -106,7 +114,7 @@ for t = columnsToRun
         % Add constant
         Xi_t = Xi_t + K;
     end
-    
+
     if ne>0
         % Add expected and unexpected shocks
         if t<=lastUnanticipatedE
@@ -159,7 +167,7 @@ for t = columnsToRun
             % Add constant
             Y_t = Y_t + D;
         end
-        if ne>0 
+        if ne>0
             % Add shocks
             E_t = anticipatedE(:, t);
             if t<=lastUnanticipatedE
