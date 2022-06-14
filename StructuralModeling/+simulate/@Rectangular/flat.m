@@ -64,6 +64,7 @@ if isempty(anticipatedE) && isempty(unanticipatedE)
     ne = 0;
 end
 
+
 % Nonlinear add-factors
 nlaf = data.NonlinAddf;
 lastNlaf = 0;
