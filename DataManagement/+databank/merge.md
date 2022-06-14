@@ -15,7 +15,7 @@
 
 ## Input arguments
 
-__`method`__ [ `"horzcat"` | `"vertcat"` | `"replace"` | `"discard"` | `"error"` ] 
+__`method`__ [ `"horzcat"` | `"vertcat"` | `"replace"` | `"warning"` | `"discard"` | `"error"` ] 
 > 
 > Action to perform when two or more of the input mergeWith contain a
 > field of the same name; see Description.
@@ -56,15 +56,19 @@ added to the main databank `d`. If the name of a field to be added
 already exists in the main databank, `d`, one of the following actions is
 performed:
 
-* `"horzcat"` - the fields will be horizontally concatenated;
+* `"horzcat"` - horizontally concatenate the fields;
 
-* `"replace"` - the field in the main databank will be replaced with the
-new field;
+* `"replace"` - silently replace the field in the main databank with the
+  new field;
 
-* `"discard"` - the field in the main databank will be kept unchanged, and
-the new field will be discarded;
+* `"warning"` - replace the field in the main databank with the
+  new field, and throw a warning;
 
-* `"error"` - an error will be thrown.
+* `"discard"` - keep the field in the main databank unchanged, and discard
+  the new field;
+
+* `"error"` - throw an error whenever the main databank and the other
+  databank contain a field of the same name.
 
 
 ## Example
