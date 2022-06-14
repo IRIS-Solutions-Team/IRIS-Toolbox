@@ -47,7 +47,7 @@ function varargout = stem(varargin)
 
 %--------------------------------------------------------------------------
 
-[~, varargout{1:nargout}] = tseries.implementPlot(@stem, varargin{:});
+[varargout{1:nargout}] = tseries.implementPlot(@stem, varargin{:});
 
 end%
 

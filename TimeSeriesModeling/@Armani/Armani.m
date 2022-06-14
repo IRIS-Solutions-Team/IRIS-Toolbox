@@ -115,7 +115,7 @@ classdef Armani
                 % Do nothing
             elseif isnumeric(x)
                 x = filter(this.MA, this.AR, x, varargin{:});
-            elseif isa(x, 'NumericTimeSubscriptable')
+            elseif isa(x, 'TimeSubscriptable')
                 x.Data = filter(this.MA, this.AR, x.Data, varargin{:});
             else
                 throw(exception.Base([

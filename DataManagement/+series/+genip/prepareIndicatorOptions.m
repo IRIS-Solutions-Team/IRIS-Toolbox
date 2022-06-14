@@ -33,7 +33,7 @@ return
     function level = hereTryRetrieveLevel( )
         %(
         level = [ ];
-        if isa(opt.Indicator_Level, 'NumericTimeSubscriptable') && ~isempty(opt.Indicator_Level) 
+        if isa(opt.Indicator_Level, 'TimeSubscriptable') && ~isempty(opt.Indicator_Level) 
             if isfreq(opt.Indicator_Level, highFreq)
                 x__ = getDataFromTo(opt.Indicator_Level, highExtStart, highEnd);
                 inxNaN = ~isfinite(x__(:));

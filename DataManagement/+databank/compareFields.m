@@ -74,7 +74,7 @@ if success
             continue
         end
 
-        if isa(field1, 'NumericTimeSubscriptable') && isa(field2, 'NumericTimeSubscriptable')
+        if isa(field1, 'TimeSubscriptable') && isa(field2, 'TimeSubscriptable')
             if ~dater.eq(field1.Start, field2.Start)
                 info.SeriesStartDatesNotEqual(end+1) = k;
                 success = false;

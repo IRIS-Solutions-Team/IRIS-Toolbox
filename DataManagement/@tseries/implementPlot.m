@@ -6,7 +6,7 @@
 % If the caller supplies empty `Func`, the graph will not be actually
 % rendered. This is a dry call to `implementPlot` used from within `plotyy`.
 
-function [ axesHandle, plotHandle, ...
+function [ plotHandle, ...
            inputRange, data, ...
            xCoor, userRange, freq ] = implementPlot(plotFunc, varargin)
 
@@ -23,7 +23,7 @@ if isempty(plotFunc)
     [axesHandle, inputRange, this, plotSpec, opt] = varargin{:};
 else
     [axesHandle, inputRange, this, plotSpec, varargin] = ...
-        NumericTimeSubscriptable.preparePlot(varargin{:});
+        TimeSubscriptable.preparePlot(varargin{:});
     parser.parse(varargin{:});
     opt = parser.Options;
     varargin = parser.UnmatchedInCell;

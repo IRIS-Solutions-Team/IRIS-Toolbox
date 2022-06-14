@@ -88,7 +88,6 @@
 %   area - Area graph for time series
 %   band - Line-and-band graph for time series
 %   bar - Bar graph for time series
-%   barcon - Contribution bar graph for time series
 %   bubble - Bubble graph for time series
 %   errorbar - Line plot with error bars
 %   plot - Line graph for time series
@@ -149,19 +148,19 @@
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper, ?Dater}) ...
-    tseries ...
-    < NumericTimeSubscriptable
+classdef ( ...
+    CaseInsensitiveProperties=true ...
+    , InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper, ?Dater} ...
+) tseries < TimeSubscriptable
 
     methods % Constructor
         function this = tseries(varargin)
-            this = this@NumericTimeSubscriptable(varargin{:});
+            this = this@TimeSubscriptable(varargin{:});
         end%
     end
 
 
     methods
-        varargout = area(varargin)
         varargout = arma(varargin)
         varargout = band(varargin)
 
@@ -169,12 +168,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             [varargout{1:nargout}] = tseries.implementPlot(@bands, varargin{:});
         end%
 
-        varargout = bar(varargin)
         varargout = barcon(varargin)
-
-        function varargout = binscatter(varargin)
-            [varargout{1:nargout}] = tseries.implementPlot(@binscatter, varargin{:});
-        end%
 
         varargout = bpass(varargin)
         varargout = bsxfun(varargin)
@@ -222,7 +216,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = range(varargin)
         varargout = repmat(varargin)
         varargout = reshape(varargin)
-        varargout = scatter(varargin)
         varargout = select(varargin)
 
 
@@ -281,7 +274,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
     methods (Access=protected, Hidden)
         function implementDisp(varargin)
-            implementDisp@NumericTimeSubscriptable(varargin{:});
+            implementDisp@TimeSubscriptable(varargin{:});
             implementDisp@iris.mixin.UserDataContainer(varargin{:});
         end%
     end

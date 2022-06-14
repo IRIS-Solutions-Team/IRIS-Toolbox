@@ -63,7 +63,7 @@ function varargout = barcon(varargin)
 
 %--------------------------------------------------------------------------
 
-[~, varargout{1:nargout}] = tseries.implementPlot(@barcon, varargin{:});
+[varargout{1:nargout}] = tseries.implementPlot(@barcon, varargin{:});
 
 end%
 

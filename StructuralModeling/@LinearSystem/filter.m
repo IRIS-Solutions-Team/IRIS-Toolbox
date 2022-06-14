@@ -16,7 +16,7 @@ extRange = [dater.plus(startRange, -1), range];
 numPeriods = round(endRange - startRange + 1);
 numExtPeriods = numPeriods + 1;
 
-if isa(inputData, 'NumericTimeSubscriptable')
+if isa(inputData, 'TimeSubscriptable')
     inputArray = getDataFromTo(inputData, startRange, endRange);
     inputArray = permute(inputArray, [2, 1, 3]);
 else

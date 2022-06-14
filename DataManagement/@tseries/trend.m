@@ -60,7 +60,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('tseries.trend');
     pp.KeepUnmatched = true;
-    pp.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     pp.addOptional('Range', Inf, @validate.range);
 end
 parse(pp, this, varargin{:});

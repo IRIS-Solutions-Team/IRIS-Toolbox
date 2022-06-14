@@ -5,8 +5,7 @@
 
 function varargout = implementPlot(plotFunc, varargin)
 
-[axesHandle, dates, this, plotSpec, varargin] = ...
-    NumericTimeSubscriptable.preparePlot(varargin{:});
+[axesHandle, dates, this, plotSpec, varargin] = TimeSubscriptable.preparePlot(varargin{:});
 
 persistent ip
 if isempty(ip)

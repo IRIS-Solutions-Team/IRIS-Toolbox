@@ -13,22 +13,23 @@ classdef Rectangular ...
     properties
         Method
         PlanMethod
+        HasLeads = true
 
         FirstOrderSolution = cell(1, 7)   % First-order solution matrices {T, R, K, Z, H, D, Y}, discard U, Zb
         FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
 
         % FirstOrderMultipliers  First-order multipliers for endogenized shocks
-        FirstOrderMultipliers = double.empty(0) 
+        FirstOrderMultipliers = double.empty(0)
 
         KalmanGain = double.empty(0)
         MultipliersExogenizedYX = logical.empty(0)
         MultipliersEndogenizedE = logical.empty(0)
 
         % Vector  System and solution vectors derived from @Model
-        Vector 
-        
+        Vector
+
         % Quantity  Information about model quantities derived from @Modelk
-        Quantity 
+        Quantity
 
         HashEquationsAll
         HashEquationsIndividually
@@ -60,7 +61,7 @@ classdef Rectangular ...
 
         % StackedNoShocks_   Solution matrices and data point indices for
         % stacked time simulation of selected data points with no shocks
-        StackedNoShocks_Transition 
+        StackedNoShocks_Transition
         StackedNoShocks_Constant
         StackedNoShocks_InxDataPoints
     end
@@ -111,9 +112,10 @@ classdef Rectangular ...
             lastAnticipatedE = data.LastAnticipatedE;
             lastEndogenizedE = data.LastEndogenizedE;
             requiredForward = max([ ...
-                lastAnticipatedE-this.FirstColumn, ...
-                lastEndogenizedE-this.FirstColumn, ...
-                data.Window ...
+                , lastAnticipatedE-this.FirstColumn ...
+                , lastEndogenizedE-this.FirstColumn ...
+                , data.Window-1 ...
+                , 0 ...
             ]);
             if isempty(requiredForward) || requiredForward==0
                 return
@@ -198,12 +200,12 @@ classdef Rectangular ...
             %(
             if nargin<2
                 variantRequested = 1;
-            elseif variantRequested>1 && countVariants(model)==1 
+            elseif variantRequested>1 && countVariants(model)==1
                 variantRequested = 1;
             end
 
             this = simulate.Rectangular( );
-            
+
             %
             % Populate Quantity and Vector
             %
@@ -211,7 +213,7 @@ classdef Rectangular ...
 
             %
             % Get first-order solution matrices and expansion matrices
-            % 
+            %
             if useFirstOrder
                 update(this, model, variantRequested);
             end

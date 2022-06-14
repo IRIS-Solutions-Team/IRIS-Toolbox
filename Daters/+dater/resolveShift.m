@@ -55,7 +55,7 @@ function shift = local_resolveShift(dates, inputFreq, shift)
     else
         if inputFreq==0 
             throw(exception.Base([
-                "NumericTimeSubscriptable:IncompatibleInputs"
+                "TimeSubscriptable:IncompatibleInputs"
                 "Time shift cannot be specified as ""YoY"", ""BoY"", or ""EoPY"" "
                 "for time series of INTEGER date frequency. "
             ], "error"));
@@ -90,7 +90,7 @@ function power = local_resolvePower(inputFreq, outputFreq, shift)
     if ~isempty(outputFreq)
         if ~isnumeric(shift) || ~isscalar(shift)
             throw(exception.Base([ 
-                "NumericTimeSubscriptable:IncompatibleInputs"
+                "TimeSubscriptable:IncompatibleInputs"
                 "Annualized changes or option OutputFreq= cannot be combined "
                 "with the time shift specified as ""BoY"" or ""EoPY"". "
             ], "error"));

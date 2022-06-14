@@ -73,7 +73,7 @@ function varargout = histogram(varargin)
 
 %--------------------------------------------------------------------------
 
-[~, varargout{1:nargout}] = tseries.implementPlot(@histogram, arargin{:});
+[varargout{1:nargout}] = tseries.implementPlot(@histogram, arargin{:});
 
 end%
 

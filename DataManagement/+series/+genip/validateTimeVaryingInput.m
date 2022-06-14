@@ -15,7 +15,7 @@ if isnumeric(input)
 end
 
 freq = DateWrapper.getFrequency(range(1));
-if isa(input, 'NumericTimeSubscriptable')
+if isa(input, 'TimeSubscriptable')
     if isfreq(input, freq)
         value = getDataFromTo(input, startDate, endDate);
         if ~canHaveMissing && any(~isfinite(value(:)))

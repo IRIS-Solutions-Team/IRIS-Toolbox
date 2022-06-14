@@ -24,7 +24,7 @@ end
 transition.Intercept = opt.Transition_Intercept;
 transition.Std = opt.Transition_Std;
 
-if isa(transition.Std, 'NumericTimeSubscriptable')
+if isa(transition.Std, 'TimeSubscriptable')
     transition.Std = getDataFromTo(transition.Std, highStart, highEnd);
     transition.Std = abs(transition.Std);
     inxNaN = isnan(transition.Std);

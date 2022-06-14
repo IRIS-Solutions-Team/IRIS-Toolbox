@@ -1,7 +1,7 @@
 function [data, names, dates, dateTransform] = extractSeriesData(inputDb, names, dates) 
 
 if isa(names, 'function_handle')
-    names = databank.filterFields(inputDb, 'name', names, 'class', 'NumericTimeSubscriptable');
+    names = databank.filterFields(inputDb, 'name', names, 'class', 'TimeSubscriptable');
 end
 names = reshape(string(names), 1, [ ]);
 
@@ -30,7 +30,7 @@ return
         %(
         inxValid = true(size(names));
         for i = 1 : numel(allSeries)
-            inxValid(i) = isa(allSeries{i}, 'NumericTimeSubscriptable');
+            inxValid(i) = isa(allSeries{i}, 'TimeSubscriptable');
         end
         if any(~inxValid)
             exception.error([
@@ -64,7 +64,7 @@ end%
 
 function value = locallyMustBeSeries(value, name)
     %(
-    if isa(value, 'NumericTimeSubscriptable')
+    if isa(value, 'TimeSubscriptable')
         return
     end
     exception.error([
