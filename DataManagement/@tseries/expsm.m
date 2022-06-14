@@ -41,7 +41,7 @@
 
 
 % >=R2019b
-%{
+%(
 function this = expsm(this, beta, opt)
 
 arguments
@@ -52,12 +52,12 @@ arguments
     opt.Log (1, 1) logical = false
     opt.Range (1, :) double = Inf
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function this = expsm(this, beta, varargin)
 
 persistent ip
@@ -69,7 +69,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -80,7 +80,7 @@ opt = ip.Results;
 
     if opt.Log
         data = 100*log(data);
-        initials = 100*log(initials);
+        opt.Initials = 100*log(opt.Initials);
     end
 
     extendedData = series.expsm(data, beta, opt.Initials);
