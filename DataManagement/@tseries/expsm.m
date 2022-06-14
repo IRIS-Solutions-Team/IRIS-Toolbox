@@ -80,7 +80,7 @@ opt = ip.Results;
 
     if opt.Log
         data = 100*log(data);
-        initials = 100*log(initials);
+        opt.Initials = 100*log(opt.Initials);
     end
 
     extendedData = series.expsm(data, beta, opt.Initials);
