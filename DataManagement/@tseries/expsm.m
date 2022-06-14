@@ -41,7 +41,7 @@
 
 
 % >=R2019b
-%(
+%{
 function this = expsm(this, beta, opt)
 
 arguments
@@ -57,7 +57,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function this = expsm(this, beta, varargin)
 
 persistent ip
@@ -69,7 +69,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
