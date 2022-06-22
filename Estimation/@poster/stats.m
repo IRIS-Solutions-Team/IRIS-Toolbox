@@ -11,7 +11,7 @@ if isempty(ip)
     addParameter(ip, 'hpdicover', 90, @(x) isnumericscalar(x) && x >= 0 && x <= 100);
     addParameter(ip, 'histbins', 50, @(x) isintscalar(x) && x > 0);
     addParameter(ip, 'mddgrid', 0.1:0.1:0.9, @(x) isnumeric(x) && all(x(:) > 0 & x(:) < 1));
-    addParameter(ip, 'output', '', @(x) ischar(x) || iscellstr(x));
+    addParameter(ip, 'output', '', @(x) ischar(x) || iscellstr(x) || isstring(x));
     addParameter(ip, 'progress', false, @islogicalscalar);
     addParameter(ip, 'chain', true, @islogicalscalar);
     addParameter(ip, 'cov', false, @islogicalscalar);
@@ -199,7 +199,7 @@ return
         logG = logG - avgLogG;
 
         d = [ ];
-        for pr = opt.mddgrid(:).'
+        for pr = reshape(opt.mddgrid, 1, [])
             crit = chi2inv(pr, numParams);
             inx = crit>=uuu;
             if any(inx)
