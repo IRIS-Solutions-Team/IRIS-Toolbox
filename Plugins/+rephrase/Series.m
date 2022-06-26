@@ -1,22 +1,33 @@
 classdef Series ...
-    < rephrase.Element ...
-    & rephrase.Terminus ...
-    & rephrase.Data
+    < rephrase.Terminal ...
+    & rephrase.DataMixin ...
+    & rephrase.ColorMixin
 
     properties % (Constant)
         Type = rephrase.Type.SERIES
     end
 
 
+    properties (Hidden)
+        Settings_LineWidth (1, 1) double {mustBeNonnegative} = 2
+        Settings_ShowLegend (1, 1) logical = true
+        Settings_Type (1, 1) string = "scatter"
+        Settings_Markers (1, 1) struct = struct("Color", NaN, "Symbol", "circle", "Size", 6) 
+        Settings_StackGroup (1, 1) string = ""
+        Settings_Fill (1, 1) string = "none"
+    end
+
+
     methods
         function this = Series(title, input, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Terminal(title, varargin{:});
             this.Content = input;
         end%
 
 
-        function build(this, varargin)
-            this.Content = buildSeriesData(this, this.Content);
+        function this = finalize(this, varargin)
+            finalize@rephrase.Terminal(this);
+            this.Content = finalizeSeriesData(this, this.Content);
         end%
     end
 

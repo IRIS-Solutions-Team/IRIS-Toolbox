@@ -1,9 +1,18 @@
 classdef Report ...
-    < rephrase.Element ...
-    & rephrase.Container
+    < rephrase.Container
 
     properties % (Constant)
         Type = rephrase.Type.REPORT
+    end
+
+
+    properties (Hidden)
+        Settings_Subtitle (1, 1) string = ""
+        Settings_Footer (1, 1) string = ""
+        Settings_InteractiveCharts (1, 1) logical = true
+        Settings_TableOfContents (1, 1) logical = false
+        Settings_TableOfContentsDepth (1, 1) double = 1
+        Settings_Logo (1, 1) logical = false
     end
 
 
@@ -12,6 +21,8 @@ classdef Report ...
             rephrase.Type.GRID
             rephrase.Type.TABLE
             rephrase.Type.CHART
+            rephrase.Type.SERIESCHART
+            rephrase.Type.CURVECHART
             rephrase.Type.TEXT
             rephrase.Type.PAGEBREAK
             rephrase.Type.MATRIX
@@ -25,7 +36,7 @@ classdef Report ...
 
     methods
         function this = Report(title, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
         end%
 
@@ -46,13 +57,13 @@ classdef Report ...
             %)
             opt = parse(pp, this, fileName, reportDb, varargin{:});
 
-            fileNameBase = hereResolveFileNameBase(fileName);
+            fileNameBase = here_resolveFileNameBase(fileName);
 
             %
             % Create report json
             %
 
-            build@rephrase.Container(this);
+            finalize(this);
             reportJson = string(jsonencode(this));
 
             %
@@ -73,19 +84,19 @@ classdef Report ...
 
             outputFileNames = string.empty(1, 0);
             for source = reshape(lower(opt.Source), 1, [ ])
-                template = hereReadTemplate(source);
+                template = here_readTemplate(source);
 
                 % FIXME
                 % template = replace(template, """Lato""", """Open Sans""");
 
-                template = hereEmbedReportData(template);
-                template = hereEmbedUserStyle(template);
-                outputFileNames(end+1) = hereWriteFinalHtml( ); %#ok<*AGROW>
+                template = here_embedReportData(template);
+                template = here_embedUserStyle(template);
+                outputFileNames(end+1) = here_writeFinalHtml( ); %#ok<*AGROW>
             end
 
             return
 
-                function fileNameBase = hereResolveFileNameBase(fileName)
+                function fileNameBase = here_resolveFileNameBase(fileName)
                     %(
                     [p, t, ~] = fileparts(fileName);
                     fileNameBase = fullfile(string(p), string(t));
@@ -93,21 +104,21 @@ classdef Report ...
                 end%
 
 
-                function template = hereReadTemplate(source)
+                function template = here_readTemplate(source)
                     %(
                     templateFolder = fullfile(iris.root( ), "Plugins", ".rephrase");
                     switch source
                         case "bundle"
                             templateFileName = fullfile(templateFolder, "report-template.bundle.html");
-                            template = locallyReadTextFile(templateFileName);
+                            template = local_readTextFile(templateFileName);
                         case "local"
                             templateFileName = fullfile(templateFolder, "report-template.html");
-                            template = locallyReadTextFile(templateFileName);
+                            template = local_readTextFile(templateFileName);
                             template = replace(template, """lib/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "lib/"));
                             template = replace(template, """img/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "img/"));
                         case "web"
                             templateFileName = fullfile(templateFolder, "report-template-web-source.html");
-                            template = locallyReadTextFile(templateFileName);
+                            template = local_readTextFile(templateFileName);
                         otherwise
                             % TODO: Throw error
                     end
@@ -115,7 +126,7 @@ classdef Report ...
                 end%
 
 
-                function template = hereEmbedReportData(template)
+                function template = here_embedReportData(template)
                     %(
                     template = replace( ...
                         template, this.EMBED_REPORT_DATA, script ...
@@ -124,7 +135,7 @@ classdef Report ...
                 end%
 
 
-                function template = hereEmbedUserStyle(template)
+                function template = here_embedUserStyle(template)
                     %(
                     if strlength(opt.UserStyle)==0
                         return
@@ -135,13 +146,13 @@ classdef Report ...
                 end%
 
 
-                function outputFileName = hereWriteFinalHtml( )
+                function outputFileName = here_writeFinalHtml( )
                     %(
                     outputFileName = fileNameBase + "." + source + ".html";
-                    locallyWriteTextFile(outputFileName, template);
+                    local_writeTextFile(outputFileName, template);
                     if opt.SaveJson
-                        locallyWriteTextFile(fileNameBase+"."+source+".report.json", reportJson);
-                        locallyWriteTextFile(fileNameBase+"."+source+".data.json", dataJson);
+                        local_writeTextFile(fileNameBase+"."+source+".report.json", reportJson);
+                        local_writeTextFile(fileNameBase+"."+source+".data.json", dataJson);
                     end
                     %)
                 end%
@@ -153,7 +164,7 @@ end
 % Local Functions
 %
 
-function content = locallyReadTextFile(fileName)
+function content = local_readTextFile(fileName)
     %(
     fid = fopen(fileName, "rt+", "native", "UTF-8");
     content = fread(fid, Inf, "*char", "native");
@@ -163,7 +174,7 @@ function content = locallyReadTextFile(fileName)
 end%
 
 
-function locallyWriteTextFile(fileName, content)
+function local_writeTextFile(fileName, content)
     %(
     fid = fopen(fileName, "wt+", "native", "UTF-8");
     if fid<0

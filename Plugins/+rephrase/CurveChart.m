@@ -1,15 +1,21 @@
 classdef CurveChart ...
-    < rephrase.Element ...
-    & rephrase.Container
+    < rephrase.Container ...
+    & rephrase.ChartMixin
 
-    properties % (Constant)
-        Type = rephrase.Type.CHART
+    properties
+        Type = rephrase.Type.CURVECHART
+    end
+
+
+    properties (Hidden)
+        Settings_Ticks
+        Settings_TickLabels
     end
 
 
     properties (Constant, Hidden)
         PossibleChildren = [ 
-            rephrase.Type.CURVE, ...
+            rephrase.Type.CURVE
             rephrase.Type.MARKER
         ]
     end
@@ -17,11 +23,10 @@ classdef CurveChart ...
 
     methods
         function this = CurveChart(title, ticks, tickLabels, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
-            this.Settings.ChartType = "Curve";
-            this.Settings.Ticks = ticks;
-            this.Settings.TickLabels = tickLabels;
+            this.Settings_Ticks = ticks;
+            this.Settings_TickLabels = tickLabels;
         end%
     end
 

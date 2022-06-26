@@ -1,5 +1,5 @@
 classdef (Abstract) Container ...
-    < matlab.mixin.Copyable
+    < rephrase.Element
 
     properties (Abstract, Hidden, Constant)
         PossibleChildren
@@ -9,14 +9,14 @@ classdef (Abstract) Container ...
     methods
         function this = add(this, children)
             for child = reshape(children, 1, [])
-                if ~any(child.Type==this.PossibleChildren)
-                    thisError = [
-                        "Rephrase:InvalidChild"
+                if ~ismember(child.Type, this.PossibleChildren)
+                    exception.error([
+                        "Rephrase"
                         "Rephrase element of type %s cannot be added as a child to %s"
-                    ];
-                    throw(exception.Base(thisError, 'error'), string(child.Type), string(this.Type));
+                    ], string(child.Type), string(this.Type));
                 end
                 child.Parent = this;
+                assignParentSettings(child);
                 this.Content{end+1} = child;
             end
         end%
@@ -42,12 +42,14 @@ classdef (Abstract) Container ...
         end%
 
 
-        function build(this, varargin)
+        function finalize(this)
+            assignParentSettings(this);
+            populateSettingsStruct(this);
             for i = 1 : numel(this.Content)
-                build(this.Content{i}, varargin{:});
-                this.DataRequests = [this.DataRequests, this.Content{i}.DataRequests];
+                finalize(this.Content{i});
+                this.DataRequests = union(this.DataRequests, this.Content{i}.DataRequests, 'stable');
             end
-            this.DataRequests = unique(this.DataRequests);
         end%
     end
 end
+

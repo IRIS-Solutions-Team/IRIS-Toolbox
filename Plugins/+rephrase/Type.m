@@ -6,8 +6,9 @@ classdef Type
         SECTION
         GRID
         TABLE
-        DIFFTABLE
         CHART
+        SERIESCHART
+        CURVECHART
         PAGER
 
         SERIES

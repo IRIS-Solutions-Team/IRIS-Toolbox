@@ -1,16 +1,14 @@
 classdef Text ...
-    < rephrase.Element ...
-    & rephrase.Terminus
+    < rephrase.Terminal
 
     properties % (Constant)
         Type = rephrase.Type.TEXT
     end
 
 
-    methods (Access=protected)
-        function this = Text(varargin)
-            this = this@rephrase.Element(varargin{:});
-        end%
+    properties (Hidden)
+        Settings_ParseFormulas (1, 1) logical = true
+        Settings_HighlightCodeBlocks (1, 1) logical = true
     end
 
 

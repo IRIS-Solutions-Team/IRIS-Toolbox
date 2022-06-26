@@ -1,9 +1,17 @@
 classdef Table ...
-    < rephrase.Element ...
-    & rephrase.Container
+    < rephrase.Container
 
     properties % (Constant)
         Type = rephrase.Type.TABLE
+    end
+
+
+    properties (Hidden)
+        Settings_Dates (1, :) string = string.empty(1, 0)
+        Settings_DateFormat (1, 1) string = "YYYY:MM"
+        Settings_NumDecimals (1, 1) double = 2
+        Settings_RowTitles (1, 1) struct = struct()
+        Settings_ShowRows (1, 1) struct = struct('Baseline', true, 'Alternative', true, 'Diff', true)
     end
 
 
@@ -18,15 +26,17 @@ classdef Table ...
 
     methods
         function this = Table(title, dates, varargin)
-            this = this@rephrase.Element(title, varargin{:});
-            this.Settings.Dates = double(dates);
+            this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
+            this.Settings_Dates = dates;
         end%
 
 
-        function build(this, varargin)
-            build@rephrase.Container(this, varargin{:});
-            this.Settings.Dates = dater.toIsoString(this.Settings.Dates, "m");
+        function this = set.Settings_Dates(this, x)
+            if isnumeric(x)
+                x = dater.toIsoString(reshape(double(x), 1, []), "mid");
+            end
+            this.Settings_Dates = textual.stringify(x);
         end%
     end
 end 

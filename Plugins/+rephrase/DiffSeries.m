@@ -1,7 +1,6 @@
 classdef DiffSeries ...
-    < rephrase.Element ...
-    & rephrase.Terminus ...
-    & rephrase.Data
+    < rephrase.Terminal ...
+    & rephrase.DataMixin
 
     properties % (Constant)
         Type = rephrase.Type.DIFFSERIES
@@ -10,14 +9,16 @@ classdef DiffSeries ...
 
     methods
         function this = DiffSeries(title, baseline, alternative, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Terminal(title, varargin{:});
             this.Content = {baseline, alternative};
         end%
 
 
-        function build(this, varargin)
-            this.Content{1} = buildSeriesData(this, this.Content{1});
-            this.Content{2} = buildSeriesData(this, this.Content{2});
+        function finalize(this, varargin)
+            finalize@rephrase.Terminal(this);
+            this.Content{1} = finalizeSeriesData(this, this.Content{1});
+            this.Content{2} = finalizeSeriesData(this, this.Content{2});
         end%
     end
 end 
+
