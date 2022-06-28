@@ -49,7 +49,7 @@ classdef SeriesChart ...
 
 
         function this = set.Settings_Highlight(this, x)
-            if ~iscell(x)
+            if isscalar(x) && ~iscell(x)
                 x = {x};
             end
             this.Settings_Highlight = x;

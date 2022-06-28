@@ -42,20 +42,19 @@ classdef Report ...
 
 
         function outputFileNames = build(this, fileName, reportDb, varargin)
-            %( Input parser
-            persistent pp
-            if isempty(pp)
-                pp = extend.InputParser('+rephrase/Report');
-                addRequired(pp, 'report', @(x) isa(x, 'rephrase.Report'));
-                addRequired(pp, 'fileName', @validate.stringScalar);
-                addOptional(pp, 'reportDb', [ ], @(x) isempty(x) || validate.databank(x));
-
-                addParameter(pp, 'SaveJson', false, @validate.logicalScalar);
-                addParameter(pp, 'Source', "Local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["Local", "Bundle", "Web"]))));
-                addParameter(pp, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
+            %(
+            persistent ip
+            if isempty(ip)
+                ip = inputParser();
+                addParameter(ip, 'SaveJson', false, @validate.logicalScalar);
+                addParameter(ip, 'Source', "Local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["Local", "Bundle", "Web"]))));
+                addParameter(ip, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
+                addParameter(ip, 'Context', struct());
+                addParameter(ip, 'ColorScheme', "");
             end
+            parse(ip, varargin{:});
+            opt = ip.Results;
             %)
-            opt = parse(pp, this, fileName, reportDb, varargin{:});
 
             fileNameBase = here_resolveFileNameBase(fileName);
 
@@ -65,6 +64,7 @@ classdef Report ...
 
             finalize(this);
             reportJson = string(jsonencode(this));
+            reportJson = local_substituteParameters(reportJson, opt.Context);
 
             %
             % Create data json
@@ -77,10 +77,13 @@ classdef Report ...
                 dataJson = string(jsonencode(serial.jsonFromDatabank(requestDb)));
             end
 
-            script = ...
-                "var $report=" + reportJson + ";" + string(newline( )) ...
-                + "var $databank=" + dataJson + ";" ...
-            ;
+            colorSchemeJson = local_readColorScheme(opt.ColorScheme);
+
+            script = join([
+                "var $report=" + reportJson + ";"
+                "var $databank=" + dataJson + ";"
+                "var $colorScheme=" + colorSchemeJson + ";"
+            ], string(newline()));
 
             outputFileNames = string.empty(1, 0);
             for source = reshape(lower(opt.Source), 1, [ ])
@@ -190,6 +193,32 @@ function local_writeTextFile(fileName, content)
         rethrow(mexp)
     end
     fclose(fid);
+    %)
+end%
+
+
+function reportJson = local_substituteParameters(reportJson, context)
+    %(
+    fields = databank.fieldNames(context);
+    if isempty(fields)
+        return
+    end
+    values = string.empty(1, 0);
+    for n = fields
+        values(1, end+1) = string(context.(n));
+    end
+    reportJson = replace(reportJson, "$("+fields+")", values);
+    %)
+end%
+
+
+function colorSchemeJson = local_readColorScheme(filename)
+    %(
+    if isempty(filename) || strlength(filename)==0
+        colorSchemeJson = "{}";
+        return
+    end
+    colorSchemeJson =  jsonencode(jsondecode(fileread(filename)));
     %)
 end%
 

@@ -1,6 +1,11 @@
 classdef (Abstract) DataMixin ...
     < matlab.mixin.Copyable
 
+    properties (Hidden)
+        Settings_Conditional 
+    end
+
+
     methods 
         function output = finalizeSeriesData(this, input)
             % Keep expression string and add to the data requests

@@ -4,7 +4,7 @@ classdef (Abstract) SettingsMixin ...
 
     properties (Constant, Hidden)
         SETTINGS_PREFIX = "Settings_"
-        CHILDREN = "Children"
+        EXCLUDE_SETTINS = ["Pass", ]
     end
 
 
@@ -59,6 +59,7 @@ classdef (Abstract) SettingsMixin ...
 
         function populateSettingsStruct(this)
             shortNames = this.SettingNames;
+            shortNames = setdiff(shortNames, this.EXCLUDE_SETTINS);
             longNames = this.SETTINGS_PREFIX+shortNames;
             for i = 1 : numel(longNames)
                 this.Settings.(shortNames(i)) = this.(longNames(i));
@@ -80,7 +81,7 @@ classdef (Abstract) SettingsMixin ...
                     continue
                 end
                 this.(this.SETTINGS_PREFIX+shortName) = parent.Settings_Pass{i+1};
-                this.SettingsInherited(1, end+1) = shortName;
+                this.SettingsInherited = union(this.SettingsInherited, shortName, 'stable');
             end
             this.Settings_Pass = [parent.Settings_Pass, this.Settings_Pass];
         end%

@@ -7,6 +7,11 @@ classdef DiffSeries ...
     end
 
 
+    properties (Hidden)
+        Settings_Units (1, 1) string = ""
+    end
+
+
     methods
         function this = DiffSeries(title, baseline, alternative, varargin)
             this = this@rephrase.Terminal(title, varargin{:});

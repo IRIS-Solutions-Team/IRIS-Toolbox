@@ -15,6 +15,7 @@ classdef Highlight ...
             this.StartDate = startDate;
             this.EndDate = endDate;
             assignOwnSettings(this, varargin{:});
+            populateSettingsStruct(this);
         end%
 
 
