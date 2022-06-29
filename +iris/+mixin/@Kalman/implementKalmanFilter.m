@@ -39,7 +39,6 @@ end
 timeVarying = [];
 initials = [];
 
-%{
 range = argin.FilterRange;
 [timeVarying, initials] = prepareLinearSystem( ...
     this, range, opt.Override, opt.Multiply, 1, true ...
@@ -49,8 +48,8 @@ range = argin.FilterRange;
 if ~isempty(timeVarying)
     opt.Override = [];
     opt.Multiply = [];
+    this = timeVarying;
 end
-%}
 
 
 [ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);

@@ -159,6 +159,7 @@ numPeriods = round(endRange - startRange + 1);
 
 
 opt.ReturnMedian = local_resolveMedianOption(this, opt.ReturnMedian);
+opt.FilterRange = range;
 
 
 %
