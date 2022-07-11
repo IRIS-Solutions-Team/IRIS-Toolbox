@@ -64,7 +64,7 @@ if this.LinearStatus
         solveInfo.ExitFlag = 1;
     end
     if update.Steady.Run
-        this = steadyLinear(this, update.Steady, variantRequested);
+        this = update.Steady.Func(this, variantRequested, update.Steady.Arguments{:});
         if needsRefresh
             this = refresh(this, variantRequested);
         end
@@ -81,7 +81,7 @@ else
     listSteadyErrors = { };
     checkSteadySuccess = true;
     if update.Steady.Run
-        [this, steadySuccess] = steadyNonlinear(this, update.Steady, variantRequested);
+        [this, steadySuccess] = update.Steady.Func(this, variantRequested, update.Steady.Arguments{:});
         if needsRefresh
             this = refresh(this, variantRequested);
         end

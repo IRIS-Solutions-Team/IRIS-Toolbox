@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function  [this, success, outputInfo] = steadyLinear(this, options, variantsRequested)
+function  [this, success, outputInfo] = steadyLinear(this, variantsRequested, options)
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 STEADY_TOLERANCE = this.Tolerance.Steady;
@@ -88,6 +88,10 @@ end
 if needsRefresh
     this = refresh(this, variantsRequested);
 end
+
+% Reset steady state for time trend
+pos = getPosTimeTrend(this.Quantity);
+this.Variant.Values(1, pos, :) = complex(0, 1);
 
 return
 

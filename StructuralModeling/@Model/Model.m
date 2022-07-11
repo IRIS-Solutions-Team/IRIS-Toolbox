@@ -353,17 +353,19 @@ classdef Model ...
         varargout = prepareHashEquations(varargin)
         varargout = prepareLinearSystem(varargin)
         varargout = prepareRectangular(varargin)
-        varargout = simulateFrames(varargin)
 
         function this = removeUserEquations(this)
             this.Equation = removeUserEquations(this.Equation);
         end%
+
+        varargout = simulateFrames(varargin)
+        varargout = steadyUser(varargin)
     end % methods
 
 
     methods (Access=protected, Hidden)
         varargout = varyParams(varargin)
-    end % methods
+    end
 
 
     methods (Static, Hidden) % Simulation methods

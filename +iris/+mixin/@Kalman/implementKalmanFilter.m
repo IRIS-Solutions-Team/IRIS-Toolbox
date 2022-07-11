@@ -25,440 +25,439 @@
 
 function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
 
-inputData = argin.InputData;
-outputData = argin.OutputData;
-outputDataAssignFunc = argin.InternalAssignFunc;
-opt = argin.Options;
+    inputData = argin.InputData;
+    outputData = argin.OutputData;
+    outputDataAssignFunc = argin.InternalAssignFunc;
+    opt = argin.Options;
 
 
-if ~isfield(opt, 'Initials') && isfield(opt, 'Init')
-    opt.Initials = opt.Init;
-end
-
-
-timeVarying = [];
-initials = [];
-
-range = argin.FilterRange;
-[timeVarying, initials] = prepareLinearSystem( ...
-    this, range, opt.Override, opt.Multiply, 1, true ...
-    , opt.Steady, opt.CheckSteady, opt.Solve ...
-);
-
-if ~isempty(timeVarying)
-    opt.Override = [];
-    opt.Multiply = [];
-    this = timeVarying;
-end
-
-
-[ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);
-nv = countVariants(this);
-
-% Transition variables marked as observables
-if nz>0
-    ny = nz;
-end
-
-% Add one presample period to data
-numPages = size(inputData, 3);
-inputData = [nan(size(inputData, 1), 1, numPages), inputData];
-numExtendedPeriods = size(inputData, 2);
-
-%--------------------------------------------------------------------------
-
-s = struct();
-s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
-s.DIFFUSE_SCALE = opt.DiffuseScale;
-s.OBJ_FUNC_PENALTY = this.OBJ_FUNC_PENALTY;
-
-s.Ahead = opt.Ahead;
-s.IsObjOnly = nargout<=1;
-s.NumExtdPeriods = numExtendedPeriods;
-s.NumY  = ny;
-s.NumXi = nxi;
-s.NumB  = nb;
-s.NumF  = nf;
-s.NumE  = ne;
-s.NumG  = ng;
-
-s.NeedsSimulate = ~isequal(opt.Simulate, false);
-
-% Out-of-lik params cannot be used with ~opt.EvalTrends
-numOutlik = length(opt.Outlik);
-
-% Struct with currently processed information. Initialise the invariant
-% fields
-s.ny = ny;
-s.nb = nb;
-s.nf = nf;
-s.ne = ne;
-s.NumOutlik = numOutlik;
-
-% Add pre-sample to objective function range and deterministic time trend
-s.InxObjFunc = [false, opt.ObjFuncRange];
-
-% Do not adjust the option `'lastSmooth='` -- see comments in `loglikopt`
-s.LastSmooth = opt.LastSmooth;
-
-% Override shock means
-overrideMean = opt.OverrideMean;
-mayberOverrideMean = ~isempty(overrideMean) && ~all(overrideMean(:)==0 | isnan(overrideMean(:)));
-requiredForward = 0;
-if mayberOverrideMean
-    overrideMean(isnan(overrideMean)) = 0;
-    % Add pre-sample
-    overrideMean = [zeros(ne, 1, size(overrideMean, 3)), overrideMean];
-    % Split into anticipated and unanticipated
-    overrideMeanAnticipated = opt.AnticipatedFunc(overrideMean);
-    overrideMeanUnanticipated = opt.UnanticipatedFunc(overrideMean);
-    overrideMeanAnticipated(isnan(overrideMeanAnticipated)) = 0;
-    overrideMeanUnanticipated(isnan(overrideMeanUnanticipated)) = 0;
-    % Anticipated shocks and forward expansion
-    inx = any(any(overrideMeanAnticipated~=0, 3), 1);
-    requiredForward = max([0, find(inx, 1, 'last')]) - 2;
-end
-
-% Total number of runs
-numRuns = max(numPages, nv);
-s.nPred = max(numRuns, s.Ahead);
-
-% Pre-allocate output data
-if ~s.IsObjOnly
-    requestOutp();
-end
-
-% Pre-allocate the non-hdata output arguments
-nObj = 1;
-if opt.ReturnObjFuncContribs
-    nObj = numExtendedPeriods;
-end
-obj = nan(nObj, numRuns);
-
-
-if ~s.IsObjOnly
-    % Regular (non-hdata) output arguments
-    regOutp = struct();
-    regOutp.F = nan(ny, ny, numExtendedPeriods, numRuns);
-    regOutp.Pe = nan(ny, numExtendedPeriods, s.nPred);
-    regOutp.V = nan(1, numRuns);
-    regOutp.Delta = nan(numOutlik, numRuns);
-    regOutp.PDelta = nan(numOutlik, numOutlik, numRuns);
-    regOutp.SampleCov = nan(ne, ne, numRuns);
-    regOutp.NLoop = numRuns;
-    regOutp.Initials = { nan(nb, 1, numRuns), nan(nb, nb, numRuns), zeros(nb, nb, numRuns) };
-    regOutp.U = cell(1, nv);
-end
-
-%
-% Main loop
-%
-
-if ~s.IsObjOnly && opt.Progress
-    progress = ProgressBar('[IrisToolbox] Kalman.implementKalmanFilter');
-end
-
-inxSolutionAvailable = true(1, nv);
-inxValidFactor = true(1, numRuns);
-
-
-
-%=========================================================================
-for run = 1 : numRuns
-    if s.NeedsSimulate
-        prepareOnly = true;
-        s.Simulate = simulateFrames(this, opt.Simulate, run, prepareOnly);
+    if ~isfield(opt, 'Initials') && isfield(opt, 'Init')
+        opt.Initials = opt.Init;
     end
 
-    %
-    % Next data
-    % Measurement and exogenous variables, and initial observations of
-    % measurement variables. Deterministic trends will be subtracted later on.
-    %
-    s.y1 = inputData(1:ny, :, min(run, end));
-    s.g  = inputData(ny+(1:ng), :, min(run, end));
 
-    s.IsOverrideMean = false;
+    timeVarying = [];
+    initials = [];
+
+    range = double(argin.FilterRange);
+    [timeVarying, initials] = prepareLinearSystem( ...
+        this, range, opt.Override, opt.Multiply, 1, true ...
+        , opt.Steady, opt.CheckSteady, opt.Solve ...
+    );
+
+    if ~isempty(timeVarying)
+        opt.Override = [];
+        opt.Multiply = [];
+        this = timeVarying;
+    end
+
+    [ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);
+    nv = countVariants(this);
+
+    % Transition variables marked as observables
+    if nz>0
+        ny = nz;
+    end
+
+    % Add one presample period to data
+    numPages = size(inputData, 3);
+    inputData = [nan(size(inputData, 1), 1, numPages), inputData];
+    numExtendedPeriods = size(inputData, 2);
+
+    %--------------------------------------------------------------------------
+
+    s = struct();
+    s.MEASUREMENT_MATRIX_TOLERANCE = this.MEASUREMENT_MATRIX_TOLERANCE;
+    s.DIFFUSE_SCALE = opt.DiffuseScale;
+    s.OBJ_FUNC_PENALTY = this.OBJ_FUNC_PENALTY;
+
+    s.Ahead = opt.Ahead;
+    s.IsObjOnly = nargout<=1;
+    s.NumExtdPeriods = numExtendedPeriods;
+    s.NumY  = ny;
+    s.NumXi = nxi;
+    s.NumB  = nb;
+    s.NumF  = nf;
+    s.NumE  = ne;
+    s.NumG  = ng;
+
+    s.NeedsSimulate = ~isequal(opt.Simulate, false);
+
+    % Out-of-lik params cannot be used with ~opt.EvalTrends
+    numOutlik = length(opt.Outlik);
+
+    % Struct with currently processed information. Initialise the invariant
+    % fields
+    s.ny = ny;
+    s.nb = nb;
+    s.nf = nf;
+    s.ne = ne;
+    s.NumOutlik = numOutlik;
+
+    % Add pre-sample to objective function range and deterministic time trend
+    s.InxObjFunc = [false, opt.ObjFuncRange];
+
+    % Do not adjust the option `'lastSmooth='` -- see comments in `loglikopt`
+    s.LastSmooth = opt.LastSmooth;
+
+    % Override shock means
+    overrideMean = opt.OverrideMean;
+    mayberOverrideMean = ~isempty(overrideMean) && ~all(overrideMean(:)==0 | isnan(overrideMean(:)));
+    requiredForward = 0;
     if mayberOverrideMean
-        s.OverrideMean = overrideMean(:, :, min(run, end));
-        s.VaryingU = overrideMeanUnanticipated(:, :, min(run, end));
-        s.VaryingE = overrideMeanAnticipated(:, :, min(run, end));
-        s.LastVaryingU = max([0, find(any(s.VaryingU, 1), 1, 'last')]);
-        s.LastVaryingE = max([0, find(any(s.VaryingE, 1), 1, 'last')]);
-        s.IsOverrideMean = s.LastVaryingU>0 || s.LastVaryingE>0;
+        overrideMean(isnan(overrideMean)) = 0;
+        % Add pre-sample
+        overrideMean = [zeros(ne, 1, size(overrideMean, 3)), overrideMean];
+        % Split into anticipated and unanticipated
+        overrideMeanAnticipated = opt.AnticipatedFunc(overrideMean);
+        overrideMeanUnanticipated = opt.UnanticipatedFunc(overrideMean);
+        overrideMeanAnticipated(isnan(overrideMeanAnticipated)) = 0;
+        overrideMeanUnanticipated(isnan(overrideMeanUnanticipated)) = 0;
+        % Anticipated shocks and forward expansion
+        inx = any(any(overrideMeanAnticipated~=0, 3), 1);
+        requiredForward = max([0, find(inx, 1, 'last')]) - 2;
+    end
+
+    % Total number of runs
+    numRuns = max(numPages, nv);
+    s.nPred = max(numRuns, s.Ahead);
+
+    % Pre-allocate output data
+    if ~s.IsObjOnly
+        requestOutp();
+    end
+
+    % Pre-allocate the non-hdata output arguments
+    nObj = 1;
+    if opt.ReturnObjFuncContribs
+        nObj = numExtendedPeriods;
+    end
+    obj = nan(nObj, numRuns);
+
+
+    if ~s.IsObjOnly
+        % Regular (non-hdata) output arguments
+        regOutp = struct();
+        regOutp.F = nan(ny, ny, numExtendedPeriods, numRuns);
+        regOutp.Pe = nan(ny, numExtendedPeriods, s.nPred);
+        regOutp.V = nan(1, numRuns);
+        regOutp.Delta = nan(numOutlik, numRuns);
+        regOutp.PDelta = nan(numOutlik, numOutlik, numRuns);
+        regOutp.SampleCov = nan(ne, ne, numRuns);
+        regOutp.NLoop = numRuns;
+        regOutp.Initials = { nan(nb, 1, numRuns), nan(nb, nb, numRuns), zeros(nb, nb, numRuns) };
+        regOutp.U = cell(1, nv);
     end
 
     %
-    % Next model solution
+    % Main loop
     %
-    v = min(run, nv);
-    if run<=nv
-        %
-        % Get the v-th Kalman system
-        %
-        [ ...
-            T, R, k, s.Z, s.H, d, s.U, Zb, ...
-            s.InxV, s.InxW, s.NumUnitRoots, s.InxInit ...
-        ] = getIthKalmanSystem(this, v, requiredForward);
+
+    if ~s.IsObjOnly && opt.Progress
+        progress = ProgressBar('[IrisToolbox] Kalman.implementKalmanFilter');
+    end
+
+    inxSolutionAvailable = true(1, nv);
+    inxValidFactor = true(1, numRuns);
+
+
+
+    %=========================================================================
+    for run = 1 : numRuns
+        if s.NeedsSimulate
+            prepareOnly = true;
+            s.Simulate = simulateFrames(this, opt.Simulate, run, prepareOnly);
+        end
 
         %
-        % Transition variables marked for measurement
+        % Next data
+        % Measurement and exogenous variables, and initial observations of
+        % measurement variables. Deterministic trends will be subtracted later on.
         %
-        if nz>0
-            if isempty(s.U)
-                s.Z = Zb;
-            else
-                numZ = max(size(Zb, 3), size(s.U, 3));
-                s.Z = nan(ny, nb, numZ);
-                for ii = 1 : numZ
-                    s.Z(:, :, ii) = Zb(:, :, min(ii, end))*s.U(:, :, min(ii, end));
+        s.y1 = inputData(1:ny, :, min(run, end));
+        s.g  = inputData(ny+(1:ng), :, min(run, end));
+
+        s.IsOverrideMean = false;
+        if mayberOverrideMean
+            s.OverrideMean = overrideMean(:, :, min(run, end));
+            s.VaryingU = overrideMeanUnanticipated(:, :, min(run, end));
+            s.VaryingE = overrideMeanAnticipated(:, :, min(run, end));
+            s.LastVaryingU = max([0, find(any(s.VaryingU, 1), 1, 'last')]);
+            s.LastVaryingE = max([0, find(any(s.VaryingE, 1), 1, 'last')]);
+            s.IsOverrideMean = s.LastVaryingU>0 || s.LastVaryingE>0;
+        end
+
+        %
+        % Next model solution
+        %
+        v = min(run, nv);
+        if run<=nv
+            %
+            % Get the v-th Kalman system
+            %
+            [ ...
+                T, R, k, s.Z, s.H, d, s.U, Zb, ...
+                s.InxV, s.InxW, s.NumUnitRoots, s.InxInit ...
+            ] = getIthKalmanSystem(this, v, requiredForward);
+
+            %
+            % Transition variables marked for measurement
+            %
+            if nz>0
+                if isempty(s.U)
+                    s.Z = Zb;
+                else
+                    numZ = max(size(Zb, 3), size(s.U, 3));
+                    s.Z = nan(ny, nb, numZ);
+                    for ii = 1 : numZ
+                        s.Z(:, :, ii) = Zb(:, :, min(ii, end))*s.U(:, :, min(ii, end));
+                    end
                 end
+                s.H = zeros(nz, ne);
+                s.d = zeros(nz, 1);
             end
-            s.H = zeros(nz, ne);
-            s.d = zeros(nz, 1);
-        end
 
-        s.Tf = T(1:nf, :, :);
-        s.Ta = T(nf+1:end, :, :);
+            s.Tf = T(1:nf, :, :);
+            s.Ta = T(nf+1:end, :, :);
 
-        % Keep forward expansion for computing the effect of tunes on shock
-        % means. Cut off the expansion within subfunctions.
-        s.Rf = R(1:nf, 1:ne, :);
-        s.Ra = R(nf+1:end, 1:ne, :);
-        if opt.Deviation
-            s.ka = [];
-            s.kf = [];
-            s.d  = [];
-        else
-            s.kf = k(1:nf, :);
-            s.ka = k(nf+1:end, :);
-            s.d  = d(:, :);
-        end
-
-        s = here_getReducedFormCovariance(this, v, s, opt);
-    end
-
-    % Stop immediately if solution is not available; report NaN solutions
-    % post mortem
-    inxSolutionAvailable(run) = all(isfinite(T(:)));
-    if ~inxSolutionAvailable(run)
-        continue
-    end
-
-
-    %
-    % Measurement trends
-    %
-    % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
-    %
-    if nz==0 && (numOutlik>0 || opt.EvalTrends)
-        [s.D, s.X] = evalTrendEquations(this, opt.Outlik, s.g, run);
-    else
-        s.D = [];
-        s.X = zeros(ny, 0, numExtendedPeriods);
-    end
-    % Subtract fixed deterministic trends from measurement variables
-    if ~isempty(s.D)
-        s.y1 = s.y1 - s.D;
-    end
-
-
-    % __Next Tunes on the Means of the Shocks__
-    % Add the effect of the tunes to the constant vector; recompute the
-    % effect whenever the tunes have changed or the model solution has changed
-    % or both.
-    %
-    % The std dev of the tuned shocks remain unchanged and hence the
-    % filtered shocks can differ from its tunes (unless the user specifies zero
-    % std dev).
-    if s.IsOverrideMean
-        [s.d, s.ka, s.kf] = here_overrideMean(s, R, opt);
-    end
-
-    % Index of available observations.
-    s.yindex = ~isnan(s.y1);
-    s.LastObs = max([ 0, find( any(s.yindex, 1), 1, 'last' ) ]);
-    s.jyeq = [false, all(s.yindex(:, 2:end)==s.yindex(:, 1:end-1), 1) ];
-
-
-    %
-    % Initialize mean and MSE
-    % Determine number of init cond estimated as fixed unknowns
-    %
-    if ~isempty(initials)
-        s.InitMean = initials{1};
-        s.InitMseReg = initials{2};
-        s.InitMseInf = initials{3};
-        s.NumEstimInit = initials{4};
-    else
-        if iscell(opt.Initials)
-            init__ = cell(size(opt.Initials));
-            for i = 1 : numel(init__)
-                init__{i} = double(opt.Initials{i}(:, :, min(end, run)));
+            % Keep forward expansion for computing the effect of tunes on shock
+            % means. Cut off the expansion within subfunctions.
+            s.Rf = R(1:nf, 1:ne, :);
+            s.Ra = R(nf+1:end, 1:ne, :);
+            if opt.Deviation
+                s.ka = [];
+                s.kf = [];
+                s.d  = [];
+            else
+                s.kf = k(1:nf, :);
+                s.ka = k(nf+1:end, :);
+                s.d  = d(:, :);
             end
+
+            s = here_getReducedFormCovariance(this, v, s, opt);
+        end
+
+        % Stop immediately if solution is not available; report NaN solutions
+        % post mortem
+        inxSolutionAvailable(run) = all(isfinite(T(:)));
+        if ~inxSolutionAvailable(run)
+            continue
+        end
+
+
+        %
+        % Measurement trends
+        %
+        % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
+        %
+        if nz==0 && (numOutlik>0 || opt.EvalTrends)
+            [s.D, s.X] = evalTrendEquations(this, opt.Outlik, s.g, run);
         else
-            init__ = opt.Initials;
+            s.D = [];
+            s.X = zeros(ny, 0, numExtendedPeriods);
         end
-        if isnumeric(opt.UnitRootInitials)
-            initUnit__ = double(opt.UnitRootInitials(:, :, min(end, run)));
+        % Subtract fixed deterministic trends from measurement variables
+        if ~isempty(s.D)
+            s.y1 = s.y1 - s.D;
+        end
+
+
+        % __Next Tunes on the Means of the Shocks__
+        % Add the effect of the tunes to the constant vector; recompute the
+        % effect whenever the tunes have changed or the model solution has changed
+        % or both.
+        %
+        % The std dev of the tuned shocks remain unchanged and hence the
+        % filtered shocks can differ from its tunes (unless the user specifies zero
+        % std dev).
+        if s.IsOverrideMean
+            [s.d, s.ka, s.kf] = here_overrideMean(s, R, opt);
+        end
+
+        % Index of available observations.
+        s.yindex = ~isnan(s.y1);
+        s.LastObs = max([ 0, find( any(s.yindex, 1), 1, 'last' ) ]);
+        s.jyeq = [false, all(s.yindex(:, 2:end)==s.yindex(:, 1:end-1), 1) ];
+
+
+        %
+        % Initialize mean and MSE
+        % Determine number of init cond estimated as fixed unknowns
+        %
+        if ~isempty(initials)
+            s.InitMean = initials{1};
+            s.InitMseReg = initials{2};
+            s.InitMseInf = initials{3};
+            s.NumEstimInit = initials{4};
         else
-            initUnit__ = opt.UnitRootInitials;
+            if iscell(opt.Initials)
+                init__ = cell(size(opt.Initials));
+                for i = 1 : numel(init__)
+                    init__{i} = double(opt.Initials{i}(:, :, min(end, run)));
+                end
+            else
+                init__ = opt.Initials;
+            end
+            if isnumeric(opt.UnitRootInitials)
+                initUnit__ = double(opt.UnitRootInitials(:, :, min(end, run)));
+            else
+                initUnit__ = opt.UnitRootInitials;
+            end
+            s = iris.mixin.Kalman.initialize(s, init__, initUnit__);
         end
-        s = iris.mixin.Kalman.initialize(s, init__, initUnit__);
-    end
 
-    %
-    % Prediction step
-    %
+        %
+        % Prediction step
+        %
 
-    % Run prediction error decomposition and evaluate user-requested
-    % objective function.
-    [obj(:, run), s] = iris.mixin.Kalman.predictErrorDecomposition(s, opt);
-    inxValidFactor(run) = abs(s.V)>this.VARIANCE_FACTOR_TOLERANCE;
+        % Run prediction error decomposition and evaluate user-requested
+        % objective function.
+        [obj(:, run), s] = iris.mixin.Kalman.predictErrorDecomposition(s, opt);
+        inxValidFactor(run) = abs(s.V)>this.VARIANCE_FACTOR_TOLERANCE;
 
-    % Return immediately if only the value of the objective function is
-    % requested.
-    if s.IsObjOnly
-        continue
-    end
+        % Return immediately if only the value of the objective function is
+        % requested.
+        if s.IsObjOnly
+            continue
+        end
 
-    % Prediction errors unadjusted (uncorrected) for estimated init cond
-    % and DTrends; these are needed for contributions.
-    if s.returnContribs
-        s.peUnc = s.pe;
-    end
+        % Prediction errors unadjusted (uncorrected) for estimated init cond
+        % and DTrends; these are needed for contributions.
+        if s.returnContribs
+            s.peUnc = s.pe;
+        end
 
-    % Correct prediction errors for estimated initial conditions and DTrends
-    % parameters.
-    if s.NumEstimInit>0 || numOutlik>0
-        est = [s.delta; s.init];
-        if s.storePredict
-            [s.pe, s.a0, s.y0, s.ydelta] = iris.mixin.Kalman.correct(s, s.pe, s.a0, s.y0, est, s.d);
+        % Correct prediction errors for estimated initial conditions and DTrends
+        % parameters.
+        if s.NumEstimInit>0 || numOutlik>0
+            est = [s.delta; s.init];
+            if s.storePredict
+                [s.pe, s.a0, s.y0, s.ydelta] = iris.mixin.Kalman.correct(s, s.pe, s.a0, s.y0, est, s.d);
+            else
+                s.pe = iris.mixin.Kalman.correct(s, s.pe, [], [], est, []);
+            end
+        end
+
+
+        %
+        % Add k-step-ahead predictions for alpha
+        %
+        if s.Ahead>1 && s.storePredict
+            s = here_ahead(s);
+        end
+
+
+        % Prediction step for xif and xib
+        if s.retPredMse || s.retPredStd || s.retFilter || s.retSmooth
+            s = here_predictXifMse(s);
+        end
+        if s.retPred || s.retFilter || s.retSmooth
+            % Predictions for xif have been already filled in in non-linear predictions
+            if ~s.NeedsSimulate
+                s = here_getPredXfMean(s);
+            end
+            % Predictions for xib
+            s = here_predictXibMean(s);
+        end
+
+
+        %
+        % Updating step
+        %
+        if s.retFilter
+            if s.retFilterStd || s.retFilterMse
+                s = here_getUpdateMse(s);
+            end
+            s = here_getUpdateMean(s);
+        end
+
+
+        %
+        % Smoother
+        %
+        if s.retSmooth
+            if s.retSmoothStd || s.retSmoothMse
+                s = here_getSmoothMse(s);
+            end
+            s = here_getSmoothMean(s);
+        end
+
+
+        %
+        % Contributions of measurement variables
+        %
+        if s.returnContribs
+            s = iris.mixin.Kalman.contributions(s);
+        end
+
+
+        %
+        % Return Requested Data
+        % Columns in `pe` to be filled.
+        %
+        if s.Ahead>1
+            predCols = 1 : s.Ahead;
         else
-            s.pe = iris.mixin.Kalman.correct(s, s.pe, [], [], est, []);
+            predCols = run;
+        end
+
+        %
+        % Populate hdata output arguments
+        %
+        if s.retPred
+            here_returnPred();
+        end
+        if s.retFilter
+            returnUpdate();
+        end
+        s.SampleCov = NaN;
+        if s.retSmooth
+            here_returnSmooth();
+        end
+
+        %
+        % Populate regular (non-hdata) output arguments
+        %
+        regOutp.F(:, :, :, run) = s.F*s.V;
+        regOutp.Pe(:, :, predCols) = permute(s.pe, [1, 3, 4, 2]);
+        regOutp.V(run) = s.V;
+        regOutp.Delta(:, run) = s.delta;
+        regOutp.PDelta(:, :, run) = s.PDelta*s.V;
+        regOutp.SampleCov(:, :, run) = s.SampleCov;
+        regOutp.Initials{1}(:, :, run) = s.InitMean;
+        regOutp.Initials{2}(:, :, run) = s.InitMseReg;
+        regOutp.U{run} = s.U;
+        if ~isempty(s.InitMseInf)
+            regOutp.Initials{3}(:, :, run) = s.InitMseInf;
+        end
+
+
+        %
+        % Update progress bar
+        %
+        if opt.Progress
+            update(progress, run/numRuns);
         end
     end
+    %=========================================================================
 
-
-    %
-    % Add k-step-ahead predictions for alpha
-    %
-    if s.Ahead>1 && s.storePredict
-        s = here_ahead(s);
+    if opt.ReturnObjFuncContribs
+        obj = obj(2:end, :);
     end
 
-
-    % Prediction step for xif and xib
-    if s.retPredMse || s.retPredStd || s.retFilter || s.retSmooth
-        s = here_predictXifMse(s);
-    end
-    if s.retPred || s.retFilter || s.retSmooth
-        % Predictions for xif have been already filled in in non-linear predictions
-        if ~s.NeedsSimulate
-            s = here_getPredXfMean(s);
-        end
-        % Predictions for xib
-        s = here_predictXibMean(s);
+    if ~all(inxSolutionAvailable)
+        thisWarning = { 'Kalman:SystemMatricesWithNaN'
+                        'Some of the Kalman system matrices are NaNs in %s' };
+        throw( exception.Base(thisWarning, 'warning'), ...
+               exception.Base.alt2str(~inxSolutionAvailable) ); %#ok<GTARG>
     end
 
-
-    %
-    % Updating step
-    %
-    if s.retFilter
-        if s.retFilterStd || s.retFilterMse
-            s = here_getUpdateMse(s);
-        end
-        s = here_getUpdateMean(s);
+    if any(~inxValidFactor)
+        thisWarning = { 'Kalman:ZeroVarianceFactors'
+                        'Variance-covariance scale factor is ill-determined in %s '};
+        throw( exception.Base(thisWarning, 'warning'), ...
+               exception.Base.alt2str(~inxValidFactor) ); %#ok<GTARG>
     end
-
-
-    %
-    % Smoother
-    %
-    if s.retSmooth
-        if s.retSmoothStd || s.retSmoothMse
-            s = here_getSmoothMse(s);
-        end
-        s = here_getSmoothMean(s);
-    end
-
-
-    %
-    % Contributions of measurement variables
-    %
-    if s.returnContribs
-        s = iris.mixin.Kalman.contributions(s);
-    end
-
-
-    %
-    % Return Requested Data
-    % Columns in `pe` to be filled.
-    %
-    if s.Ahead>1
-        predCols = 1 : s.Ahead;
-    else
-        predCols = run;
-    end
-
-    %
-    % Populate hdata output arguments
-    %
-    if s.retPred
-        here_returnPred();
-    end
-    if s.retFilter
-        returnUpdate();
-    end
-    s.SampleCov = NaN;
-    if s.retSmooth
-        here_returnSmooth();
-    end
-
-    %
-    % Populate regular (non-hdata) output arguments
-    %
-    regOutp.F(:, :, :, run) = s.F*s.V;
-    regOutp.Pe(:, :, predCols) = permute(s.pe, [1, 3, 4, 2]);
-    regOutp.V(run) = s.V;
-    regOutp.Delta(:, run) = s.delta;
-    regOutp.PDelta(:, :, run) = s.PDelta*s.V;
-    regOutp.SampleCov(:, :, run) = s.SampleCov;
-    regOutp.Initials{1}(:, :, run) = s.InitMean;
-    regOutp.Initials{2}(:, :, run) = s.InitMseReg;
-    regOutp.U{run} = s.U;
-    if ~isempty(s.InitMseInf)
-        regOutp.Initials{3}(:, :, run) = s.InitMseInf;
-    end
-
-
-    %
-    % Update progress bar
-    %
-    if opt.Progress
-        update(progress, run/numRuns);
-    end
-end
-%=========================================================================
-
-if opt.ReturnObjFuncContribs
-    obj = obj(2:end, :);
-end
-
-if ~all(inxSolutionAvailable)
-    thisWarning = { 'Kalman:SystemMatricesWithNaN'
-                    'Some of the Kalman system matrices are NaNs in %s' };
-    throw( exception.Base(thisWarning, 'warning'), ...
-           exception.Base.alt2str(~inxSolutionAvailable) ); %#ok<GTARG>
-end
-
-if any(~inxValidFactor)
-    thisWarning = { 'Kalman:ZeroVarianceFactors'
-                    'Variance-covariance scale factor is ill-determined in %s '};
-    throw( exception.Base(thisWarning, 'warning'), ...
-           exception.Base.alt2str(~inxValidFactor) ); %#ok<GTARG>
-end
 
 return
 

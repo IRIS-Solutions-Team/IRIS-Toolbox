@@ -4,7 +4,7 @@ classdef Steady ...
     properties
         PreviousVariant (1, 1) logical % Use values from previous variant as initial condition
         Warning (1, 1) logical % Throw warnings
-        CheckSteady (1, :) cell
+        % CheckSteady (1, :) cell
     end
 
 

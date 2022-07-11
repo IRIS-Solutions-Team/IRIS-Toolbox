@@ -240,7 +240,9 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
 
         varargout = steady(varargin)
-        varargout = sstate(varargin)
+        function varargout = sstate(this, varargin)
+            [varargout{1:nargout}] = steady(this, varargin{:});
+        end%
 
 
         varargout = steadydb(varargin)
@@ -453,6 +455,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = solveFirstOrder(varargin)
         varargout = steadyLinear(varargin)
         varargout = steadyNonlinear(varargin)
+        varargout = steadyUserFunc(varargin)
         varargout = systemFirstOrder(varargin)
 
         varargout = implementCheckSteady(varargin)

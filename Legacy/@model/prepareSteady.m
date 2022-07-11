@@ -32,6 +32,7 @@ function output = prepareSteady(this, varargin)
         addParameter(parserLinear, 'Warning', true, @(x) isequal(x, true) || isequal(x, false));
         addParameter(parserLinear, "Silent", false);
         addParameter(parserLinear, "Run", true);
+        addParameter(parserLinear, "UserFunc", []);
 
         % Nonlinear
         parserNonlinear = extend.InputParser();
@@ -49,7 +50,8 @@ function output = prepareSteady(this, varargin)
         addParameter(parserNonlinear, 'ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
         addParameter(parserNonlinear, "Silent", false);
         addParameter(parserNonlinear, "Run", true);
-        addParameter(parserNonlinear, "CheckSteady", {"Run", false});
+        % addParameter(parserNonlinear, "CheckSteady", {"Run", false});
+        addParameter(parserNonlinear, "UserFunc", []);
 
         % Blazer related options
         addParameter(parserNonlinear, {'Blocks', 'Block'}, @auto, @local_validateBlocks);
@@ -62,36 +64,57 @@ function output = prepareSteady(this, varargin)
     end
     %)
 
+    %
+    % Parse options depending on linear/nonlinear
+    %
+    if this.LinearStatus
+        parser = parserLinear;
+    else
+        parser = parserNonlinear;
+    end
+    options = parse(parserNonlinear, this, varargin{:});
+
+    output = struct();
+    output.Run = options.Run;
+    output.Func = [];
+    output.Arguments = {};
+
+    if ~options.Run
+        return
+    end
+
+
+    if isa(options.UserFunc, 'function_handle')
+        %
+        % __User supplied steady solver__
+        %
+        output.Func = @steadyUser;
+        output.Arguments = {options.UserFunc};
+        return
+    end
+
+
     if this.LinearStatus
         %
-        % __Linear steady state solver__
+        % __Linear steady solver__
         %
-
-        options = parse(parserLinear, this, varargin{:});
-
         if islogical(options.Solve)
             output.Solve = {"run", options.Solve};
         end
         options.Solve = prepareSolve(this, options.Solve{:});
 
-        output = options;
+        output.Func = @steadyLinear;
+        output.Arguments = {options};
+        return
 
     else
         %
-        % __Nonlinear steady state solver__
+        % __Nonlinear steady solver__
         %
         % Capture obsolete syntax with solver options directly passed among other
         % sstate options and not as suboptions through SolverOptions=; these are only used
         % if SolverOptions= is a string
         %
-
-        options = parse(parserNonlinear, this, varargin{:});
-
-        if ~options.Run
-            output = options;
-            return
-        end
-
         if isempty(options.Growth)
             options.Growth = this.GrowthStatus;
         end
@@ -113,9 +136,12 @@ function output = prepareSteady(this, varargin)
         blazer.NanInit = options.NanInit;
         blazer.PreviousVariant = options.PreviousVariant;
         blazer.Warning = options.Warning;
-        blazer.CheckSteady = options.CheckSteady;
+        % blazer.CheckSteady = options.CheckSteady;
 
-        output = blazer;
+        output.Func = @steadyNonlinear;
+        output.Arguments = {blazer};
+        return
+
     end
 
 end%

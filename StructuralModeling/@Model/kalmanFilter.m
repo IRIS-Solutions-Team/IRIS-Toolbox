@@ -21,94 +21,94 @@ end
 % >=R2019b
 
 
-baseRange = double(baseRange);
-nv = countVariants(this);
-[ny, ~, nb, nf, ~, ~] = sizeSolution(this.Vector);
+    baseRange = double(baseRange);
+    nv = countVariants(this);
+    [ny, ~, nb, nf, ~, ~] = sizeSolution(this.Vector);
 
 
-%
-% Resolve Kalman filter options
-%
-opt = prepareKalmanOptions2(this, baseRange, varargin{:});
+    %
+    % Resolve Kalman filter options
+    %
+    opt = prepareKalmanOptions2(this, baseRange, varargin{:});
 
 
-%
-% Get measurement and exogenous variables
-%
-inputArray = local_prepareInputArray(this, inputDb, baseRange);
-numPages = size(inputArray, 3);
+    %
+    % Get measurement and exogenous variables
+    %
+    inputArray = local_prepareInputArray(this, inputDb, baseRange);
+    numPages = size(inputArray, 3);
 
 
-%
-% Check option conflicts
-%
-here_checkConflicts();
+    %
+    % Check option conflicts
+    %
+    here_checkConflicts();
 
 
-nz = nnz(this.Quantity.IxObserved);
-extendedStart = dater.plus(baseRange(1), -1);
-extendedEnd = baseRange(end);
-extRange = dater.colon(extendedStart, extendedEnd);
-numExtPeriods = numel(extRange);
+    nz = nnz(this.Quantity.IxObserved);
+    extendedStart = dater.plus(baseRange(1), -1);
+    extendedEnd = baseRange(end);
+    extRange = dater.colon(extendedStart, extendedEnd);
+    numExtPeriods = numel(extRange);
 
 
-%
-% Throw a warning if some of the data sets have no observations
-%
-inxNaData = all(all(isnan(inputArray), 1), 2);
-if any(inxNaData)
-    raise( ...
-        exception.Base('Model:NoMeasurementData', 'warning') ...
-        , exception.Base.alt2str(inxNaData, 'Data Set(s) ') ...
+    %
+    % Throw a warning if some of the data sets have no observations
+    %
+    inxNaData = all(all(isnan(inputArray), 1), 2);
+    if any(inxNaData)
+        raise( ...
+            exception.Base('Model:NoMeasurementData', 'warning') ...
+            , exception.Base.alt2str(inxNaData, 'Data Set(s) ') ...
+        );
+    end
+
+
+    opt = local_resolveReturnOptions(opt);
+
+
+    %
+    % Pre-allocate requested output data
+    %
+    outputData = struct();
+    outputData = here_preallocOutputData(outputData);
+
+
+
+    %=========================================================================
+    kalmanInputs = struct( ...
+        'FilterRange', baseRange, ...
+        'InputData', inputArray, ...
+        'OutputData', outputData, ...
+        'InternalAssignFunc', @hdataassign, ...
+        'Options', opt ...
     );
-end
-
-
-opt = local_resolveReturnOptions(opt);
-
-
-%
-% Pre-allocate requested output data
-%
-outputData = struct();
-outputData = here_preallocOutputData(outputData);
+    [minusLogLik, regOutp, outputData] = implementKalmanFilter(this, kalmanInputs); %#ok<ASGLU>
+    %=========================================================================
 
 
 
-%=========================================================================
-kalmanInputs = struct( ...
-    'FilterRange', baseRange, ...
-    'InputData', inputArray, ...
-    'OutputData', outputData, ...
-    'InternalAssignFunc', @hdataassign, ...
-    'Options', opt ...
-);
-[minusLogLik, regOutp, outputData] = implementKalmanFilter(this, kalmanInputs); %#ok<ASGLU>
-%=========================================================================
+    % If needed, expand the number of model parameterizations to include
+    % estimated variance factors and/or out-of=lik parameters.
+    if nv<regOutp.NLoop && (opt.Relative || ~isempty(regOutp.Delta))
+        this = alter(this, regOutp.NLoop);
+    end
+
+    %
+    % Postprocess regular (non-hdata) output arguments; update the std
+    % parameters in the model object if `Relative=' true`
+    %
+    [info, this] = postprocessKalmanOutput(this, regOutp, extRange, opt);
+    info.MinusLogLik = minusLogLik;
 
 
-
-% If needed, expand the number of model parameterizations to include
-% estimated variance factors and/or out-of=lik parameters.
-if nv<regOutp.NLoop && (opt.Relative || ~isempty(regOutp.Delta))
-    this = alter(this, regOutp.NLoop);
-end
-
-%
-% Postprocess regular (non-hdata) output arguments; update the std
-% parameters in the model object if `Relative=' true`
-%
-[info, this] = postprocessKalmanOutput(this, regOutp, extRange, opt);
-info.MinusLogLik = minusLogLik;
-
-
-%
-% Post-process hdata output arguments
-%
-outputDb = hdataobj.finalize(outputData, opt);
-if opt.FlatOutput
-    outputDb = local_flatOutput(outputDb);
-end
+    %
+    % Post-process hdata output arguments
+    %
+    outputDb = hdataobj.finalize(outputData, opt);
+    if opt.FlatOutput
+        outputDb = local_flatOutput(outputDb);
+    end
 
 return
 
