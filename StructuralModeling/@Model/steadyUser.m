@@ -29,7 +29,7 @@ function [this, success, outputInfo] = steadyUser(this, variantsRequested, userF
     end
 
     % Reset steady state for time trend
-    pos = getPosTimeTrend(this.Quantity);
+    pos = locateTrendLine(this.Quantity, NaN);
     this.Variant.Values(1, pos, :) = complex(0, 1);
 
     success = true(1, numVariants);

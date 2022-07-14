@@ -35,7 +35,7 @@ end
     %
     % Get measurement and exogenous variables
     %
-    inputArray = local_prepareInputArray(this, inputDb, baseRange);
+    inputArray = prepareKalmanData(this, inputDb, baseRange, opt.WhenMissing);
     numPages = size(inputArray, 3);
 
 
@@ -50,18 +50,6 @@ end
     extendedEnd = baseRange(end);
     extRange = dater.colon(extendedStart, extendedEnd);
     numExtPeriods = numel(extRange);
-
-
-    %
-    % Throw a warning if some of the data sets have no observations
-    %
-    inxNaData = all(all(isnan(inputArray), 1), 2);
-    if any(inxNaData)
-        raise( ...
-            exception.Base('Model:NoMeasurementData', 'warning') ...
-            , exception.Base.alt2str(inxNaData, 'Data Set(s) ') ...
-        );
-    end
 
 
     opt = local_resolveReturnOptions(opt);
@@ -284,32 +272,4 @@ function local_validateInputDb(x)
     %)
 end%
 
-
-function inputArray = local_prepareInputArray(this, inputDb, baseRange)
-    %(
-    inxYG = getIndexByType(this.Quantity, 1, 5);
-    numYG = nnz(inxYG);
-    if ~isempty(inputDb) && ~isempty(fieldnames(inputDb))
-        requiredNames = string.empty(1, 0);
-        optionalNames = string(this.Quantity.Name(inxYG));
-        allowedNumeric = @all;
-        logNames = optionalNames(this.Quantity.InxLog(inxYG));
-        context = "";
-        dbInfo = checkInputDatabank( ...
-            this, inputDb, baseRange ...
-            , requiredNames, optionalNames ...
-            , allowedNumeric, logNames ...
-            , context ...
-        );
-        inputArray = requestData( ...
-            this, dbInfo, inputDb ...
-            , [requiredNames, optionalNames], baseRange ...
-        );
-        inputArray = ensureLog(this, dbInfo, inputArray, [requiredNames, optionalNames]);
-    else
-        numBasePeriods = dater.rangeLength(baseRange);
-        inputArray = nan(numYG, numBasePeriods);
-    end
-    %)
-end%
 

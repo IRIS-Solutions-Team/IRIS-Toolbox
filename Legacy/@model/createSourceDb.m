@@ -26,7 +26,6 @@ if isempty(pp)
     addRequired(pp, "range", @validate.properRange);
 
     addParameter(pp, "Deviation", false, @validate.logicalScalar);
-    addParameter(pp, "EvalTrends", logical.empty(1, 0));
 
     addParameter(pp, ["AppendPresample", "AddPresample"], true, @validate.logicalScalar);
     addParameter(pp, ["AppendPostsample", "AddPostsample"], true, @validate.logicalScalar);
@@ -39,10 +38,6 @@ end
 [skipped, opt] = maybeSkip(pp, this, range, varargin{:});
 if ~skipped
     opt = parse(pp, this, range, varargin{:});
-end
-
-if isempty(opt.EvalTrends)
-    opt.EvalTrends = ~opt.Deviation;
 end
 
 numDrawsRequested = opt.NumDraws;
@@ -102,9 +97,7 @@ X = zeros(numQuantities, numExtdPeriods, nv);
 if ~opt.Deviation
     isDelog = false;
     X(inxYXG, :, :) = createTrendArray(this, Inf, isDelog, posYXG, ttrend);
-end
 
-if opt.EvalTrends
     W = evalTrendEquations(this, [ ], X(inxG, :, :), 1:nv);
     X(1:ny, :, :) = X(1:ny, :, :) + W;
 end

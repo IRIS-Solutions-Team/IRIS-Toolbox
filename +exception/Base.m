@@ -7,8 +7,6 @@ classdef Base
     end
 
 
-
-
     properties (Constant)
         IRIS_IDENTIFIER = "IrisToolbox";
         HIGHLIGHT = '*** '
@@ -23,8 +21,6 @@ classdef Base
     end
 
 
-
-
     methods
         function this = Base(specs, throwAs)
             if nargin==0
@@ -33,7 +29,7 @@ classdef Base
             if nargin==1
                 throwAs = "error";
             end
-            if strcmpi(throwAs, "Silent")
+            if strcmpi(throwAs, "silent")
                 return
             end
             this.ThrowAs = throwAs;
@@ -41,7 +37,7 @@ classdef Base
                 this.Identifier = specs{1};
                 this.Message = [specs{2:end}];
                 this.NeedsHighlight = true;
-            elseif isa(specs, 'string')
+            elseif isstring(specs)
                 this.Identifier = char(specs(1));
                 lenHighlight = strlength(this.HIGHLIGHT);
                 specs = specs(2:end);

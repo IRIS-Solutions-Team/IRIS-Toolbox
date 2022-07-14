@@ -75,10 +75,10 @@ if this.LinearStatus
 
 else
     %
-    % Nonlinear Models
+    % Nonlinear models
     %
     steadySuccess = true;
-    listSteadyErrors = { };
+    listSteadyErrors = {};
     checkSteadySuccess = true;
     if update.Steady.Run
         [this, steadySuccess] = update.Steady.Func(this, variantRequested, update.Steady.Arguments{:});
@@ -101,6 +101,7 @@ else
 end
 
 success = solveInfo.ExitFlag==1 && steadySuccess && checkSteadySuccess;
+
 if success
     return
 end

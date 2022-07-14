@@ -148,8 +148,8 @@ end
 success = success(variantsRequested);
 
 % Reset steady state for time trend
-pos = getPosTimeTrend(this.Quantity);
-this.Variant.Values(1, pos, :) = complex(0, 1);
+posTrendLine = locateTrendLine(this.Quantity, NaN);
+this.Variant.Values(1, posTrendLine, :) = complex(0, 1);
 
 return
 

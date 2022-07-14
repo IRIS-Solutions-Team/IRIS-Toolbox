@@ -41,7 +41,7 @@ nPar = numel(this.ParameterNames);
 nAlloc = min(numDraws, opt.saveevery);
 isSave = opt.saveevery<=numDraws;
 if isSave
-    here__prepareSave();
+    here_prepareSave();
 end
 
 if opt.burnin<1

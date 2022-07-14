@@ -5,20 +5,21 @@
 
 % >=R2019b
 %(
-function mainDb = merge(method, mainDb, mergeWith, opt)
+function [mainDb, info] = merge(method, mainDb, mergeWith, opt)
 
 arguments
-    method (1, 1) string { mustBeMember(method, ["horzcat", "vertcat", "replace", "warning", "discard", "error"]) }
+    method (1, 1) string { mustBeMember(method, ["horzcat", "vertcat", "replace", "warning", "discard", "error", "meta"]) }
     mainDb (1, 1) { validate.databank(mainDb) }
 end
 
 arguments (Repeating)
-    mergeWith (1, 1) { locallyValidateMergeWith }
+    mergeWith (1, 1) { local_validateMergeWith }
 end
 
 arguments
     opt.MissingField = @remove
-    opt.Names { locallyValidateNames(opt.Names) } = @all
+    opt.Names { local_validateNames(opt.Names) } = @all
+    opt.MetaNames = []
 end
 %)
 % >=R2019b
@@ -52,6 +53,7 @@ if isempty(ip)
     ip = inputParser(); 
     addParameter(ip, "MissingField", @remove);
     addParameter(ip, "Names", @all);
+    addParameter(ip, "MetaNames", @auto);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
@@ -62,6 +64,13 @@ opt = ip.Results;
 numMergeWith = numel(mergeWith);
 
 switch string(method)
+    case "meta"
+        mainDb = local_createMetaFields(mainDb, 1, opt.MetaNames);
+        for i = 1 : numMergeWith
+            mergeWith{i} = local_createMetaFields(mergeWith{i}, 1+i, opt.MetaNames);
+        end
+        mergeNext = @(varargin) concatenateNext(@horzcat, varargin{:});
+        opt.MissingField = [];
     case "horzcat"
         mergeNext = @(varargin) concatenateNext(@horzcat, varargin{:});
     case "vertcat"
@@ -70,7 +79,7 @@ switch string(method)
         mergeNext = @(varargin) replaceNext(false, varargin{:});
     case "warning"
         mergeNext = @(varargin) replaceNext(true, varargin{:});
-    case "discar"
+    case "discard"
         mergeNext = @discardNext;
     otherwise
         mergeNext = @errorNext;
@@ -88,6 +97,15 @@ end
 
 for i = 1 : numMergeWith
     [mainDb, fieldsToMerge] = mergeNext(mainDb, mergeWith{i}, fieldsToMerge, opt);
+end
+
+info = struct();
+if nargout>=2 && string(method)=="meta"
+    for n = databank.fieldNames(mainDb)
+        if numel(mainDb.(n))>1
+            info.(n) = mainDb.(n);
+        end
+    end
 end
 
 end%
@@ -194,7 +212,7 @@ function [mainDb, fieldsToMerge] = errorNext(mainDb, mergeWith, fieldsToMerge, o
 end%
 
 
-function locallyValidateNames(input)
+function local_validateNames(input)
     if isequal(input, @all) || validate.list(input)
         return
     end
@@ -202,12 +220,26 @@ function locallyValidateNames(input)
 end%
 
 
-function locallyValidateMergeWith(input)
+function local_validateMergeWith(input)
     %(
     if validate.databank(input)
         return
     end
     error("Input value must be a struct or a Dictionary.");
+    %)
+end%
+
+
+function db = local_createMetaFields(db, i, metaNames)
+    %(
+    if isempty(metaNames)
+        value = i;
+    else
+        value = metaNames(i);
+    end
+    for n = databank.fieldNames(db)
+        db.(n) = value;
+    end
     %)
 end%
 

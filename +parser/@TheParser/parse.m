@@ -70,19 +70,12 @@ end
 qty = assign(this, qty);
 
 if opt.AutodeclareParameters
-    hereAutodeclare( );
+    here_autodeclare( );
 end
-% 
-% % Validate quantity names; validate after autodeclaring parameters
-% validateNames(qty);
-% 
-% hereAddSpecialExogenous(); % Add special exogenous variables
-% qty.OriginalNames = stringify(qty.Name); % Store original names from source model code
-% exception.ParseTime.storeFileName( ); % Reset persistent model file name
-% 
+
 return
 
-    function hereAutodeclare()
+    function here_autodeclare()
         %(
         % Remove all parameters declared within the model file
         inxToDelete = qty.Type==4;
@@ -100,15 +93,6 @@ return
         end
         add = model.component.Quantity.fromNames(namesToDeclare);
         qty = insert(qty, add, 4, 'last');
-        %)
-    end%
-
-
-    function hereAddSpecialExogenous()
-        %(
-        add = model.component.Quantity.fromNames(model.component.Quantity.RESERVED_NAME_TTREND);
-        add.Label(:) = { model.COMMENT_TTREND };
-        qty = insert(qty, add, 5, 'last');
         %)
     end%
 end%

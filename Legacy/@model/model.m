@@ -288,6 +288,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
         varargout = createHashEquations(varargin)
+        varargout = createSourceDb(varargin)
         varargout = createTrendArray(varargin)
         varargout = evalTrendEquations(varargin)
         varargout = expansionMatrices(varargin)
@@ -307,6 +308,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
         varargout = hdatainit(varargin)
+        varargout = insertTrendLine(varargin)
         varargout = freql(varargin)
         varargout = myfindsspacepos(varargin)
         varargout = myinfo4plan(varargin)
@@ -433,7 +435,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = checkStructureBefore(varargin)
         varargout = checkSyntax(varargin)
         varargout = createD2S(varargin)
-        varargout = createSourceDb(varargin)
         varargout = diffFirstOrder(varargin)
         varargout = file2model(varargin)
         implementDisp(varargin)

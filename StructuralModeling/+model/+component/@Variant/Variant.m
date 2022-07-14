@@ -58,10 +58,10 @@ classdef Variant
             inxTril = tril(ones(ne), -1)==1;
             this.IndexOfStdCorrAllowed = [true(1, ne), inxCorrAllowed(inxTril).'];
         end%
-        
+
 
         function this = preallocateValues(this, numVariants, quantity)
-            numQuantities = length(quantity);
+            numQuantities = numel(quantity);
             if checkSize(this.Values, [1, numQuantities, numVariants])
                 this.Values(:) = NaN;
             else

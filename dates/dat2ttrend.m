@@ -55,16 +55,14 @@ function [trend, baseYear] = dat2ttrend(range, baseYear)
 DATECODE_TOLERANCE = 0.001;
 
 try
-    if ~isintscalar(baseYear)
+    if ~isnumeric(baseYear)
         baseYear = get(baseYear, 'baseYear');
     end
 catch
     baseYear = @config;
 end
 
-%--------------------------------------------------------------------------
-
-if ~isintscalar(baseYear)
+if ~isnumeric(baseYear)
     baseYear = iris.get('baseYear');
 end
 

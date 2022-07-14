@@ -70,28 +70,30 @@ end
 
 posterior = Posterior(numParameters);
 posterior.ParameterNames = parameterNames;
-parseEstimationSpecs( );
+here_parseEstimationSpecs( );
 posterior.IndexPriors = ~cellfun('isempty', posterior.PriorDistributions);
 
 return
 
 
-    function parseEstimationSpecs( )
-        fieldInitVal = isfield(opt, 'InitVal');
+    function here_parseEstimationSpecs()
+        hasStartIterations = isfield(opt, 'StartIterations') && isstruct(opt.StartIterations);
+
+        invalidPriorSpecs = string.empty(1, 0);
+
         for ii = 1 : numParameters
             name__ = parameterNames{ii};
             spec__ = estimationSpecs.(name__);
             if isnumeric(spec__)
                 spec__ = num2cell(spec__);
             end
-            
-            % __Starting Value__
-            if fieldInitVal ...
-                    && isstruct(opt.InitVal) ...
-                    && isfield(opt.InitVal, name__) ...
-                    && isnumeric(opt.InitVal.(name__)) ...
-                    && isscalar(opt.InitVal.(name__))
-                init__ = opt.InitVal.(name__);
+
+            % Start iterations from
+            if hasStartIterations ...
+                    && isfield(opt.StartIterations, name__) ...
+                    && isnumeric(opt.StartIterations.(name__)) ...
+                    && isscalar(opt.StartIterations.(name__))
+                init__ = opt.StartIterations.(name__);
             elseif ~isempty(spec__) ...
                     && isnumeric(spec__{1}) ...
                     && isscalar(spec__{1})
@@ -104,7 +106,7 @@ return
             if isequaln(init__, NaN)
                 init__ = defaultInitial(ii);
             end
-            
+
             % __Lower and Upper Bounds__
             if length(spec__)>1 && isnumeric(spec__{2}) && isscalar(spec__{2})
                 lower__ = spec__{2};
@@ -116,7 +118,7 @@ return
             else
                 upper__ = Inf;
             end
-            
+
             % __Prior Distribution Function__
             priorDistribution__ = [ ];
             if length(spec__)>3 && ~isempty(spec__{4})
@@ -125,22 +127,32 @@ return
                 elseif isa(spec__{4},'function_handle')
                     % The 4th element is a prior distribution function handle
                     priorDistribution__ = spec__{4};
-                elseif isnumeric(spec__{4}) && isscalar(spec__{4}) && opt.Penalty>0
+                % elseif isnumeric(spec__{4}) && isscalar(spec__{4}) && opt.Penalty>0
                     % The 4th element is a penalty function
-                    priorDistribution__ = ...
-                        penaltyToDistribution(spec__, init__, defaultInitial(ii), opt.Penalty);
+                    % priorDistribution__ = ...
+                    %     penaltyToDistribution(spec__, init__, defaultInitial(ii), opt.Penalty);
+                else
+                    invalidPriorSpecs(end+1) = name__;
                 end
             end
-            
+
             posterior.Initial(ii) = init__;
             posterior.LowerBounds(ii) = lower__;
             posterior.UpperBounds(ii) = upper__;
             posterior.PriorDistributions{ii} = priorDistribution__;
         end
+
+        if ~isempty(invalidPriorSpecs)
+            exception.error([
+                "Model"
+                "Invalid prior distribution specification for this parameter: %s"
+            ], invalidPriorSpecs);
+        end
     end%
 end%
 
 
+%{
 function priorDistribution = penaltyToDistribution(spec, init, defaultInitial, penalty)
     % The 4th entry is a penalty function, compute the
     % total weight including the Penalty option.
@@ -165,3 +177,4 @@ function priorDistribution = penaltyToDistribution(spec, init, defaultInitial, p
     sgm = 1/sqrt(2*totalWeight);
     priorDistribution = distribution.Normal.fromMeanStd(pBar, sgm);
 end%
+%}

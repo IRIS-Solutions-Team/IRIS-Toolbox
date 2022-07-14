@@ -225,8 +225,11 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
-        function pos = getPosTimeTrend(this)
-            pos = find(string(this.Name)==string(this.RESERVED_NAME_TTREND));
+        function pos = locateTrendLine(this, names)
+            if isequaln(names, NaN)
+                names = this.Name;
+            end
+            pos = find(string(names)==string(this.RESERVED_NAME_TTREND));
         end%
     end
 

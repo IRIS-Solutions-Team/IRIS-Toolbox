@@ -18,6 +18,7 @@ arguments
     opt.OutputData (1, :) string = "smooth"
     opt.InternalAssignFunc = @hdataassign
     opt.DiffuseScale (1, 1) double = iris.mixin.Kalman.DIFFUSE_SCALE
+    opt.WhenMissing (1, 1) string = "warning"
 
     opt.Anticipate (1, 1) logical = false
     opt.Ahead (1, 1) double = 1

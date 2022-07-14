@@ -24,10 +24,10 @@ if isempty(this.OriginalNames)
 end
 
 if method=="func"
-    this = locallyApplyFunc(this, varargin{:});
+    this = local_applyFunc(this, varargin{:});
 else
     if method=="pair"
-        [oldNames, newNames] = locallyListsFromPairs(this, varargin{:});
+        [oldNames, newNames] = local_listsFromPairs(this, varargin{:});
     else
         oldNames = textual.stringify(varargin{1});
         newNames = textual.stringify(varargin{2});
@@ -40,15 +40,22 @@ else
     end
 end
 
+%
+% Reset the ttrend name no matter what
+%
+posTrendLine = locateTrendLine(this, NaN);
+if iscell(this.Name)
+    this.Name{posTrendLine} = char(this.RESERVED_NAME_TTREND);
+else
+    this.Name(posTrendLine) = string(this.RESERVED_NAME_TTREND);
+end
+
 validateNames(this);
 
 end%
 
-%
-% Local functions
-%
 
-function [oldNames, newNames] = locallyListsFromPairs(this, varargin)
+function [oldNames, newNames] = local_listsFromPairs(this, varargin)
     %(
     renamePairs = cell(numel(varargin), 2);
 
@@ -67,13 +74,16 @@ function [oldNames, newNames] = locallyListsFromPairs(this, varargin)
             newNames(i) = pair(2);
         end
     end
+    %)
 end%
 
 
-function this = locallyApplyFunc(this, func)
+function this = local_applyFunc(this, func)
     %(
     allNames = textual.stringify(this.Name);
-    allNames(1:end-1) = func(allNames(1:end-1));
+    for i = setdiff(1:numel(allNames), locateTrendLine(this, NaN))
+        allNames(i) = func(allNames(i));
+    end
     if iscell(this.Name)
         this.Name = cellstr(allNames);
     end

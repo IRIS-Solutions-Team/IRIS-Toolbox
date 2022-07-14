@@ -5,82 +5,85 @@
 
 function ...
     [summary, p, proposalCov, hessian, this, V, delta, PDelta] ...
-    = estimate(this, inputDatabank, range, varargin)
+    = estimate(this, inputDb, range, estimSpecs, varargin)
 
-persistent pp outsideOptimOptions
-if isempty(pp)
-    pp = extend.InputParser('model.estimate');
-    pp.KeepUnmatched = true;
-    pp.addRequired('Model', @(x) isa(x, 'model') && countVariants(x)==1);
-    pp.addRequired('InputDatabank', @(x) isempty(x) || validate.databank(x));
-    pp.addRequired('Range', @(x) isempty(x) || validate.properRange(x));
-    pp.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
-    pp.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'SystemPriorWrapper'));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    ip.KeepUnmatched = true;
+    addOptional(ip, 'SystemPriors', []);
+    addParameter(ip, 'CheckSteady', true, @model.validateChksstate); 
+    addParameter(ip, 'Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
+    addParameter(ip, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
+        addParameter(ip, 'FilterOpt__Filter', []);
+    addParameter(ip, 'NoSolution', 'Error', @(x) validate.numericScalar(x, 1e10, Inf) || validate.anyString(x, 'Error', 'Penalty'));
+    addParameter(ip, 'MatrixFormat', 'namedmat', @validate.matrixFormat);
+    addParameter(ip, 'Solve', true, @model.validateSolve);
+    addParameter(ip, 'Steady', false, @model.validateSteady);
+        addParameter(ip, 'Sstate__Steady', []);
+        addParameter(ip, 'SstateOpt__Steady', []);
+    addParameter(ip, 'Zero', false, @(x) isequal(x, true) || isequal(x, false));
 
-    pp.addParameter('CheckSteady', true, @model.validateChksstate); 
-    pp.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
-    pp.addParameter({'Filter', 'FilterOpt'}, cell.empty(1, 0), @validate.nestedOptions);
-    pp.addParameter('NoSolution', 'Error', @(x) validate.numericScalar(x, 1e10, Inf) || validate.anyString(x, 'Error', 'Penalty'));
-    pp.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @validate.matrixFormat);
-    pp.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
-    pp.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSteady);
-    pp.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'OptimSet', {}, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
 
-    pp.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
+    addParameter(ip, 'EpsPower', 1/2, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(ip, 'StartIterations', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
+        addParameter(ip, 'InitVal__StartIterations', []);
+    addParameter(ip, 'Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    addParameter(ip, 'HonorBounds', true, @validate.logicalScalar);
+    addParameter(ip, 'EvalDataLik', true, @local_validateEval);
+    addParameter(ip, 'EvalIndiePriors', true, @local_validateEval);
+    addParameter(ip, 'EvalSystemPriors', true, @local_validateEval);
+    addParameter(ip, 'Solver', 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
+    addParameter(ip, 'Summary', 'table', @(x) any(strcmpi(x, {'struct', 'table'})));
+    addParameter(ip, 'UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
 
-    pp.addParameter('EpsPower', 1/2, @(x) validate.numericScalar(x, 0, Inf));
-    pp.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
-    pp.addParameter('Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
-    pp.addParameter('HonorBounds', true, @validate.logicalScalar);
-    pp.addParameter({'EvalDataLik', 'EvaluateData', 'EvalLikelihood', 'EvalLik'}, true, @locallyValidateEval);
-    pp.addParameter({'EvalIndiePriors', 'EvaluateParamPriors', 'EvalPPrior'}, true, @locallyValidateEval);
-    pp.addParameter({'EvalSystemPriors', 'EvaluateSystemPriors', 'EvalSPrior'}, true, @locallyValidateEval);
-    pp.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
-    pp.addParameter('Summary', 'table', @(x) any(strcmpi(x, {'struct', 'table'})));
-    pp.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
+    addParameter(ip, 'Algorithm', @default, @(x) isequal(x, @default) || ischar(x) || isstring(x));
+    addParameter(ip, 'Display', 'iter', @(x) validate.anyString(x, 'iter', 'final', 'none', 'off'));
+    addParameter(ip, 'MaxFunEvals', 2000, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(ip, 'MaxIter', 500, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(ip, 'TolFun', 1e-6, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(ip, 'TolX', 1e-6, @(x) validate.numericScalar(x, 0, Inf));
+end
+parse(ip, varargin{:});
+systemPriors = ip.Results.SystemPriors;
+opt = rmfield(ip.Results, "SystemPriors");
+
+
+opt = iris.utils.resolveOptionAliases(opt, [], true);
+
+
+outsideOptimOptions = struct();
+for n = ["Algorithm", "Display", "MaxFunEvals", "MaxIter", "TolFun", "TolX"]
+    outsideOptimOptions.(n) = opt.(n);
+    opt = rmfield(opt, n);
 end
 
-if isempty(outsideOptimOptions)
-    outsideOptimOptions = extend.InputParser('model.estimate');
-    outsideOptimOptions.addParameter('Algorithm', @default, @(x) isequal(x, @default) || ischar(x) || isa(x, 'string'));
-    outsideOptimOptions.addParameter('Display', 'Iter', @(x) validate.anyString(x, 'Iter', 'Final', 'None', 'Off'));
-    outsideOptimOptions.addParameter('MaxFunEvals', 2000, @(x) validate.numericScalar(x, 0, Inf));
-    outsideOptimOptions.addParameter('MaxIter', 500, @(x) validate.numericScalar(x, 0, Inf));
-    outsideOptimOptions.addParameter('TolFun', 1e-6, @(x) validate.numericScalar(x, 0, Inf));
-    outsideOptimOptions.addParameter('TolX', 1e-6, @(x) validate.numericScalar(x, 0, Inf));
-end
-opt = parse(pp, this, inputDatabank, range, varargin{:});
-estimationSpecs = pp.Results.EstimationSpecs;
-outsideOptimOptions.parse(pp.UnmatchedInCell{:});
 
-if isempty(inputDatabank) || isempty(fieldnames(inputDatabank))
+if isempty(inputDb) || isempty(fieldnames(inputDb))
     opt.EvalDataLik = 0;
 end
 
-% Process likelihood function options and create a likstruct.
+
+%
+% Process likelihood function options if needed
+%
+likOpt = struct();
+inputArray = [];
 if opt.EvalDataLik>0
-    if strncmpi(opt.Domain, 't', 1)
+    if startsWith(opt.Domain, "t", "ignoreCase", true)
         likOpt = prepareKalmanOptions2(this, range, opt.Filter{:});
+        inputArray = prepareKalmanData(this, inputDb, range, likOpt.WhenMissing);
         likOpt.minusLogLikFunc = @implementKalmanFilter;
     else
-        likOpt = prepareFreqlOptions(this, range, opt.Filter{:});
-        likOpt.minusLogLikFunc = @freql;
+        exception.error(["Model", "Frequency domain estimation not implemented at the moment"]);
+        % likOpt = prepareFreqlOptions(this, range, opt.Filter{:});
+        % inputArray = ...
+        % likOpt.minusLogLikFunc = @freckle;
     end
-else
-    likOpt = struct();
 end
 opt = rmfield(opt, 'Filter');
 
-% Get first column of measurement and exogenous variables.
-if opt.EvalDataLik>0
-    % `Data` includes pre-sample.
-    req = [opt.Domain(1), 'yg*'];
-    inputArray = datarequest(req, this, inputDatabank, range, 1);
-else
-    inputArray = [ ];
-end
-
-%--------------------------------------------------------------------------
 
 % Warning if there are no measurement variables in the model and data
 % likelihood is to be evaluated
@@ -91,19 +94,20 @@ end
 %
 % Prepare Posterior object, model.Update, and EstimationWrapper
 %
-[this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt);
+[this, posterior] = preparePosteriorAndUpdate(this, estimSpecs, opt);
 posterior.ObjectiveFunction = @(x) objfunc(x, this, inputArray, posterior, opt, likOpt);
-posterior.SystemPriors = pp.Results.SystemPriors;
+posterior.SystemPriors = systemPriors;
 posterior.HonorBounds = opt.HonorBounds;
 posterior.EvalDataLik = opt.EvalDataLik;
 posterior.EvalIndiePriors = opt.EvalIndiePriors;
 posterior.EvalSystemPriors = opt.EvalSystemPriors;
 if isa(posterior.SystemPriors, 'SystemPriorWrapper')
-    seal(SystemPriorWrapper);
+    seal(posterior.SystemPriors);
 end
+
 estimationWrapper = EstimationWrapper( );
 estimationWrapper.IsConstrained = posterior.IsConstrained;
-chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions.Options);
+chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions);
 
 
 %==========================================================================
@@ -124,7 +128,7 @@ this = update(this, posterior.Optimum, variantRequested);
 %
 % Set up posterior object before we assign out-of-liks and scale std
 % errors in the model object
-p = hereCreateLegacyPoster( );
+p = here_createLegacyPoster( );
 
 %
 % Re-run Loglik for Out-of-lik Params
@@ -163,9 +167,9 @@ this.Update = this.EMPTY_UPDATE;
 
 return
 
-    function p = hereCreateLegacyPoster( )
+    function p = here_createLegacyPoster()
 
-        p = poster( );
+        p = poster();
 
         % Make sure that draws that fail to solve do not cause an error
         % and hence do not interupt the posterior simulator
@@ -193,7 +197,7 @@ end%
 % Local validators
 %
 
-function locallyValidateEval(x)
+function local_validateEval(x)
     try
         x = double(x);
     end

@@ -90,7 +90,7 @@ if needsRefresh
 end
 
 % Reset steady state for time trend
-pos = getPosTimeTrend(this.Quantity);
+pos = locateTrendLine(this.Quantity, NaN);
 this.Variant.Values(1, pos, :) = complex(0, 1);
 
 return
@@ -113,7 +113,7 @@ return
         Ta = T(nf+1:end, :);
         Kf = K(1:nf, 1);
         Ka = K(nf+1:end, 1);
-        
+
         % __Alpha Vector__
         isDiffStat = all(all(abs(Ta(1:numOfUnitRoots,1:numOfUnitRoots)-eye(numOfUnitRoots))<EIGEN_TOLERANCE));
         if isDiffStat
