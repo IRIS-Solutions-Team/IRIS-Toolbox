@@ -7,6 +7,11 @@ classdef Pager ...
     end
 
 
+    properties (Hidden)
+        Settings_StartPage = 0
+    end
+
+
     properties (Constant, Hidden)
         PossibleChildren = [
             rephrase.Type.GRID
