@@ -5,7 +5,7 @@
 %
 
 % >=R2019b
-%{
+%(
 function opt = prepareKalmanOptions2(this, range, opt)
 
 arguments
@@ -18,6 +18,7 @@ arguments
     opt.OutputData (1, :) string = "smooth"
     opt.InternalAssignFunc = @hdataassign
     opt.DiffuseScale (1, 1) double = iris.mixin.Kalman.DIFFUSE_SCALE
+    opt.WhenMissing (1, 1) string = "warning"
 
     opt.Anticipate (1, 1) logical = false
     opt.Ahead (1, 1) double = 1
@@ -68,12 +69,12 @@ arguments
     opt.CheckSteady (1, :) cell = {"run", false}
     opt.Solve (1, :) cell = {"run", true}
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function opt = prepareKalmanOptions2(this, range, varargin)
 
 persistent ip
@@ -138,7 +139,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -159,6 +160,7 @@ numPeriods = round(endRange - startRange + 1);
 
 
 opt.ReturnMedian = local_resolveMedianOption(this, opt.ReturnMedian);
+opt.FilterRange = range;
 
 
 %
@@ -295,11 +297,11 @@ end
 % User-supplied initials is a 1-by-2 cell array with a mean vector and an MSE
 % matrix.
 %
-if iscell(opt.Initials)
-    xbVector = getBackwardSolutionVector(this.Vector);
-    maxLag = min([imag(xbVector), 0]) - 1;
-    presampleDates = dater.plus(range(1), maxLag:-1);
+if ~isempty(opt.Initials) && iscell(opt.Initials)
     if validate.databank(opt.Initials{1})
+        xbVector = getBackwardSolutionVector(this.Vector);
+        maxLag = min([imag(xbVector), 0]) - 1;
+        presampleDates = dater.plus(range(1), maxLag:-1);
         if numXb>0
             namesInRows = textual.stringify(this.Quantity.Name);
             numQuantities = numel(namesInRows);
@@ -330,6 +332,9 @@ if iscell(opt.Initials)
     end
 
     if isa(opt.Initials{2}, 'Series') && iscell(opt.Initials{2}.Data)
+        xbVector = getBackwardSolutionVector(this.Vector);
+        maxLag = min([imag(xbVector), 0]) - 1;
+        presampleDates = dater.plus(range(1), maxLag:-1);
         x = getData(opt.Initials{2}, presampleDates(end));
         opt.Initials{2} = reshape(x{1}, numXb, numXb);
     elseif isequal(opt.Initials{2}, 0)

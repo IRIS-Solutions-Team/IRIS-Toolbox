@@ -1,19 +1,24 @@
-% genip  Generalized indicator based interpolation
 %{
-% Syntax
-%--------------------------------------------------------------------------
+% ---
+% title: genip
+% ---
+%
+% # `genip`
+%
+% {== Generalized indicator based interpolation ==}
+%
+%
+% ## Syntax
 %
 %>    [highOutput, info] = genip(lowInput, highFreq, order, aggregation, ...)
 %
 %
-% Input Arguments
-%--------------------------------------------------------------------------
+% ## Input arguments
 %
 % __`lowInput`__ [ Series ] 
 %
 %>    Low-frequency input series that will be interpolated to the `highFreq`
-%>    frequency using the `Indicator`, hard conditions specified in `Hard=`,
-%>    and soft conditions specified in `Soft=`.
+%>    frequency using the `Indicator...` and hard conditions specified in `Hard...`
 %
 %
 % __`highFreq`__ [ Frequency ]
@@ -37,8 +42,7 @@
 %>     periods within the encompassing low-frequency period.
 %
 %
-% Output Arguments
-%--------------------------------------------------------------------------
+% ## Output arguments
 %
 % __`highOutput`__ [ Series ] 
 %
@@ -56,11 +60,9 @@
 %>    * `.HighRange` - High frequency date range to which the input series has been interpolated
 %>    * `.EffectiveLowRange` - Low frequency range after excluding years with full conditioning level information
 %>    * `.StackedSystem` - Stacked-time linear system (StackedSystem) object used to run the interpolation
+%>
 %
-%
-% Options
-%--------------------------------------------------------------------------
-%
+% ## Options
 %
 % __`Range=Inf`__ [ `Inf` | Dater ]
 %
@@ -75,13 +77,13 @@
 %>    obervatations and the data supplied through the `HighLevel=` option.
 %
 %
-% __`Indicator.Level=[ ]`__ [ empty | Series ] 
+% __`IndicatorLevel=[ ]`__ [ empty | Series ] 
 %
 %>    High-frequency indicator whose dynamics will be used to interpolate
 %>    the `lowInput`.
 %
 %
-% __`Indicator.Model="Difference"`__ [ `"Difference"` | `"Ratio"` ]
+% __`IndicatorModel="Difference"`__ [ `"Difference"` | `"Ratio"` ]
 %
 %>    Type of model for the relationship between the interpolated series
 %>    and the indicator in the transition equation: `"Difference"`
@@ -89,37 +91,29 @@
 %>    means the series will be divided by the indicator.
 %
 %
-% __`Initial=@auto`__ [ `@auto` | Series ]
+% __`Initials=@auto`__ [ `@auto` | Series ]
 %
-%>    Initial (presample condition) for the Kalman filter; `@auto` means
-%>    the initial condition will be extracted from the `Hard.Level`
+%>    Initial (presample) conditions for the Kalman filter; `@auto` means
+%>    the initial condition will be extracted from the `HardLevel`
 %>    time series; if no observations are supplied either directly
-%>    through `Initial=` or through `Hard.Level=`, then the initial
+%>    through `Initials` or through `HardLevel`, then the initial
 %>    condition will be estimated by maximum likelihood.
 %
 %
-% __`Hard.Level=[ ]`__ [ empty | Series ]
+% __`HardLevel=[ ]`__ [ empty | Series ]
 %
 %>    Hard conditioning information; any values in this time series within
 %>    the interpolation range or the presample initial condition (see also
-%>    the option `Initial=`) will be imposed on the resulting `highOutput`.
+%>    the option `Initials`) will be imposed on the resulting `highOutput`.
 %
 %
-% __`Transition.Intercept=0`__ [ numeric | `@auto` ]
+% __`TransitionIntercept=0`__ [ numeric | `@auto` ]
 %
 %>    Intercept in the transition equation; if `@auto` the intercept will
 %>    be estimated by GLS.
 %
 %
-% __`Transition.Rate=1`__ [ numeric ]
-%
-%>    Rate of autoregression in the differencing term in the transition
-%>    equation.
-%
-%
-%
-% Description
-%--------------------------------------------------------------------------
+% ## Description
 %
 %
 % The interpolated `lowInput` is obtained from the first element of the state
@@ -127,13 +121,15 @@
 % estimated by a Kalman filter:
 % 
 %
-% #### State Transition Equation ####
+% ### State transition equation 
 %
 %
-% $$ \left(1 - \rho L\right)^k \hat x_t = v_t $$
+% $$ \left(1 - L\right)^k \hat x_t = v_t $$
 %
-% where $ \hat x_t $ is a transformation of the unobserved higher-frequencuy interpolated
-% series, $ x_t $, depending on the option `Indicator.Model=`:
+% where $ \hat x_t $ is a transformation of the unobserved higher-frequency
+% interpolated series, $ x_t $, depending on the option `Indicator.Model`,
+% and $v_t$ is a transition error with constant variance. The
+% transformation $\hat x_t$ is given by:
 %
 % * $ \hat x_t = x_t $ if no indicator is specified;
 %
@@ -144,18 +140,18 @@
 % `Indicator.Level=` and `Indicator.Model="Ratio"`;
 %
 % $ L $ is the lag operator, $ k $ is the order of differencing
-% specified by `order`, and $\rho$ is the transition rate of
-% autoregression specified in `Transition.Rate=`.
+% specified by `order`.
 %
 %
-% #### Measurement Equation ####
+%
+% ### Measurement equation ###
 %
 %
-% $$ y_t = Z x_t + w_t $$
+% $$ y_t = Z x_t $$
 %
 % where 
 %
-% * $ y_t $ is a measurement variables containing the yearly data
+% * $ y_t $ is a measurement variables containing the lower-frequency data
 % placed in the last (fourth) quarter of every year; in other words, only
 % every fourth observation is available, and the three in between are
 % missing
@@ -173,18 +169,17 @@
 %     * $ Z=[1, 0, 0, 0] $ for `aggregation="First"`, 
 %     * or a user supplied 1-by-$ N $ vector
 %
-% * $ v_t $ is a transition error with constant variance
-%
 % * $ w_t $ is a vector of measurement errors associated with soft
 % conditions.
 %
 %
-% Example
-%--------------------------------------------------------------------------
+% ## Example
 %
 %}
 
-function [output, info, Xi] = genip(lowInput, highFreq, transitionOrder, aggregationModel, varargin)
+function ...
+    [output, info, Xi] ...
+    = genip(lowInput, highFreq, transitionOrder, aggregationModel, varargin)
 
 if isempty(lowInput)
     output = lowInput;
@@ -195,52 +190,52 @@ end
 %( Input parser
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('TimeSubscriptable/genip');
+    pp = extend.InputParser();
     pp.KeepDefaultOptions = true;
 
     addRequired(pp, 'lowInput', @(x) isa(x, 'TimeSubscriptable'));
     addRequired(pp, 'highFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
-    addRequired(pp, 'order', @(x) isequal(x, 0) || isequal(x, 1) || isequal(x, 2) || validate.anyString(x, 'Level', 'Diff', 'DiffDiff'));
-    addRequired(pp, 'aggregation', @(x) locallyValidateAggregation(x));
+    addRequired(pp, 'order', @(x) isequal(x, 0) || isequal(x, 1) || isequal(x, 2) || validate.anyString(x, 'level', 'diff', 'diffDiff'));
+    addRequired(pp, 'aggregation', @(x) local_validateAggregation(x));
 
     % Options
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || validate.properRange(x));
-    addParameter(pp, 'Initial', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'Initials', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'Series'));
     addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
 
     % Nested options
-    addParameter(pp, 'Transition.Intercept', 0, @(x) isequal(x, @auto) || validate.numericScalar(x));
-    addParameter(pp, 'Transition.Rate', 1, @(x) isequal(x, @auto) || validate.numericScalar(x));
-    addParameter(pp, 'Transition.Std', 1, @(x) isequal(x, 1) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'TransitionIntercept', 0, @(x) isequal(x, @auto) || validate.numericScalar(x));
+    % addParameter(pp, 'Transition_Rate', 1, @(x) isequal(x, @auto) || validate.numericScalar(x));
+    addParameter(pp, 'TransitionStd', 1, @(x) isequal(x, 1) || isa(x, 'TimeSubscriptable'));
 
-    addParameter(pp, 'Hard.Level', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'Hard.Diff', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'Hard.Rate', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'HardLevel', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'HardDiff', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'HardRate', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
 
     %{
-    addParameter(pp, 'Soft.Level', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'Soft.Diff', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'Soft.Rate', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'SoftLevel', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'SoftDiff', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'SoftRate', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
     %}
 
-    addParameter(pp, 'Indicator.Model', 'Difference', @(x) (ischar(x) || isstring(x)) && startsWith(x, ["Diff", "Rat"]));
-    addParameter(pp, 'Indicator.Level', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'IndicatorModel', 'Difference', @(x) (ischar(x) || isstring(x)) && startsWith(x, ["diff", "rat"], "ignoreCase", true));
+    addParameter(pp, 'IndicatorLevel', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
 end
 %)
+
 [skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
     opt = parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
 end
 
-%--------------------------------------------------------------------------
 
 transition = struct( );
-transition = locallyResolveTransitionModel(transition, transitionOrder);
+transition = local_resolveTransitionModel(transition, transitionOrder);
 
 %
 % Resolve source frequency and the conversion factor
 %
-[fromFreq, numWithin] = hereResolveFrequencyConversion( );
+[fromFreq, numWithin] = here_resolveFrequencyConversion( );
 
 
 %
@@ -289,12 +284,12 @@ else
     %
     % Resolve conflicts between observed low frequency levels and conditioning
     %
-    hereResolveConflictsInMeasurement( );
+    here_resolveConflictsInMeasurement( );
 
     [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
-        locallyClipRange(lowLevel, hard, indicator, transition, aggregation);
+        local_clipRange(lowLevel, hard, indicator, transition, aggregation);
 
-    hereCheckIndicatorForNaNs( );
+    here_checkIndicatorForNaNs( );
 
     Xi0 = series.genip.prepareInitialCondition( ...
         transition, hard, [highStart, highEnd], inxInit, opt ...
@@ -303,18 +298,18 @@ else
     [stacked, Y, Xi0, transition, indicator] = ...
         series.genip.setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0);
 
-    [Xi, Xi0] = smoother(stacked, Y, Xi0);
+    [Xi, Xi0] = stackedSmoother(stacked, Y, Xi0);
 
     if isequal(transition.Intercept, @auto)
         transition.Intercept = Xi0(end);
-        Xi0(end) = [ ];
+        Xi0(end) = [];
     end
 
     %
-    % Compose output data from Xi0, Hard.Level and adjust for
-    % Indicator.Level if needed.
+    % Compose output data from Xi0, HardLevel and adjust for
+    % IndicatorLevel if needed.
     %
-    outputData = hereComposeOutputData( );
+    outputData = here_composeOutputData( );
 end
 
 
@@ -331,12 +326,13 @@ output = Series(highExtStart, outputData);
 info = struct( );
 if nargout>=2
     wholeRange = opt.Range(1) : opt.Range(end);
+    info.Initials = Xi0(end:-1:1);
     info.LowFreq = fromFreq;
     info.HighFreq = highFreq;
     info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
     info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
     info.EffectiveLowRange = wholeRange(inxRunLow);
-    info.TransitionRate = transition.Rate;
+    % info.TransitionRate = transition.Rate;
     info.TransitionIntercept = transition.Intercept;
     info.StackedSystem = stacked;
     info.NumYearsStacked = nnz(inxRunLow);
@@ -344,7 +340,7 @@ end
 
 return
 
-    function [fromFreq, numWithin] = hereResolveFrequencyConversion( )
+    function [fromFreq, numWithin] = here_resolveFrequencyConversion( )
         %(
         fromFreq = lowInput.Frequency;
         if double(highFreq)<=double(fromFreq)
@@ -369,12 +365,12 @@ return
     end%
 
 
-    function hereResolveConflictsInMeasurement( )
+    function here_resolveConflictsInMeasurement( )
         %(
         if ~opt.ResolveConflicts
             return
         end
-        % Aggregate vs Level
+        % Aggregate vs hard level
         if ~isempty(hard.Level) && any(isfinite(hard.Level))
             inxAggregation = aggregation.Model~=0;
             temp = reshape(hard.Level(numInit+1:end, :), numWithin, [ ]);
@@ -390,7 +386,7 @@ return
     end%
 
 
-    function hereCheckIndicatorForNaNs( )
+    function here_checkIndicatorForNaNs( )
         %(
         if ~isempty(indicator.Level) && ~all(isfinite(indicator.Level))
             thisError = [
@@ -405,13 +401,13 @@ return
     end%
 
 
-    function outputData = hereComposeOutputData( )
+    function outputData = here_composeOutputData( )
         %(
         outputData = Xi(end:-1:1);
         if ~isempty(indicator.Level)
-            if indicator.Model=="Difference"
+            if indicator.Model=="difference"
                 outputData = outputData + indicator.Level;
-            elseif indicator.Model=="Ratio"
+            elseif indicator.Model=="ratio"
                 outputData = outputData .* indicator.Level;
             end
         end
@@ -430,7 +426,7 @@ end%
 % Local Validation and Resolution
 %
 
-function flag = locallyValidateAggregation(x)
+function flag = local_validateAggregation(x)
 %(
     if any(strcmpi(char(x), {'sum', 'average', 'mean', 'last'}))
         flag = true;
@@ -445,7 +441,7 @@ function flag = locallyValidateAggregation(x)
 end%
 
 
-function transition = locallyResolveTransitionModel(transition, transitionOrder)
+function transition = local_resolveTransitionModel(transition, transitionOrder)
 %(
     if isnumeric(transitionOrder)
         transition.Order = transitionOrder;
@@ -467,7 +463,7 @@ end%
 %
 
 function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
-    locallyClipRange(lowLevel, hard, indicator, transition, aggregation)
+    local_clipRange(lowLevel, hard, indicator, transition, aggregation)
     %
     % If the hard conditions are available for a continuous span of dates
     % from the beginning of the interpolation range, and/or backwards from
@@ -493,7 +489,7 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     inxFull = all(isfinite(x__), 1);
 
     lastFull = find(~inxFull, 1, 'first') - 1; % [^1]
-    if ~isempty(lastFull) && lastFull>1;
+    if ~isempty(lastFull) && lastFull>1
         inxRunLow(1:lastFull-1) = false;
         inxRunHigh(1:(lastFull-1)*numWithin) = false;
         inxInit = circshift(inxInit, [0, (lastFull-1)*numWithin]);
@@ -501,7 +497,7 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     % [^1]: `lastFull` is the column of the last year that has all
     % observations, counting only the uninterrupted sequence of
     % full-observation years from the beginning. This last full year will
-    % be included in clipped range (becuase it may be needed for initial
+    % be included in clipped range (because it may be needed for initial
     % condition).
 
     firstFull = find(~inxFull, 1, 'last') + 1;
@@ -527,119 +523,4 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     end
     %)
 end%
-
-
-
-
-%
-% Unit Tests
-%
-%{
-##### SOURCE BEGIN #####
-% saveAs=Series/genipUnitTest.m
-
-testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
-
-% Set up Once
-
-startQ = qq(1990,1);
-endQ = qq(2050,4);
-startY = convert(startQ, Frequency.YEARLY) + 1;
-endY = convert(endQ, Frequency.YEARLY);
-quarterly = cumprod(1 + Series(startQ:endQ, @randn)/100);
-indicator = quarterly + Series(startQ:endQ, @randn)/100;
-yearly = convert(quarterly, Frequency.YEARLY, "Method", "sum");
-
-
-%% Test Initial Condition
-
-interp = genip( ...
-    yearly, Frequency.QUARTERLY, 2, "sum" ...
-    , "Range", startY:endY ...
-    , "Hard.Level", clip(quarterly, -Inf, startQ+3) ...
-);
-
-assertEqual(testCase, interp(startQ+2:startQ+3), quarterly(startQ+2:startQ+3), "AbsTol", 1e-12);
-
-
-%% Test Initial Condition and Hard Level
-
-
-for k = 4 : 40
-    interp = genip( ...
-        yearly, Frequency.QUARTERLY, 2, "sum" ...
-        , "Range", startY:endY ...
-        , "Hard.Level", clip(quarterly, -Inf, startQ+k) ...
-    );
-
-    assertEqual(testCase, interp(startQ+2:startQ+k), quarterly(startQ+2:startQ+k), "AbsTol", 1e-12);
-end
-
-
-%% Test Hard Level but No Initial Condition
-
-interp1 = genip( ...
-    yearly, Frequency.QUARTERLY, 2, "sum" ...
-    , "Range", startY:endY ...
-    , "Hard.Level", clip(quarterly, startQ+4, startQ+12) ...
-);
-
-interp2 = genip( ...
-    yearly, Frequency.QUARTERLY, 2, "sum" ...
-    , "Range", startY:endY ...
-    , "Initial", NaN ...
-    , "Hard.Level", clip(quarterly, -Inf, startQ+12) ...
-);
-
-assertEqual(testCase, interp1(startQ+4:end), interp2(startQ+4:end), "AbsTol", 1e-12);
-assertEqual(testCase, interp1(startQ+(4:12)), quarterly(startQ+(4:12)), "AbsTol", 1e-12);
-
-%% Test Indicator
-
-interp1 = genip( ...
-    yearly, Frequency.QUARTERLY, 2, "sum" ...
-    , "Range", startY:endY ...
-    , "Hard.Level", clip(quarterly, -Inf, startQ+40) ...
-);
-
-interp2 = genip( ...
-    yearly, Frequency.QUARTERLY, 2, "sum" ...
-    , "Range", startY:endY ...
-    , "Hard.Level", clip(quarterly, -Inf, startQ+40) ...
-    , "Indicator.Level", indicator ...
-    , "Indicator.Model", "Ratio" ...
-);
-
-[~, r1] = acf(pct([interp1, indicator]));
-[~, r2] = acf(pct([interp2, indicator]));
-
-assertGreaterThan(testCase, r2(1), r1(2));
-
-
-%% Test Indicator and Hard Level
-
-indicator1 = indicator;
-indicator2 = clip(indicator, startQ+38, Inf);
-indicator2 = fillMissing(indicator2, startQ:endQ, "Next");
-
-interp1 = genip( ...
-    yearly, Frequency.QUARTERLY, 2, "sum" ...
-    , "Range", startY:endY ...
-    , "Hard.Level", clip(quarterly, -Inf, startQ+40) ...
-    , "Indicator.Level", indicator1 ...
-    , "Indicator.Model", "Ratio" ...
-);
-
-interp2 = genip( ...
-    yearly, Frequency.QUARTERLY, 2, "sum" ...
-    , "Range", startY:endY ...
-    , "Hard.Level", clip(quarterly, -Inf, startQ+40) ...
-    , "Indicator.Level", indicator2 ...
-    , "Indicator.Model", "Ratio" ...
-);
-
-assertEqual(testCase, interp1(:), interp2(:), "AbsTol", 1e-9);
-
-##### SOURCE END #####
-%}
 

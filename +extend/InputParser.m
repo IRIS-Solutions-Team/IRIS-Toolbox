@@ -55,7 +55,7 @@ classdef InputParser ...
                     varargin{i} = this.REPLACE(varargin{i});
                 end
             end
-            
+
             parse@inputParser(this, varargin{:});
 
             for n = textual.stringify(this.PrimaryParameterNames)

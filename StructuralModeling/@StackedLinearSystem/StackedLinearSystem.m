@@ -12,7 +12,7 @@ classdef StackedLinearSystem ...
     < LinearSystem
 
     methods
-        varargout = filter(varargin)
+        varargout = stackedSmoother(varargin)
     end
 end
 

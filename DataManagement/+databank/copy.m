@@ -8,11 +8,11 @@ function targetDb = copy(sourceDb, opt)
 arguments
     sourceDb (1, 1) {validate.databank(sourceDb)}
 
-    opt.SourceNames {locallyValidateNames(opt.SourceNames)} = @all
-    opt.TargetNames {locallyValidateNames(opt.TargetNames)} = @auto
-    opt.TargetDb {locallyValidateDb(opt.TargetDb)} = @empty
-    opt.Transform {locallyValidateTransform(opt.Transform)} = cell.empty(1, 0)
-    opt.WhenTransformFails {locallyValidateWhenTransformFails} = "error"
+    opt.SourceNames {local_validateNames(opt.SourceNames)} = @all
+    opt.TargetNames {local_validateNames(opt.TargetNames)} = @auto
+    opt.TargetDb {local_validateDb(opt.TargetDb)} = @empty
+    opt.Transform {local_validateTransform(opt.Transform)} = cell.empty(1, 0)
+    opt.WhenTransformFails {local_validateWhenTransformFails} = "error"
 end
 %}
 % >=R2019b
@@ -86,8 +86,13 @@ return
         if isequal(opt.SourceNames, @all) || all(strcmpi(opt.SourceNames, '__all__'))
             sourceNames = databank.fieldNames(sourceDb);
         elseif isa(opt.SourceNames, 'function_handle') 
+            func = opt.SourceNames;
             sourceNames = databank.fieldNames(sourceDb);
-            inxPass = func(sourceNames);
+            numSourceNames = numel(sourceNames);
+            inxPass = true(1, numSourceNames);
+            for i = 1 : numSourceNames
+                inxPass(i) = logical(func(sourceNames(i)));
+            end
             sourceNames = sourceNames(inxPass);
         else
             sourceNames = textual.stringify(opt.SourceNames);
@@ -150,7 +155,7 @@ end%
 % Local Functions
 %
 
-function locallyValidateNames(input)
+function local_validateNames(input)
     if isa(input, 'function_handle') || iscell(input) || validate.list(input)
         return
     end
@@ -158,7 +163,7 @@ function locallyValidateNames(input)
 end%
 
 
-function locallyValidateDb(input)
+function local_validateDb(input)
     if isa(input, 'function_handle') || validate.databank(input)
         return
     end
@@ -166,7 +171,7 @@ function locallyValidateDb(input)
 end%
 
 
-function locallyValidateTransform(input)
+function local_validateTransform(input)
     if isempty(input) || isa(input, 'function_handle') || (iscell(input) && all(cellfun(@(x) isa(x, "function_handle"), input)))
         return
     end
@@ -174,7 +179,7 @@ function locallyValidateTransform(input)
 end%
 
 
-function locallyValidateWhenTransformFails(input)
+function local_validateWhenTransformFails(input)
     if startsWith(input, ["error", "warning"], "ignoreCase", true)
         return
     end

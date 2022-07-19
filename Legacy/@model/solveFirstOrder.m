@@ -17,6 +17,7 @@ function [this, info] = solveFirstOrder(this, variantsRequested, opt)
 %     -2      |  NaN in eigenvalues
 %     -3      |  NaN derivatives in system matrices
 %     -4      |  Steady state does not hold
+%     -5      |  Unknown status
 %
 
 SOLVE_TOLERANCE = this.Tolerance.Solve;
@@ -35,7 +36,7 @@ numZ = numObserved;
 numT = nnz(inxT);
 
 info = struct();
-info.ExitFlag = ones(1, nv);
+info.ExitFlag = repmat(solve.StabilityFlag.UNKNOWN, 1, nv);
 info.Singularity = false(numT, nv);
 info.InxNanDeriv = cell(1, nv);
 info.EigenValues = cell(1, nv);
@@ -89,8 +90,9 @@ for v = variantsRequested
     % Differentiate equations and set up unsolved system matrices; check
     % for NaN derivatives.
     [system, info.InxNanDeriv{v}] = systemFirstOrder(this, v, opt);
+
     if any(info.InxNanDeriv{v})
-        info.ExitFlag(v) = -3;
+        info.ExitFlag(v) = solve.StabilityFlag.NAN_SYSTEM;
         continue
     end
 
@@ -103,9 +105,10 @@ for v = variantsRequested
             || ~isreal(system.B{2}) ...
             || ~isreal(system.E{1}) ...
             || ~isreal(system.E{2})
-        info.ExitFlag(v) = 1i;
-        continue;
+        info.ExitFlag(v) = solve.StabilityFlag.COMPLEX_SYSTEM;
+        continue
     end
+
     % Check system matrices for NaNs.
     if any(isnan(system.K{1})) ...
             || any(isnan(system.K{2})) ...
@@ -115,14 +118,14 @@ for v = variantsRequested
             || any(isnan(system.B{2}(:))) ...
             || any(isnan(system.E{1}(:))) ...
             || any(isnan(system.E{2}(:)))
-        info.ExitFlag(v) = NaN;
-        continue;
+        info.ExitFlag(v) = solve.StabilityFlag.NAN_SYSTEM;
+        continue
     end
 
 
-    % __Schur decomposition & saddle-path check__
-
-
+    %
+    % Schur decomposition & saddle-path check
+    %
     if doTransition
         restoreWarnings = warning("query");
         if ~opt.Warning 
@@ -131,11 +134,11 @@ for v = variantsRequested
 
         if opt.PreferredSchur=="qz" || numXifWithinSystem>0
             % Generalized Schur for models with fwl variables
-            [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedSchur(system, EIGEN_TOLERANCE, SEVN2_TOLERANCE);
+            [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = local_computeGeneralizedSchur(system, EIGEN_TOLERANCE, SEVN2_TOLERANCE);
             info.SchurDecomposition(v) = "qz";
         else
             % Plain Schur (after inversion) for models with bwl variables only
-            [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputePlainSchur(system, EIGEN_TOLERANCE);
+            [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = local_computePlainSchur(system, EIGEN_TOLERANCE);
             info.SchurDecomposition(v) = "schur";
         end
 
@@ -143,16 +146,16 @@ for v = variantsRequested
         info.EigenValues{v} = eigen;
 
         [this.Variant.EigenStability(1, :, v), info.SaddlePath(:, v), info.ExitFlag(v)] ...
-            = locallyVerifyStability(eigen, numXib, EIGEN_TOLERANCE);
+            = local_verifyStability(eigen, numXib, EIGEN_TOLERANCE);
 
         warning(restoreWarnings);
     end
 
 
-    if info.ExitFlag(v)==1
+    if hasSucceeded(info.ExitFlag(v))
         if ~this.LinearStatus
-            % Steady-state levels needed in hereTransitionEquations() and
-            % hereMeasurementEquations()
+            % Steady-state levels needed in here_transitionEquations() and
+            % here_measurementEquations()
             isDelog = false;
             ssY = createTrendArray(this, v, isDelog, find(inxY), 0);
             ssXf = createTrendArray(this, v, isDelog, ...
@@ -160,7 +163,7 @@ for v = variantsRequested
             ssXb = createTrendArray(this, v, isDelog, ...
                 this.Vector.Solution{2}(numXif+1:end), [-1, 0]);
         end
-        
+
         %
         % Solution matrices
         %
@@ -168,19 +171,19 @@ for v = variantsRequested
         flagMeasurement = true;
         if doMeasurement
             % Measurement matrices
-            flagMeasurement = hereMeasurementEquations();
+            flagMeasurement = here_measurementEquations();
         end
         if doTransition
             % Transition matrices
-            flagTransition = hereTransitionEquations();
+            flagTransition = here_transitionEquations();
         end
         if ~flagTransition || ~flagMeasurement
             checkSteadyOptions = prepareCheckSteady(this, "EquationSwitch", "dynamic");
             if ~this.LinearStatus && ~implementCheckSteady(this, v, checkSteadyOptions);
-                info.ExitFlag(v) = -4;
+                info.ExitFlag(v) = solve.StabilityFlag.INVALID_STEADY;
                 continue;
             else
-                info.ExitFlag(v) = -1;
+                info.ExitFlag(v) = solve.StabilityFlag.NAN_SOLUTION;
                 continue;
             end
         end
@@ -213,7 +216,7 @@ info.EigenValues = info.EigenValues(variantsRequested);
 
 return
 
-    function flag = hereTransitionEquations()
+    function flag = here_transitionEquations()
         flag = true;
         isHash = any(inxHash);
 
@@ -439,7 +442,7 @@ return
     end%
 
 
-    function flag = hereMeasurementEquations( )
+    function flag = here_measurementEquations( )
         flag = true;
         % First, create untransformed measurement equation; the transformed
         % measurement matrix will be calculated later on.
@@ -505,7 +508,7 @@ end
 % Local functions
 %
 
-function [eigenStability, bk, exitFlag] = locallyVerifyStability(eigenValues, numXib, tolerance)
+function [eigenStability, bk, exitFlag] = local_verifyStability(eigenValues, numXib, tolerance)
     %(
     absEigen = abs(eigenValues);
     inxStableRoots = absEigen<=(1-tolerance);
@@ -517,13 +520,13 @@ function [eigenStability, bk, exitFlag] = locallyVerifyStability(eigenValues, nu
     % Check BK saddle-path condition
 
     if any(isnan(eigenValues))
-        exitFlag = -2;
+        exitFlag = solve.StabilityFlag.NAN_EIGEN;
     elseif numXib==numStableRoots+numUnitRoots
-        exitFlag = 1;
+        exitFlag = solve.StabilityFlag.UNIQUE_STABLE;
     elseif numXib>numStableRoots+numUnitRoots
-        exitFlag = 0;
+        exitFlag = solve.StabilityFlag.NO_STABLE;
     else
-        exitFlag = Inf;
+        exitFlag = solve.StabilityFlag.MULTIPLE_STABLE;
     end
 
     eigenStability = repmat(0, 1, numel(eigenValues));
@@ -538,7 +541,7 @@ function [eigenStability, bk, exitFlag] = locallyVerifyStability(eigenValues, nu
 end%
 
 
-function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedSchur(system, tolerance, sevn2Tolerance)
+function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = local_computeGeneralizedSchur(system, tolerance, sevn2Tolerance)
     %(
     T0 = [];
 
@@ -557,7 +560,7 @@ function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedS
         % Ordered inverse eigvals.
         invEigen = -ordeig(SS, TT);
         invEigen = reshape(invEigen, 1, []);
-        isSevn2 = hereApplySevn2Patch();
+        isSevn2 = here_applySevn2Patch();
         absInvEigen = abs(invEigen);
         inxStableRoots = absInvEigen>=(1+tolerance);
         inxUnitRoots = abs(absInvEigen-1)<tolerance;
@@ -606,7 +609,7 @@ function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedS
 
     invEigen = -ordeig(SS, TT);
     invEigen = reshape(invEigen, 1, []);
-    isSevn2 = hereApplySevn2Patch() | isSevn2;
+    isSevn2 = here_applySevn2Patch() | isSevn2;
     if isSevn2
         exception.warning([
             "Model"
@@ -617,15 +620,14 @@ function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedS
 
 
     % Undo eigen value inversion
-
     eigen = invEigen;
-    ixInfEigVal = invEigen==0;
-    eigen(~ixInfEigVal) = 1./invEigen(~ixInfEigVal);
-    eigen(ixInfEigVal) = Inf;
+    inxInfEigen = invEigen==0;
+    eigen(~inxInfEigen) = 1 ./ invEigen(~inxInfEigen);
+    eigen(inxInfEigen) = Inf;
 
     return
 
-        function flag = hereApplySevn2Patch( )
+        function flag = here_applySevn2Patch( )
             % Sum of two eigvals near to 2 may indicate inaccuracy
             % Largest eigval less than 1
             flag = false;
@@ -660,7 +662,7 @@ function [SS, TT, QQ, ZZ, T0, equationOrder, eigen] = locallyComputeGeneralizedS
 end%
 
 
-function [SS, TT, QQ, ZZ, T0, eqOrder, eigen] = locallyComputePlainSchur(system, tolerance)
+function [SS, TT, QQ, ZZ, T0, eqOrder, eigen] = local_computePlainSchur(system, tolerance)
     %(
     eqOrder = 1 : size(system.A{2}, 1);
 

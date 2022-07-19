@@ -1,5 +1,7 @@
+
 classdef Element ...
-    < matlab.mixin.Copyable
+    < rephrase.SettingsMixin ...
+    & matlab.mixin.Copyable
 
     properties (Abstract)
         Type
@@ -8,7 +10,6 @@ classdef Element ...
 
     properties
         Title (1, :) string = ""
-        Settings (1, 1) struct = rephrase.Element.DEFAULT_ELEMENT_SETTINGS
         Content
     end
 
@@ -19,28 +20,19 @@ classdef Element ...
     end
 
 
-    properties (Constant, Hidden)
-        DEFAULT_ELEMENT_SETTINGS = struct( ...
-            'Class', "" ...
-        )
-    end
-
-
     methods
         function this = Element(varargin)
-            % Fix bug in earlier versions of Matlab
+
+            this = this@rephrase.SettingsMixin();
+
+            % Workaround for a bug in earlier versions of Matlab
             this.Type = string(this.Type);
 
             if nargin==0
                 return
             end
             this.Title = varargin{1};
-            varargin(1) = [ ];
-            for i = 1 : 2 : numel(varargin)
-                name = erase(varargin{i}, "=");
-                name = replaceBetween(name, 1, 1, upper(extractBetween(name, 1, 1)));
-                this.Settings.(name) = varargin{i+1};
-            end
+            assignOwnSettings(this, varargin{2:end});
         end%
 
 
@@ -48,7 +40,7 @@ classdef Element ...
         end%
 
 
-        function show(this, level, last);
+        function show(this, level, last)
             %(
             if nargin<2
                 last = false;
@@ -62,7 +54,7 @@ classdef Element ...
                 fprintf('%s', [level, '|-- ']);
                 addToLevel = '|   ';
             end
-            fprintf('%s "%s"\n', this.Type, this.Title);
+            printInfo(this);
             if isa(this, 'rephrase.Container')
                 for i = 1 : numel(this.Content)
                     if last
@@ -74,6 +66,20 @@ classdef Element ...
             if isempty(level)
                 textual.looseLine( );
             end
+            %)
+        end%
+
+
+        function printInfo(this)
+            %(
+            fprintf('%s "%s"', this.Type, this.Title);
+            if ~isempty(this.SettingsAssigned)
+                fprintf(' %s=', sort(this.SettingsAssigned));
+            end
+            if ~isempty(this.SettingsInherited)
+                fprintf(' %s+', sort(this.SettingsInherited));
+            end
+            fprintf('\n');
             %)
         end%
     end

@@ -1,7 +1,6 @@
 classdef Marker ...
-    < rephrase.Element ...
-    & rephrase.Terminus ...
-    & rephrase.Data
+    < rephrase.Terminal ...
+    & rephrase.DataMixin
 
     properties % (Constant)
         Type = rephrase.Type.MARKER
@@ -10,7 +9,7 @@ classdef Marker ...
 
     methods
         function this = Marker(title, x, y, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Terminal(title, varargin{:});
             this.Content = struct( );
             this.Content.X = x;
             this.Content.Y = y;

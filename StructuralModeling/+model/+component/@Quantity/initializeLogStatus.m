@@ -20,8 +20,8 @@ logNames = unique(reshape(string(logNames), 1, [ ]));
 % Names that can be on the !log-variables list:
 % measurement, transition, exogenous variable exept ttrend
 inxCanBeLog = getIndexByType(this, 1, 2, 5);
-ttrendName = this.RESERVED_NAME_TTREND;
-inxCanBeLog(allNames==ttrendName) = false;
+posTrendLine = locateTrendLine(this, NaN);
+inxCanBeLog(posTrendLine) = false;
 namesCanBeLog = unique([allNames(inxCanBeLog), processorLhsNames], 'stable');
 
 inxValidLogNames = ismember(logNames, namesCanBeLog) | ismember(logNames, processorLhsNames);

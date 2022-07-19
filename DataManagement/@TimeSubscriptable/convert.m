@@ -26,8 +26,8 @@ if isempty(pp)
     addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @iris.Configuration.validateConversionMonth);
     addParameter(pp, {'RemoveMissing', 'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, "RemoveWeekends", false, @validate.logicalScalar);
-    addParameter(pp, 'Missing', @default, @(x) isequal(x, @default) || validate.anyString(x, ["previous", "next"]) || validate.numericScalar(x));
-    addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.stringScalar(x) || isnumeric(x));
+    addParameter(pp, 'Missing', [], @(x) isempty(x) || validate.anyString(x, ["previous", "next"]) || validate.numericScalar(x));
+    addParameter(pp, {'Method', 'Function'}, [], @(x) isempty(x) || isa(x, 'function_handle') || validate.stringScalar(x) || isnumeric(x));
     addParameter(pp, 'Position', 'center', @(x) validate.stringScalar(x) && startsWith(x, ["s", "b", "f", "c", "m", "e", "l"], "IgnoreCase", true));
     addParameter(pp, 'Select', Inf, @(x) isnumeric(x));
 end
@@ -39,7 +39,7 @@ if ~isa(newFreq, 'Frequency')
     [~, newFreq] = Frequency.validateProperFrequency(newFreq);
 end
 
-%--------------------------------------------------------------------------
+
 
 if isnan(this.Start) || isempty(this.Data)
     return
@@ -57,22 +57,22 @@ if oldFreq==0 || newFreq==0
 end
 
 if oldFreq==newFreq
-    % No conversion
+    % Pass
     conversionFunc = [];
 elseif oldFreq>newFreq
     % Aggregation
-    conversionFunc = @locallyAggregate;
+    conversionFunc = @local_aggregate;
 else
     if validate.stringScalar(opt.Method) && startsWith(opt.Method, ["quadSum", "quadAvg", "quadMean"], "ignoreCase", true)
         % Sum- or average-matching interpolation
-        conversionFunc = @locallyInterpolateQuadraticMatch;
+        conversionFunc = @local_interpolateQuadraticMatch;
     else
         % Non-matching interpolation
-        conversionFunc = @locallyInterpolate;
+        conversionFunc = @local_interpolate;
     end
 end
 
-this = locallyPreprocessMissing(this, opt);
+this = local_preprocessMissing(this, opt);
 
 if ~isempty(conversionFunc)
     [oldStart, oldEnd] = resolveRange(this, range);
@@ -90,22 +90,22 @@ end%
 % Local functions
 %
 
-function this = locallyPreprocessMissing(this, opt)
+function this = local_preprocessMissing(this, opt)
     %(
-    if ~isequal(opt.Missing, @default)
+    if ~isempty(opt.Missing)
         this = fillMissing(this, Inf, opt.Missing);
     end
     %)
 end%
 
 
-function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+function [newData, newStart] = local_aggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     %(
     %  
-    % Handle Method="default", "first", "last", "random", in char, string
+    % Handle Method=[], "first", "last", "random", in char, string
     % or function_handle
     %
-    opt.Method = locallyResolveSpecialAggregationMethods(opt.Method);
+    opt.Method = local_resolveSpecialAggregationMethods(opt.Method);
 
 
     %
@@ -150,7 +150,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
     newStartSerial = newDatesSerial(1);
     newEndSerial = newDatesSerial(end);
     numNewPeriods = newEndSerial - newStartSerial + 1;
-    
+
     %
     % Apply the aggregation function period by period, column by column
     %
@@ -221,14 +221,18 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
 end%
 
 
-function method = locallyResolveSpecialAggregationMethods(method)
+function method = local_resolveSpecialAggregationMethods(method)
     %(
+
+    if isempty(method)
+        method = @mean;
+        return
+    end
+
     charMethod = char(method); % [^1]   
     % [^1]: Convert to char; this works both for char, string and function_handle
 
-    if startsWith(charMethod, "default", "ignoreCase", true)
-        method = @mean;
-    elseif startsWith(charMethod, "last", "ignoreCase", true)
+    if startsWith(charMethod, "last", "ignoreCase", true)
         method = "last";
     elseif startsWith(charMethod, "first", "ignoreCase", true)
         method = "first";
@@ -241,9 +245,9 @@ function method = locallyResolveSpecialAggregationMethods(method)
 end%
 
 
-function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+function [newData, newStart] = local_interpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     %(
-    if isequal(opt.Method, @default) || startsWith(opt.Method, "default", "ignoreCase", true)
+    if isempty(opt.Method)
         opt.Method = "pchip";
     elseif startsWith(opt.Method, "writeToBeginning", "ignoreCase", true)
         opt.Method = "first";
@@ -292,14 +296,14 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
     oldData = getDataFromTo(this, oldStart, oldEnd);
     oldSize = size(oldData);
     if startsWith(opt.Method, ["flat", "first", "last"], "ignoreCase", true)
-        newData = hereFlat( );
+        newData = here_flat( );
     else
-        newData = hereInterpolate( );
+        newData = here_interpolate( );
     end
 
     return
 
-        function newData = hereInterpolate( )
+        function newData = here_interpolate( )
             oldData = oldData(:, :);
             numNewPeriods = floor(newEnd) - floor(newStart) + 1;
             oldGrid = dat2dec(oldStart:oldEnd, opt.Position);
@@ -313,7 +317,7 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
         end%
 
 
-        function newData = hereFlat( )
+        function newData = here_flat( )
             newRange = dater.colon(newStart, newEnd);
             oldRange = dater.colon(oldStart, oldEnd);
             newConverted = convert(newRange, oldFreq);
@@ -343,7 +347,7 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
 end%
 
 
-function [newData, newStart] = locallyInterpolateQuadraticMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+function [newData, newStart] = local_interpolateQuadraticMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     %(
     numWithin = newFreq/oldFreq;
     if numWithin~=round(numWithin)
@@ -369,7 +373,7 @@ function [newData, newStart] = locallyInterpolateQuadraticMatch(this, oldStart, 
     % period
     newStart = dater.datecode(newFreq, newStartYear, newStartPer);
 
-    [newData, flag] = locallyImplementQuadraticMatch(oldData, numWithin);
+    [newData, flag] = local_implementQuadraticMatch(oldData, numWithin);
     if ~flag
         exception.warning([
             "Series:CannotInterpolateInsampleNaNs"
@@ -385,7 +389,7 @@ function [newData, newStart] = locallyInterpolateQuadraticMatch(this, oldStart, 
 end% 
 
 
-function [y2, flag] = locallyImplementQuadraticMatch(y1, numWithin)
+function [y2, flag] = local_implementQuadraticMatch(y1, numWithin)
     %(
     [numPeriods, ny] = size(y1);
     y2 = nan(numPeriods*numWithin, ny);

@@ -23,10 +23,9 @@ if isempty(pp)
     pp = extend.InputParser("@Model/createSourceDb");
     pp.KeepDefaultOptions = true;
     addRequired(pp, "model", @(x) isa(x, 'model'));
-    addRequired(pp, "range", @validate.properRange);
+    addRequired(pp, "range", @(x) validate.properRange(x) || isempty(x));
 
     addParameter(pp, "Deviation", false, @validate.logicalScalar);
-    addParameter(pp, "EvalTrends", logical.empty(1, 0));
 
     addParameter(pp, ["AppendPresample", "AddPresample"], true, @validate.logicalScalar);
     addParameter(pp, ["AppendPostsample", "AddPostsample"], true, @validate.logicalScalar);
@@ -39,10 +38,6 @@ end
 [skipped, opt] = maybeSkip(pp, this, range, varargin{:});
 if ~skipped
     opt = parse(pp, this, range, varargin{:});
-end
-
-if isempty(opt.EvalTrends)
-    opt.EvalTrends = ~opt.Deviation;
 end
 
 numDrawsRequested = opt.NumDraws;
@@ -66,17 +61,27 @@ end
 % 
 [minSh, maxSh] = getActualMinMaxShifts(this);
 range = double(range);
-start = range(1);
-extdStart = range(1);
-extdEnd = range(end);
-if opt.AppendPresample
-    extdStart = dater.plus(extdStart, minSh);
+
+
+if ~isempty(range)
+    start = range(1);
+    extdStart = range(1);
+    extdEnd = range(end);
+    if opt.AppendPresample
+        extdStart = dater.plus(extdStart, minSh);
+    end
+    if opt.AppendPostsample
+        extdEnd = dater.plus(extdEnd, maxSh);
+    end
+    extdRange = dater.colon(extdStart, extdEnd);
+    numExtdPeriods = numel(extdRange);
+else
+    start = NaN;
+    extdStart = NaN;
+    extdRange = [];
+    numExtdPeriods = 0;
 end
-if opt.AppendPostsample
-    extdEnd = dater.plus(extdEnd, maxSh);
-end
-extdRange = dater.colon(extdStart, extdEnd);
-numExtdPeriods = numel(extdRange);
+
 
 labelsOrNames = getLabelsOrNames(this.Quantity);
 
@@ -96,15 +101,18 @@ outputDb = struct( );
 %
 % Deterministic time trend
 %
-ttrend = dat2ttrend(extdRange, this);
-
-X = zeros(numQuantities, numExtdPeriods, nv);
-if ~opt.Deviation
-    isDelog = false;
-    X(inxYXG, :, :) = createTrendArray(this, Inf, isDelog, posYXG, ttrend);
+if ~isempty(range)
+    ttrend = dat2ttrend(extdRange, this);
+else
+    ttrend = zeros(1, 0);
 end
 
-if opt.EvalTrends
+
+X = zeros(numQuantities, numExtdPeriods, nv);
+if ~opt.Deviation && ~isempty(range)
+    isDelog = false;
+    X(inxYXG, :, :) = createTrendArray(this, Inf, isDelog, posYXG, ttrend);
+
     W = evalTrendEquations(this, [ ], X(inxG, :, :), 1:nv);
     X(1:ny, :, :) = X(1:ny, :, :) + W;
 end
@@ -135,7 +143,11 @@ end
 % 
 for i = find(inxY | inxE)
     name = this.Quantity.Name{i};
-    x = X(i, 1-minSh:end-maxSh, :);
+    if ~isempty(range)
+        x = X(i, 1-minSh:end-maxSh, :);
+    else
+        x = X(i, [], :);
+    end
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE ...
         , permute(x, [2, 3, 1]) ...

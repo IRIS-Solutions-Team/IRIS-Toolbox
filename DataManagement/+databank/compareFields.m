@@ -37,65 +37,70 @@ opt = ip.Results;
 success = true;
 info = struct( );
 info.FieldNamesMatch = true;
+info.MissingFields = cell(1, 2);
 info.ClassesNotEqual = string.empty(1, 0);
 info.DimensionsNotEqual = string.empty(1, 0);
 info.SeriesStartDatesNotEqual = string.empty(1, 0);
-info.SeriesDataNotEqual = string.empty(1, 0);
-info.NumericDataNotEqual = string.empty(1, 0);
-info.OtherDataNotEqual = string.empty(1, 0);
+info.DataNotEqual = string.empty(1, 0);
+info.Difference = struct();
+info.MaxDiscrepancy = struct();
 
 keys1 = databank.fieldNames(d1);
 keys2 = databank.fieldNames(d2);
 
 if isequal(opt.Keys, @all)
     info.FieldNamesMatch = isequal(sort(keys1), sort(keys2));
-    keys = keys1;
+    keys = union(keys1, keys2, 'stable');
 else
-    opt.Keys = reshape(string(opt.Keys), 1, [ ]);
+    opt.Keys = textual.stringify(opt.Keys);
     info.FieldNamesMatch = all(ismember(opt.Keys, keys1)) && all(ismember(opt.Keys, keys2));
     keys = opt.Keys;
 end
 
+info.MissingFields = {setdiff(keys, keys1), setdiff(keys, keys2)};
+
 success = info.FieldNamesMatch;
 
-if success
-    for k = keys1
-        field1 = d1.(k);
-        field2 = d2.(k);
-        if ~isequal(class(field1), class(field2))
-            info.ClassesNotEqual(end+1) = k;
-            success = false;
-            continue
-        end
+for k = keys
+    if ~isfield(d1, k) || ~isfield(d2, k)
+        continue
+    end
 
-        if ~isequal(size(field1), size(field2))
-            info.DimensionsNotEqual(end+1) = k;
-            success = false;
-            continue
-        end
+    field1 = d1.(k);
+    field2 = d2.(k);
 
-        if isa(field1, 'TimeSubscriptable') && isa(field2, 'TimeSubscriptable')
-            if ~dater.eq(field1.Start, field2.Start)
-                info.SeriesStartDatesNotEqual(end+1) = k;
+    if ~isequal(class(field1), class(field2))
+        info.ClassesNotEqual(end+1) = k;
+        success = false;
+        continue
+    end
+
+    if ~isequal(size(field1), size(field2))
+        info.DimensionsNotEqual(end+1) = k;
+        success = false;
+    end
+
+    if isa(field1, 'TimeSubscriptable') && isa(field2, 'TimeSubscriptable')
+        if ~dater.eq(field1.Start, field2.Start)
+            info.SeriesStartDatesNotEqual(end+1) = k;
+            success = false;
+        end
+    else
+        if ~isequaln(field1, field2)
+            info.DataNotEqual(end+1) = k;
+            success = false;
+        end
+    end
+
+    try
+        info.Difference.(k) = field1 - field2;
+    end
+    if isfield(info.Difference, k)
+        try
+            info.MaxDiscrepancy.(k) = max(abs(info.Difference.(k)));
+            if info.MaxDiscrepancy.(k)>opt.AbsTol
+                info.DataNotEqual(end+1) = k;
                 success = false;
-                continue
-            end
-            if maxabs(field1.Data, field2.Data)>opt.AbsTol
-                info.SeriesDataNotEqual(end+1) = k;
-                success = false;
-                continue
-            end
-        elseif isnumeric(field1) && isnumeric(field2)
-            if maxabs(field1, field2)>opt.AbsTol
-                info.NumericDataNotEqual(end+1) = k;
-                success = false;
-                continue
-            end
-        else
-            if ~isequaln(field1, field2)
-                info.OtherDataNotEqual(end+1) = k;
-                success = false;
-                continue
             end
         end
     end

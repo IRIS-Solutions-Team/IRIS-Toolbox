@@ -1,9 +1,15 @@
+
 classdef Grid ...
-    < rephrase.Element ...
-    & rephrase.Container
+    < rephrase.Container
 
     properties % (Constant)
         Type = rephrase.Type.GRID
+    end
+
+
+    properties (Hidden)
+        Settings_NumRows (1, 1) double = Inf
+        Settings_NumColumns (1, 1) double
     end
 
 
@@ -11,6 +17,8 @@ classdef Grid ...
         PossibleChildren = [
             rephrase.Type.TABLE
             rephrase.Type.CHART
+            rephrase.Type.SERIESCHART
+            rephrase.Type.CURVECHART
             rephrase.Type.MATRIX
         ]
     end
@@ -18,19 +26,15 @@ classdef Grid ...
 
     methods
         function this = Grid(title, numRows, numColumns, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
-            this.Settings.NumRows = numRows;
-            this.Settings.NumColumns = numColumns;
+            % this.Settings_NumRows = double(numRows);
+            this.Settings_NumColumns = double(numColumns);
         end%
 
 
-        function build(this, varargin)
-            build@rephrase.Container(this, varargin{:});
-            if isempty(this.Settings.NumRows) || isinf(this.Settings.NumRows)
-                numChildren = numel(this.Content);
-                this.Settings.NumRows = ceil(numChildren / this.Settings.NumColumns);
-            end
+        function finalize(this)
+            finalize@rephrase.Container(this);
         end%
     end
 end 

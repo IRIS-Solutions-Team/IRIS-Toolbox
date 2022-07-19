@@ -43,6 +43,7 @@ info.AllNames = allNames;
 info.Dates = double(dates);
 info.NumPages = NaN;
 info.NamesAvailable = string.empty(1, 0);
+info.OptionalNamesMissing = string.empty(1, 0);
 info.LogNames = logNames;
 
 if all(strcmpi(inputDb, 'asynchronous'))
@@ -129,15 +130,15 @@ end
 namesAvailable = allNames(inxNamesAvailable);
 
 if ~all(checkIncluded)
-    hereReportMissing( );
+    here_reportMissing( );
 end
 
 if ~all(checkFrequency)
-    hereReportInvalidFrequency( );
+    here_reportInvalidFrequency( );
 end
 
 if ~all(checkType)
-    hereReportInvalidType( );
+    here_reportInvalidType( );
 end
 
 numPages(isnan(numPages) & inxOptionalNames) = 0;
@@ -150,16 +151,17 @@ checkNumPagesAndVariants ...
     | (nv==1 & numPages==maxNumPages);
 
 if ~all(checkNumPagesAndVariants)
-    hereReportColumns( );
+    here_reportColumns( );
 end
 
 info.NumPages = max(max(numPages), 1);
 info.NamesAvailable = namesAvailable;
+info.OptionalNamesMissing = setdiff(optionalNames, namesAvailable);
 info.NamesWithLogInputData = allNames(inxLogInput);
 
 return
 
-    function hereReportMissing( )
+    function here_reportMissing( )
         exception.error([ 
             "DatabankPipe:MissingSeries"
             "This variable is required " + context + " "
@@ -168,7 +170,7 @@ return
     end%
 
 
-    function hereReportInvalidFrequency( )
+    function here_reportInvalidFrequency( )
         exception.error([ 
             "DatabankPipe:CheckInputDatabank"
             "This time series has the wrong date frequency in the input databank: %s "
@@ -176,7 +178,7 @@ return
     end%
 
 
-    function hereReportInvalidType( )
+    function here_reportInvalidType( )
         exception.error([ 
             "DatabankPipe:CheckInputDatabank"
             "This name is included in the input databank but is the wrong type: %s"
@@ -184,7 +186,7 @@ return
     end%
 
 
-    function hereReportColumns( )
+    function here_reportColumns( )
         exception.error([ 
             "DatabankPipe:CheckInputDatabank"
             "This time series or plain numeric input has an inconsistent number of columns: %s " 

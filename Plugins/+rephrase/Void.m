@@ -1,9 +1,9 @@
-classdef Selective ...
-    < rephrase.Element ...
-    & rephrase.Terminus
+classdef Void ...
+    < rephrase.Terminal 
 
     properties % (Constant)
-        Type = rephrase.Type.SELECTIVE
+        Type = rephrase.Type.VOID
     end
+
 end
 

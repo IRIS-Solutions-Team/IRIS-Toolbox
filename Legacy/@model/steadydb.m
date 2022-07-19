@@ -57,17 +57,17 @@
 
 function [d, deviation] = steadydb(this, range, varargin)
 
-[flag, list] = isnan(this, 'steady');
+    [flag, list] = isnan(this, 'steady');
 
-if flag
-    exception.warning([
-        "Model"
-        "Steady state for this variables is NaN: %s "
-    ], textual.stringify(list));
-end
+    if flag
+        exception.warning([
+            "Model"
+            "Steady state for this variables is NaN: %s "
+        ], textual.stringify(list));
+    end
 
-deviation = false;
-d = createSourceDb(this, range, varargin{:}, 'deviation', deviation);
+    deviation = false;
+    d = createSourceDb(this, range, varargin{:}, 'deviation', deviation);
 
 end%
 

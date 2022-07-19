@@ -30,7 +30,6 @@ function outputDb = fromArray(array, names, startDate, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser();
-
     addParameter(ip, 'Comments', [], @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x));
     addParameter(ip, 'OutputType', "__auto__", @(x) mustBeMember(x, ["struct", "Dictionary", "__auto__"]));
     addParameter(ip, 'TargetDb', false, @local_validateTargetDb);

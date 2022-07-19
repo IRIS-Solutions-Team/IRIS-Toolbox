@@ -1,9 +1,18 @@
 classdef Report ...
-    < rephrase.Element ...
-    & rephrase.Container
+    < rephrase.Container
 
     properties % (Constant)
         Type = rephrase.Type.REPORT
+    end
+
+
+    properties (Hidden)
+        Settings_Subtitle (1, 1) string = ""
+        Settings_Footer (1, 1) string = ""
+        Settings_InteractiveCharts (1, 1) logical = true
+        Settings_TableOfContents (1, 1) logical = false
+        Settings_TableOfContentsDepth (1, 1) double = 1
+        Settings_Logo (1, 1) logical = false
     end
 
 
@@ -12,6 +21,8 @@ classdef Report ...
             rephrase.Type.GRID
             rephrase.Type.TABLE
             rephrase.Type.CHART
+            rephrase.Type.SERIESCHART
+            rephrase.Type.CURVECHART
             rephrase.Type.TEXT
             rephrase.Type.PAGEBREAK
             rephrase.Type.MATRIX
@@ -25,35 +36,35 @@ classdef Report ...
 
     methods
         function this = Report(title, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
         end%
 
 
         function outputFileNames = build(this, fileName, reportDb, varargin)
-            %( Input parser
-            persistent pp
-            if isempty(pp)
-                pp = extend.InputParser('+rephrase/Report');
-                addRequired(pp, 'report', @(x) isa(x, 'rephrase.Report'));
-                addRequired(pp, 'fileName', @validate.stringScalar);
-                addOptional(pp, 'reportDb', [ ], @(x) isempty(x) || validate.databank(x));
-
-                addParameter(pp, 'SaveJson', false, @validate.logicalScalar);
-                addParameter(pp, 'Source', "Local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["Local", "Bundle", "Web"]))));
-                addParameter(pp, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
+            %(
+            persistent ip
+            if isempty(ip)
+                ip = inputParser();
+                addParameter(ip, 'SaveJson', false, @validate.logicalScalar);
+                addParameter(ip, 'Source', "Local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["Local", "Bundle", "Web"]))));
+                addParameter(ip, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
+                addParameter(ip, 'Context', struct());
+                addParameter(ip, 'ColorScheme', "");
             end
+            parse(ip, varargin{:});
+            opt = ip.Results;
             %)
-            opt = parse(pp, this, fileName, reportDb, varargin{:});
 
-            fileNameBase = hereResolveFileNameBase(fileName);
+            fileNameBase = here_resolveFileNameBase(fileName);
 
             %
             % Create report json
             %
 
-            build@rephrase.Container(this);
+            finalize(this);
             reportJson = string(jsonencode(this));
+            reportJson = local_substituteParameters(reportJson, opt.Context);
 
             %
             % Create data json
@@ -66,26 +77,29 @@ classdef Report ...
                 dataJson = string(jsonencode(serial.jsonFromDatabank(requestDb)));
             end
 
-            script = ...
-                "var $report=" + reportJson + ";" + string(newline( )) ...
-                + "var $databank=" + dataJson + ";" ...
-            ;
+            colorSchemeJson = local_readColorScheme(opt.ColorScheme);
+
+            script = join([
+                "var $report=" + reportJson + ";"
+                "var $databank=" + dataJson + ";"
+                "var $colorScheme=" + colorSchemeJson + ";"
+            ], string(newline()));
 
             outputFileNames = string.empty(1, 0);
             for source = reshape(lower(opt.Source), 1, [ ])
-                template = hereReadTemplate(source);
+                template = here_readTemplate(source);
 
                 % FIXME
                 % template = replace(template, """Lato""", """Open Sans""");
 
-                template = hereEmbedReportData(template);
-                template = hereEmbedUserStyle(template);
-                outputFileNames(end+1) = hereWriteFinalHtml( ); %#ok<*AGROW>
+                template = here_embedReportData(template);
+                template = here_embedUserStyle(template);
+                outputFileNames(end+1) = here_writeFinalHtml( ); %#ok<*AGROW>
             end
 
             return
 
-                function fileNameBase = hereResolveFileNameBase(fileName)
+                function fileNameBase = here_resolveFileNameBase(fileName)
                     %(
                     [p, t, ~] = fileparts(fileName);
                     fileNameBase = fullfile(string(p), string(t));
@@ -93,21 +107,21 @@ classdef Report ...
                 end%
 
 
-                function template = hereReadTemplate(source)
+                function template = here_readTemplate(source)
                     %(
                     templateFolder = fullfile(iris.root( ), "Plugins", ".rephrase");
                     switch source
                         case "bundle"
                             templateFileName = fullfile(templateFolder, "report-template.bundle.html");
-                            template = locallyReadTextFile(templateFileName);
+                            template = local_readTextFile(templateFileName);
                         case "local"
                             templateFileName = fullfile(templateFolder, "report-template.html");
-                            template = locallyReadTextFile(templateFileName);
+                            template = local_readTextFile(templateFileName);
                             template = replace(template, """lib/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "lib/"));
                             template = replace(template, """img/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "img/"));
                         case "web"
                             templateFileName = fullfile(templateFolder, "report-template-web-source.html");
-                            template = locallyReadTextFile(templateFileName);
+                            template = local_readTextFile(templateFileName);
                         otherwise
                             % TODO: Throw error
                     end
@@ -115,7 +129,7 @@ classdef Report ...
                 end%
 
 
-                function template = hereEmbedReportData(template)
+                function template = here_embedReportData(template)
                     %(
                     template = replace( ...
                         template, this.EMBED_REPORT_DATA, script ...
@@ -124,7 +138,7 @@ classdef Report ...
                 end%
 
 
-                function template = hereEmbedUserStyle(template)
+                function template = here_embedUserStyle(template)
                     %(
                     if strlength(opt.UserStyle)==0
                         return
@@ -135,13 +149,13 @@ classdef Report ...
                 end%
 
 
-                function outputFileName = hereWriteFinalHtml( )
+                function outputFileName = here_writeFinalHtml( )
                     %(
                     outputFileName = fileNameBase + "." + source + ".html";
-                    locallyWriteTextFile(outputFileName, template);
+                    local_writeTextFile(outputFileName, template);
                     if opt.SaveJson
-                        locallyWriteTextFile(fileNameBase+"."+source+".report.json", reportJson);
-                        locallyWriteTextFile(fileNameBase+"."+source+".data.json", dataJson);
+                        local_writeTextFile(fileNameBase+"."+source+".report.json", reportJson);
+                        local_writeTextFile(fileNameBase+"."+source+".data.json", dataJson);
                     end
                     %)
                 end%
@@ -153,7 +167,7 @@ end
 % Local Functions
 %
 
-function content = locallyReadTextFile(fileName)
+function content = local_readTextFile(fileName)
     %(
     fid = fopen(fileName, "rt+", "native", "UTF-8");
     content = fread(fid, Inf, "*char", "native");
@@ -163,7 +177,7 @@ function content = locallyReadTextFile(fileName)
 end%
 
 
-function locallyWriteTextFile(fileName, content)
+function local_writeTextFile(fileName, content)
     %(
     fid = fopen(fileName, "wt+", "native", "UTF-8");
     if fid<0
@@ -179,6 +193,32 @@ function locallyWriteTextFile(fileName, content)
         rethrow(mexp)
     end
     fclose(fid);
+    %)
+end%
+
+
+function reportJson = local_substituteParameters(reportJson, context)
+    %(
+    fields = databank.fieldNames(context);
+    if isempty(fields)
+        return
+    end
+    values = string.empty(1, 0);
+    for n = fields
+        values(1, end+1) = string(context.(n));
+    end
+    reportJson = replace(reportJson, "$("+fields+")", values);
+    %)
+end%
+
+
+function colorSchemeJson = local_readColorScheme(filename)
+    %(
+    if isempty(filename) || strlength(filename)==0
+        colorSchemeJson = "{}";
+        return
+    end
+    colorSchemeJson =  jsonencode(jsondecode(fileread(filename)));
     %)
 end%
 

@@ -57,12 +57,12 @@
 function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
-    , extdTimeTrend, dbInfo ...
+    , trendLine, dbInfo ...
 ] = data4lhsmrhs(this, inputDb, baseRange, opt)
 
 arguments
     this
-    inputDb {locallyValidateInputDb} 
+    inputDb {local_validateInputDb} 
     baseRange (1, :) double {validate.mustBeProperRange}
 
     opt.DbInfo (1, 1) struct = struct()
@@ -79,7 +79,7 @@ end
 function [ ...
     YXEPG, rowNames, extdRange ...
     , minShift, maxShift ...
-    , extdTimeTrend, dbInfo ...
+    , trendLine, dbInfo ...
 ] = data4lhsmrhs(this, inputDb, baseRange, varargin)
 
 persistent ip
@@ -126,12 +126,11 @@ end
 
 YXEG = requestData(this, dbInfo, inputDb, rowNamesExceptParameters, extdRange);
 
-extdTimeTrend = dat2ttrend(extdRange, this);
 numPages = size(YXEG, 3);
 
 if opt.NumDummyPeriods>0
     % Reset the last N periods to NaN
-    % hereResetDummyPeriods( );
+    % here_resetDummyPeriods( );
 end
 
 YXEPG = nan(numQuants, lenExtdRange, numPages);
@@ -139,33 +138,31 @@ YXEPG(~inxP, :, :) = YXEG;
 
 if opt.ResetShocks
     % Reset NaN shocks to 0
-    hereResetShocks( );
+    here_resetShocks( );
 end
 
 if opt.IgnoreShocks
     % Zero out all shocks
-    hereIgnoreShocks( );
+    here_ignoreShocks( );
 end
 
-inxTimeTrend = strcmp(rowNames, model.component.Quantity.RESERVED_NAME_TTREND);
-YXEPG(inxTimeTrend, :, :) = repmat(extdTimeTrend, 1, 1, numPages);
+[YXEPG, trendLine] = insertTrendLine(this, YXEPG, extdRange, Inf);
 
 return
 
-
-    function hereResetDummyPeriods( )
+    function here_resetDummyPeriods( )
         inxToReset = false(1, lenExtdRange);
         inxToReset(end-opt.NumDummyPeriods+1:end) = true;
         YXEG(:, inxToReset, :) = NaN;
     end%
 
 
-    function hereIgnoreShocks( )
+    function here_ignoreShocks( )
         YXEPG(inxE, :, :) = 0;
     end%
 
 
-    function hereResetShocks( )
+    function here_resetShocks( )
         inxNaN = isnan(YXEPG);
         if nnz(inxNaN)==0
             return
@@ -181,7 +178,7 @@ return
 end%
 
 
-function locallyValidateInputDb(x)
+function local_validateInputDb(x)
     %(
     if validate.databank(x) || validate.anyString(x, "asynchronous")
         return

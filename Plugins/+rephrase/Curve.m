@@ -1,7 +1,6 @@
 classdef Curve ...
-    < rephrase.Element ...
-    & rephrase.Terminus ...
-    & rephrase.Data
+    < rephrase.Terminal ...
+    & rephrase.ColorMixin
 
     properties % (Constant)
         Type = rephrase.Type.CURVE
@@ -10,13 +9,29 @@ classdef Curve ...
 
     methods
         function this = Curve(title, input, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Terminal(title, varargin{:});
             this.Content = input;
         end%
 
 
-        function build(this, varargin)
-            this.Content = buildCurveData(this, this.Content);
+        function finalize(this)
+            finalize@rephrase.Terminal(this);
+            this.Content = finalizeCurveData(this, this.Content);
+        end%
+
+
+        function output = finalizeCurveData(this, input);
+            if isstring(input) || ischar(input)
+                output = string(input);
+                this.DataRequests = union(this.DataRequests, output, 'stable');
+                return
+            end
+            minTick = min(this.Parent.Settings_Ticks);
+            maxTick = max(this.Parent.Settings_Ticks);
+            inxTicks = input.Ticks>=minTick & input.Ticks<=maxTick;
+            output = struct();
+            output.Ticks = reshape(input.Ticks(inxTicks), 1, []);
+            output.Values = reshape(input.Values(inxTicks), 1, []);
         end%
     end
 

@@ -1,6 +1,5 @@
 classdef Pagebreak ...
-    < rephrase.Element ...
-    & rephrase.Terminus
+    < rephrase.Terminal
 
     properties % (Constant)
         Type = rephrase.Type.PAGEBREAK
@@ -9,7 +8,7 @@ classdef Pagebreak ...
 
     methods
         function this = Pagebreak(varargin)
-            this = this@rephrase.Element(varargin{:});
+            this = this@rephrase.Terminal(varargin{:});
             this.Content = NaN;
         end%
     end

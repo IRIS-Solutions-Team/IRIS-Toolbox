@@ -1,4 +1,3 @@
-function [outputData, regOutput] = filter(this, inputData, range, varargin)
 % filter  Run Kalman filter
 %{
 %}
@@ -6,7 +5,7 @@ function [outputData, regOutput] = filter(this, inputData, range, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [outputData, regOutput] = filter(this, inputData, range, varargin)
 
 range = double(range);
 startRange = range(1);
@@ -33,7 +32,9 @@ argin = struct( ...
     'OutputData', hereCreateOutputDataRequest(this, numExtPeriods, kalmanOpt), ...
     'InternalAssignFunc', @hereAssignOutputData, ...
     'Options', kalmanOpt ...
+    'FilterRange', range ...
 );
+
 [~, regOutput, outputData] = implementKalmanFilter(this, argin);
 %=========================================================================
 

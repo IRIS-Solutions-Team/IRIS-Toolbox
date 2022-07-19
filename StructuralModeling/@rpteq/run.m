@@ -37,7 +37,7 @@ function outputData = run(varargin)
 %
 % * `'Fresh='` [ `true` | *`false`* ] - If `true`, only the LHS reporting
 % variables will be included in the output database, `Outp`; if `false` the
-% output database will also include all entries from the input database, 
+% output database will also include all entries from the input database,
 % `Inp`.
 %
 %
@@ -49,14 +49,14 @@ function outputData = run(varargin)
 %
 % __Example__
 %
-% Note the differences in the three output databases, `d1`, `d2`, `d3`, 
+% Note the differences in the three output databases, `d1`, `d2`, `d3`,
 % depending on the options `AppendPresample=` and `Fresh=`.
 %
 %     >> q = rpteq({ ...
 %         'a = c * a{-1}^0.8 * b{-1}^0.2;', ...
 %         'b = sqrt(b{-1});', ...
 %         })
-% 
+%
 %     q =
 %         rpteq object
 %         number of equations: [2]
@@ -72,31 +72,31 @@ function outputData = run(varargin)
 %     >> d.c = 10;
 %     >> d
 %
-%     d = 
+%     d =
 %         a: [1x1 tseries]
 %         b: [1x1 tseries]
 %         c: 10
 %
 %     >> d1 = run(q, d, qq(2010, 1):qq(2011, 4))
 %
-%     d1 = 
+%     d1 =
 %         a: [8x1 tseries]
 %         b: [8x1 tseries]
 %         c: 10
 %
 %     >> d2 = run(q, d, qq(2010, 1):qq(2011, 4), 'AppendPresample=', true)
 %
-%     d2 = 
+%     d2 =
 %         a: [9x1 tseries]
 %         b: [9x1 tseries]
 %         c: 10
 %
 %     >> d3 = run(q, d, qq(2010, 1):qq(2011, 4), 'Fresh=', true)
-% 
-%     d3 = 
+%
+%     d3 =
 %         a: [8x1 tseries]
 %         b: [8x1 tseries]
-% 
+%
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
@@ -256,7 +256,7 @@ return
         if any(~inxValid)
             throw( exception.Base('RptEq:RHS_NAME_DATA_INVALID', 'error'), ...
                 this.NamesOfRhs{~inxFound} );
-        end        
+        end
     end%
 
 

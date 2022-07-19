@@ -1,27 +1,21 @@
-classdef Highlight
+
+classdef Highlight ...
+    < rephrase.ColorMixin ...
+    & rephrase.SettingsMixin
+
     properties
-        StartDate = -Inf
-        EndDate = Inf
-        Color (1, :) double = NaN
+        StartDate (1, 1) 
+        EndDate (1, 1)
     end
 
 
     methods
-        function this = Highlight(varargin)
-            if nargin>=1
-                this.StartDate = varargin{1};
-            end
-            if nargin>=2
-                this.EndDate = varargin{2};
-            end
-            if nargin>=3
-                color = varargin{3};
-                if isstring(color) || ischar(color)
-                    this.Color = color;
-                elseif isnumeric(color) && ~isequaln(color, NaN)
-                    this.Color = sprintf("rgba(%g, %g, %g, %g)", color);
-                end
-            end
+        function this = Highlight(startDate, endDate, varargin)
+            this = this@rephrase.SettingsMixin();
+            this.StartDate = startDate;
+            this.EndDate = endDate;
+            assignOwnSettings(this, varargin{:});
+            populateSettingsStruct(this);
         end%
 
 
@@ -50,5 +44,6 @@ classdef Highlight
             this.EndDate = dater.toIsoString(value);
         end%
     end
+
 end
 

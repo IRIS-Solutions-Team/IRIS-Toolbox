@@ -12,16 +12,14 @@ if isempty(allNames)
     return
 end
 
-% hereCheckValidMatlabNames();
-hereCheckReservedNames();
-here_validateTrendName();
-hereCheckDoubleUnderscores();
-hereCheckNonuniqueNames();
-hereCheckReservedPrefixes();
+here_checkReservedNames();
+here_checkDoubleUnderscores();
+here_checkNonuniqueNames();
+here_checkReservedPrefixes();
 
 return
 
-    function hereCheckValidMatlabNames()
+    function here_checkValidMatlabNames()
         %(
         % All model names must be valid Matlab names
         inxValid = arrayfun(@isvarname, allNames);
@@ -35,37 +33,19 @@ return
     end%
 
 
-    function hereCheckReservedNames()
-        % All model names must be different from reserved names
+    function here_checkReservedNames()
         %(
-        reservedNames = [
-            string(this.RESERVED_NAME_TTREND)
-            string(this.RESERVED_NAME_LINEAR)
-        ];
-        allNamesExReserved = allNames(1:end-1);
-        for n = reshape(reservedNames, 1, [])
-            if any(allNamesExReserved==n)
-                exception.error([
-                    "Parser:ReservedName"
-                    "This is an IrisT keyword and cannot be used as a model name: %s "
-                ], n);
-            end
-        end
-    end%
-
-
-    function here_validateTrendName()
-        if allNames(end)~=string(this.RESERVED_NAME_TTREND)
+        if nnz(string(allNames)==string(this.RESERVED_NAME_TTREND))>1
             exception.error([
-                "Parser:ReservedName"
-                "The " + this.RESERVED_NAME_TTREND + " keyword is not allowed to be renamed."
-            ]);
+                "Parser"
+                "This is a reserved keyword and cannot be used as a quantity name: %s "
+            ], string(this.RESERVED_NAME_TTREND));
         end
         %)
     end%
 
 
-    function hereCheckDoubleUnderscores()
+    function here_checkDoubleUnderscores()
         % Shock names must not contain double scores because of the way
         % cross-correlations are referenced
         %(
@@ -85,7 +65,7 @@ return
     end%
 
 
-    function hereCheckNonuniqueNames()
+    function here_checkNonuniqueNames()
         %(
         [flag, nonuniques] = textual.nonunique(allNames);
         if flag
@@ -98,7 +78,7 @@ return
     end%
 
 
-    function hereCheckReservedPrefixes()
+    function here_checkReservedPrefixes()
         %(
         inxReservedPrefix = startsWith(allNames, model.component.Quantity.RESERVED_PREFIXES);
         if any(inxReservedPrefix)

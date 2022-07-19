@@ -142,6 +142,20 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
 
 
+    methods (Hidden) % Implement methods for @Kalman mixin
+        varargout = getKalmanDataNames(varargin)
+        varargout = getIthKalmanSystem(varargin)
+
+        function stdcorr = getIthStdcorr(this, variantsRequested)
+            stdcorr = getIthStdcorr(this.Variant, variantsRequested);
+        end%
+
+        function flag = hasLogVariables(this)
+            flag = hasLogVariables(this.Quantity);
+        end%
+
+        varargout = getIthOmega(varargin)
+    end
 
 
     methods
@@ -240,7 +254,9 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
 
         varargout = steady(varargin)
-        varargout = sstate(varargin)
+        function varargout = sstate(this, varargin)
+            [varargout{1:nargout}] = steady(this, varargin{:});
+        end%
 
 
         varargout = steadydb(varargin)
@@ -286,11 +302,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
         varargout = createHashEquations(varargin)
+        varargout = createSourceDb(varargin)
         varargout = createTrendArray(varargin)
         varargout = evalTrendEquations(varargin)
         varargout = expansionMatrices(varargin)
-        varargout = getIthOmega(varargin)
-        varargout = getIthKalmanSystem(varargin)
         varargout = getStationaryStatus(varargin)
 
 
@@ -300,11 +315,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         varargout = getVariant(varargin)
 
-        function flag = hasLogVariables(this)
-            flag = hasLogVariables(this.Quantity);
-        end%
-
         varargout = hdatainit(varargin)
+        varargout = insertTrendLine(varargin)
         varargout = freql(varargin)
         varargout = myfindsspacepos(varargin)
         varargout = myinfo4plan(varargin)
@@ -339,11 +351,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = sizeSolution(varargin)
         varargout = sizeSystem(varargin)
         varargout = getSolutionMatrices(varargin)
-
-
-        function stdcorr = getIthStdcorr(this, variantsRequested)
-            stdcorr = getIthStdcorr(this.Variant, variantsRequested);
-        end%
 
 
         varargout = implementGet(varargin)
@@ -431,7 +438,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = checkStructureBefore(varargin)
         varargout = checkSyntax(varargin)
         varargout = createD2S(varargin)
-        varargout = createSourceDb(varargin)
         varargout = diffFirstOrder(varargin)
         varargout = file2model(varargin)
         implementDisp(varargin)
@@ -453,6 +459,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = solveFirstOrder(varargin)
         varargout = steadyLinear(varargin)
         varargout = steadyNonlinear(varargin)
+        varargout = steadyUserFunc(varargin)
         varargout = systemFirstOrder(varargin)
 
         varargout = implementCheckSteady(varargin)

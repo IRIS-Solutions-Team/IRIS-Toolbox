@@ -1,7 +1,6 @@
 classdef Matrix ...
-    < rephrase.Element ...
-    & rephrase.Terminus ...
-    & rephrase.Data
+    < rephrase.Terminal ...
+    & rephrase.DataMixin
 
     properties % (Constant)
         Type = rephrase.Type.MATRIX
@@ -10,7 +9,7 @@ classdef Matrix ...
 
     methods
         function this = Matrix(title, input, varargin)
-            this = this@rephrase.Element(title, varargin{:});
+            this = this@rephrase.Terminal(title, varargin{:});
             this.Content = input;
         end%
     end

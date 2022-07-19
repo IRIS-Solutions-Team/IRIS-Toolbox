@@ -41,7 +41,7 @@ nPar = numel(this.ParameterNames);
 nAlloc = min(numDraws, opt.saveevery);
 isSave = opt.saveevery<=numDraws;
 if isSave
-    here__prepareSave();
+    here_prepareSave();
 end
 
 if opt.burnin<1
@@ -257,7 +257,7 @@ return
     end%
 
 
-    function here__prepareSave()
+    function here_prepareSave()
         if strlength(opt.SaveAs)==0
             utils.error('poster', ...
                 'The option SaveAs must be a valid file name.');

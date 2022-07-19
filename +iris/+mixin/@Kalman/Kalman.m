@@ -26,12 +26,14 @@ classdef (Abstract) Kalman
         varargout = implementKalmanFilter(varargin)
         varargout = prepareKalmanOptions(varargin)
         varargout = prepareKalmanOptions2(varargin)
+        varargout = prepareKalmanData(varargin)
     end
 
 
     methods (Abstract, Hidden)
         varargout = hasLogVariables(varargin)
         varargout = countVariants(varargin)
+        varargout = getKalmanDataNames(varargin)
     end
 
 

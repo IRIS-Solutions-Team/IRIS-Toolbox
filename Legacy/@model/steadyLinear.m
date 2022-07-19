@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function  [this, success, outputInfo] = steadyLinear(this, options, variantsRequested)
+function  [this, success, outputInfo] = steadyLinear(this, variantsRequested, options)
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 STEADY_TOLERANCE = this.Tolerance.Steady;
@@ -89,6 +89,10 @@ if needsRefresh
     this = refresh(this, variantsRequested);
 end
 
+% Reset steady state for time trend
+pos = locateTrendLine(this.Quantity, NaN);
+this.Variant.Values(1, pos, :) = complex(0, 1);
+
 return
 
 
@@ -109,7 +113,7 @@ return
         Ta = T(nf+1:end, :);
         Kf = K(1:nf, 1);
         Ka = K(nf+1:end, 1);
-        
+
         % __Alpha Vector__
         isDiffStat = all(all(abs(Ta(1:numOfUnitRoots,1:numOfUnitRoots)-eye(numOfUnitRoots))<EIGEN_TOLERANCE));
         if isDiffStat

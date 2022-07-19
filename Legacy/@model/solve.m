@@ -8,7 +8,6 @@ function [this, exitFlag, info] = solve(this, varargin)
 
 opt = prepareSolve(this, varargin{:});
 
-% Refresh dynamic links
 if any(this.Link)
     this = refresh(this);
 end
@@ -28,13 +27,13 @@ end
 [this, info] = solveFirstOrder(this, Inf, opt);
 exitFlag = info.ExitFlag;
 
-if (opt.Warning || opt.Error) && any(info.ExitFlag~=1)
-    hereReportFailure( );
+if (opt.Warning || opt.Error) && ~all(hasSucceeded(info.ExitFlag))
+    here_reportFailure( );
 end
 
 return
 
-    function hereReportFailure( )
+    function here_reportFailure()
         %(
         if opt.Error
             msgFunc = @(varargin) utils.error(varargin{:});

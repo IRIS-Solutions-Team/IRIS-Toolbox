@@ -58,13 +58,13 @@ if this.LinearStatus
     % Linear Models
     %
     if update.Solve.Run
-        [this, solveInfo] = solveFirstOrder(this, variantRequested, update.Solve);
+        [this, solveStatus] = solveFirstOrder(this, variantRequested, update.Solve);
     else
-        solveInfo = struct();
-        solveInfo.ExitFlag = 1;
+        solveStatus = struct();
+        solveStatus.ExitFlag = solve.StabilityFlag.UNIQUE_STABLE;
     end
     if update.Steady.Run
-        this = steadyLinear(this, update.Steady, variantRequested);
+        this = update.Steady.Func(this, variantRequested, update.Steady.Arguments{:});
         if needsRefresh
             this = refresh(this, variantRequested);
         end
@@ -75,13 +75,13 @@ if this.LinearStatus
 
 else
     %
-    % Nonlinear Models
+    % Nonlinear models
     %
     steadySuccess = true;
-    listSteadyErrors = { };
+    listSteadyErrors = {};
     checkSteadySuccess = true;
     if update.Steady.Run
-        [this, steadySuccess] = steadyNonlinear(this, update.Steady, variantRequested);
+        [this, steadySuccess] = update.Steady.Func(this, variantRequested, update.Steady.Arguments{:});
         if needsRefresh
             this = refresh(this, variantRequested);
         end
@@ -93,14 +93,14 @@ else
         checkSteadySuccess = isempty(listSteadyErrors);
     end
     if steadySuccess && checkSteadySuccess && update.Solve.Run
-        [this, solveInfo] = solveFirstOrder(this, variantRequested, update.Solve);
+        [this, solveStatus] = solveFirstOrder(this, variantRequested, update.Solve);
     else
-        solveInfo = struct();
-        solveInfo.ExitFlag = 1;
+        solveStatus = struct();
+        solveStatus.ExitFlag = solve.StabilityFlag.UNIQUE_STABLE;
     end
 end
 
-success = solveInfo.ExitFlag==1 && steadySuccess && checkSteadySuccess;
+success = hasSucceeded(solveStatus.ExitFlag) && steadySuccess && checkSteadySuccess;
 if success
     return
 end
@@ -108,7 +108,7 @@ end
 if startsWith(update.NoSolution, "error", "ignoreCase", true)
     % Throw error, give access to the failed model object and terminate
     m = this(variantRequested);
-    model.failed(m, steadySuccess, checkSteadySuccess, listSteadyErrors, solveInfo);
+    model.failed(m, steadySuccess, checkSteadySuccess, listSteadyErrors, solveStatus);
 end
 
 end%

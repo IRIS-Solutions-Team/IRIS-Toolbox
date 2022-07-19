@@ -3,7 +3,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function  [this, success, outputInfo] = steadyNonlinear(this, blazer, variantsRequested)
+function  [this, success, outputInfo] = steadyNonlinear(this, variantsRequested, blazer)
 
 nv = countVariants(this);
 success = true(1, nv);
@@ -146,6 +146,10 @@ end
 
 % Return status only for parameterizations requested in variantsRequested.
 success = success(variantsRequested);
+
+% Reset steady state for time trend
+posTrendLine = locateTrendLine(this.Quantity, NaN);
+this.Variant.Values(1, posTrendLine, :) = complex(0, 1);
 
 return
 
