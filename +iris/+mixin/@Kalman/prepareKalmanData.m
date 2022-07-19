@@ -1,21 +1,34 @@
 
-function [inputArray, trendLine] = prepareKalmanData(this, inputDb, range, whenMissing)
+function [inputArray, trendLine] = prepareKalmanData(this, inputData, range, whenMissing)
+
+    if isnumeric(inputData)
+        inputArray = inputData;
+        trendLine = [];
+        return
+    end
+
+    if isa(inputData, 'Series')
+        range = double(range);
+        inputArray = getDataFromTo(inputData, range(1), range(end));
+        inputArray = permute(inputArray, [2, 1, 3]);
+        return
+    end
 
     [measurementNames, exogenousNames, logNames] = getKalmanDataNames(this);
     numY = numel(measurementNames);
     inputDataNames = [measurementNames, exogenousNames];
     numYG = numel(inputDataNames);
-    if ~isempty(inputDb) && ~isempty(fieldnames(inputDb))
+    if ~isempty(inputData) && ~isempty(fieldnames(inputData))
         allowedNumeric = @all;
         context = "";
         dbInfo = checkInputDatabank( ...
-            this, inputDb, range ...
+            this, inputData, range ...
             , [], inputDataNames ...
             , allowedNumeric, logNames ...
             , context ...
         );
         inputArray = requestData( ...
-            this, dbInfo, inputDb ...
+            this, dbInfo, inputData ...
             , inputDataNames, range ...
         );
         inputArray = ensureLog(this, dbInfo, inputArray, inputDataNames);
