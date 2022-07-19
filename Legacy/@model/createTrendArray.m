@@ -60,7 +60,7 @@ if anyLog
     if any(inxReset)
         changeX(inxReset) = 1;
     end
-    levelX(inxLog3d) = log( levelX(inxLog3d) );
+    levelX(inxLog3d) = reallog(levelX(inxLog3d));
 end
 
 levelX = permute(levelX, [2, 1, 3]);
@@ -76,12 +76,15 @@ if anyChange
     vecTimeShifted = vecTime + reshape(imag(id), [ ], 1);
     vecTimeShifted = repmat(vecTimeShifted, 1, 1, numVariantsRequested);
 
-    if anyLog
-        inx = inxLog3d & inxChange3d;
-        if any(inx)
-            changeX(inx) = reallog(changeX(inx));
-        end
-    end
+    inx = inxLog3d & inxChange3d;
+    changeX(inx) = reallog(changeX(inx));
+
+%     if anyLog
+%         inx = inxLog3d & inxChange3d;
+%         if any(inx)
+%             changeX(inx) = reallog(changeX(inx));
+%         end
+%     end
 
     changeX = repmat(permute(changeX, [2, 1, 3]), 1, numPeriods, 1);
     inxChange3d = repmat(permute(inxChange3d, [2, 1, 3]), 1, numPeriods, 1);
