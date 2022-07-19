@@ -75,7 +75,7 @@ if isempty(pp)
     pp = extend.InputParser('model.shockdb');
     addRequired(pp, 'Model', @(x) isa(x, 'model'));
     addRequired(pp, 'InputDatabank', @(x) isempty(x) || validate.databank(x));
-    addRequired(pp, 'Range', @(x) validate.properRange(x));
+    addRequired(pp, 'Range', @(x) validate.properRange(x) || isempty(x));
     addOptional(pp, 'NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
     addParameter(pp, 'NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
@@ -149,10 +149,15 @@ for i = 1 : numRuns
 end
 
 if nargout==1
+    if ~isempty(range)
+        start = range(1);
+    else
+        start = NaN;
+    end
     for i = 1 : ne
         name = namesShocks{i};
         e = permute(E(i, :, :), [2, 3, 1]);
-        runningData.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), labelsOrNames(i));
+        runningData.(name) = replace(TIME_SERIES_TEMPLATE, e, start, labelsOrNames(i));
     end
 elseif nargout==2
     [minShift, maxShift] = getActualMinMaxShifts(this);
