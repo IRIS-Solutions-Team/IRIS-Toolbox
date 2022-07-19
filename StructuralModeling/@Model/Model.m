@@ -335,11 +335,6 @@ classdef Model ...
     end % methods
 
 
-    methods (Hidden) % Implement methods for @Kalman mixin
-        varargout = getKalmanDataNames(varargin)
-    end
-
-
     methods (Hidden) 
         varargout = checkInitialConditions(varargin)
 

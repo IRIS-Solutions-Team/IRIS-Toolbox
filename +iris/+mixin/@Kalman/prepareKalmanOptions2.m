@@ -297,11 +297,11 @@ end
 % User-supplied initials is a 1-by-2 cell array with a mean vector and an MSE
 % matrix.
 %
-if iscell(opt.Initials)
-    xbVector = getBackwardSolutionVector(this.Vector);
-    maxLag = min([imag(xbVector), 0]) - 1;
-    presampleDates = dater.plus(range(1), maxLag:-1);
+if ~isempty(opt.Initials) && iscell(opt.Initials)
     if validate.databank(opt.Initials{1})
+        xbVector = getBackwardSolutionVector(this.Vector);
+        maxLag = min([imag(xbVector), 0]) - 1;
+        presampleDates = dater.plus(range(1), maxLag:-1);
         if numXb>0
             namesInRows = textual.stringify(this.Quantity.Name);
             numQuantities = numel(namesInRows);
@@ -332,6 +332,9 @@ if iscell(opt.Initials)
     end
 
     if isa(opt.Initials{2}, 'Series') && iscell(opt.Initials{2}.Data)
+        xbVector = getBackwardSolutionVector(this.Vector);
+        maxLag = min([imag(xbVector), 0]) - 1;
+        presampleDates = dater.plus(range(1), maxLag:-1);
         x = getData(opt.Initials{2}, presampleDates(end));
         opt.Initials{2} = reshape(x{1}, numXb, numXb);
     elseif isequal(opt.Initials{2}, 0)

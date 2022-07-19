@@ -15,8 +15,6 @@ classdef LinearSystem ...
     end
 
 
-
-
     properties % (SetAccess=protected)
         % NumPeriods  Number of periods in which system matrices vary from asymptotic system
         NumPeriods (1, 1) double = 0
@@ -38,14 +36,10 @@ classdef LinearSystem ...
     end
 
 
-
-
     properties (Constant)
         NAMES_SYSTEM_MATRICES     = ["T", "R", "k", "Z", "H", "d", "U", "Zb"]
         NAMES_COVARIANCE_MATRICES = ["OmegaV", "OmegaW"]
     end
-
-
 
 
     properties (Dependent)
@@ -58,8 +52,6 @@ classdef LinearSystem ...
         NumY
         NumW
     end
-
-
 
 
     methods % Public interface 
@@ -100,6 +92,7 @@ classdef LinearSystem ...
         varargout = getSystemMatrix(varargin)
         varargout = getCovarianceMatrix(varargin)
         varargout = filter(varargin)
+        varargout = kalmanFilter(varargin)
         % varargout = triangularize(this)
         %)
     end
@@ -117,6 +110,12 @@ classdef LinearSystem ...
 
         function value = countVariants(this)
             value = 1;
+        end%
+
+
+        function names = getKalmanDataNames(this, varargin)
+            [ny, ~] = sizeSolution(this)
+            names = repmat("", 1, ny);
         end%
 
 
@@ -260,8 +259,6 @@ classdef LinearSystem ...
     end
 
 
-
-
     methods (Static)
         function [x, last] = clipAndFillMissing(x)
             if isempty(x)
@@ -278,15 +275,11 @@ classdef LinearSystem ...
     end
 
 
-
-
     methods (Static) % Static constructors
         %(
         varargout = fromModel(varargin)
         %)
     end
-
-
 
 
     methods (Static, Hidden)
