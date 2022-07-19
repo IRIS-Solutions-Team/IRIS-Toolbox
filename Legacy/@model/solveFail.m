@@ -3,80 +3,78 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-function [body, args] = solveFail(this, solveInfo)
+function [body, args] = solveFail(this, info)
 
 %#ok<*AGROW>
 
 BRX = sprintf('\n    ');
 
-%--------------------------------------------------------------------------
-
 body = 'Solution not available for some parameter variant(s)';
 args = { };
-inxReportSaddlePath = solveInfo.ExitFlag==0 | isinf(solveInfo.ExitFlag);
+inxReportSaddlePath = info.ExitFlag==solve.StabilityFlag.NO_STABLE | info.ExitFlag==solve.StabilityFlag.MULTIPLE_STABLE;
 
 while true
-    ix = solveInfo.ExitFlag==-4;
+    ix = info.ExitFlag==solve.StabilityFlag.INVALID_STEADY;
     if any(ix)
         body = [body, BRX, ...
             'Model declared nonlinear, fails to solve ', ...
             'because of problems with steady state %s.'];
         args{end+1} = exception.Base.alt2str(ix);
-        hereMarkAsProcessed( );
+        here_markAsProcessed();
         continue
     end
-    
-    ix = solveInfo.ExitFlag==-2;
+
+    ix = info.ExitFlag==solve.StabilityFlag.NAN_EIGEN;
     if any(ix)
         body = [body, BRX, ...
             'Singularity or linear dependency in some equations %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        hereMarkAsProcessed( );
+        here_markAsProcessed();
         continue
     end
-    
-    ix = solveInfo.ExitFlag==0;
+
+    ix = info.ExitFlag==solve.StabilityFlag.NO_STABLE;
     if any(ix)
         body = [body, BRX, 'No stable solution %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        hereMarkAsProcessed( );
+        here_markAsProcessed();
         continue
     end
-    
-    ix = isinf(solveInfo.ExitFlag);
+
+    ix = info.ExitFlag==solve.StabilityFlag.MULTIPLE_STABLE;
     if any(ix)
         body = [body, BRX, 'Multiple stable solutions %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        hereMarkAsProcessed( );
+        here_markAsProcessed();
         continue
     end
-    
-    ix = imag(solveInfo.ExitFlag)~=0;
+
+    ix = info.ExitFlag==solve.StabilityFlag.COMPLEX_SYSTEM;
     if any(ix)
         body = [body, BRX, 'Complex derivatives %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        hereMarkAsProcessed( );
+        here_markAsProcessed();
         continue
     end
-    
-    ix = isnan(solveInfo.ExitFlag);
+
+    ix = info.ExitFlag==solve.StabilityFlag.NAN_SYSTEM;
     if any(ix)
         body = [body, BRX, 'NaNs in system matrices %s'];
         args{end+1} = exception.Base.alt2str(ix);
-        hereMarkAsProcessed( );
+        here_markAsProcessed();
         continue
     end
-    
+
     % Singularity in state space or steady state problem
-    ix = solveInfo.ExitFlag==-1;
+    ix = info.ExitFlag==solve.StabilityFlag.NAN_SOLUTION;
     if any(ix)
-        if any(solveInfo.Singularity(:))
-            pos = find(any(solveInfo.Singularity, 2));
+        if any(info.Singularity(:))
+            pos = find(any(info.Singularity, 2));
             pos = pos(:).';
             for ieq = pos
                 body = [body, BRX, ...
                     'Singularity or NaN in this measurement equation %s: %s'];
-                args{end+1} = exception.Base.alt2str(solveInfo.Singularity(ieq, :));
+                args{end+1} = exception.Base.alt2str(info.Singularity(ieq, :));
                 args{end+1} = this.Equation.Input{ieq};
             end
         elseif ~this.LinearStatus && isnan(this, 'sstate')
@@ -89,40 +87,42 @@ while true
                 'Singularity in state-space matrices %s'];
             args{end+1} = exception.Base.alt2str(ix);
         end
-        hereMarkAsProcessed( );        
+        here_markAsProcessed();
         continue
     end
-    
-    ix = solveInfo.ExitFlag==-3;
+
+    ix = info.ExitFlag==solve.StabilityFlag.NAN_SYSTEM;
     if any(ix)
         args = { };
         for ii = find(ix)
-            for jj = find(solveInfo.InxNanDeriv{ii})
+            for jj = find(info.InxNanDeriv{ii})
                 body = [body, BRX, ...
                     'NaN in derivatives of this equation %s: %s'];
                 args{end+1} = exception.Base.alt2str(ii);
                 args{end+1} = this.Equation.Input{jj};
             end
         end
-        hereMarkAsProcessed( );
+        here_markAsProcessed();
         continue
     end
-    
+
     break
 end
 
 if any(inxReportSaddlePath)
-    body = [body, BRX, ...
+    body = [ 
+        body, BRX, ...
         '[Bkw variables, Unit roots, Stable roots]: ', ...
         sprintf( ...
-        [ exception.Base.ALT2STR_DEFAULT_LABEL, '#%g[%g %g %g] ' ], ...
-        [ find(inxReportSaddlePath); solveInfo.SaddlePath(:, inxReportSaddlePath) ] ...
-        ) ];
+            [ exception.Base.ALT2STR_DEFAULT_LABEL, '#%g[%g %g %g] ' ], ...
+            [ find(inxReportSaddlePath); info.SaddlePath(:, inxReportSaddlePath) ] ...
+        )
+    ];
 end
 
 return
 
-    function hereMarkAsProcessed( )
-        solveInfo.ExitFlag(ix) = 1;
+    function here_markAsProcessed()
+        info.ExitFlag(ix) = solve.StabilityFlag.UNKNOWN;
     end%
 end%
