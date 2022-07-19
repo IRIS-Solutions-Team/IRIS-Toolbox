@@ -22,6 +22,7 @@ end
 
 
     baseRange = double(baseRange);
+    baseRange = dater.colon(baseRange(1), baseRange(end));
     nv = countVariants(this);
     [ny, ~, nb, nf, ~, ~] = sizeSolution(this.Vector);
 
@@ -71,6 +72,7 @@ end
         'InternalAssignFunc', @hdataassign, ...
         'Options', opt ...
     );
+
     [minusLogLik, regOutp, outputData] = implementKalmanFilter(this, kalmanInputs); %#ok<ASGLU>
     %=========================================================================
 

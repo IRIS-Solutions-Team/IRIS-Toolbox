@@ -36,20 +36,18 @@ function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
     end
 
 
-    timeVarying = [];
-    initials = [];
-
-    range = double(argin.FilterRange);
-    [timeVarying, initials] = prepareLinearSystem( ...
-        this, range, opt.Override, opt.Multiply, 1, true ...
-        , opt.Steady, opt.CheckSteady, opt.Solve ...
-    );
-
-    if ~isempty(timeVarying)
-        opt.Override = [];
-        opt.Multiply = [];
-        this = timeVarying;
-    end
+    % range = double(argin.FilterRange);
+    % initials = {};
+    % timeVarying = [];
+    % [timeVarying, initials] = prepareLinearSystem( ...
+    %     this, range, opt.Override, opt.Multiply, 1, true ...
+    %     , opt.Steady, opt.CheckSteady, opt.Solve ...
+    % );
+    % if ~isempty(timeVarying)
+    %     opt.Override = [];
+    %     opt.Multiply = [];
+    %     this = timeVarying;
+    % end
 
     [ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);
     nv = countVariants(this);
@@ -284,12 +282,12 @@ function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
         % Initialize mean and MSE
         % Determine number of init cond estimated as fixed unknowns
         %
-        if ~isempty(initials)
-            s.InitMean = initials{1};
-            s.InitMseReg = initials{2};
-            s.InitMseInf = initials{3};
-            s.NumEstimInit = initials{4};
-        else
+        % if ~isempty(initials)
+        %     s.InitMean = initials{1};
+        %     s.InitMseReg = initials{2};
+        %     s.InitMseInf = initials{3};
+        %     s.NumEstimInit = initials{4};
+        % else
             if iscell(opt.Initials)
                 init__ = cell(size(opt.Initials));
                 for i = 1 : numel(init__)
@@ -304,7 +302,7 @@ function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
                 initUnit__ = opt.UnitRootInitials;
             end
             s = iris.mixin.Kalman.initialize(s, init__, initUnit__);
-        end
+        % end
 
         %
         % Prediction step

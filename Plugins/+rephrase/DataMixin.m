@@ -8,6 +8,7 @@ classdef (Abstract) DataMixin ...
 
     methods 
         function output = finalizeSeriesData(this, input)
+            %(
             % Keep expression string and add to the data requests
             if isstring(input) || ischar(input)
                 output = string(input);
@@ -43,6 +44,7 @@ classdef (Abstract) DataMixin ...
                 output = input;
                 return
             end
+            %)
         end%
     end
 end

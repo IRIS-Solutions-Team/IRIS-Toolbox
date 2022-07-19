@@ -17,7 +17,7 @@ classdef Base
 
         ALT2STR_FORMAT = '#%g';
         ALT2STR_FROM_TO_STRING = '-';
-        ALT2STR_DEFAULT_LABEL = 'Parameter Variant(s) ';
+        ALT2STR_DEFAULT_LABEL = 'Variant:';
     end
 
 

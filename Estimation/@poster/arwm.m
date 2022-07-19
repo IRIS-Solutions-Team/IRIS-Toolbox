@@ -257,7 +257,7 @@ return
     end%
 
 
-    function here__prepareSave()
+    function here_prepareSave()
         if strlength(opt.SaveAs)==0
             utils.error('poster', ...
                 'The option SaveAs must be a valid file name.');
