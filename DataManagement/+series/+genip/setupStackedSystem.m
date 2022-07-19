@@ -1,21 +1,19 @@
-% setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
+% setupKalmanObject  Set up StackedLinearSystem and array of observed data for genip model
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function ...
-    [stacked, Y, Xi0, transition, indicator] = ...
-    setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0)
+    [stacked, Y, Xi0, transition, indicator] ...
+    = setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0)
 
 persistent STACKED_LINEAR_SYSTEM
 if ~isa(STACKED_LINEAR_SYSTEM, 'StackedLinearSystem')
-    STACKED_LINEAR_SYSTEM = StackedLinearSystem( );
+    STACKED_LINEAR_SYSTEM = StackedLinearSystem();
 end
 
-%--------------------------------------------------------------------------
-
-hereNormalizeIndicator( );
-hereCreateFlippedTimeSeries( );
+here_normalizeIndicator( );
+here_createFlippedTimeSeries( );
 
 numInit = transition.NumInit;
 numWithin = size(aggregation.Model, 2);
@@ -50,23 +48,23 @@ stdW = zeros(0, 1);
 %
 % Add aggregation to measurement
 %
-hereAddAggregation( );
+here_addAggregation( );
 
 
 %
 % Add hard conditions to measurement
 %
-hereAddHardLevel( );
-hereAddHardDiff( );
-hereAddHardRate( );
+here_addHardLevel( );
+here_addHardDiff( );
+here_addHardRate( );
 
 
 %
 % Adjust measurement matrix and intercept for indicator
 %
-hereAdjustForIndicator( );
+here_adjustForIndicator();
 
-K = hereSetupTransitionIntercept( );
+K = here_setupTransitionIntercept();
 
 stacked = STACKED_LINEAR_SYSTEM;
 stacked.SystemMatrices = {T, R, K, Z, H, d, [ ], [ ]};
@@ -74,21 +72,21 @@ stacked.StdVectors = {stdV, stdW};
 
 return
     
-    function hereNormalizeIndicator( )
+    function here_normalizeIndicator( )
         %(
         if isempty(indicator.Level)
             return
         end
-        if indicator.Model=="Difference"
+        if indicator.Model=="difference"
             indicator.Level = indicator.Level - indicator.Level(end);
-        elseif indicator.Model=="Ratio"
+        elseif indicator.Model=="ratio"
             indicator.Level = indicator.Level / indicator.Level(end);
         end
         %)
     end%
 
 
-    function hereCreateFlippedTimeSeries( )
+    function here_createFlippedTimeSeries( )
         %(
         if ~isempty(indicator.Level)
             indicator.LevelFlipped = indicator.Level(end:-1:1);
@@ -106,98 +104,103 @@ return
     end%
 
 
-    function hereAddAggregation( )
+    function here_addAggregation( )
         %(
         lowLevelFlipped = lowLevel(end:-1:1);
         inxAggregation = isfinite(lowLevelFlipped);
-        if any(inxAggregation)
-            numAggregation = nnz(inxAggregation);
-            row = zeros(1, numHighPeriods);
-            row(1:numWithin) = aggregation.ModelFlipped;
-            for i = reshape(find(inxAggregation), 1, [ ])
-                addZ = [circshift(row, [0, (i-1)*numWithin]), zeros(1, numInit)];
-                Z = [Z; addZ];
-            end
-            Y = [Y; reshape(lowLevelFlipped(inxAggregation), [ ], 1)];
-            H = [H; zeros(numAggregation, 0)];
+        if ~any(inxAggregation)
+            return
         end
+
+        numAggregation = nnz(inxAggregation);
+        row = zeros(1, numHighPeriods);
+        row(1:numWithin) = aggregation.ModelFlipped;
+        for i = reshape(find(inxAggregation), 1, [ ])
+            addZ = [circshift(row, [0, (i-1)*numWithin]), zeros(1, numInit)];
+            Z = [Z; addZ];
+        end
+        Y = [Y; reshape(lowLevelFlipped(inxAggregation), [ ], 1)];
+        H = [H; zeros(numAggregation, 0)];
         %)
     end%
 
 
-    function hereAddHardLevel( )
+    function here_addHardLevel( )
         %(
         if isempty(hard.Level)
             return
         end
 
         hard.LevelFlipped(end-numInit+1:end) = NaN;
-
         inxConditionsLevel = isfinite(hard.LevelFlipped);
-        if any(inxConditionsLevel)
-            numHardLevel = nnz(inxConditionsLevel);
-            addZ = eye(numHighPeriods+numInit);
-            addZ = addZ(inxConditionsLevel, :);
-            Z = [Z; addZ];
-            Y = [Y; reshape(hard.LevelFlipped(inxConditionsLevel), [ ], 1)];
-            H = [H; zeros(numHardLevel, 0)];
+        if ~any(inxConditionsLevel)
+            return
         end
+
+        numHardLevel = nnz(inxConditionsLevel);
+        addZ = eye(numHighPeriods+numInit);
+        addZ = addZ(inxConditionsLevel, :);
+        Z = [Z; addZ];
+        Y = [Y; reshape(hard.LevelFlipped(inxConditionsLevel), [ ], 1)];
+        H = [H; zeros(numHardLevel, 0)];
         %)
     end%
 
 
-    function hereAddHardDiff( )
+    function here_addHardDiff( )
         %(
         if isempty(hard.Diff)
             return
         end
-        
-        hard.DiffFlipped(end-numInit+1:end) = NaN;
 
+        hard.DiffFlipped(end-numInit+1:end) = NaN;
         inxHardDiff = isfinite(hard.DiffFlipped);
-        if any(inxHardDiff)
-            numHardDiff = nnz(inxHardDiff);
-            addZ = eye(numHighPeriods+numInit) - diag(ones(numHighPeriods+numInit-1, 1), 1);
-            addZ = addZ(inxHardDiff, :);
-            Z = [Z; addZ];
-            Y = [Y; reshape(hard.DiffFlipped(inxHardDiff), [ ], 1)];
-            H = [H; zeros(numHardDiff, 0)];
+        if ~any(inxHardDiff)
+            return
         end
+
+        numHardDiff = nnz(inxHardDiff);
+        addZ = eye(numHighPeriods+numInit) - diag(ones(numHighPeriods+numInit-1, 1), 1);
+        addZ = addZ(inxHardDiff, :);
+        Z = [Z; addZ];
+        Y = [Y; reshape(hard.DiffFlipped(inxHardDiff), [ ], 1)];
+        H = [H; zeros(numHardDiff, 0)];
         %)
     end%
 
 
-    function hereAddHardRate( )
+    function here_addHardRate( )
         %(
         if isempty(hard.Rate)
             return
         end
-        
-        hard.RateFlipped(end-numInit+1:end) = NaN;
 
+        hard.RateFlipped(end-numInit+1:end) = NaN;
         inxHardRate = isfinite(hard.RateFlipped);
-        if any(inxHardRate)
-            numHardRate = nnz(inxHardRate);
-            addZ = eye(numHighPeriods+numInit) - diag(hard.RateFlipped(1:end-1), 1);
-            addZ = addZ(inxHardRate, :);
-            Z = [Z; addZ];
-            Y = [Y; zeros(numHardRate, 1)];
-            H = [H; zeros(numHardRate, 0)];
+        if ~any(inxHardRate)
+            return
         end
+
+        numHardRate = nnz(inxHardRate);
+        addZ = eye(numHighPeriods+numInit) - diag(hard.RateFlipped(1:end-1), 1);
+        addZ = addZ(inxHardRate, :);
+        Z = [Z; addZ];
+        Y = [Y; zeros(numHardRate, 1)];
+        H = [H; zeros(numHardRate, 0)];
         %)
     end%
 
 
-    function hereAdjustForIndicator( )
+    function here_adjustForIndicator()
         %(
         if isempty(indicator.Level)
             return
-        elseif indicator.Model=="Difference"
+        elseif indicator.Model=="difference"
             d = Z*indicator.LevelFlipped; 
             if ~isempty(Xi0)
                 Xi0 = Xi0 - indicator.LevelFlipped(end-numInit+1:end);
             end
-        elseif indicator.Model=="Ratio"
+        elseif indicator.Model=="ratio"
             Z = Z .* reshape(indicator.LevelFlipped, 1, [ ]);
             if ~isempty(Xi0)
                 Xi0 = Xi0 ./ indicator.LevelFlipped(end-numInit+1:end);
@@ -207,7 +210,7 @@ return
     end%
 
 
-    function K = hereSetupTransitionIntercept( )
+    function K = here_setupTransitionIntercept()
         %(
         if isequal(transition.Intercept, @auto)
             addT = ones(numHighPeriods, 1);

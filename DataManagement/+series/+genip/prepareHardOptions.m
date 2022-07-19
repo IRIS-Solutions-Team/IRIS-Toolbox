@@ -8,82 +8,81 @@
 
 function hard = prepareHardOptions(transition, ~, highRange, ~, opt)
 
-%--------------------------------------------------------------------------
+    numInit = transition.NumInit;
+    highRange = double(highRange);
+    highStart = highRange(1);
+    highEnd = highRange(end);
+    highFreq = dater.getFrequency(highStart);
+    initStart = dater.plus(highStart, -numInit);
+    initEnd = dater.plus(highStart, -1);
+    numPeriods = dater.rangeLength(initStart, highEnd);
 
-numInit = transition.NumInit;
-highRange = double(highRange);
-highStart = highRange(1);
-highEnd = highRange(end);
-highFreq = dater.getFrequency(highStart);
-initStart = dater.plus(highStart, -numInit);
-initEnd = dater.plus(highStart, -1);
+    % Initialize the hard conditioning series; the Level series is needed
+    % nonempty
+    hard = struct( );
+    hard.Level = nan(numPeriods, 1);
+    hard.Rate = [];
+    hard.Diff = [];
 
-hard = struct( );
-invalidFreq = string.empty(1, 0);
-for g = ["Level", "Rate", "Diff"]
-    hard.(g) = [ ];
-    x__ = opt.("Hard_" + g);
-    if isa(x__, 'TimeSubscriptable') && ~isempty(x__) 
-        if isfreq(x__, highFreq)
-            x = getDataFromTo(x__, initStart, highEnd);
-            if any(isfinite(x(:)))
-                hard.(g) = x;
-            end
-        else
-            invalidFreq(end+1) = "Hard." + g;
-        end
-    end
-end
-
-if ~isempty(invalidFreq)
-    hereReportInvalidFrequency( );
-end
-
-if numInit==0
-    return
-end
-
-if isequal(opt.Initial, @auto)
-    % Do nothing
-else
-    % Override initial condition in Hard.Level
-    if isnumeric(opt.Initial)
-        if isscalar(opt.Initial)
-            Xi0 = repmat(opt.Initial, numInit, 1);
-        else
-            Xi0 = reshape(opt.Initial, [ ], 1);
-            if numel(Xi0)~=numInit
-                hereReportInvalidNumInitial( );
+    invalidFreq = string.empty(1, 0);
+    for name = ["Level", "Rate", "Diff"]
+        x__ = opt.("Hard" + name);
+        if isa(x__, 'TimeSubscriptable') && ~isempty(x__) 
+            if isfreq(x__, highFreq)
+                x = getDataFromTo(x__, initStart, highEnd);
+                if any(isfinite(x(:)))
+                    hard.(name) = x;
+                end
+            else
+                invalidFreq(end+1) = "Hard" + name;
             end
         end
-    elseif isa(opt.Initial, 'TimeSubscriptable')
-        Xi0 = getDataFromTo(opt.Initial, initStart, initEnd);
     end
-    hard.Level(1:numInit) = Xi0;
-end
+
+    if ~isempty(invalidFreq)
+        here_reportInvalidFrequency( );
+    end
+
+    if numInit==0
+        return
+    end
+
+    % Insert initials into hard level
+    if isnumeric(opt.Initials)
+        Xi0 = double(opt.Initials);
+        if isscalar(Xi0) && numInit>1
+            Xi0 = repmat(Xi0, numInit, 1);
+        end
+        Xi0 = reshape(Xi0, [], 1);
+        if numel(Xi0)~=numInit
+            here_reportInvalidNumInitials();
+        end
+        hard.Level(1:numInit) = Xi0;
+    elseif isa(opt.Initials, 'TimeSubscriptable')
+        Xi0 = getDataFromTo(opt.Initials, initStart, initEnd);
+        hard.Level(1:numInit) = Xi0;
+    end
 
 return
 
-    function hereReportInvalidFrequency( )
+    function here_reportInvalidFrequency()
         %(
-        thisError = [
-            "Series:InvalidFrequencyGenip"
-            "Date frequency of the time series assigned to the option %s= "
+        exception.error([
+            "Genip"
+            "Date frequency of the time series assigned to the option %s "
             "must match the target date frequency, which is " + Frequency.toString(highFreq) + ". "
-        ];
-        throw(exception.Base(thisError, 'error'), invalidFreq);
+        ], invalidFreq);
         %)
     end%
 
 
-    function hereReportInvalidNumInitial( )
+    function here_reportInvalidNumInitials()
         %(
-        thisError = [
-            "Genip:InvalidNumInitial"
-            "The numeric vector assigned to Initia= has %g elements "
+        exception.error([
+            "Genip"
+            "The numeric vector assigned to Initials has %g elements "
             "while a total of %g initial conditions is needed."
-        ];
-        throw(exception.Base(thisError, 'error'), numel(Xi0), numInit);
+        ], numel(Xi0), numInit);
         %)
     end%
 end%
