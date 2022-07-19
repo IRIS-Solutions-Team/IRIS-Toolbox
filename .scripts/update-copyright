@@ -1,0 +1,6 @@
+
+for f in $(grep -rlF '2007-2022' --exclude-dir=.git .); do
+    # echo $f
+    gsed -i 's/2007-2022/2007-2022/g' $f
+done
+
