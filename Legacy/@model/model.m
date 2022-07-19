@@ -142,6 +142,20 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
 
 
+    methods (Hidden) % Implement methods for @Kalman mixin
+        varargout = getKalmanDataNames(varargin)
+        varargout = getIthKalmanSystem(varargin)
+
+        function stdcorr = getIthStdcorr(this, variantsRequested)
+            stdcorr = getIthStdcorr(this.Variant, variantsRequested);
+        end%
+
+        function flag = hasLogVariables(this)
+            flag = hasLogVariables(this.Quantity);
+        end%
+
+        varargout = getIthOmega(varargin)
+    end
 
 
     methods
@@ -292,8 +306,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = createTrendArray(varargin)
         varargout = evalTrendEquations(varargin)
         varargout = expansionMatrices(varargin)
-        varargout = getIthOmega(varargin)
-        varargout = getIthKalmanSystem(varargin)
         varargout = getStationaryStatus(varargin)
 
 
@@ -302,10 +314,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
         varargout = getVariant(varargin)
-
-        function flag = hasLogVariables(this)
-            flag = hasLogVariables(this.Quantity);
-        end%
 
         varargout = hdatainit(varargin)
         varargout = insertTrendLine(varargin)
@@ -343,11 +351,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = sizeSolution(varargin)
         varargout = sizeSystem(varargin)
         varargout = getSolutionMatrices(varargin)
-
-
-        function stdcorr = getIthStdcorr(this, variantsRequested)
-            stdcorr = getIthStdcorr(this.Variant, variantsRequested);
-        end%
 
 
         varargout = implementGet(varargin)

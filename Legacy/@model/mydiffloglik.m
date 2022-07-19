@@ -1,4 +1,3 @@
-function [MLL, score, info, se2] = mydiffloglik(this, data, likOpt, opt)
 % mydiffloglik  Gradient and hessian of log-likelihood function
 %
 % Backend [IrisToolbox] method
@@ -7,7 +6,9 @@ function [MLL, score, info, se2] = mydiffloglik(this, data, likOpt, opt)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-EPSILON = eps( )^(1/3);
+function [MLL, score, info, se2] = mydiffloglik(this, data, likOpt, opt)
+
+EPSILON = eps()^(1/3);
 
 vecv = @(x) reshape(x, [ ], 1);
 vech = @(x) reshape(x, 1, [ ]);
@@ -73,35 +74,36 @@ if opt.Progress
     progress = ProgressBar('[IrisToolbox] @Model/diffloglik Progress');
 end
 
-kalmanFilterInput = struct( );
+kalmanFilterInput = struct();
 kalmanFilterInput.InputData = [ ];
 kalmanFilterInput.OutputData = [ ];
 kalmanFilterInput.InternalAssignFunc = [ ];
 kalmanFilterInput.Options = likOpt;
+kalmanFilterInput.FilterRange = NaN;
 
 for iData = 1 : numDataSets
-    mainLoop( );
+    mainLoop();
 end
 
 return
 
 
-    function mainLoop( )        
+    function mainLoop()
         dpe = cell(1, numParams);
         dpe(:) = {nan(ny, numPeriods)};
-        
+
         Fi_pe = zeros(ny, numPeriods);
         X = zeros(ny);
-        
+
         Fi_dpe = cell(1, numParams);
         Fi_dpe(1:numParams) = {nan(ny, numPeriods)};
-        
+
         dF = cell(1, numParams);
         dF(:) = {nan(ny, ny, numPeriods)};
-        
+
         dFvec = cell(1, numParams);
         dFvec(:) = {[ ]};
-        
+
         Fi_dF = cell(1, numParams);
         Fi_dF(:) = {nan(ny, ny, numPeriods)};
 
@@ -116,29 +118,29 @@ return
             j = ~all(isnan(Fi(:, :, ii)), 1);
             Fi(j, j, ii) = inv(Fi(j, j, ii));
         end
-        
+
         for ii = 1 : numParams
             pm = getVariant(this, 1+2*(ii-1)+1);
             [~, Y] = implementKalmanFilter(pm, kalmanFilterInput);
             pF =  Y.F(:, :, 2:end);
             ppe = Y.Pe(:, 2:end);
-            
+
             mm = getVariant(this, 1+2*(ii-1)+2);
             [~, Y] = implementKalmanFilter(mm, kalmanFilterInput);
             mF =  Y.F(:, :, 2:end);
             mpe = Y.Pe(:, 2:end);
-            
+
             dF{ii}(:, :, :) = (pF - mF) / twoSteps(ii);
             dpe{ii}(:, :) = (ppe - mpe) / twoSteps(ii);
         end
-        
+
         for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
             for ii = 1 : numParams
                 Fi_dF{ii}(o, o, t) = Fi(o, o, t)*dF{ii}(o, o, t);
             end
         end
-        
+
         for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
             for ii = 1 : numParams
@@ -158,7 +160,7 @@ return
                 end
             end
         end
-        
+
         % Score vector.
         for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
@@ -173,7 +175,7 @@ return
                 + vech(Fi(o, o, t)*transpose(X(o, o, t)))*dFvec{t}/2 ...
                 + transpose(Fi_pe(o, t))*dpevec;
         end
-        
+
         % Information matrix.
         for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
@@ -189,12 +191,13 @@ return
                 end
             end
         end
-        
+
         info(:, :, iData) = info(:, :, iData) + transpose(tril(info(:, :, iData), -1));
-        
+
         if opt.Progress
             % Update progress bar.
             update(progress, iData/numDataSets);
         end
     end
-end
+end%
+

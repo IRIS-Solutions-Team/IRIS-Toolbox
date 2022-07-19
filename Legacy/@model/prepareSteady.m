@@ -24,20 +24,19 @@ function output = prepareSteady(this, varargin)
     %( Input parser
     persistent parserLinear parserNonlinear
     if isempty(parserLinear) || isempty(parserNonlinear)
+
         % Linear
         parserLinear = extend.InputParser();
-        addRequired(parserLinear, 'model', @(x) isa(x, 'model'));
         addParameter(parserLinear, 'Growth', [], @(x) isempty(x) || isequal(x, true) || isequal(x, false));
-        addParameter(parserLinear, 'Solve', {"run", false});
         addParameter(parserLinear, 'Warning', true, @(x) isequal(x, true) || isequal(x, false));
         addParameter(parserLinear, "Silent", false);
         addParameter(parserLinear, "Run", true);
         addParameter(parserLinear, "UserFunc", []);
+        addParameter(parserLinear, 'Solve', {"run", false});
 
         % Nonlinear
         parserNonlinear = extend.InputParser();
         parserNonlinear.KeepUnmatched = true;
-        addRequired(parserNonlinear, 'model', @(x) isa(x, 'model'));
 
         addParameter(parserNonlinear, {'ChangeWithin', 'ChangeBounds', 'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
         addParameter(parserNonlinear, {'LevelWithin', 'LevelBounds', 'LevelBnds'}, [ ], @(x) isempty(x) || isstruct(x));
@@ -50,8 +49,8 @@ function output = prepareSteady(this, varargin)
         addParameter(parserNonlinear, 'ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
         addParameter(parserNonlinear, "Silent", false);
         addParameter(parserNonlinear, "Run", true);
-        % addParameter(parserNonlinear, "CheckSteady", {"Run", false});
         addParameter(parserNonlinear, "UserFunc", []);
+        % addParameter(parserNonlinear, "CheckSteady", {"Run", false});
 
         % Blazer related options
         addParameter(parserNonlinear, {'Blocks', 'Block'}, @auto, @local_validateBlocks);
@@ -72,7 +71,7 @@ function output = prepareSteady(this, varargin)
     else
         parser = parserNonlinear;
     end
-    options = parse(parserNonlinear, this, varargin{:});
+    options = parse(parser, varargin{:});
 
     output = struct();
     output.Run = options.Run;

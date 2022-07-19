@@ -131,7 +131,7 @@ this = update(this, posterior.Optimum, variantRequested);
 p = here_createLegacyPoster( );
 
 %
-% Re-run Loglik for Out-of-lik Params
+% Re-run likelihood function for outlik params
 %
 % Re-run the Kalman filter or FD likelihood to get the estimates of V
 % and out-of-lik parameters.
