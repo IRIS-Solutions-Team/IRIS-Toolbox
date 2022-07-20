@@ -12,7 +12,7 @@ classdef Series ...
         Settings_LineWidth (1, 1) double {mustBeNonnegative} = 2
         Settings_ShowLegend (1, 1) logical = true
         Settings_Type (1, 1) string = "scatter"
-        Settings_Markers (1, 1) struct = struct('Color', NaN, "Symbol", "circle", 'Size', 6) 
+        Settings_Markers (1, 1) struct = struct('Color', NaN, 'Symbol', "circle", 'Size', 6) 
         Settings_StackGroup (1, 1) string = ""
         Settings_Fill (1, 1) string = "none"
         Settings_Units (1, 1) string = ""
