@@ -87,6 +87,7 @@ if isempty(ip)
     addParameter(ip, "OutputData", "smooth");
     addParameter(ip, "InternalAssignFunc", @hdataassign);
     addParameter(ip, "DiffuseScale", iris.mixin.Kalman.DIFFUSE_SCALE);
+    addParameter(ip, "WhenMissing", "warning");
 
     addParameter(ip, "Anticipate", false);
     addParameter(ip, "Ahead", 1);
