@@ -11,15 +11,14 @@ function [this, success, outputInfo] = steadyUser(this, variantsRequested, userF
 
     for v = reshape(variantsRequested, 1, [])
         currValues = this.Variant.Values(1, inx, v);
-        currentStruct = cell2struct(num2cell(currValues), names, 2);
+        currentStruct = cell2struct(num2cell(currValues), cellstr(names), 2);
 
         newStruct = userFunc(currentStruct);
 
         newValues = currValues;
         for i = 1 : numel(names)
-            n = names(i);
-            if isfield(newStruct, n)
-                newValues(1, i, :) = newStruct.(n);
+            if isfield(newStruct, names(i))
+                newValues(1, i, :) = newStruct.(names(i));
             end
         end
 

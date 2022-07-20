@@ -58,7 +58,7 @@ switch extra
         end
     case "struct"
         names = reshape(cellstr(this.Quantity.Name), [], 1);
-        output = cell2struct(num2cell(status, 2), names, 1);
+        output = cell2struct(num2cell(status, 2), cellstr(names), 1);
     otherwise
         output = [];
 end
