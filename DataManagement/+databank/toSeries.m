@@ -68,7 +68,7 @@ if isempty(ip)
     ip = inputParser(); 
     addOptional(ip, "names", @all);
     addOptional(ip, "dates", @all);
-    addOptional(ip, 'columns', 1);
+    addOptional(ip, "columns", 1);
 end
 parse(ip, varargin{:});
 names = ip.Results.names;
