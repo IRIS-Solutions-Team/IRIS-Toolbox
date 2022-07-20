@@ -55,6 +55,7 @@ return
 
 
     function doColStruct( )
+        isnumericscalar = @(x) isnumeric(x) && isscalar(x);
         nRow = size(inp{1}, 2);
         outp = nan(numOfColumns, nRow);
         time = 1 : numOfColumns;
@@ -62,7 +63,7 @@ return
             func = colStruct(ii).func;
             date = colStruct(ii).date;
             x = inp{1};
-            if isfunc(func)
+            if isa(func, 'function_handle')
                 x = feval(func, x);
                 if ~isa(x, 'tseries') && ~isnumericscalar(x)
                     utils.error('seriesobj:getdata', ...

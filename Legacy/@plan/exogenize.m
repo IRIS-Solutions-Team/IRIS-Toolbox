@@ -55,6 +55,7 @@ if isnumeric(List) && (ischar(Dates) || iscellstr(Dates))
 end
 
 % Parse required input arguments.
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 pp = inputParser( );
 pp.addRequired('List',@(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
 pp.addRequired('Dates',@(x) isnumeric(x) || isequal(x,@all) );

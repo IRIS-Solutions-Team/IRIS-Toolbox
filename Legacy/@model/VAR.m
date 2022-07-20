@@ -46,9 +46,10 @@ pp.parse(List, range);
 
 
 %(
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 defaults = { 
     'acf', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
-    'order', 1, @isnumericscalar
+    'order', 1, isnumericscalar
     'constant, const', true, @(x) isequal(x, true) || isequal(x, false)
 };
 %)

@@ -1,4 +1,3 @@
-function [This,Y0,K0,Y1,G1] = covmat(C,Rep,varargin)
 % covmat  Covariance matrix prior dummy observations for BVARs.
 %
 % Syntax
@@ -30,6 +29,10 @@ function [This,Y0,K0,Y1,G1] = covmat(C,Rep,varargin)
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
+
+function [This,Y0,K0,Y1,G1] = covmat(C,Rep,varargin)
+
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
 
 % Parse input arguments.
 pp = inputParser( );

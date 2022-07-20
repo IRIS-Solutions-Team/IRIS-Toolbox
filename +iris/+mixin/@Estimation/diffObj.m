@@ -61,7 +61,7 @@ for i = 1 : numParameters
     % Diff parameter priors.
     if estOpt.EvalPPrior
         d = (pp - 2*p0 + pm) / h2;
-        if ~isempty(itr.FnPrior{i}) && isfunc(itr.FnPrior{i})
+        if ~isempty(itr.FnPrior{i}) && isa(itr.FnPrior{i}, 'function_handle')
             if isa(itr.FnPrior{i}, 'distribution.Distribution')
                 d = -itr.FnPrior{i}.info(x0(i));
             elseif isa(itr.FnPrior{i}, 'function_handle')

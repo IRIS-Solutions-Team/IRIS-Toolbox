@@ -6,7 +6,7 @@
 function diffEqtn = diff(eqtn, wrts, output)
 
 % Create string and remove anonymous function preamble.
-if isfunc(eqtn)
+if isa(eqtn, 'function_handle')
     eqtn = func2str(eqtn);
 end
 eqtn = regexprep(eqtn, '^@\(.*?\)', '', 'once');

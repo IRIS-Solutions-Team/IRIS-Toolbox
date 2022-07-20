@@ -43,6 +43,7 @@ function [T, R, k, Z, H, d, U, Cov] = sspace(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 if ~isempty(varargin) && isnumericscalar(varargin{1}) 
    variantsRequested = varargin{1};
    varargin(1) = [ ]; %#ok<NASGU>

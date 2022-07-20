@@ -27,7 +27,7 @@ if isempty(ip)
     addParameter(ip, 'OptimSet', {}, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
 
     addParameter(ip, 'EpsPower', 1/2, @(x) validate.numericScalar(x, 0, Inf));
-    addParameter(ip, 'StartIterations', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
+    addParameter(ip, 'StartIterations', 'struct', @(x) isempty(x) || isstruct(x) || validate.anyString(x, "struct", "model"));
         addParameter(ip, 'InitVal__StartIterations', []);
     addParameter(ip, 'Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
     addParameter(ip, 'HonorBounds', true, @validate.logicalScalar);

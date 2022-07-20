@@ -5,24 +5,28 @@
 
 function outputStats = stats(this, theta, logPost, varargin)
 
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
+
 persistent ip
 if isempty(ip)
+    isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+    islogicalscalar = @(x) islogical(x) && isscalar(x);
     ip = inputParser();
     addParameter(ip, 'hpdicover', 90, @(x) isnumericscalar(x) && x >= 0 && x <= 100);
     addParameter(ip, 'histbins', 50, @(x) isintscalar(x) && x > 0);
     addParameter(ip, 'mddgrid', 0.1:0.1:0.9, @(x) isnumeric(x) && all(x(:) > 0 & x(:) < 1));
     addParameter(ip, 'output', '', @(x) ischar(x) || iscellstr(x) || isstring(x));
-    addParameter(ip, 'progress', false, @islogicalscalar);
-    addParameter(ip, 'chain', true, @islogicalscalar);
-    addParameter(ip, 'cov', false, @islogicalscalar);
-    addParameter(ip, 'mean', true, @islogicalscalar);
-    addParameter(ip, 'median', false, @islogicalscalar);
-    addParameter(ip, 'mode', false, @islogicalscalar);
-    addParameter(ip, 'mdd', true, @islogicalscalar);
-    addParameter(ip, 'std', true, @islogicalscalar);
+    addParameter(ip, 'progress', false, islogicalscalar);
+    addParameter(ip, 'chain', true, islogicalscalar);
+    addParameter(ip, 'cov', false, islogicalscalar);
+    addParameter(ip, 'mean', true, islogicalscalar);
+    addParameter(ip, 'median', false, islogicalscalar);
+    addParameter(ip, 'mode', false, islogicalscalar);
+    addParameter(ip, 'mdd', true, islogicalscalar);
+    addParameter(ip, 'std', true, islogicalscalar);
     addParameter(ip, 'hpdi', false, @(x) islogicalscalar(x) || (isnumericscalar(x) && x > 0 && x < 100));
     addParameter(ip, 'hist', true, @(x) islogicalscalar(x) || (isintscalar(x) && x > 0));
-    addParameter(ip, 'bounds', false, @islogicalscalar);
+    addParameter(ip, 'bounds', false, islogicalscalar);
     addParameter(ip, 'ksdensity', false, @(x) islogicalscalar(x) || isempty(x) || (isintscalar(x) && x > 0));
     addParameter(ip, 'prctile', [ ], @(x) isnumeric(x) && all(x(:) >= 0 & x(:) <= 100));
 end

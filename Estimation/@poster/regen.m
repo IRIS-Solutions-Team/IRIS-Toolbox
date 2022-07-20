@@ -47,9 +47,10 @@ function [sample,lp_Sample,len] ...
 % -Copyright (c) 2007-2022 IRIS Solutions Team & Bojan Bejanov & Troy Matheson.
 
 % Validate required inputs.
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 pp = inputParser( );
 pp.addRequired('Pos',@(x) isa(x,'poster'));
-pp.addRequired('NDraw',@isnumericscalar);
+pp.addRequired('NDraw',isnumericscalar);
 pp.parse(This,NDraw);
 
 

@@ -1,8 +1,11 @@
-function this = postparse(this, equation, euc)
 % myparse  Post-parse rpteq input code
 %
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
+
+function this = postparse(this, equation, euc)
+
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 
 ixr = equation.Type==6;
 if ~any(ixr)

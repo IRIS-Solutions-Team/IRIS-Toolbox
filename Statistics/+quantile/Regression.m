@@ -46,11 +46,13 @@ classdef Regression < iris.mixin.UserDataContainer & iris.mixin.CommentContainer
 
 
         function [this, info] = estimate(this, d, vecDat, varargin)
+            isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+            islogicalscalar = @(x) islogical(x) && isscalar(x);
             default = {
-                'Constant', true, @islogicalscalar
-                'NonCrossing, NonCross', false, @islogicalscalar
+                'Constant', true, islogicalscalar
+                'NonCrossing, NonCross', false, islogicalscalar
                 'Smoothing', 0, @(x) isnumericscalar(x) && x>=0
-                'Trend', false, @islogicalscalar
+                'Trend', false, islogicalscalar
             };
             opt = passvalopt(default, varargin{:});
             this.IsConstant = opt.Constant;

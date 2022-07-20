@@ -789,6 +789,7 @@ return
 
 
     function describeInit( )
+        isnumericscalar = @(x) isnumeric(x) && isscalar(x);
         try
             h = initPoints.(list{iGraph}){1};
             if isnumericscalar(h)

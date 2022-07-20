@@ -66,10 +66,13 @@ catch
     Step = 1;
 end
 
-pp = inputParser( );
-pp.addRequired('Start',@isnumericscalar);
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+
+pp = inputParser();
+pp.addRequired('Start',isnumericscalar);
 pp.addRequired('End',@(x) isnumericscalar(x) && freqcmp(x,Start));
-pp.addRequired('Step',@isintscalar);
+pp.addRequired('Step',isintscalar);
 pp.parse(Start,End,Step);
 
 %--------------------------------------------------------------------------

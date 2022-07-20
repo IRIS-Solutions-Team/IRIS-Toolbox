@@ -79,15 +79,17 @@ pp.parse(this, inp, range, cond);
 
 
 %(
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
     'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
     'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
-    'dboverlay, dbextend', false, @islogicalscalar
-    'Deviation, Deviations', false, @islogicalscalar
-    'meanonly', false, @islogicalscalar
+    'dboverlay, dbextend', false, islogicalscalar
+    'Deviation, Deviations', false, islogicalscalar
+    'meanonly', false, islogicalscalar
     'omega', [ ], @isnumeric
-    'returninstruments, returninstrument', true, @islogicalscalar
-    'returnresiduals, returnresidual', true, @islogicalscalar
+    'returninstruments, returninstrument', true, islogicalscalar
+    'returnresiduals, returnresidual', true, islogicalscalar
     'E', [ ], @(x) isempty(x) || isnumeric(x) 
     'Sigma', [ ], @isnumeric
 };

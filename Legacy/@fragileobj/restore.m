@@ -8,13 +8,13 @@ function C = restore(C,This,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 
 %(
 defaults = { ...
-    'delimiter,delimiters',true,@islogicalscalar, ...
+    'delimiter,delimiters',true,islogicalscalar, ...
 };
 %)
-
 
 opt = passvalopt(defaults, varargin{:});
 

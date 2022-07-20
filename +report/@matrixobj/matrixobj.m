@@ -7,6 +7,8 @@ classdef matrixobj < report.tabularobj & report.condformatobj
     methods
         
         function This = matrixobj(varargin)
+            isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+            islogicalscalar = @(x) islogical(x) && isscalar(x);
             This = This@report.tabularobj(varargin{:});
             This = This@report.condformatobj( );
             This.childof = {'report','align'};

@@ -1,4 +1,3 @@
-function datxtick(varargin)
 % datxtick  Change ticks, labels and/or date frequency on x-axis in existing tseries graphs
 %
 % Syntax
@@ -49,6 +48,8 @@ function datxtick(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
+function datxtick(varargin)
+
 if all(ishandle(varargin{1}))
     ax = varargin{1};
     varargin(1) = [ ] ;
@@ -71,8 +72,7 @@ end
 parser.parse(ax, newRange);
 opt = parser.Options;
 
-%--------------------------------------------------------------------------
-
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 [~, ~, newFreq] = dat2ypf(newRange(1));
 for h = ax
     valid = isequal(getappdata(h, 'IRIS_SERIES'), true);

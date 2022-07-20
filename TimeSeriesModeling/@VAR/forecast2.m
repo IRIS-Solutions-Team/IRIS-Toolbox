@@ -56,6 +56,8 @@ function outp = forecast(this, inp, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+
 % Panel VAR.
 if this.IsPanel
     outp = runGroups(@forecast, this, inp, range, varargin{:});
@@ -77,16 +79,17 @@ pp.addRequired('Cond', @(x) isempty(x) || isstruct(x));
 pp.parse(this, inp, range, cond);
 
 
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 %(
 defaults = {
     'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
     'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
-    'dboverlay, dbextend', false, @islogicalscalar
-    'Deviation, Deviations', false, @islogicalscalar
-    'meanonly', false, @islogicalscalar
+    'dboverlay, dbextend', false, islogicalscalar
+    'Deviation, Deviations', false, islogicalscalar
+    'meanonly', false, islogicalscalar
     'omega', [ ], @isnumeric
-    'returninstruments, returninstrument', true, @islogicalscalar
-    'returnresiduals, returnresidual', true, @islogicalscalar
+    'returninstruments, returninstrument', true, islogicalscalar
+    'returnresiduals, returnresidual', true, islogicalscalar
     'E', [ ], @(x) isempty(x) || isnumeric(x) 
     'Sigma', [ ], @isnumeric
 };

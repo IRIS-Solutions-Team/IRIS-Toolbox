@@ -31,9 +31,9 @@ if isempty(parser)
     parser.addParameter('preamble', '', @ischar);
     parser.addParameter('progress', false, @validate.logicalScalar);
     parser.addParameter('title', Inf, @(x) ischar(x) || isequal(x, Inf));
-    parser.addParameter('timestamp', @( ) datestr(now( )), @(x) ischar(x) || isfunc(x));
+    parser.addParameter('timestamp', @( ) datestr(now( )), @(x) ischar(x) || isa(x, 'function_handle'));
     parser.addParameter({'textscale', 'scale'}, 0.8, @(x) isnumeric(x) && (length(x) == 1 || length(x) == 2));
-    parser.addParameter('tempdir', @( ) tempname(pwd( )), @(x) isfunc(x) || ischar(x));
+    parser.addParameter('tempdir', @( ) tempname(pwd( )), @(x) isa(x, 'function_handle') || ischar(x));
 end
 parse(parser, this, outputFileName, varargin{:});
 opt = parser.Options;
@@ -122,7 +122,7 @@ return
 
     function doCreateTempDir( )
         % Assign the temporary directory name property.
-        if isfunc(opt.tempdir)
+        if isa(opt.tempdir, 'function_handle')
             tempDir = opt.tempdir( );
         else
             tempDir = opt.tempdir;

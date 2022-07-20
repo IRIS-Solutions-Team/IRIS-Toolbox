@@ -1,4 +1,3 @@
-function [outputData, draws] = resample(this, inp, range, numDraws, varargin)
 % resample  Resample from VAR model
 %
 % __Syntax__
@@ -54,6 +53,10 @@ function [outputData, draws] = resample(this, inp, range, numDraws, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
+function [outputData, draws] = resample(this, inp, range, numDraws, varargin)
+
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
+
 % Panel VAR
 if this.IsPanel
     outputData = runGroups(@resample, this, inp, range, numDraws, varargin{:});
@@ -69,14 +72,15 @@ pp.addRequired('NDraw', @(x) isintscalar(x) && x >= 0);
 pp.parse(this, inp, range, numDraws);
 
 
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
     'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
-    'Deviation, Deviations', false, @islogicalscalar   
-    'method', 'montecarlo', @(x) isfunc(x) ...
+    'Deviation, Deviations', false, islogicalscalar   
+    'method', 'montecarlo', @(x) isa(x, 'function_handle') ...
     || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'})))
-    'progress', false, @islogicalscalar
-    'randomise, randomize', false, @islogicalscalar
-    'wild', false, @islogicalscalar
+    'progress', false, islogicalscalar
+    'randomise, randomize', false, islogicalscalar
+    'wild', false, islogicalscalar
 };
 
 

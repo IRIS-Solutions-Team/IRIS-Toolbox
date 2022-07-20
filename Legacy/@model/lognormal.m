@@ -63,15 +63,16 @@ pp.addRequired('D', ...
 pp.parse(db);
 
 
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 %(
 defaults = {
-    'fresh', false, @islogicalscalar
-    'mean', true, @islogicalscalar
-    'median', true, @islogicalscalar
-    'mode', true, @islogicalscalar
+    'fresh', false, islogicalscalar
+    'mean', true, islogicalscalar
+    'median', true, islogicalscalar
+    'mode', true, islogicalscalar
     'prctile, pctile, pct', [5, 95], @(x) isnumeric(x) && all(round(x(:))>0 & round(x(:))<100)
     'prefix', 'lognormal', @(x) ischar(x) && ~isempty(x)
-    'std', true, @islogicalscalar
+    'std', true, islogicalscalar
 };
 %)
 

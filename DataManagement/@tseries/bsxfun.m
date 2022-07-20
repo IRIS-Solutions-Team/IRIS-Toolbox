@@ -47,12 +47,10 @@ function X = bsxfun(Func, X, Y)
 
 % Validate input arguments.
 pp = inputParser( );
-pp.addRequired('Func', @isfunc);
+pp.addRequired('Func', @(x) isa(x, 'function_handle'));
 pp.addRequired('X', @(x) isa(x, 'tseries') || isnumeric(x));
 pp.addRequired('Y', @(x) isa(x, 'tseries') || isnumeric(x));
 pp.parse(Func, X, Y);
-
-%--------------------------------------------------------------------------
 
 if isa(X, 'TimeSubscriptable') && isa(Y, 'TimeSubscriptable')
     minStart = min(double(X.Start), double(Y.Start));

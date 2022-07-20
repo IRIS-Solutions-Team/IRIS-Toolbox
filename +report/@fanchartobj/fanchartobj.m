@@ -8,6 +8,7 @@ classdef fanchartobj < report.seriesobj
     methods
         
         function this = fanchartobj(varargin)
+            isnumericscalar = @(x) isnumeric(x) && isscalar(x);
             this = this@report.seriesobj(varargin{:});
             this.default = [this.default, {...
                 'asym', 1, @(x) (isnumeric(x) || isa(x, 'tseries')) && all(x >= 0), false, ...

@@ -137,6 +137,7 @@ return
 
     function isLog = getIsLog( )
         isLog = false;
+        islogicalscalar = @(x) islogical(x) && isscalar(x);
         if islogicalscalar(ixLog)
             isLog = ixLog;
             return

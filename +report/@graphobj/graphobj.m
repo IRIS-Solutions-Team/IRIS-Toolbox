@@ -5,6 +5,7 @@ classdef graphobj < report.genericobj
     
     methods
         function this = graphobj(varargin)
+            islogicalscalar = @(x) islogical(x) && isscalar(x);
             this = this@report.genericobj(varargin{:});
             this.childof = {'figure'};
             this.default = [this.default, { ...

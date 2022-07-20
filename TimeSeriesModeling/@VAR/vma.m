@@ -28,11 +28,10 @@ function Phi = vma(this, N)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 pp = inputParser( );
-pp.addRequired('N', @isnumericscalar);
+pp.addRequired('N', isnumericscalar);
 pp.parse(N);
-
-%--------------------------------------------------------------------------
 
 [A, B] = getIthSystemk(this);
 Phi = timedom.var2vma(A, B, N);

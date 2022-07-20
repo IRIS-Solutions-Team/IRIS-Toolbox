@@ -383,6 +383,7 @@ classdef genericobj < handle
         
         
         function isValid = validatecolstruct(colStruct)
+            isnumericscalar = @(x) isnumeric(x) && isscalar(x);
             isValid = true;
             for i = 1 : length(colStruct)
                 c = colStruct(i);
