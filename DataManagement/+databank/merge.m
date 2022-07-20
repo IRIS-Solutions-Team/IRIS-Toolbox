@@ -53,7 +53,7 @@ if isempty(ip)
     ip = inputParser(); 
     addParameter(ip, "MissingField", @remove);
     addParameter(ip, "Names", @all);
-    addParameter(ip, "MetaNames", @auto);
+    addParameter(ip, "MetaNames", []);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
