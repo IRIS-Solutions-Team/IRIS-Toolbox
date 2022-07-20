@@ -155,7 +155,7 @@ end
 
 % Database with point estimates
 if strcmpi(opt.Summary, 'struct')
-    summary = cell2struct(num2cell(posterior.Optimum(:)'), posterior.ParameterNames, 2);
+    summary = cell2struct(reshape(num2cell(posterior.Optimum), 1, []), reshape(cellstr(posterior.ParameterNames), 1, []), 2);
 else
     summary = table(posterior);
 end
