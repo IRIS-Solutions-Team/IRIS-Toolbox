@@ -78,7 +78,7 @@ end
 
 
 defaults = { 
-    'location', 'north', @(x) isanystri(x, {'north', 'west', 'east', 'south'})
+    'location', 'north', @(x) validate.anyString(x, "north", "west", "east", "south")
 };
 
 [opt, varargin] = passvalopt(defaults, varargin{:});

@@ -256,7 +256,7 @@ classdef InputParser ...
             addParameter(this, 'DatePosition', 'c', @(x) (ischar(x) || isstring(x)) && startsWith(lower(string(x)), ["s", "e", "c"]));
 
             % Backward compatibility options for datxtick( )
-            addParameter(this, {'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isa(x,'function_handle'));
+            addParameter(this, {'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || validate.anyString(x, "yearstart", "yearend", "yearly") || isa(x, 'function_handle'));
             this.HasDateOptions = true;
             if nargin>1
                 % Context can be one of {'', 'tseries', 'TimeSubscriptable'}

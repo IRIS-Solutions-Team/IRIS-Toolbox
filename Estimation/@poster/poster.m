@@ -302,7 +302,7 @@ classdef poster < iris.mixin.GetterSetter
 
 
         function this = setprior(this, name, func)
-            if (isstring(name) || ischar(name)) && isfunc(func)
+            if (isstring(name) || ischar(name)) && isa(func, 'function_handle')
                 pos = find(this.ParameterNames==string(name));
                 if ~isempty(pos)
                     this.LogPriorFunc{pos} = func;

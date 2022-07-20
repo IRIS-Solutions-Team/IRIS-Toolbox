@@ -35,7 +35,7 @@ printFigure( );
 if strcmpi(this.options.figurescale, 'auto')
     switch class(this.parent)
         case 'report.reportobj'
-            if isanystri(this.options.papertype, {'usletter', 'uslegal'})
+            if validate.anyString(this.options.papertype, "usletter", "uslegal")
                 this.options.figurescale = 0.8;
             else
                 this.options.figurescale = 0.85;

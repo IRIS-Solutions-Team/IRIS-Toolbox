@@ -189,7 +189,7 @@ return
 
 
     function doTempDir( )
-        if isfunc(tempDir)
+        if isa(tempDir, 'function_handle')
             tempDir = tempDir( );
         end
         isNewTempDir = exist(tempDir, 'dir')==0;

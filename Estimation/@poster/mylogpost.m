@@ -40,7 +40,7 @@ if IsWithinBounds
         SP = -SP;
     else
         % Evaluate parameter priors.
-        priorInx = cellfun(@isfunc, this.LogPriorFunc);        
+        priorInx = cellfun(@(x) isa(x, 'function_handle'), this.LogPriorFunc);        
         for k = find(priorInx)
             PP = PP + this.LogPriorFunc{k}(P(k));
             if isinf(PP)

@@ -120,6 +120,7 @@ classdef Equation < parser.theparser.Generic
 
 
             function evalNonstandardTimeSubs( )
+                isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
                 try
                     % Use protected eval to avoid conflict with workspace.
                     xx = parser.theparser.Equation.protectedEval( c(2:end-1) );

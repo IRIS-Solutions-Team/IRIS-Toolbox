@@ -1,25 +1,22 @@
-function [this, isValidRequest, isValidValue] = implementSet(this, query, value, varargin)
 % implementGet  Implement set method for iris.mixin.UserDataContainer objects
 %
-% Backend IRIS function
-% No help provided
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
+function [this, isValidRequest, isValidValue] = implementSet(this, query, value, varargin)
 
-%--------------------------------------------------------------------------
+    isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
+    isValidRequest = true;
+    isValidValue = true;
 
-isValidRequest = true;
-isValidValue = true;
-
-if any(strcmpi(query, {'BaseYear', 'TOrigin'}))
-    isValidValue = isintscalar(value) || isequal(value, @config);
-    if isValidValue
-        this.BaseYear = value;
+    if any(strcmpi(query, {'BaseYear', 'TOrigin'}))
+        isValidValue = isintscalar(value) || isequal(value, @config);
+        if isValidValue
+            this.BaseYear = value;
+        end
+    else
+        isValidRequest = false;
     end
-else
-    isValidRequest = false;
-end
 
 end%
 

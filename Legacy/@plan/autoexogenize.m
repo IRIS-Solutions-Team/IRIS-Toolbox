@@ -87,6 +87,7 @@ if isnumeric(namesToExogenize) && (ischar(dates) || iscellstr(dates))
 end
 
 % Parse required input arguments.
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 pp = inputParser( );
 pp.addRequired('List', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x,@all));
 pp.addRequired('Dates', @isnumeric);

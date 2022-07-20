@@ -33,10 +33,11 @@ function this = repmat(this, varargin)
 % ========
 %
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 pp = inputParser( );
 pp.addRequired('X', @(x) isa(x, 'tseries'));
 pp.addRequired('RepK', ...
-    @(x) ~isempty(x) && all(cellfun(@isnumericscalar,x)) && isequal(x{1},1));
+    @(x) ~isempty(x) && all(cellfun(isnumericscalar,x)) && isequal(x{1},1));
 pp.parse(this,varargin);
 
 %--------------------------------------------------------------------------

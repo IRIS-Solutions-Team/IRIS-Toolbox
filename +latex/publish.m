@@ -95,6 +95,8 @@ if ~isempty(varargin) && isempty(varargin{1})
     varargin(1) = [ ];
 end
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 
 %(
 defaults = { 
@@ -119,7 +121,7 @@ defaults = {
     'package', { }, @(x) iscellstr(x) || ischar(x) || isempty(x)
     'supertitle', '', @(x) isempty(x) || ischar(x)
     'template', 'paper', @(x) ischar(x) && any(strcmpi(x, {'paper', 'present'}))
-    'textscale', 0.70, @isnumericscalar
+    'textscale', 0.70, isnumericscalar
     'toc', true, @(x) isequal(x, true) || isequal(x, false)
     'usenewfigure', false, @(x) isequal(x, true) || isequal(x, false)
 };

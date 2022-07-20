@@ -87,6 +87,7 @@ function x = sspacePosLag(this, usrName, posSpace, ixx)
 % xxsspaceposlag  Return position in the extended Vector.Solution for
 % transition variables with a lag larger than the maximum lag present in
 % Vector.Solution.
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 x = posSpace;
 solutionVector = [ this.Vector.Solution{1:2} ];
 name = this.Quantity.Name;

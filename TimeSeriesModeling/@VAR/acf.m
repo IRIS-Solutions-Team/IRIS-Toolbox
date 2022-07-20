@@ -50,13 +50,15 @@ function [C, Q] = acf(this, varargin)
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
     'ApplyTo', @all, @(x) isnumeric(x) || islogical(x) || isequal(x, @all) || iscellstr(x)
     'Filter', '', @(x) ischar(x) || isstring(x)
     'MatrixFormat', 'namedmat', @validate.matrixFormat
-    'NFreq', 256, @isnumericscalar
-    'Order', 0, @isnumericscalar
-    'Progress', false, @islogicalscalar
+    'NFreq', 256, isnumericscalar
+    'Order', 0, isnumericscalar
+    'Progress', false, islogicalscalar
 }; %#ok<*CCAT>
 
 opt = passvalopt(defaults, varargin{:});

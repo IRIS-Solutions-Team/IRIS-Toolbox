@@ -11,9 +11,10 @@ TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES = TIME_SERIES_CONSTRUCTOR();
 
 
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 %(
 defaults = { ...
-    'Delog', true, @islogicalscalar, ...
+    'Delog', true, islogicalscalar, ...
 };
 %)
 

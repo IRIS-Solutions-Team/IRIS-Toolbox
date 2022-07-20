@@ -53,8 +53,9 @@ function [s, lg] = eval(this, s, varargin)
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
-    'append', true, @islogicalscalar
+    'append', true, islogicalscalar
 };
 
 opt = passvalopt(defaults, varargin{:});

@@ -42,9 +42,10 @@ function [Stat,Crit] = portest(This,Inp,H,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 pp = inputParser( );
 pp.addRequired('Inp',@(x) myisvalidinpdata(This,x));
-pp.addRequired('H',@isnumericscalar);
+pp.addRequired('H',isnumericscalar);
 pp.parse(Inp,H);
 
 

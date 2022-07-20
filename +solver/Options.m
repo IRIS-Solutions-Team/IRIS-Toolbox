@@ -174,6 +174,7 @@ classdef (CaseInsensitiveProperties=true) Options
 
         function pp = getParser(this)
             %(
+            isnumericscalar = @(x) isnumeric(x) && isscalar(x);
             pp = extend.InputParser('solver.Options.getParser');
             pp.KeepUnmatched = true;
             addParameter(pp, 'Display', this.DEFAULT_DISPLAY, @validateDisplay);
@@ -275,6 +276,7 @@ end
 
 
 function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
+    isnumericscalar = @(x) isnumeric(x) && isscalar(x);
     persistent pp
     if isempty(pp)
         pp = extend.InputParser('solver.Options.parseOptimTbx');

@@ -5,6 +5,7 @@
 
 function quantity = assign(this, quantity)
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 stringify = @(x) reshape(string(x), 1, []);
 
 a = this.AssignedDatabank;

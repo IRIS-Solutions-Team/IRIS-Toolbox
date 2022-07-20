@@ -7,10 +7,12 @@ classdef alignobj < report.tabularobj
     methods
         
         function This = alignobj(varargin)            
+            isnumericscalar = @(x) isnumeric(x) && isscalar(x);
+            islogicalscalar = @(x) islogical(x) && isscalar(x);
             This = This@report.tabularobj(varargin{:});
             This.childof = {'report'};
             This.default = [This.default, {...
-                'hspace',2,@isnumericscalar,true, ...
+                'hspace',2,isnumericscalar,true, ...
                 'separator','\medskip\par',@ischar,true, ...
                 'sharecaption','auto', ...
                 @(x) islogicalscalar(x) || isequal(lower(x),'auto'), ...
@@ -20,6 +22,7 @@ classdef alignobj < report.tabularobj
         end
         
         function [This,varargin] = specargin(This,varargin)
+            isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
             This.caption = {'',''};
             if isintscalar(varargin{1}) && varargin{1} >= 0
                 This.K = varargin{1};

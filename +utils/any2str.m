@@ -21,7 +21,7 @@ elseif iscell(X)
     C = xxCell(X,Prec);
 elseif isstruct(X)
     C = xxStruct(X,Prec);
-elseif isfunc(X)
+elseif isa(X, 'function_handle')
     C = char(X) ;
 else
     utils.error('utils', ...

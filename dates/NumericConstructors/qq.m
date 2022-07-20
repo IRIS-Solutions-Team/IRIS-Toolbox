@@ -4,8 +4,6 @@
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function varargout = qq(varargin)
-
-[varargout{1:nargout}] = DateWrapper(dater.qq(varargin{:}));
-
+    [varargout{1:nargout}] = dater.qq(varargin{:});
 end%
 

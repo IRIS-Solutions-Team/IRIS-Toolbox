@@ -121,17 +121,18 @@ function [F, FF, delta, freq, G, step] = fisher(this, numPeriods, listParameters
 
 persistent ip
 if isempty(ip)
+    isnumericscalar = @(x) isnumeric(x) && isscalar(x);
     ip = inputParser(); 
     addParameter(ip, 'chksgf', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, 'CheckSteady', true, @model.validateChksstate);
     addParameter(ip, 'Deviation', true, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(ip, 'epspower', 1/3, @isnumericscalar);
+    addParameter(ip, 'epspower', 1/3, isnumericscalar);
     addParameter(ip, 'Exclude', { }, @(x) isstring(x) || ischar(x) || iscellstr(x));
     addParameter(ip, 'percent', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, 'progress', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, 'Solve', true, @model.validateSolve);
     addParameter(ip, 'Steady', false, @model.validateSteady);
-    addParameter(ip, 'tolerance', eps( )^(2/3), @isnumericscalar);
+    addParameter(ip, 'tolerance', eps( )^(2/3), isnumericscalar);
 end
 parse(ip, varargin{:});
 opt = ip.Results;

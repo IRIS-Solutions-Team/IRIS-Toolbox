@@ -114,6 +114,7 @@ classdef grouping < iris.mixin.UserDataContainer ...
             
             this = this@iris.mixin.UserDataContainer( );
             this = this@iris.mixin.GetterSetter( );
+            islogicalscalar = @(x) islogical(x) && isscalar(x);
             
             if isempty(varargin)
                 return
@@ -129,7 +130,7 @@ classdef grouping < iris.mixin.UserDataContainer ...
             varargin(1:2) = [ ];
 
             defaults = {
-                'IncludeExtras', false, @islogicalscalar
+                'IncludeExtras', false, islogicalscalar
             };
 
             opt = passvalopt(defaults, varargin{:});

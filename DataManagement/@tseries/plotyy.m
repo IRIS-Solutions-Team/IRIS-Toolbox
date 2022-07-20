@@ -144,10 +144,10 @@ dataLhsPlot = grfun.myreplacenancols(dataLhs, Inf);
 dataRhsPlot = grfun.myreplacenancols(dataRhs, Inf);
 lhsPlotFuncStr = opt.LhsPlotFunc;
 rhsPlotFuncStr = opt.RhsPlotFunc;
-if isfunc(lhsPlotFuncStr)
+if isa(lhsPlotFuncStr, 'function_handle')
     lhsPlotFuncStr = func2str(lhsPlotFuncStr);
 end
-if isfunc(rhsPlotFuncStr)
+if isa(rhsPlotFuncStr, 'function_handle')
     rhsPlotFuncStr = func2str(rhsPlotFuncStr);
 end
 [ax, hLhs, hRhs] = plotyy( timeLhs, dataLhsPlot, timeRhs, dataRhsPlot, ...

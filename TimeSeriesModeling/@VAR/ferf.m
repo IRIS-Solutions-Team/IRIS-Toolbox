@@ -46,8 +46,9 @@ function varargout = ferf(This,Time,varargin)
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
-    'presample', false, @islogicalscalar
+    'presample', false, islogicalscalar
     'select', Inf, @(x) isequal(x, Inf) || islogical(x) || isnumeric(x) || ischar(x) || iscellstr(x)
 };
 

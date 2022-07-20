@@ -75,6 +75,7 @@ catch
     Range = Inf;
 end
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('TimeSubscriptable/chowlin');

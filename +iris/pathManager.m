@@ -1,23 +1,20 @@
 % irispathManager  [IrisToolbox] path manager
 %
-% Backend [IrisToolbox] function
-% No help provided
-
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function varargout = pathManager(req, varargin)
+function varargout = pathManager(req, root, options)
 
-if strcmpi(req, 'CleanUp')
+if strcmpi(req, 'cleanUp')
     % Remove all IRIS roots and subs found on the Matlab temporary
     % and permanent search paths.
     currentFolder = pwd( );
     folderOfThisFile = fileparts(mfilename('fullpath'));
     cd(fullfile(folderOfThisFile, '..'));
-    thisRoot = pwd( );
+    root = pwd();
     cd(currentFolder);
 
-    listRoots = unique([ 
+    listRoots = unique([
         which('irisstartup.m', '-all')
         which('irisping.m', '-all')
     ]);
@@ -25,54 +22,52 @@ if strcmpi(req, 'CleanUp')
     reportRootsRemoved = { };
     for i = 1 : numel(listRoots)
         ithRoot = fileparts(listRoots{i});
-        [~, allp] = generatePath(ithRoot);
-        removePath(allp{:}, ithRoot);
-        if ~strcmpi(ithRoot, thisRoot)
+        allp = local_generatePath(ithRoot);
+        local_removePath(allp{:}, ithRoot);
+        if ~strcmpi(ithRoot, root)
             reportRootsRemoved{end+1} = ithRoot; %#ok<AGROW>
         end
     end
     varargout = cell(1, 2);
     varargout{1} = reportRootsRemoved;
-    varargout{2} = thisRoot;
+    varargout{2} = root;
     rehash path;
-    
-elseif strcmpi(req, 'AddRoot')
+
+
+elseif strcmpi(req, 'addRoot')
     % Add the specified root to the temporary search paths.
-    thisRoot = varargin{1};
-    addpath(thisRoot, '-begin');
-    
-elseif strcmpi(req, 'AddCurrentSubs')
+    addpath(root, '-begin');
+
+
+elseif strcmpi(req, 'addCurrentSubs')
     % Add subfolders within the current root to the temporary
     % search path.
-    thisRoot = varargin{1};
-    [p, allp] = generatePath(thisRoot);
-    if ~isempty(p.Begin)
-        addpath(p.Begin{:}, '-begin');
+    allp = local_generatePath(root);
+    if ~options.NumericDates
+        allp{end+1} = fullfile(root, 'dates', 'Constructors');
+    else
+        allp{end+1} = fullfile(root, 'dates', 'NumericConstructors');
     end
-    if ~isempty(p.End)
-        addpath(p.End{:}, '-end');
-    end
+    addpath(allp{:}, '-begin');
     varargout{1} = allp;
-        
-elseif strcmpi(req, 'RemoveCurrentSubs');
+
+
+elseif strcmpi(req, 'removeCurrentSubs');
     % Remove subfolders within the current root from the temporary
     % and permanent search paths.
-    thisRoot = varargin{1};
-    [~, allp] = generatePath(thisRoot);
-    removePath(allp{:});
+    allp = local_generatePath(root);
+    local_removePath(allp{:});
     varargout{1} = allp;
 
 end
 
 end%
 
-
 %
-% Local Functions
+% Local functions
 %
 
-
-function removePath(varargin)
+function local_removePath(varargin)
     if isempty(varargin)
         return
     end
@@ -83,54 +78,21 @@ function removePath(varargin)
 end%
 
 
-
-
-function [ppath, everything] = generatePath(root)
-    try
-        root; %#ok<VUNUS>
-    catch
-        root = iris.root( );
-    end
-
-    % All first-level folders in IRIS root.
+function allp = local_generatePath(root)
+    %(
+    % All first-level folders in IrisT root
     list = dir(root);
     list = list([list.isdir]);
 
-    ppath = struct( );
-    ppath.Begin = { }; % addpath -begin.
-    ppath.End = { }; % addpath -end.
-    ppath.OctBegin = { }; % addpath -begin in Octave.
-    ppath.OctEnd = { }; % addpath -end in Octave.
-
+    allp = {};
     for i = 1 : numel(list)
         name = list(i).name;
-        % Exclude folders starting with special characters + @ - $.
-        if strncmp(name, '.', 1) ...
-                || strncmp(name, '+', 1) ...
-                || strncmp(name, '@', 1) ...
-                || strncmp(name, '-', 1) ...
-                || strncmp(name, '#', 1)
+        % Exclude folders starting with special characters
+        if startsWith(string(name), ["+", ".", "*", "@", "-", "#"])
             continue
         end
-
-        if ~isempty(strfind(name, 'resources'))
-            continue
-        end
-
-        if strcmp(name, 'octave')
-            ppath.OctBegin{end+1} = fullfile(root, name);
-            continue
-        end
-        if strcmp(name, '_octave')
-            ppath.OctEnd{end+1} = fullfile(root, name);
-            continue
-        end
-        if strncmp(name, '_', 1)
-            ppath.End{end+1} = fullfile(root, name);
-        end
-        ppath.Begin{end+1} = fullfile(root, name);
+        allp{end+1} = fullfile(root, char(name));
     end
-
-    everything = [ppath.OctBegin, ppath.Begin, ppath.End, ppath.OctEnd];
+    %)
 end%
 

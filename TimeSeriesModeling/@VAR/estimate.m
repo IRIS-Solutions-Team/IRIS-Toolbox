@@ -402,6 +402,7 @@ return
 
 
     function inxGroupSpec = resolveGroupSpec( )
+        islogicalscalar = @(x) islogical(x) && isscalar(x);
         inxGroupSpec = false(1, 1+kx);
         if ~this.IsPanel || this.NumGroups==1 || ...
                 ( isequal(opt.FixedEff, false) && isequal(opt.GroupSpec, false) )

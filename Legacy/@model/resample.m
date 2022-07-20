@@ -1,4 +1,3 @@
-function outputDb = resample(this, inputDb, range, numDraws, varargin)
 % resample  Resample from the model implied distribution.
 %
 % ## Syntax ##
@@ -80,6 +79,10 @@ function outputDb = resample(this, inputDb, range, numDraws, varargin)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
+
+function outputDb = resample(this, inputDb, range, numDraws, varargin)
+
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
 
 persistent pp
 if isempty(pp)

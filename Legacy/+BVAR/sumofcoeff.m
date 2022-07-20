@@ -30,8 +30,9 @@ function [This,Y0,K0,Y1,G1] = sumofcoeff(Mu,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
+isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 pp = inputParser( );
-pp.addRequired('Mu',@isnumericscalar);
+pp.addRequired('Mu',isnumericscalar);
 pp.parse(Mu);
 
 if ~isempty(varargin) && nargout == 1

@@ -1,4 +1,3 @@
-function [opt, OO] = myoptimopts(opt)
 % myoptimoptions  Set up Optim Tbx options.
 %
 % Backend IRIS function.
@@ -7,7 +6,10 @@ function [opt, OO] = myoptimopts(opt)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-%--------------------------------------------------------------------------
+function [opt, OO] = myoptimopts(opt)
+
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
+islogicalscalar = @(x) islogical(x) && isscalar(x);
 
 try
     solverName = opt.solver;
@@ -18,7 +20,7 @@ end
 if iscell(solverName)
     solverName = solverName{1};
 end
-if isfunc(solverName)
+if isa(solverName, 'function_handle')
     solverName = func2str(solverName);
 end
 

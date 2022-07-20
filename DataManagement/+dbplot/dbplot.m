@@ -9,6 +9,7 @@ function [ff, aa, pp] = dbplot(list, d, range, opt, varargin)
 
 %--------------------------------------------------------------------------
 
+
 if ~isempty(opt.SaveAs)
     [~, ~, opt.SaveAsformat] = fileparts(opt.SaveAs);
 end
@@ -159,6 +160,7 @@ end%
 
 
 function q = evalExpr(q, d, opt)
+    isnumericscalar = @(x) isnumeric(x) && isscalar(x);
     isRound = ~isinf(opt.Round) && ~isnan(opt.Round);
     invalidBase = { };
     for j = 1 : length(q.children)
@@ -241,6 +243,7 @@ end%
 
 
 function q = handleEmptyTitles(q, opt)
+    isnumericscalar = @(x) isnumeric(x) && isscalar(x);
     dateS = '';
     if isnumericscalar(opt.DeviationFrom)
         dateS = dat2char(opt.DeviationFrom);
@@ -257,7 +260,7 @@ function q = handleEmptyTitles(q, opt)
                     && length(opt.Caption)>=j ...
                     && ~isempty(opt.Caption{j})
                 ch.caption = opt.Caption{j};
-            elseif isfunc(opt.Caption)
+            elseif isa(opt.Caption, 'function_handle')
                 ch.caption = opt.Caption;
             else
                 ch.caption = [ ...
@@ -621,7 +624,7 @@ function tt = getTitle(titleOpt, x)
 % Title is either a user-supplied string or a function handle that will be
 % applied to the plotted tseries object.
     invalid = '???';
-    if isfunc(titleOpt)
+    if isa(titleOpt, 'function_handle')
         try
             tt = titleOpt([x{:}]);
             if iscellstr(tt)

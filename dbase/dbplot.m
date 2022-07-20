@@ -1,4 +1,3 @@
-function [ff, aa, pp] = dbplot(d, varargin)
 % dbplot  Plot from database
 %
 % __Syntax__
@@ -348,6 +347,10 @@ function [ff, aa, pp] = dbplot(d, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
+function [ff, aa, pp] = dbplot(d, varargin)
+
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
+
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase.dbplot');
@@ -358,7 +361,7 @@ if isempty(parser)
     
     parser.addParameter('AddClick', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('AddToPages', [ ], @(x) isempty(x) || isa(x, 'pages.New'));
-    parser.addParameter({'Caption', 'Captions', 'Title', 'Titles'}, { }, @(x) isempty(x) || iscellstr(x) || isfunc(x));
+    parser.addParameter({'Caption', 'Captions', 'Title', 'Titles'}, { }, @(x) isempty(x) || iscellstr(x) || isa(x, 'function_handle'));
     parser.addParameter('Clear', [ ], @isnumeric);
     parser.addParameter('Clone', ["", ""], @(x) isstring(x) && isequal(size(x), [1, 2]));
     parser.addParameter({'DeviationFrom', 'DeviationsFrom'}, [ ], @(x) isempty(x) || isequal(x, false) || (isnumeric(x) && isscalar(x)));
@@ -375,7 +378,7 @@ if isempty(parser)
     parser.addParameter('MaxPerFigure', 36, @(x) isintscalar(x) && x>0);
     parser.addParameter('Overflow', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter({'PageNumber', 'PageNumbers'}, false, @(x) isequal(x, true) || isequal(x, false));    
-    parser.addParameter({'PlotFunc', 'PlotFn'}, @plot, @(x) isfunc(x) || ischar(x) || (iscell(x) && isfunc(x{1}) && iscellstr(x(2:2:end))));
+    parser.addParameter({'PlotFunc', 'PlotFn'}, @plot, @(x) isa(x, 'function_handle') || ischar(x) || (iscell(x) && isa(x{1}, 'function_handle') && iscellstr(x(2:2:end))));
     parser.addParameter('Prefix', 'P%g_', @ischar);
     parser.addParameter('Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
     parser.addParameter('Round', Inf, @(x) isnumeric(x) && isscalar(x) && x>=0 && round(x)==x);
@@ -386,7 +389,7 @@ if isempty(parser)
     parser.addParameter({'SubDatabase', 'SubDbase'}, [ ], @(x) isempty(x) || iscellstr(x) || ischar(x));
     parser.addParameter('SubPlot', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)==2 && all(round(x)==x) && all(x>0)));
     parser.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Transform', [ ], @(x) isempty(x) || isfunc(x));
+    parser.addParameter('Transform', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
     parser.addParameter('VLine', [ ], @(x) isempty(x) || isnumeric(x));
     parser.addParameter('XLabel', '', @(x) ischar(x) || iscellstr(x));
     parser.addParameter('YLabel', '', @(x) ischar(x) || iscellstr(x));

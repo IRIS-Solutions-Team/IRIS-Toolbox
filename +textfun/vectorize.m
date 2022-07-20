@@ -20,7 +20,7 @@ n = numel(s);
 for i = 1 : n
     if ischar(s{i})
         s{i} = feval(FN_REPLACE, s{i});
-    elseif isfunc(s{i})
+    elseif isa(s{i}, 'function_handle')
         c = func2str(s{i});
         c = feval(FN_REPLACE, c);
         s{i} = str2func(c);

@@ -3,47 +3,47 @@
 
 function startup(varargin)
 
-% >=R2019b
-%{
-MINIMUM_MATLAB = 'R2019b';
-%}
-% >=R2019b
+    % >=R2019b
+    %(
+    MINIMUM_MATLAB = 'R2019b';
+    %)
+    % >=R2019b
 
 
-% <=R2019a
-%(
-MINIMUM_MATLAB = 'R2018a';
-%)
-% <=R2019a
+    % <=R2019a
+    %{
+    MINIMUM_MATLAB = 'R2018a';
+    %}
+    % <=R2019a
 
 
-options = local_resolveInputOptions(varargin{:});
+    options = local_resolveInputOptions(varargin{:});
 
-matlabRelease = local_getMatlabRelease();
-if options.CheckMatlab && string(matlabRelease)<string(MINIMUM_MATLAB)
-    error( ...
-        "IrisToolbox:StartupError" ...
-        , "Matlab %s or later is needed to run this [IrisToolbox] release" ...
-        , MINIMUM_MATLAB ...
+    matlabRelease = local_getMatlabRelease();
+    if options.CheckMatlab && string(matlabRelease)<string(MINIMUM_MATLAB)
+        error( ...
+            "IrisToolbox:StartupError" ...
+            , "Matlab %s or later is needed to run this [IrisToolbox] release" ...
+            , MINIMUM_MATLAB ...
+        );
+    end
+
+    % Reset path, remove other root folders
+    [root, ~, rootsRemoved] = iris.path(options);
+
+    % Reset default function options and configuration options
+    % Check [IrisToolbox] release and id file
+    config = iris.reset( ...
+        "silent", options.Silent ...
+        , "seriesConstructor", options.SeriesConstructor ...
+        , "checkId", options.CheckId ...
+        , "tex", options.TeX ...
     );
-end
 
-% Reset path, remove other root folders
-[root, ~, rootsRemoved] = iris.path();
-
-% Reset default function options and configuration options
-% Check [IrisToolbox] release and id file
-config = iris.reset( ...
-    "silent", options.Silent ...
-    , "seriesConstructor", options.SeriesConstructor ...
-    , "checkId", options.CheckId ...
-    , "tex", options.TeX ...
-);
-
-if ~options.Silent
-    here_displayIntro();
-    here_displayDetails();
-end
+    if ~options.Silent
+        here_displayIntro();
+        here_displayDetails();
+    end
 
 return
 
@@ -134,12 +134,13 @@ function options = local_resolveInputOptions(varargin)
     options.CheckId = true;
     options.TeX = true;
     options.LegacyWarning = true;
+    options.NumericDates = false;
     if nargin==0
         return
     end
 
     inputOptions = string(varargin);
-    inputOptions = strip(erase(inputOptions, "-"));
+    inputOptions = strip(erase(inputOptions, ["-", "_"]));
     for n = inputOptions
         if contains(n, ["Shutup", "Silent"], "ignoreCase", true)
             options.Silent = true;
@@ -155,6 +156,8 @@ function options = local_resolveInputOptions(varargin)
             options.CheckMatlab = false;
         elseif contains(n, "NoLegacyWarning", "ignoreCase", true)
             options.LegacyWarning = false;
+        elseif contains(n, "numericDates", "ignoreCase", true)
+            options.NumericDates = true;
         end
     end
     %)

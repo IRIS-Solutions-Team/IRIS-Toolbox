@@ -1,4 +1,3 @@
-function [X,Y] = myksdensity(Theta,Low,High,NPoints)
 % myksdensity  [Not a public function] Return x- and y-coordinates for posterior distribution graph.
 %
 % Backend IRIS function.
@@ -9,7 +8,9 @@ function [X,Y] = myksdensity(Theta,Low,High,NPoints)
 
 %#ok<*CTCH>
 
-%--------------------------------------------------------------------------
+function [X,Y] = myksdensity(Theta,Low,High,NPoints)
+
+isintscalar = @(x) isnumeric(x) && isscalar(x) && round(x)==x;
 
 if isinf(High) && ~isinf(Low) && Low ~= 0
     if Low > 0
