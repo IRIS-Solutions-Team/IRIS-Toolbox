@@ -26,7 +26,7 @@ classdef SeriesChart ...
     methods
         function this = SeriesChart(title, dates, varargin)
 % >=R2019b
-%(
+%{
             arguments
                 title (1, :) string
                 dates (1, :) double
@@ -35,7 +35,7 @@ classdef SeriesChart ...
             arguments (Repeating)
                 varargin
             end
-%)
+%}
 % >=R2019b
 
             [startDate, endDate, varargin] = local_parseInputDates(dates, varargin);
