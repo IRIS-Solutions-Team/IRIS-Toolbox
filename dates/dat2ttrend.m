@@ -76,10 +76,10 @@ else
         trend = double(range);
         baseYear = 0;
     elseif freq==365
-        baseDate = numeric.dd(baseYear, 1, 1);
+        baseDate = dater.dd(baseYear, 1, 1);
         trend = double(range) - baseDate;
     else
-        baseDate = numeric.datecode(freq, baseYear, 1);
+        baseDate = dater.datecode(freq, baseYear, 1);
         trend = double(range) - baseDate;
     end
 end

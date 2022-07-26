@@ -226,7 +226,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
         function pos = locateTrendLine(this, names)
-            if isequaln(names, NaN)
+            if isequaln(names, NaN) || isequal(names, Inf)
                 names = this.Name;
             end
             pos = find(string(names)==string(this.RESERVED_NAME_TTREND));
