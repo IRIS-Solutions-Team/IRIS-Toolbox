@@ -106,7 +106,7 @@ for name__ = textual.stringify(nameAppendables(this))
     if ~isempty(previousSerialXStart) && serialXStart==previousSerialXStart
         x.Start = previousXStart;
     elseif serialXStart~=serialXStart0
-        newStart = DateWrapper.fromSerial(freq, serialXStart);
+        newStart = Dater.fromSerial(freq, serialXStart);
         x.Start = newStart;
         previousSerialXStart = serialXStart;
         previousXStart = newStart;

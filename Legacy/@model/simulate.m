@@ -16,7 +16,7 @@ range = range(1) : range(end);
 
 % Convert plain numeric range into DateWrapper range
 if ~isa(range, 'DateWrapper')
-    range = DateWrapper(range);
+    range = Dater(range);
 end
 
 % Conditional simulation

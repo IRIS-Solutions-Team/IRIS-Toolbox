@@ -620,8 +620,8 @@ return
     function outputInfo = here_createOutputInfo()
         %(
         outputInfo = struct();
-        outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
-        outputInfo.ExtendedRange = DateWrapper(runningData.ExtendedRange);
+        outputInfo.BaseRange = Dater(runningData.BaseRange);
+        outputInfo.ExtendedRange = Dater(runningData.ExtendedRange);
         outputInfo.StartIterationsFrom = opt.StartIterationsFrom;
         outputInfo.Terminal = opt.Terminal;
         outputInfo.FrameColumns = runningData.FrameColumns;

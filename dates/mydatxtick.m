@@ -68,7 +68,7 @@ return
                 firstDate = double(range(1));
                 lastDate = double(range(end));
                 xLim = [firstDate, lastDate];
-            elseif isWeekly 
+            elseif isWeekly
                 firstDate = double(range(1));
                 lastDate = double(range(end));
                 xLim = [time(1), time(end)];
@@ -103,7 +103,7 @@ return
 
 
 
-    
+
     function setXTick( )
         if isequal(opt.DateTick, Inf)
             utils.error('dates:mydatxtick', ...
@@ -169,7 +169,7 @@ return
 
 
 
-    
+
     function setXTickLabel( )
         set( h, ...
              'xTick', xTick, ...
@@ -177,7 +177,7 @@ return
         % Default value for '.plotDateFormat' is a struct with a different
         % date format for each date frequency. Fetch the right date format
         % now, and pass it into dat2str( ).
-        opt.DateFormat = DateWrapper.chooseFormat(opt.DateFormat, freq);
+        opt.DateFormat = Dater.chooseFormat(opt.DateFormat, freq);
         if freq==0 && strcmp(opt.DateFormat, 'P')
             return
         end
@@ -189,7 +189,7 @@ return
 
 
 
-    
+
     function adjustXLim( )
         % Expand x-limits for bar graphs, or make sure they are kept wide if a bar
         % graph is added a non-bar plot.

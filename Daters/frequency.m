@@ -25,6 +25,8 @@ classdef frequency
         NaN = NaN
         NaF = NaN
 
+        MIN_DAILY_SERIAL = 365244
+
         FREQ_LETTERS = [
             "Y", "A", "H", "B", "S", "Q", "M", "W", "D", "I"
         ]
@@ -64,7 +66,8 @@ classdef frequency
 
 
         function this = fromString(freqString)
-            switch upper(char(string(freqString)))
+            freqString = erase(string(freqString), "_");
+            switch upper(char(freqString))
                 case {'INTEGER', 'II', 'I'}
                     this = frequency.INTEGER;
                 case {'DAILY', 'DAY', 'DD', 'D', 'B', 'BUSINESS'}

@@ -1,4 +1,3 @@
-function outputDate = convert(inputDate, toFreq, varargin)
 % convert   Convert dates to another frequency
 %{
 % ## Syntax ##
@@ -10,7 +9,7 @@ function outputDate = convert(inputDate, toFreq, varargin)
 % ## Input Arguments ##
 %
 %
-% __`inputDate`__ [ DateWrapper ]
+% __`inputDate`__ [ Dater ]
 % >
 % IRIS serial date numbers that will be
 % converted to the new frequency, `NewFreq`.
@@ -25,10 +24,9 @@ function outputDate = convert(inputDate, toFreq, varargin)
 % ## Output Arguments ##
 %
 %
-% __`outputDate`__ [ DateWrapper ]
+% __`outputDate`__ [ Dater ]
 % >
-% DateWrapper object representing the new
-% frequency.
+% Dater object representing the new frequency.
 %
 %
 % ## Options ##
@@ -56,6 +54,8 @@ function outputDate = convert(inputDate, toFreq, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
+function outputDate = convert(inputDate, toFreq, varargin)
+
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('dates.convert');
@@ -64,19 +64,13 @@ if isempty(pp)
 end
 pp.parse(inputDate, toFreq);
 
-%--------------------------------------------------------------------------
-
-if isa(inputDate, 'DateWrapper')
-    outputClass = 'DateWrapper';
-else
-    outputClass = 'double';
-end
+isDater = isa(inputDate, 'DateWrapper');
 
 [flag, toFreq] = Frequency.validateFrequency(toFreq);
 outputDate = dater.convert(double(inputDate), double(toFreq), varargin{:});
 
-if strcmpi(outputClass, 'DateWrapper')
-    outputDate = DateWrapper(outputDate);
+if isDater
+    outputDate = Dater(outputDate);
 end
 
 end%

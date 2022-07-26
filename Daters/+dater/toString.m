@@ -10,7 +10,7 @@ function outputString = toString(inputDate, dateFormat, opt)
 
 arguments
     inputDate {mustBeNumeric}
-    dateFormat (1, 1) string
+    dateFormat (1, 1) string = ""
 
     opt.Open (1, 1) string = ""
     opt.Close (1, 1) string = ""
@@ -21,18 +21,26 @@ end
 
 % <=R2019a
 %{
-function outputString = toString(inputDate, dateFormat, varargin)
+function outputString = toString(inputDate, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser();
+    addOptional(ip, "dateFormat", "");
     addParameter(ip, "Open", "");
     addParameter(ip, "Close", "");
 end
 parse(ip, varargin{:});
 opt = ip.Results;
+dateFormat = ip.Results.dateFormat;
 %}
 % <=R2019a
+
+
+if isempty(dateFormat) || strlength(dateFormat)==0
+    outputString = dater.toDefaultString(inputDate);
+    return
+end
 
 
 inputDate = double(inputDate);

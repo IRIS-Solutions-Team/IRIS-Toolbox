@@ -551,7 +551,6 @@ return
 
     function [dates, inxNaDates] = here_parseDates( )
         numDates = numel(datesColumn);
-        % dates = DateWrapper(nan(1, numDates));
         dates = nan(1, numDates);
         datesColumn = datesColumn(1:min(end, size(data, 1)));
         if ~isempty(datesColumn)

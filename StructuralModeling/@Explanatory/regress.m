@@ -387,7 +387,7 @@ return
         info.FittedPeriods = cell(numEquations, numPages);
         extendedRange = double(dataBlock.ExtendedRange);
         for i = 1 : numel(inxFitted)
-            info.FittedPeriods{i} = DateWrapper(extendedRange(inxFitted{i}));
+            info.FittedPeriods{i} = Dater(extendedRange(inxFitted{i}));
         end
         info.ExitFlagsResidualModels = exitFlagsResidualModels;
         info.ExitFlagsParameters = exitFlagsParameters;

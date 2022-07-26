@@ -1,5 +1,4 @@
-function outputDate = dec2dat(varargin)
-% dec2dat  Convert decimal representation of date to DateWrapper object
+% dec2dat  Convert decimal representation of date to Dater object
 %
 % __Syntax__
 %
@@ -15,8 +14,7 @@ function outputDate = dec2dat(varargin)
 %
 % __Output Arguments__
 %
-% * `outputDate` [ DateWrapper ] - DateWrapper object representing the
-% input date.
+% * `outputDate` [ Dater ] - Dater object representing the input date.
 %
 %
 % __Description__
@@ -28,10 +26,10 @@ function outputDate = dec2dat(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function outputDate = dec2dat(varargin)
 
 dateCode = numeric.dec2dat(varargin{:});
-outputDate = DateWrapper(dateCode);
+outputDate = Dater(dateCode);
 
 end%
 

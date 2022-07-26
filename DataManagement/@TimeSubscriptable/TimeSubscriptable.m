@@ -106,7 +106,7 @@ TimeSubscriptable ...
          
 
         function value = getStart(this)
-            value = DateWrapper(this.Start);
+            value = Dater(this.Start);
         end%
          
 
@@ -127,7 +127,7 @@ TimeSubscriptable ...
 
         function value = getBalancedStartAsNumeric(this)
             if isnan(this.Start) || isempty(this.Data)
-                value = DateWrapper(NaN);
+                value = Dater(NaN);
                 return
             end
             start = double(this.Start);
@@ -143,7 +143,7 @@ TimeSubscriptable ...
 
 
         function value = getBalancedStart(this)
-            value = DateWrapper(getBalancedStartAsNumeric(this));
+            value = Dater(getBalancedStartAsNumeric(this));
         end%
 
 
@@ -153,7 +153,7 @@ TimeSubscriptable ...
                 
         
         function value = getEnd(this)
-            value = DateWrapper(getEndAsNumeric(this));
+            value = Dater(getEndAsNumeric(this));
         end%
 
 
@@ -189,7 +189,7 @@ TimeSubscriptable ...
 
         function value = getBalancedEndAsNumeric(this)
             if isnan(this.Start) || isempty(this.Data)
-                value = DateWrapper(NaN);
+                value = Dater(NaN);
                 return
             end
             start = double(this.Start);
@@ -205,7 +205,7 @@ TimeSubscriptable ...
 
 
         function value = getBalancedEnd(this)
-            value = DateWrapper(getBalancedEndAsNumeric(this));
+            value = Dater(getBalancedEndAsNumeric(this));
         end%
 
 
@@ -243,7 +243,7 @@ TimeSubscriptable ...
 
 
         function value = getRange(this)
-            value = DateWrapper(getRangeAsNumeric(this));
+            value = Dater(getRangeAsNumeric(this));
         end%
 
 

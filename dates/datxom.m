@@ -1,4 +1,3 @@
-function xomDateCode = datxom(dateCode, x)
 % datxom  Beginning or end of month for the specified daily or monthly date
 %{
 % ## Syntax_##
@@ -28,9 +27,9 @@ function xomDateCode = datxom(dateCode, x)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function xomDateCode = datxom(dateCode, x)
 
-isDateWrapper = isa(dateCode, 'DateWrapper');
+isDater = isa(dateCode, 'DateWrapper');
 
 dateCode = double(dateCode);
 sizeDateCode = size(dateCode);
@@ -62,8 +61,8 @@ end
 xomDateCode(inx) = datenum([year(inx), month(inx), day(inx)]);
 xomDateCode = reshape(xomDateCode, sizeDateCode);
 
-if isDateWrapper
-    xomDateCode = DateWrapper(xomDateCode);
+if isDater
+    xomDateCode = Dater(xomDateCode);
 end
 
 end%

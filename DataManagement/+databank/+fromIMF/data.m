@@ -85,11 +85,11 @@ dimensions = join([Frequency.toIMFLetter(freq), areasString, itemsString, counte
 request = upper(dataset + "/" + dimensions + "?");
 
 if ~isinf(opt.StartDate) 
-    request = request + "&startPeriod=" + DateWrapper.toIMFString(opt.StartDate);
+    request = request + "&startPeriod=" + Dater.toIMFString(opt.StartDate);
 end
 
 if ~isinf(opt.EndDate) 
-    request = request + "&endPeriod=" + DateWrapper.toIMFString(opt.EndDate);
+    request = request + "&endPeriod=" + Dater.toIMFString(opt.EndDate);
 end
 
 outputDb = opt.AddToDatabank;
@@ -243,7 +243,7 @@ function outputDb = local_createSeriesFromResponse(outputDb, freq, response, req
                     end
                 end
             end
-            dates = DateWrapper.fromIMFString(freq, string(dates));
+            dates = Dater.fromIMFString(freq, string(dates));
             values = double(string(values));
             if opt.ApplyMultiplier && multiplier~=1
                 values = values * 10^multiplier;

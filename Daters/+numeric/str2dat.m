@@ -21,7 +21,7 @@ end
 if ~isempty(varargin) && isstruct(varargin{1})
     varargin = extend.InputParser.extractDateOptionsFromStruct(varargin{1});
 end
-opt =parse(pp, inputString, varargin{:});
+opt = parse(pp, inputString, varargin{:});
 
 if isempty(opt.EnforceFrequency)
     opt.EnforceFrequency = false;
@@ -132,7 +132,7 @@ return
             if islogical(opt.EnforceFrequency) && isequal(opt.EnforceFrequency, false)
                 opt.DateFormat = opt.DateFormat.qq;
             else
-                opt.DateFormat = DateWrapper.chooseFormat(opt.DateFormat, opt.EnforceFrequency);
+                opt.DateFormat = Dater.chooseFormat(opt.DateFormat, opt.EnforceFrequency);
             end
         end
 

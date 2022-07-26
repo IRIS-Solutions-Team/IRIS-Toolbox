@@ -14,7 +14,7 @@ if isnumeric(input)
     end
 end
 
-freq = DateWrapper.getFrequency(range(1));
+freq = Dater.getFrequency(range(1));
 if isa(input, 'TimeSubscriptable')
     if isfreq(input, freq)
         value = getDataFromTo(input, startDate, endDate);

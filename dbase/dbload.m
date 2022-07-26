@@ -305,7 +305,7 @@ if ~isempty(dates)
 else
     numPeriods = 0;
     posOfDates = [ ];
-    minDate = DateWrapper(NaN);
+    minDate = Dater(NaN);
 end
 
 % Change variable names.
@@ -602,7 +602,7 @@ return
 
     function [dates, inxNaNDates] = parseDates( )
         numDates = numel(dateCol);
-        dates = DateWrapper(nan(1, numDates));
+        dates = Dater(nan(1, numDates));
         dateCol = dateCol(1:min(end, size(data, 1)));
         if ~isempty(dateCol)
             if strcmpi(opt.Continuous, 'Ascending')
