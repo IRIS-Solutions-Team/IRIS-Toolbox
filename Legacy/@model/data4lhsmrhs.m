@@ -146,7 +146,8 @@ if opt.IgnoreShocks
     here_ignoreShocks( );
 end
 
-[YXEPG, trendLine] = insertTrendLine(this, YXEPG, extdRange, Inf);
+rowNames = string(this.Quantity.Name);
+[YXEPG, trendLine] = insertTrendLine(this, YXEPG, extdRange, rowNames);
 
 return
 
