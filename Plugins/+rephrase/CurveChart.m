@@ -1,3 +1,4 @@
+
 classdef CurveChart ...
     < rephrase.Container ...
     & rephrase.ChartMixin
@@ -8,8 +9,9 @@ classdef CurveChart ...
 
 
     properties (Hidden)
+        Settings_DateFormat (1, 1) string = ""
         Settings_Ticks
-        Settings_TickLabels
+        Settings_TickLabels = @(x) sprintf("%g", x)
     end
 
 
@@ -22,11 +24,14 @@ classdef CurveChart ...
 
 
     methods
-        function this = CurveChart(title, ticks, tickLabels, varargin)
+        function this = CurveChart(title, ticks, varargin)
             this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
             this.Settings_Ticks = ticks;
-            this.Settings_TickLabels = tickLabels;
+            if isa(this.Settings_TickLabels, 'function_handle')
+                func = this.Settings_TickLabels;
+                this.Settings_TickLabels = string(arrayfun(func, this.Settings_Ticks));
+            end
         end%
     end
 

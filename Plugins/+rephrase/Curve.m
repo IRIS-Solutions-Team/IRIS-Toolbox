@@ -1,6 +1,7 @@
 classdef Curve ...
     < rephrase.Terminal ...
-    & rephrase.ColorMixin
+    & rephrase.ColorMixin ...
+    & rephrase.PlotMixin
 
     properties % (Constant)
         Type = rephrase.Type.CURVE
@@ -16,44 +17,25 @@ classdef Curve ...
 
         function finalize(this)
             finalize@rephrase.Terminal(this);
-            this.Content = finalizeCurveData(this, this.Content);
+            finalizeCurveData(this);
         end%
 
 
-        function output = finalizeCurveData(this, input);
-            if isstring(input) || ischar(input)
-                output = string(input);
-                this.DataRequests = union(this.DataRequests, output, 'stable');
-                return
-            end
-            minTick = min(this.Parent.Settings_Ticks);
-            maxTick = max(this.Parent.Settings_Ticks);
-            inxTicks = input.Ticks>=minTick & input.Ticks<=maxTick;
-            output = struct();
-            output.Ticks = reshape(input.Ticks(inxTicks), 1, []);
-            output.Values = reshape(input.Values(inxTicks), 1, []);
-        end%
-    end
-
-
-    methods (Static)
-        function these = fromMultivariate(titles, inputs, varargin)
-            titles = textual.stringify(titles);
-            isInputCell = iscell(inputs);
-            numTitles = numel(titles);
-            numCurves = numel(inputs);
-            these = rephrase.Curve.empty(1, 0);
-            if numTitles==1 && numCurves>1
-                titles = repmat(titles, 1, numCurves);
-            end
-            for i = 1 : numCurves
-                if isInputCell
-                    this = inputs{i};
-                else
-                    this = inputs(i);
+        function finalizeCurveData(this)
+            if isa(this.Content, 'Termer')
+                minTick = min(this.Parent.Settings_Ticks);
+                maxTick = max(this.Parent.Settings_Ticks);
+                t = clip(this.Content, minTick, maxTick);
+                this.Content = struct();
+                this.Content.Ticks = reshape(t.Terms(:, 1), 1, []);
+                this.Content.Values = reshape(t.Values(:, 1), 1, []);
+                this.Content.Spreads = [];
+                if size(t.Values, 2)==2
+                    this.Content.Spreads = reshape(t.Values(:, 2) - t.Values(:, 1), 1, []);
                 end
-                these(end+1) = rephrase.Curve(titles(i), this, varargin{:});
+                this.Settings.Text = reshape(t.RowLabels, 1, []);
             end
         end%
     end
 end 
+
