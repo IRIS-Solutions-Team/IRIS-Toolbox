@@ -29,6 +29,7 @@ end
 
 %--------------------------------------------------------------------------
 
+primaryFreqLetters = frequency.getPrimaryFreqLetters();
 here_parseDateFormatOption();
 
 longMonthList = sprintf('%s|',opt.Months{:});
@@ -104,7 +105,7 @@ return
             '(?<!%)I', '(?<Indeterminate>\d+)'; ... Any number of digits for Indeterminate frequency
             '(?<!%)DD', '(?<LongDay>\d{2})'; ... Two-digit day
             '(?<!%)D', '(?<VarDay>\d{1,2})'; ... One- or two-digit day
-            '(?<!%)F', ['(?<FreqLetter>[', char(join(frequency.FREQ_LETTERS, "")), '])']; ... Frequency letter
+            '(?<!%)F', ['(?<FreqLetter>[', char(primaryFreqLetters), '])']; ... Frequency letter
         };
         for ii = 1 : size(subs, 1)
             x = regexprep(x, subs{ii, 1}, char(1000+ii));

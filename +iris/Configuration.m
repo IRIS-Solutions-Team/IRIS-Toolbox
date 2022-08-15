@@ -38,7 +38,18 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % DateFormat  Default date format
         DateFormat = iris.Configuration.DEFAULT_DATE_FORMAT
 
-        % PlotDateFormat  Default date format in tseries
+        % FreqLetters  Default frequency letters
+        FreqLetters = struct( ...
+            'ii', "I", ...
+            'yy', "Y", ...
+            'hh', "H", ...
+            'qq', "Q", ...
+            'mm', "M", ...
+            'ww', "W", ...
+            'dd', "D" ...
+        )
+
+        % PlotDateFormat  Default date format in legacy tseries
         PlotDateFormat = iris.Configuration.DEFAULT_PLOT_DATE_FORMAT
 
         % PlotDateTimeFormat
@@ -194,6 +205,20 @@ classdef (CaseInsensitiveProperties=true) Configuration
                        'Value being assigned to this [IrisToolbox] configuration option is invalid: PlotDateFormat' );
             end
             this.PlotDateFormat = newValue;
+        end%
+
+
+        function this = set.FreqLetters(this, x)
+            try
+                flag = iris.Configuration.validateFreqLetters(x);
+            catch
+                flag = false;
+            end
+            if ~flag
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this IrisT configuration option is invalid: FreqLetters' );
+            end
+            this.FreqLetters = x;
         end%
 
 
@@ -500,6 +525,20 @@ classdef (CaseInsensitiveProperties=true) Configuration
         function flag = validateDateFormatStruct(x)
             dateFormatStructFields = iris.Configuration.DATE_FORMAT_STRUCT_FIELDS;
             flag = isstruct(x) && numel(x)==1  && all(isfield(x, dateFormatStructFields));
+        end%
+
+
+        function flag = validateFreqLetters(x)
+            flag = iris.Configuration.validateDateFormatStruct(x);
+            if ~flag
+                return
+            end
+            for n = textual.stringify(iris.Configuration.DATE_FORMAT_STRUCT_FIELDS)
+                flag = isstring(x.(n)) && isscalar(x.(n));
+                if ~flag
+                    return
+                end
+            end
         end%
 
 

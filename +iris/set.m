@@ -1,4 +1,3 @@
-function set(varargin)
 % iris.set  Change IRIS configuration settings
 %
 % __Syntax__
@@ -71,7 +70,7 @@ function set(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function set(varargin)
 
 if nargin==0
     return
@@ -87,7 +86,7 @@ if nargin==1
     return
 end
 
-irisConfig = iris.Configuration.load( );
+irisConfig = iris.Configuration.load();
 
 for i = 1 : 2 : numel(varargin)
     ithOptionName = varargin{i};

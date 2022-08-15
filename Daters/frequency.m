@@ -40,15 +40,16 @@ classdef frequency
 
     methods (Static)
         function letter = toLetter(freq)
+            freqLetters = iris.get("FreqLetters");
             freq = double(freq);
             letter = repmat("", size(freq));
-            letter(freq==frequency.YEARLY) = "Y";
-            letter(freq==frequency.HALFYEARLY) = "H";
-            letter(freq==frequency.QUARTERLY) = "Q";
-            letter(freq==frequency.MONTHLY) = "M";
-            letter(freq==frequency.WEEKLY) = "W";
-            letter(freq==frequency.DAILY) = "D";
-            letter(freq==frequency.INTEGER) = "I";
+            letter(freq==frequency.YEARLY) = string(freqLetters.yy);
+            letter(freq==frequency.HALFYEARLY) = string(freqLetters.hh);
+            letter(freq==frequency.QUARTERLY) = string(freqLetters.qq);
+            letter(freq==frequency.MONTHLY) = string(freqLetters.mm);
+            letter(freq==frequency.WEEKLY) = string(freqLetters.ww);
+            letter(freq==frequency.DAILY) = string(freqLetters.dd);
+            letter(freq==frequency.INTEGER) = string(freqLetters.ii);
         end%
 
 
@@ -66,25 +67,40 @@ classdef frequency
 
 
         function this = fromString(freqString)
+            freqLetters = iris.get("FreqLetters");
             freqString = erase(string(freqString), "_");
             switch upper(char(freqString))
-                case {'INTEGER', 'II', 'I'}
+                case {upper(freqLetters.ii), 'INTEGER', 'II', 'I'}
                     this = frequency.INTEGER;
-                case {'DAILY', 'DAY', 'DD', 'D', 'B', 'BUSINESS'}
+                case {upper(freqLetters.dd), 'DAILY', 'DAY', 'DD', 'D', 'B', 'BUSINESS'}
                     this = frequency.DAILY;
-                case {'WEEKLY', 'WEEK', 'WW', 'W'}
+                case {upper(freqLetters.ww), 'WEEKLY', 'WEEK', 'WW', 'W'}
                     this = frequency.WEEKLY;
-                case {'MONTHLY', 'MONTH', 'MM', 'M'}
+                case {upper(freqLetters.mm), 'MONTHLY', 'MONTH', 'MM', 'M'}
                     this = frequency.MONTHLY;
-                case {'QUARTERLY', 'QUARTER', 'QQ', 'Q'}
+                case {upper(freqLetters.qq), 'QUARTERLY', 'QUARTER', 'QQ', 'Q'}
                     this = frequency.QUARTERLY;
-                case {'HALFYEARLY', 'HALFYEAR', 'SEMIANNUAL', 'SEMIANNUALLY', 'HH', 'H', 'B', 'S'}
+                case {upper(freqLetters.hh), 'HALFYEARLY', 'HALFYEAR', 'SEMIANNUAL', 'SEMIANNUALLY', 'HH', 'H', 'B', 'S'}
                     this = frequency.HALFYEARLY;
-                case {'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY', 'Y', 'A'}
+                case {upper(freqLetters.yy), 'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY', 'Y', 'A'}
                     this = frequency.YEARLY;
                 otherwise
                     this = frequency.NaN;
             end
+        end%
+
+
+        function out = getPrimaryFreqLetters()
+            freqLetters = iris.get("FreqLetters");
+            out = join([
+                freqLetters.ii
+                freqLetters.dd
+                freqLetters.ww
+                freqLetters.mm
+                freqLetters.qq
+                freqLetters.hh
+                freqLetters.yy
+            ], "");
         end%
     end
 
