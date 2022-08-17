@@ -1,44 +1,4 @@
 function varargout = eig(this, varargin)
-% eig  Eigenvalues of model transition matrix
-%{
-% ## Syntax ##
-%
-%
-%     [eigenVal, stab] = eig(M)
-%
-%
-% ## Input Arguments ##
-%
-%
-% * `M` [ model ] - Model object whose eigenvalues will be returned.
-%
-%
-% ## Output Arguments ##
-%
-% 
-% __`eigenVal`__ [ numeric ] 
-% >
-% Array of all eigenvalues associated with the model, i.e. all stable,
-% unit, and unstable roots are included.
-%
-%
-% * __`stab`__ [ int8 ] 
-% >
-% Classification of each root in the `EigenValues` vector: `0` means a
-% stable root, `1` means a unit root, `2` means an unstable root; `stab` is
-% filled with zeros in models or parameter variants where no solution has
-% been computed.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)

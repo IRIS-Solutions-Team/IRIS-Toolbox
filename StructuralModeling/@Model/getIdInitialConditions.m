@@ -1,8 +1,3 @@
-% getIdInitialConditions  Get positions and shifts of initial conditions
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function idInit = getIdInitialConditions(this)
 
 inxX = getIndexByType(this.Quantity, 2);

@@ -1,45 +1,5 @@
 function [s, this] = diffsrf(this, time, listParams, varargin)
-% diffsrf  Differentiate shock response functions w.r.t. specified parameters
-%
-% ## Syntax ##
-%
-%     outputDatabank = diffsrf(model, numOfPeriods, listOfParams, ...)
-%     outputDatabank = diffsrf(model, range, listOfParams, ...)
-%
-%
-% ## Input Arguments ##
-%
-% * `model` [ model ] - Model object whose response functions will be
-% simulated and differentiated.
-%
-% * `range` [ numeric | char ] - Simulation date range with the first date
-% being the shock date.
-%
-% * `numOfPeriods` [ numeric ] - Number of simulation periods.
-%
-% * `listOfParams` [ char | cellstr ] - List of parameters w.r.t. which the
-% shock response functions will be differentiated.
-%
-%
-% ## Output Arguments ##
-%
-% * `outputDatabank` [ struct ] - Database with shock reponse derivatives
-% returned in multivariate time series.
-%
-%
-% ## Options ##
-%
-% See [`model/srf`](model/srf) for options available
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 % Convert char list to cellstr.
 if ischar(listParams)

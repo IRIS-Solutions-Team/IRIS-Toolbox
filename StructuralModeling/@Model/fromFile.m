@@ -1,8 +1,3 @@
-% Type `web Model/fromFile.md` to get help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function varargout = fromFile(fileName, varargin)
 
 source = ModelSource.fromFile(fileName, varargin{:});

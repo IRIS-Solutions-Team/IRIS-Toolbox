@@ -1,9 +1,3 @@
-% Type `web Model/kalmanFilter.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
-
 function [outputDb, this, info] = kalmanFilter(this, inputDb, baseRange, varargin)
 
 % >=R2019b

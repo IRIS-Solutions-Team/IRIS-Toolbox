@@ -1,11 +1,3 @@
-% simulateSelective  Run equations-selective simulation on one time frame
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [exitFlag, dcy] = simulateSelective(simulateFunc, rect, data, blazer, varargin)
 
 MAX_DENSITY = 1/3;
