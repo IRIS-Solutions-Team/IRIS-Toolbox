@@ -2,7 +2,6 @@
 
 {== Read me first ==}
 
-XX
 
 ## Software dependencies
 
