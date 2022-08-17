@@ -1,13 +1,4 @@
 function [inxInit, linxInit, idInit] = getInxOfInitInPresample(this, firstColumn)
-% getInxOfInitInPresample  Get index of initial conditions in presample data
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
-%--------------------------------------------------------------------------
 
 numQuants = numel(this.Quantity.Name);
 idInit = getIdInitialConditions(this);

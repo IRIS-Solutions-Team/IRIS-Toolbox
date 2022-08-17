@@ -1,8 +1,3 @@
-% diffFirstOrder  Calculate first-order derivatives of equations
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [deriv, inxNaDeriv] = diffFirstOrder(this, inxToDiff, variantRequested, opt)
 
 isNaDeriv = nargout>2;
