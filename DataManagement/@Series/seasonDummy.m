@@ -1,4 +1,3 @@
-
 function this = seasonDummy(range, dummyPeriods, varargin)
 
     range = double(range);

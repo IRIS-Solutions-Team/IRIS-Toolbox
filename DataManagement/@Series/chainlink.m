@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function [aggregateLevel, aggregateRate, info] = chainlink(levels, weights, opt)

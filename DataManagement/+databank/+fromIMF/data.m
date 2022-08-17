@@ -1,10 +1,3 @@
-%
-% Type <a href="matlab: ihelp databank.fromIMF.data">ihelp databank.fromIMF.data</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
-%
-
 % >=R2019b
 %(
 function [outputDb, info] = data(dataset, freq, areas, items, counters, opt)

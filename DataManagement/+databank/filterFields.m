@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function outputNames = filterFields(inputDb, opt)

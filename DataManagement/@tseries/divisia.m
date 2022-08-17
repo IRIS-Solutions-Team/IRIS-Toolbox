@@ -1,32 +1,4 @@
 function x = divisia(x,w,range)
-% divisia  Discrete Divisia index.
-%
-% Syntax
-% =======
-%
-%     Y = divisia(X,W,RANGE)
-%
-% Input arguments
-% ================
-%
-% * `X` [ tseries ] - Input times series.
-%
-% * `W` [ tseries | numeric ] - Fixed or time-varying weights on the input
-% time series.
-%
-% * `RANGE` [ numeric ] - Range on which the Divisia index is computed.
-%
-% Output arguments
-% =================
-%
-% * `Y` [ tseries ] - Discrete divisia index based on `X` and `W`.
-%
-% Description
-% ============
-%
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 if nargin < 3
    range = Inf;

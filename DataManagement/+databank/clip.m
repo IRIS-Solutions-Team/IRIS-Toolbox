@@ -1,8 +1,3 @@
-% Type `web +databank/clip.md` for help on this function
-%
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 % >=R2019b
 %(
 function outputDb = clip(inputDb, newStart, newEnd, opt)

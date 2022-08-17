@@ -1,9 +1,3 @@
-% filter  Filter databank fields by their names, classes or user filter
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
-
 % >=R2019b
 %(
 function [listFields, tokens, outputDb] = filter(inputDb, opt)

@@ -1,10 +1,3 @@
-% spy  Visualize databank time series based on test condition
-%{
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function spy(inputDatabank, listSeries, startDate, endDate)
 
 startDate = double(startDate);

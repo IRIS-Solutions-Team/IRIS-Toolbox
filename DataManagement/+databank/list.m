@@ -1,8 +1,3 @@
-% Type `web +databank/list.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function list(inputDatabank, keyFilter, valueFilter)
 
 if nargin<2

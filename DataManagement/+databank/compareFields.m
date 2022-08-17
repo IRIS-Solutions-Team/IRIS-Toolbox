@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function [success, info] = compareFields(d1, d2, opt)

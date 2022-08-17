@@ -1,51 +1,3 @@
-%
-% Type <a href="matlab: ihelp Series/band">ihelp Series/band</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
-
-
-%{
----
-title: band
----
-
-# `band`
-
-{== Draw time series with uncerainty bands ==}
-
-## Syntax
-
-    [plotHandle, info] = band([mid, lower, upper], ___)
-    [plotHandle, info] = band(mid, lower, upper, ___)
-
-
-## Input arguments
-
-__`mid`__ [ Series ]
-> 
-> Time series with the mid point for the band.
->
-
-__`lower`__ [ Series ]
->
-> Time series with the lower band or lower bands.
->
-
-__`upper`__ [ Series ]
->
-> Time series with the upper band or upper bands.
->
-
-## Output arguments
-
-%}
-
-
-%---8<---
-
-
 % >=R2019b
 %(
 function varargout = band(mid, lower, upper, opt)
@@ -156,6 +108,4 @@ function locallyValidateBounds(x)
     error("Input value must be a time series.");
     %)
 end%
-
-
 
