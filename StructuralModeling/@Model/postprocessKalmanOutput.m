@@ -1,5 +1,3 @@
-% postprocessKalmanOutput  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
-
 function [info, this] = postprocessKalmanOutput(this, regOutp, extdRange, opt)
 
 TIME_SERIES_TEMPLATE = Series();

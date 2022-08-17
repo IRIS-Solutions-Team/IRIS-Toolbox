@@ -1,8 +1,3 @@
-% build  Build or rebuild model object
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function this = build(this, opt)
 
 context = opt.Context;

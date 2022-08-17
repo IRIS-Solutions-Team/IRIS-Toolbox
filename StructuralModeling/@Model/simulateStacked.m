@@ -1,8 +1,3 @@
-% simulateStacked  Run stacked-time simulation on one time frame
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [exitFlag, dcy] = simulateStacked(~, rect, data, blazer, idFrame)
 
 firstColumnFrame = data.FirstColumnFrame;

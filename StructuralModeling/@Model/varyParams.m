@@ -1,8 +1,3 @@
-% varyParams  Create array of user-supplied time-varying values for regular parameters
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function overrideParams = varyParams(this, baseRange, override)
 
 inxP = getIndexByType(this.Quantity, 4);

@@ -1,11 +1,4 @@
 function this = assignNameValue(this, varargin)
-% assignNameValue  Assign name-value pairs to model object
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 if nargin==1
     return

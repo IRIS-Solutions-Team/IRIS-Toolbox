@@ -1,8 +1,3 @@
-% checkStructureAfter  Check model structure after loss function.
-%
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [exc, args] = checkStructureAfter(this, quantity, equation, opt)
 
 exc = [ ];

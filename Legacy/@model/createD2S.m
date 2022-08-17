@@ -1,8 +1,3 @@
-% createD2S  Create derivatives-to-system convertor
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
-
 function this = createD2S(this, opt)
 
 numQuantities = numel(this.Quantity);

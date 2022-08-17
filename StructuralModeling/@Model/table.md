@@ -9,7 +9,7 @@
     outputTable = table(model, request, ...)
 
 
- # Input arguments
+## Input arguments
 
 __`model`__ [ Model ] 
 > 
