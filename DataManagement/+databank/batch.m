@@ -1,10 +1,3 @@
-% batch  Execute batch job within databank
-%{
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function outputDb = batch(inputDb, newNameTemplate, generator, varargin)
 
 persistent pp

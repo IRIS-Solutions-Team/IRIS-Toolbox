@@ -1,8 +1,3 @@
-% Type `web Series/empty.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 function this = empty(varargin)
 
 if nargin==1 && isa(varargin{1}, 'Series')

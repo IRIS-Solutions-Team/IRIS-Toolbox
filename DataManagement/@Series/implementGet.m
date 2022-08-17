@@ -1,11 +1,3 @@
-% implementGet  Implement get method for tseries objects
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [answ, flag] = implementGet(this, query, varargin)
 
 answ = [ ];

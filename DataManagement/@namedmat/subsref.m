@@ -1,8 +1,3 @@
-% subsref  Subscripted reference to NamedMatrix objects
-%
-% -[IrisToolbox] for Macroeconomic Modelingk
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function output = subsref(this, varargin)
 
 s = varargin{1};
@@ -120,3 +115,4 @@ assertEqual(this, x.ColumnNames, compose("Col%g", 1:5));
 
 ##### SOURCE END #####
 %}
+

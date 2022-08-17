@@ -1,8 +1,3 @@
-% implementPlot  Plot functions for Series objects
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function varargout = implementPlot(plotFunc, varargin)
 
 [axesHandle, dates, this, plotSpec, varargin] = Series.preparePlot(varargin{:});
@@ -287,3 +282,4 @@ close(figureHandle);
 
 ##### SOURCE END #####
 %}
+

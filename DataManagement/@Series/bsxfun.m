@@ -1,49 +1,4 @@
 function X = bsxfun(Func, X, Y)
-% bsxfun  Implement bsxfun for tseries class.
-%
-%
-% Syntax
-% =======
-%
-%     Z = bsxfun(Func, X, Y)
-%
-%
-% Input arguments
-% ================
-%
-% * `Func` [ function_handle ] - Function that will be applied to the input
-% series, `FUN(X, Y)`.
-%
-% * `X` [ Series | numeric ] - Input time series or numeric array.
-%
-% * `Y` [ Series | numeric ] - Input time series or numeric array.
-%
-%
-% Output arguments
-% =================
-%
-% * `Z` [ tseries ] - Result of `Func(X, Y)` with `X` and/or `Y` expanded
-% properly in singleton dimensions.
-%
-%
-% Description
-% ============
-%
-% See help on built-in `bsxfun` for more help.
-%
-%
-% Example
-% ========
-%
-% Create a multivariate time series and subtract mean from its
-% individual columns.
-%
-%     x = Series(1:10, rand(10, 4));
-%     xx = bsxfun(@minus, x, mean(x));
-%
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 % Validate input arguments.
 pp = inputParser( );
