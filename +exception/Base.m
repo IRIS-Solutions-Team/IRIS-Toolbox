@@ -156,7 +156,7 @@ classdef Base
 
         function stack = reduceStack(adj)
             stack = exception.Base.getStack();
-            [~, irisFolder] = fileparts( iris.get('irisroot') );
+            [~, irisFolder] = fileparts(iris.get('irisRoot'));
             irisFolder = lower(irisFolder);
             inxIris = cellfun(@(x) ~isempty(strfind(lower(x), irisFolder)), {stack.file});
             lastIris = find(inxIris, 1, 'last');

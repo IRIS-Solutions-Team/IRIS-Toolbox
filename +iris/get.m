@@ -23,7 +23,7 @@
 % __Description__
 %
 % You can view any of the modifiable options listed in
-% [`irisset`](config/irisset), plus the following non-modifiable ones
+% [`iris.set`](config/iris.set), plus the following non-modifiable ones
 % (these cannot be changed by the user):
 %
 % * `'IrisRoot'` [ char ] - The current IRIS root directory.
