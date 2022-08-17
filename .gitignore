@@ -5,3 +5,4 @@ _header
 .release/*
 .temp
 *.asv
+test.sh
