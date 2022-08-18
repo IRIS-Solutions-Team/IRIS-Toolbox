@@ -1,7 +1,3 @@
-% Type `web Model/access.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 % >=R2019b
 %(

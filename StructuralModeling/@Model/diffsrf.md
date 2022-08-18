@@ -1,38 +1,49 @@
 ---
-title: eig
+title: diffsrf
 ---
 
-# `eig`
+# `diffsrf`
 
-{== Eigenvalues of model transition matrix ==}
+{== Differentiate shock response functions w.r.t. specified parameters ==}
 
 
 ## Syntax 
 
-    [eigenVal, stab] = eig(M)
+    outputDatabank = diffsrf(model, numOfPeriods, listOfParams, ...)
+    outputDatabank = diffsrf(model, range, listOfParams, ...)
 
 ## Input arguments 
 
-    `M` [ model ]
+ `model` [ model ]
+>
+> Model object whose response functions will be
+> simulated and differentiated.
+>
+
+ `range` [ numeric | char ] 
+>
+> Simulation date range with the first date
+> being the shock date.
+>
+
+ `numOfPeriods` [ numeric ] 
 > 
-> Model object whose eigenvalues will be returned.
+> Number of simulation periods.
 > 
+
+ `listOfParams` [ char | cellstr ] 
+>
+> List of parameters w.r.t. which the
+> shock response functions will be differentiated.
+>
 
 ## Output arguments 
 
 
-    __`eigenVal`__ [ numeric ]
+    `outputDatabank` [ struct ]
 > 
-> Array of all eigenvalues associated with the model, i.e. all stable,
-> unit, and unstable roots are included.
->
-
-    __`stab`__ [ int8 ] 
->
-> Classification of each root in the `EigenValues` vector: `0` means a
-> stable root, `1` means a unit root, `2` means an unstable root; `stab` is
-> filled with zeros in models or parameter variants where no solution has
-> been computed.
+> Database with shock reponse derivatives 
+> returned in multivariate time series.
 >
 
 

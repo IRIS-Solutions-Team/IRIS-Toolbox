@@ -1,32 +1,4 @@
 function flag = islog(this, lsName)
-% islog  True for log-linearised variables.
-%
-% Syntax
-% =======
-%
-%     Flag = islog(M,Name)
-%
-% Input arguments
-% ================
-%
-% * `M` [ model ] - Model object.
-%
-% * `Name` [ char | cellstr ] - Name or names of model variable(s).
-%
-% Output arguments
-% =================
-%
-% * `Flag` [ `true` | `false` ] - True for log variables.
-%
-% Description
-% ============
-%
-% Example
-% ========
-%
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('Name', @(x) ischar(x) || iscellstr(x) || isstring(x));

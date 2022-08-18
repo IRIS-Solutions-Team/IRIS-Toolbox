@@ -1,6 +1,5 @@
 function [s, this] = diffsrf(this, time, listParams, varargin)
 
-
 % Convert char list to cellstr.
 if ischar(listParams)
     listParams = regexp(listParams, '\w+', 'match');

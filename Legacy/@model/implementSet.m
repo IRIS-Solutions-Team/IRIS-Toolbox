@@ -1,13 +1,4 @@
 function [this, isValidRequest, isValidValue] = implementSet(this, query, value, varargin)
-% implementSet  Implement set method for model objects
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
 
 [this, isValidRequest, isValidValue] = ...
     implementSet@iris.mixin.UserDataContainer(this, query, value, varargin{:});
