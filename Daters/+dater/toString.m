@@ -20,7 +20,7 @@ end
 
 
 % <=R2019a
-%{
+%(
 function outputString = toString(inputDate, varargin)
 
 persistent ip
@@ -33,7 +33,7 @@ end
 parse(ip, varargin{:});
 opt = ip.Results;
 dateFormat = ip.Results.dateFormat;
-%}
+%)
 % <=R2019a
 
 
