@@ -1,4 +1,11 @@
-% Type `web Model/simulate` for help on this function
+
+%
+% Type `ihelp Model/simulate` for help on this function
+%
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+%
+
 
 %{
 ---
@@ -620,8 +627,8 @@ return
     function outputInfo = here_createOutputInfo()
         %(
         outputInfo = struct();
-        outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
-        outputInfo.ExtendedRange = DateWrapper(runningData.ExtendedRange);
+        outputInfo.BaseRange = Dater(runningData.BaseRange);
+        outputInfo.ExtendedRange = Dater(runningData.ExtendedRange);
         outputInfo.StartIterationsFrom = opt.StartIterationsFrom;
         outputInfo.Terminal = opt.Terminal;
         outputInfo.FrameColumns = runningData.FrameColumns;

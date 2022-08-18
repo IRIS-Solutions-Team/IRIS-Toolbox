@@ -47,7 +47,7 @@ lookupTable = {
     'DateWrapper:InvalidInputsIntoUminus', 'Unary minus can only be applied to Inf or -Inf dates'
     'DateWrapper:InvalidStartEndInColon', 'Start and end dates in a DateWrapper colon expression must be scalar dates of the the same date frequency'
     'DateWrapper:InvalidStepInColon', 'Step in a DateWrapper colon expression must be a scalar integer'
-    'DateWrapper:InvalidInputsIntoDatetime', 'Input arguments into DateWrapper.datetime(~) must be dates of the same date frequency'
+    'DateWrapper:InvalidInputsIntoDatetime', 'Input arguments must be dates of the same date frequency'
     'Distribution:InvalidParameterization', 'This is not a valid type of parameterization for %s distribution: %s'
     'Distribution:Abstract:LowerUpperBounds', 'Lower bound of distribution domain must be below upper bound'
     'Distribution:Abstract:UpperLowerBounds', 'Upper bound of distribution domain must be above lower bound'

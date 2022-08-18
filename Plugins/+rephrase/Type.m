@@ -19,6 +19,8 @@ classdef Type
         MATRIX
         CURVE
         MARKER
+
+        HIGHLIGHT
     end
 end
 

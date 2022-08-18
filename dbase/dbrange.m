@@ -115,7 +115,7 @@ else
 end
 
 for i = find(~cellfun(@isempty, startDates))
-    range{i} = DateWrapper(startDates{i} : endDates{i});
+    range{i} = Dater(startDates{i} : endDates{i});
 end
 
 isEmpty = cellfun(@isempty, range);

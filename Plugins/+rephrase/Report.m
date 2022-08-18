@@ -48,6 +48,7 @@ classdef Report ...
                 ip = inputParser();
                 addParameter(ip, 'SaveJson', false, @validate.logicalScalar);
                 addParameter(ip, 'Source', "Local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["Local", "Bundle", "Web"]))));
+                addParameter(ip, 'Template', []);
                 addParameter(ip, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
                 addParameter(ip, 'Context', struct());
                 addParameter(ip, 'ColorScheme', "");
@@ -87,7 +88,11 @@ classdef Report ...
 
             outputFileNames = string.empty(1, 0);
             for source = reshape(lower(opt.Source), 1, [ ])
-                template = here_readTemplate(source);
+                if isempty(opt.Template)
+                    template = here_readTemplate(source);
+                else
+                    template = local_readTextFile(opt.Template);
+                end
 
                 % FIXME
                 % template = replace(template, """Lato""", """Open Sans""");
@@ -122,8 +127,6 @@ classdef Report ...
                         case "web"
                             templateFileName = fullfile(templateFolder, "report-template-web-source.html");
                             template = local_readTextFile(templateFileName);
-                        otherwise
-                            % TODO: Throw error
                     end
                     %)
                 end%

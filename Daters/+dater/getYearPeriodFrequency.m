@@ -9,7 +9,7 @@
 % Input Arguments
 %--------------------------------------------------------------------------
 %
-% __`dateCode`__ [ DateWrapper | numeric ] 
+% __`dateCode`__ [ Dater | numeric ] 
 %
 % IRIS dates or IRIS numeric date codes that will be converted to a year, 
 % period and frequency.

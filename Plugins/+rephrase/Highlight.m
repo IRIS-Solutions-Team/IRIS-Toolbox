@@ -1,11 +1,21 @@
 
 classdef Highlight ...
-    < rephrase.ColorMixin ...
-    & rephrase.SettingsMixin
+    < rephrase.SettingsMixin ...
+    & rephrase.ColorMixin
+
+    properties
+        Type = rephrase.Type.HIGHLIGHT
+    end
+
 
     properties
         StartDate (1, 1) 
         EndDate (1, 1)
+    end
+
+
+    properties (Hidden)
+        Settings_Shape (1, 1) struct = struct()
     end
 
 
@@ -42,6 +52,11 @@ classdef Highlight ...
                 return
             end
             this.EndDate = dater.toIsoString(value);
+        end%
+
+
+        function this = set.Settings_Shape(this, x)
+            this.Settings_Shape = rephrase.lowerFields(x);
         end%
     end
 

@@ -13,6 +13,7 @@ classdef SeriesChart ...
         Settings_DateFormat (1, 1) string = "YYYY-MM-DD"
         Settings_ShowLegend (1, 1) logical = true
         Settings_Highlight = cell.empty(1, 0)
+        Settings_BarMode (1, 1) string = "group"
     end
 
 
@@ -43,8 +44,8 @@ classdef SeriesChart ...
             this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
 
-            this.Settings_StartDate = dater.toIsoString(double(startDate), "start");
-            this.Settings_EndDate = dater.toIsoString(double(endDate), "end");
+            this.Settings_StartDate = dater.toIsoString(double(startDate), "mid");
+            this.Settings_EndDate = dater.toIsoString(double(endDate), "mid");
         end%
 
 

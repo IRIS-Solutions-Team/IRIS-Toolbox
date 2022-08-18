@@ -13,7 +13,7 @@ classdef DateWrapper ...
                 value = dater.getYear(this);
             else
                 exception.error([
-                    "DateWrapper:InvalidQuery"
+                    "Dater"
                     "This is not a valid query into DateWrapper/get: %s "
                 ], query);
             end
@@ -78,13 +78,13 @@ classdef DateWrapper ...
         function this = plus(a, b)
             if isa(a, 'DateWrapper') && isa(b, 'DateWrapper')
                 exception.error([
-                    "DateWrapper:InvalidInputs"
+                    "Dater"
                     "Invalid date addition; add an integer to a date or a date to an integer."
                 ]);
             end
             if ~all(double(a)==round(a)) && ~all(double(b)==round(b))
                 exception.error([
-                    "DateWrapper:InvalidInputs"
+                    "Dater"
                     "Invalid date addition; add an integer to a date or a date to an integer."
                 ]);
             end
@@ -100,7 +100,7 @@ classdef DateWrapper ...
                 || (all(a(:)~=round(a(:))) && all(b(:)~=round(b(:))))
                 if ~all(dater.getFrequency(a(:))==dater.getFrequency(b(:)))
                     exception.error([
-                        "DateWrapper:InvalidInputs"
+                        "Dater"
                         "Invalid date subtraction; subtract an integer from a date "
                         "or two dates of the same frequency from each other."
                     ]);
@@ -119,7 +119,7 @@ classdef DateWrapper ...
                 Frequency(dater.getFrequency(x));
             catch
                 exception.error([
-                    "DateWrapper:InvalidInputs"
+                    "Dater"
                     "Invalid date subtraction; subtract an integer from a date "
                     "or two dates of the same frequency from each other."
                 ]);
@@ -199,6 +199,11 @@ classdef DateWrapper ...
 
         function dateString = toString(varargin)
             dateString = dater.toString(varargin{:});
+        end%
+
+
+        function dateString = toChar(varargin)
+            dateString = dater.toChar(varargin{:});
         end%
 
 
@@ -373,7 +378,7 @@ classdef DateWrapper ...
             datesFreq = dater.getFrequency(dates);
             if ~all(datesFreq==refFreq)
                 exception.error([
-                    "DateWrapper:CannotRelativePositionForMixedFrequencies"
+                    "Dater"
                     "Relative positions can be only calculated for dates of identical frequencies"
                 ]);
             end
@@ -388,7 +393,7 @@ classdef DateWrapper ...
                         context = "range";
                     end
                     exception.error([
-                        "DateWrapper:DateOutOfRange"
+                        "Dater"
                         "These dates are out of %1: %s "
                     ], context, join(dater.toDefaultString(dates(inxOutRange))));
                 end

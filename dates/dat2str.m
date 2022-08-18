@@ -12,33 +12,33 @@
 
 ## Input Arguments ##
 
-__`Dat`__ [ numeric ] - 
+__`Dat`__ [ numeric ] -
 IRIS serial date number(s).
 
 
 ## Output Arguments ##
 
-__`S`__ [ cellstr ] - 
+__`S`__ [ cellstr ] -
 Cellstr with strings representing the input dates.
 
 
 ## Options ##
 
-__`DateFormat='YYYYFP'`__ [ char | cellstr | string ] - 
+__`DateFormat='YYYYFP'`__ [ char | cellstr | string ] -
 Date format string,
 or array of format strings (possibly different for each date).
 
-__`Months={'January', ..., 'December'}`__ [ cellstr | string ] - 
+__`Months={'January', ..., 'December'}`__ [ cellstr | string ] -
 Twelve
 strings representing the names of the twelve months.
 
-__`ConversionMonth=1`__ [ numeric | `'last'` ] - 
+__`ConversionMonth=1`__ [ numeric | `'last'` ] -
 Month that will represent
 a lower-than-monthly-frequency date if the month is part of the date
 format string.
 
 __`WDay='Thu'`__ [ `'Mon'` | `'Tue'` | `'Wed'` | `'Thu'` | `'Fri'` |
-`'Sat'` | `'Sun'` ] - 
+`'Sat'` | `'Sun'` ] -
 Day of week that will represent weeks.
 
 
@@ -143,7 +143,7 @@ month.
 ### Escaping Control Letters ###
 
 To get the format letters printed literally in the date string, use a
-percent sign as an escape character: `'%Y'`, `'%P'`, `'%F'`, `'%f'`, 
+percent sign as an escape character: `'%Y'`, `'%P'`, `'%F'`, `'%f'`,
 `'%M'`, `'%m'`, `'%R'`, `'%r'`, `'%Q'`, `'%q'`, `'%D'`, `'%E'`, `'%D'`.
 
 
@@ -172,25 +172,25 @@ end
 ip.parse(dat, varargin{:});
 opt = ip.Options;
 
-UPPER_ROMANS = { 
+UPPER_ROMANS = {
     'I', 'II', 'III', 'IV', 'V', 'VI' ...
-    , 'VII', 'VIII', 'IX', 'X', 'XI', 'XII' 
+    , 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'
 };
 
 LOWER_ROMANS = lower(UPPER_ROMANS);
 
 DAYS_OF_WEEK = {
     'Sunday', 'Monday', 'Tuesday', 'Wednesday' ...
-    , 'Thursday', 'Friday', 'Saturday' 
+    , 'Thursday', 'Friday', 'Saturday'
 };
-    
+
 [year, per, freq] = dater.getYearPeriodFrequency(dat);
 
 inxWeekly = freq==frequency.WEEKLY;
 inxDaily = freq==frequency.DAILY;
 inxMatlabSerial = inxWeekly | inxDaily;
 
-% Matlab serial date numbers (daily or weekly dates only), calendar years, 
+% Matlab serial date numbers (daily or weekly dates only), calendar years,
 % months, and days.
 msd = nan(size(dat));
 yearC = nan(size(dat));
@@ -227,21 +227,21 @@ for i = 1 : numDates
     end
 
     currFreq = freq(i);
-    
+
     if isnan(currFreq)
         s{i} = '?';
         continue
     end
 
     if i<=nFmt || ~isequaln(currFreq, prevFreq)
-        fmt = DateWrapper.chooseFormat(opt.DateFormat, currFreq, min(i, nFmt));
+        fmt = Dater.chooseFormat(opt.DateFormat, currFreq, min(i, nFmt));
         [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt);
         numFields = length(field);
     end
 
     subs = cell(1, numFields);
     subs(:) = {''};
-    
+
     % Year-period
     iYear = year(i);
     iPer = per(i);
@@ -253,12 +253,12 @@ for i = 1 : numDates
     iMonC = monC(i);
     iDayC = dayC(i);
     iDowC = dowC(i);
-    
+
     if ~isCalendar && isMonthNeeded
         % Calculate non-calendar month
         iMon = calculateMonth( );
     end
-    
+
     for j = 1 : numFields
         switch field{j}(1)
             case {'Y', 'y'}
@@ -303,7 +303,7 @@ for i = 1 : numDates
                 end
         end
     end
-    
+
     s{i} = sprintf(fmt, subs{:});
     prevFreq = currFreq;
 
@@ -324,10 +324,10 @@ return
             fmt(1) = '';
         end
         isMonthNeeded = false;
-        
+
         fragile = 'YyPFfRrQqMmEWDA';
         fmt = regexprep(fmt, ['%([', fragile, '])'], '&$1');
-        
+
         ptn = ['(?<!&)(', ...
             'YYYY|YY|Y|yyyy|yy|y|', ...
             'PP|P|', ...
@@ -339,7 +339,7 @@ return
             'DD|D|', ...
             'Aaa|AAA', ...
             ')'];
-        
+
         while true
             found = false;
             replaceFunc = @replace; %#ok<NASGU>
@@ -348,14 +348,14 @@ return
                 break
             end
         end
-        
+
         fmt = regexprep(fmt, ['&([', fragile, '])'], '$1');
-        
+
         return
-        
-        
-        
-        
+
+
+
+
         function c = replace(c0)
             found = true;
             c = '%s';
@@ -385,7 +385,7 @@ return
             case {'Y', 'y'}
                 Subs = sprintf('%g', Y);
         end
-    end% 
+    end%
 
 
 

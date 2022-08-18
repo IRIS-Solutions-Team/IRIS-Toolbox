@@ -134,6 +134,16 @@ __`solver=@auto`__ [ `@auto` | string | cell ]
 
 ## Description 
 
+In its plain vanilla form, this function calculates a first-order
+simulation the `model` on the simulation `range` (from the first date in
+`range` until the last date in `range`), extracting two pieces of
+information from the `inputDb`:
+
+* initial condition, i.e. values for the lags of model variables before the
+  start date,
+
+* shocks on the simulation range.
+
 
 ### Numerical solver settings in nonlinear simulations
 

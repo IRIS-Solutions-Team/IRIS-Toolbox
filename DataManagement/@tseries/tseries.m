@@ -236,12 +236,12 @@ classdef ( ...
 
 
         function date = startdate(this)
-            date = DateWrapper(this.Start);
+            date = Dater(this.Start);
         end%
 
 
         function date = enddate(this)
-            date = DateWrapper(this.End);
+            date = Dater(this.End);
         end%
 
 

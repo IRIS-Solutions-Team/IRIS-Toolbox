@@ -85,7 +85,7 @@ else
 end
 
 for i = find(~cellfun(@isempty, startDates))
-    outputRange{i} = DateWrapper(startDates{i} : endDates{i});
+    outputRange{i} = Dater(startDates{i} : endDates{i});
 end
 
 inxEmpty = cellfun(@isempty, outputRange);

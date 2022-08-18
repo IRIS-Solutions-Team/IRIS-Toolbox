@@ -303,7 +303,7 @@ classdef Plan ...
                 inxDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
                 return
             end
-            posDates = DateWrapper.getRelativePosition( this.ExtendedStart, dates, ...
+            posDates = Dater.getRelativePosition( this.ExtendedStart, dates, ...
                                                         [this.PosOfBaseStart, this.PosOfBaseEnd], ...
                                                         'simulation Plan range' );
             inxDates = false(1, this.NumExtdPeriods);
@@ -489,7 +489,7 @@ classdef Plan ...
 
 
         function value = get.Start(this)
-            value = DateWrapper(this.BaseStart);
+            value = Dater(this.BaseStart);
         end%
 
 
@@ -600,7 +600,7 @@ classdef Plan ...
 
 
         function value = get.End(this)
-            value = DateWrapper(this.BaseEnd);
+            value = Dater(this.BaseEnd);
         end%
 
 
@@ -642,19 +642,19 @@ classdef Plan ...
                 value = '';
                 return
             end
-            displayStart = DateWrapper.toCellstr(this.BaseStart);
-            displayEnd = DateWrapper.toCellstr(this.BaseEnd);
+            displayStart = Dater.toCellstr(this.BaseStart);
+            displayEnd = Dater.toCellstr(this.BaseEnd);
             value = [displayStart{1}, ':', displayEnd{1}]; 
         end%
 
 
         function value = get.BaseRange(this)
             if isempty(this.BaseStart) || isempty(this.BaseEnd)
-                value = DateWrapper(NaN);
+                value = Dater(NaN);
                 return
             end
             value = dater.colon(this.BaseStart, this.BaseEnd);
-            value = DateWrapper(value);
+            value = Dater(value);
         end%
 
 
@@ -667,11 +667,11 @@ classdef Plan ...
 
         function value = get.ExtendedRange(this)
             if isempty(this.ExtendedStart) || isempty(this.ExtendedEnd)
-                value = DateWrapper(NaN);
+                value = Dater(NaN);
                 return
             end
             value = dater.colon(this.ExtendedStart, this.ExtendedEnd);
-            value = DateWrapper(value);
+            value = Dater(value);
         end%
 
 
@@ -973,7 +973,7 @@ end
 function date = hereGetLastDate(start, id)
     inx = id~=0;
     if not(any(inx(:)))
-        date = DateWrapper(NaN);
+        date = Dater(NaN);
         return
     end
     column = find(any(inx, 1), 1, 'Last');

@@ -11,7 +11,7 @@ classdef (Abstract) DataMixin ...
             %(
             % Keep expression string and add to the data requests
             if isstring(input) || ischar(input)
-                output = string(input);
+                output = textual.stringify(input);
                 this.DataRequests = union(this.DataRequests, output, 'stable');
                 return
             end

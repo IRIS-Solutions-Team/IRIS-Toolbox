@@ -43,8 +43,8 @@ elseif strcmpi(req, 'addCurrentSubs')
     % Add subfolders within the current root to the temporary
     % search path.
     allp = local_generatePath(root);
-    if ~options.NumericDates
-        allp{end+1} = fullfile(root, 'dates', 'Constructors');
+    if ~options.NumericDailyDates
+        allp{end+1} = fullfile(root, 'dates', 'DaterConstructors');
     else
         allp{end+1} = fullfile(root, 'dates', 'NumericConstructors');
     end
