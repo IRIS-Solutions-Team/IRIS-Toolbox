@@ -13,10 +13,10 @@ title: databank.list
 ## Input Arguments
 
 __`db`__ [ struct | Dictionary ]
->
+> 
 > Databank whose fields will be listed on the screen, with information on
 > date ranges added to time series fields.
->
+> 
 
 ## Description
 

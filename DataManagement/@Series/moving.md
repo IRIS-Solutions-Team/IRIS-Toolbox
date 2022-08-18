@@ -13,59 +13,59 @@ title: moving
 ## Input arguments  
 
 __`inputSeries`__ [ Series ]
->
+> 
 > Input times series.
->
+> 
 
 ## Output arguments  
 
 __`outputSeries`__ [ Series ]
->
+> 
 > Output time series with their observations constructed by applying the
 > the function `Function=` to a moving window `Window=` of observations
 > from the `inputSeries`.
->
+> 
 
 ## Options   
 
 __`Function=@mean`__ [ function_handle ]
->
+> 
 > Function to be applied to moving window of observations. By default, the
 > function is supposed to accept two input arguments: an array of data, and
 > the dimension along which the function will be calculated (this is the
 > way the standard built-int `@mean`, `@sum`, etc. functions work).
->
+> 
 
 __`Period=false`__ [ `true` | `false` ]
->
+> 
 > Force the calculations to be put in a loop period by period and refrain
 > from using dimension as a second input argument into the `Function`. This
 > options works only when `Window=` is not a complex number (in which case
 > the calculations are always period by period).
->
+> 
 > Under the default `Period=false`, the function is evaluated on a whole
 > array of observations, and supplied a second input argument `1` to
 > indicate the dimension along which the function is to be calculated. This
 > is consistent with standard functions such as `mean`, `sum`, etc.
->
+> 
 > If `Period=true`, the function `Function=` is evaluated on a column
 > vector of observations constituting the moving window for the current
 > period only (determined by the `Window=` specification), one period at a
 > time. 
->
+> 
 
 __`Range=Inf`__ [ Dater | `Inf` ]
->
+> 
 > Date range to which the `inputSeries` will be trimmed before running the
 > calculations.
->
+> 
 
 __`Window=@auto`__ [ numeric | `@auto` ]
->
+> 
 > The moving window of observations to which the function `Function=` will
 > applied to construct the observations of the `outputSeries`; see
 > Description and Examples.
->
+> 
 
 ## Description
 

@@ -22,7 +22,7 @@ __`list`__ [ string ]
 > List of new time series names; if the already exists in the databank,
 > they will be simply assigned a new empty time series and the previous
 > content will be removed.
->
+> 
 
 ## Output arguments 
 

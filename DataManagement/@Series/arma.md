@@ -13,31 +13,31 @@ title: arma
 ## Input arguments 
 
 __`X`__ [ tseries ]
->
+> 
 > Input time series from which initial condition will
 > be constructed.
->
+> 
 
 __`E`__ [ tseries ]¨
->
+> 
 > Input time series with innovations; `NaN` values in
 > `E` on `Range` will be replaced with `0`.
->
+> 
 
 __`AR`__ [ numeric | empty ]
->
+> 
 > Row vector of AR polynominal coefficients;
 > if empty, `AR = 1`; see Description.
->
+> 
 
 __`MA`__ [ numeric | empty ]
->
+> 
 > Row vector of MA polynominal coefficients;
 > if empty, `MA = 1`; see Description.
->
+> 
 
 __`Range`__ [ numeric | char ]
->
+> 
 > Range on which the output series
 > observations will be constructed.
 > 
@@ -45,11 +45,11 @@ __`Range`__ [ numeric | char ]
 ## Output arguments 
 
 __`X`__ [ tseries ]
->
+> 
 > Output time series constructed by running an ARMA
 > model on the input series `X` and `E`; the output time series also
 > includes p initial conditions where p is the order of the AR polynomial.
->
+> 
 
 ## Options 
 

@@ -13,7 +13,7 @@ title: Model.fromSnippet
 ## Input arguments
 
 __`snippetName`__ [ string ]
->
+> 
 > Name(s) of snippet(s) of code embedded in the same m-file as the call to
 > this function.
 > 
@@ -22,9 +22,9 @@ __`snippetName`__ [ string ]
 
 
 __`m`__ [ Model ]
->
+> 
 > New Model object based on the snippet(s) of code.
->
+> 
 
 ## Options
 

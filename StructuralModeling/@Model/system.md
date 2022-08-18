@@ -21,19 +21,19 @@ __`model`__ [ Model ]
 ## Output Arguments
 
 __`A`, `B`, `C`, `D`, `F`, `G`, `H`, `J`__  [ numeric ] 
->
+> 
 > Matrices of the unsolved system, see Description.
->
+> 
 
 __`list`__ [ cell ] 
->
+> 
 > Lists of measurement variables, transition variables includint their
 > auxiliary lags and leads, shocks, measurement equations, and transition
 > equations as they appear in the rows and columns of the system matrices.
 > 
 
 __`numF`__ [ numeric ] 
->
+> 
 > Number of non-predetermined (forward-looking) transition variables
 > (multiplied by the first `numF` columns of matrices `A` and `B`).
 > 
@@ -48,15 +48,15 @@ __`ForceDiff=false`__ [ `true` | `false` ]
 > 
 
 __`MatrixFormat="NamedMatrix"`__ [ `"plain"` | `"NamedMatrix"` ]
->
+> 
 > Format of the output matrix.
->
+> 
 
 __`Normalize=true`__ [ `true` | `false` ]
->
+> 
 > Normalize (divide) the derivatives within each equation by the largest of
 > them.
->
+> 
 
 __`Sparse=false`__ [ `true` | `false` ] 
 > 

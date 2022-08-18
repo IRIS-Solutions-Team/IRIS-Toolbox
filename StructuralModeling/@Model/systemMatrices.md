@@ -21,14 +21,14 @@ __`model`__ [ Model ]
 ## Output Arguments
 
 __`output`__ [ struct ]
->
+> 
 > Output struct with the matrices describing the unsolved system, see
 > Description.
->
+> 
 
 
 __`numF`__ [ numeric ] 
->
+> 
 > Number of non-predetermined (aka forward-looking) transition variables
 > (multiplied by the first `numF` columns of matrices `A` and `B`).
 > 
@@ -43,15 +43,15 @@ __`ForceDiff=false`__ [ `true` | `false` ]
 > 
 
 __`MatrixFormat="NamedMatrix"`__ [ `"plain"` | `"NamedMatrix"` ]
->
+> 
 > Format of the output matrix.
->
+> 
 
 __`Normalize=true`__ [ `true` | `false` ]
->
+> 
 > Normalize (divide) the derivatives within each equation by the largest of
 > them.
->
+> 
 
 __`Sparse=false`__ [ `true` | `false` ] 
 > 

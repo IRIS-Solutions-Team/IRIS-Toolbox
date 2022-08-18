@@ -35,9 +35,9 @@ __`expressions`__ [ cellstr | string ]
 > 
 
 __`expressionsDb`__ [ struct | Dictionary ]
->
+> 
 > Databank whose fields contain the expressions that are to be evaluated.
->
+> 
 
 
 ## Output arguments

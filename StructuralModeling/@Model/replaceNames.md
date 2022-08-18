@@ -13,30 +13,30 @@ title: replaceNames
 ## Input arguments
 
 __`model`__ [ Model ]
->
+> 
 > Model object in which some names (variables, shocks, parameters) will be
 > replaced with new names. 
->
+> 
 
 __`oldNames`__ [ string ] 
->
+> 
 > List of existing model names that will be replace with `newNames`.
->
+> 
 
 __`newNames`__ [ string ]
->
+> 
 > List of new names that will replace the `oldNames` in the `model`. The
 > lenght of the `newNames` list must be the same as `oldNames`. The new
 > names must be such that the entire list of all the model names after
 > replacement has all names unique.
->
+> 
 
 ## Output arguments
 
 __`model`__ [ Model ]
->
+> 
 > Model object with the `newNames` assigned.
->
+> 
 
 
 ## Description

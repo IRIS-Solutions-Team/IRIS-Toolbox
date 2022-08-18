@@ -28,7 +28,7 @@ __`request`__ [ `"corr"` | `"plainparameters"` | `"parameters"` | `"steady"` | `
 ## Output Arguments
 
 __`model`__ [ Model ] 
->
+> 
 > Model object with the requested values reset.
 > 
 

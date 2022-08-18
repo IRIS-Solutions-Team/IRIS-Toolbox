@@ -23,17 +23,17 @@ __`A`__ [ numeric ] -
 > 
 
 __`Z`__ [ numeric | Series ] - 
->
+> 
 > Exogenous input series or constant in the autoregressive process.
 > 
 
 __`range`__ [ Dater | `@all` ] - 
->
+> 
 > Date range on which the new time series observations will be computed;
 > `range` does not include pre-sample initial condition. `@all` means the
 > entire possible range will be used (taking into account the length of
 > pre-sample initial condition needed).
->
+> 
 
 
 ## Output Arguments 

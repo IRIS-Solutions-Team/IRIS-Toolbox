@@ -13,30 +13,30 @@ title: analyticGradients
 ## Input arguments
 
 __`model`__ [ Model ]
->
+> 
 > Model object whose equations will be analytically/symbolically
 > differentiated w.r.t to the model variables present in the respective
 > equation.
->
+> 
 
 ## Output arguments
 
 __`dynamic`__ [ cell ]
->
+> 
 > A cell array with the derivatives of the dynamic versions of the model
 >   equations w.r.t. the variables present in each respective equation
->
+> 
 > See Description for details.
->
+> 
 
 __`steady`__ [ cell ]
->
+> 
 > A cell array with the derivatives of the steady versions of the model
 > equations (if provided by the user) w.r.t. the variables present in each
 > respective equation
->
+> 
 > See Description for details.
->
+> 
 
 ## Description
 

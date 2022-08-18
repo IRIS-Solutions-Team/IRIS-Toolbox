@@ -13,9 +13,9 @@ title: rescaleStd
 ## Input arguments
 
 __`model`__ [ Model ] 
->
+> 
 > Model object whose std deviations will be rescaled.
->
+> 
 
 __`factor`__ [ numeric ] 
 > 
@@ -26,7 +26,7 @@ __`factor`__ [ numeric ]
 ## Output arguments
 > 
 > __`model`__ [ Model ] 
->
+> 
 > Model object with all of std deviations rescaled.
 > 
 

@@ -14,45 +14,45 @@ title: changeLogStatus
 
 ## Input Arguments
 
-**`model`**  [ Model ]  
->
+__`model`__  [ Model ]  
+> 
 > Model object within which the log status of variables will be changed.
->
+> 
 
-**`newStatus`** [ `true` | `false` ]  
->
+__`newStatus`__ [ `true` | `false` ]  
+> 
 > New log status to which the selected variables will be changed.
->
+> 
 
-**`namesToChange`** [ char | cellstr | string | `@all` ] 
+__`namesToChange`__ [ char | cellstr | string | `@all` ] 
 > 
 > List of variable names whose log status will be changed; `@all` means all
 > measurement, transition and exogenous variables.
->
+> 
 
-**`name`** [ char | string ]  
+__`name`__ [ char | string ]  
 > 
 > Variable name whose log status will be changed.
->
+> 
 
-**`newStatusStruct`** [ struct ] 
->
->Struct with fields named after the model variables, each assigned `true`
->or `false` for its new log status.
->
+__`newStatusStruct`__ [ struct ] 
+> 
+> Struct with fields named after the model variables, each assigned `true`
+> or `false` for its new log status.
+> 
 
 ## Output Arguments
 
-**`status`** [ logical ]  
->
+__`status`__ [ logical ]  
+> 
 > Logical vector with the log status of the selected variables.
->
+> 
 
-**`model`** [ Model ]  
->
+__`model`__ [ Model ]  
+> 
 > Model object in which the log status of the selected variables has been
 > changed to `newStatus`.
->
+> 
 
 ## Description 
 

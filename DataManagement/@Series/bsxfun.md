@@ -13,28 +13,28 @@ title: bsxfun
 ## Input arguments 
 
 __`Func`__ [ function_handle ]
->
+> 
 > Function that will be applied to the input
 > series, `FUN(X, Y)`.
->
+> 
 
 __`X`__ [ Series | numeric ]
->
+> 
 > Input time series or numeric array.
->
+> 
 
 __`Y`__ [ Series | numeric ]
->
+> 
 > Input time series or numeric array.
->
+> 
 
 ## Output arguments 
 
 __`Z`__ [ tseries ]
->
+> 
 > Result of `Func(X, Y)` with `X` and/or `Y` expanded
 > properly in singleton dimensions.
->
+> 
 
 ## Options 
 

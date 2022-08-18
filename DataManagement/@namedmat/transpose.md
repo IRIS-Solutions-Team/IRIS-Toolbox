@@ -14,18 +14,18 @@ title: transpose
 ## Input arguments 
 
 __`X`__ [ namedmat ]
->
+> 
 > Input matrix or array with named rows and columns.
->
+> 
 
 
 ## Output arguments 
 
 __`X`__ [ namedmat ]
->
+> 
 > Transpose of the input matrix; if it is more than
 > 2-dimensional, each page of the matrix is transposed.
->
+> 
 
 ## Options 
 

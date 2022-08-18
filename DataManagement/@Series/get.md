@@ -16,19 +16,19 @@ title: get
 __`X`__ [ model ]
 > 
 > Queried time series.
->
+> 
 
 __`Query`__ [ char ]
->
+> 
 > Query.
->
+> 
 
 ## Output arguments 
 
 __`Ans`__ [ ... ] 
->
+> 
 > Answer to the query.
->
+> 
 
 ## Options 
 

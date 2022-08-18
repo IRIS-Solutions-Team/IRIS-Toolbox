@@ -13,19 +13,19 @@ title: kalmanFilter
 ## Input arguments
 
 __`inputModel`__ [ Model ]
->
+> 
 > A solved Model object whose state-space representation will be used to
 > run a linear Kalman filter on the `inputData` observations.
 > 
 
 __`inputData`__ [ struct | Dictionary ] 
->
+> 
 > Input databank from which the observations for measurement variables on
 > the `filterRange` will be taken.
 > 
 
 __`filterRange`__ [ numeric | char ]
->
+> 
 > The range on which the Kalman filter will be run.
 > 
 
@@ -33,20 +33,20 @@ __`filterRange`__ [ numeric | char ]
 
 
 __`outputDb`__ [ struct | Dictionary ]
->
+> 
 > Output databank (possibly a nested databank) with the requested data; the
 > type of output data are requested through the option `Output=`.
 > 
 
 __`outputModel`__ [ Model ]
->
+> 
 > Model object with the std deviation of shocks updated (if
 > `Relative=true`) and/or the out-of-likelihood parameters updated (if
 > `Outlik=` is non-empty).
 > 
 
 __`info`__ [ struct ]
->
+> 
 > Output information struct with the following fields:
 > 
 > `.V` - Estimated variance scale factor if the `Relative=`
@@ -69,45 +69,45 @@ options is true; otherwise `V` is 1.
 ## Options to control output data returned
 
 __`"FlattenOutput=true`"__ [ `true` | `false` ]
->
+> 
 > Make the `outputDb` as flat as possible by removing nested levels if they
 > are empty or squeezing them if they only contain one field.
->
+> 
 
 
 __`MatrixFormat="namedMatrix"`__ [ `"namedMatrix"` | `"numeric"` ]
->
+> 
 > Format (class) output matrices included in the output `info` struct:
->
+> 
 > * `"namedMatrix"` - return NamedMatrix objects where the individual rows
 >   and columns have variable names attached
->
+> 
 > * `"numeric"` - return plain numeric arrays
->
+> 
 
 
 __`MeanOnly=false`__ [ `true` | `false` ]
->
+> 
 > Return the mean data (point estimates) only in the `outputDb`.
->
->
+> 
+> 
 
 
 __`OutputData="smooth"`__ [ string | `"predict"` | `"filter"` | `"smooth"` ]
->
+> 
 > Choose which Kalman filter steps will be included in the `outputDb`:
->
+> 
 > * `"smooth"` - include data from the backward smoother (two-sided
 >   filtering)
->
+> 
 > * `"update"` - include data from the updating steep (one-sided filtering)
->
+> 
 > * `"predict"` - include data from the prediction step
 > 
 
 
 __`ReturnMedian=true`__ [ `true` | `false` ]
->
+> 
 > Return a databank with the median estimates of the model variables; the
 > meians are calculated by delogarithmizing the log-variables; the medianss
 > for other variables is identical to the means. This option only works
@@ -116,7 +116,7 @@ __`ReturnMedian=true`__ [ `true` | `false` ]
 
 
 __`ReturnBreakdown=false`__ [ `true` | `false` ]
->
+> 
 > Return contributions of prediction errors in measurement variables to the
 > estimates of all variables and shocks. This option only works when
 > `MeanOnly=false`.
@@ -124,7 +124,7 @@ __`ReturnBreakdown=false`__ [ `true` | `false` ]
 
 
 __`ReturnMse=true`__ [ `true` | `false` ]
->
+> 
 > Return MSE matrices for predetermined state variables; these can be used
 > for settin up initial condition in subsequent call to another
 > `kalmanFilter()`. This option only works when `MeanOnly=false`.
@@ -132,7 +132,7 @@ __`ReturnMse=true`__ [ `true` | `false` ]
 
 
 __`ReturnStd=true`__ [ `true` | `false` ]
->
+> 
 > Return databank with std devs of model variables. This option only works
 > when `MeanOnly=false`.
 > 
@@ -141,13 +141,13 @@ __`ReturnStd=true`__ [ `true` | `false` ]
 ## Options to control the calculation within the Kalman filter
 
 __`Ahead=1`__ [ numeric ]
->
+> 
 > Calculate predictions up to `Ahead` periods
 > ahead.
 > 
 
 __`ChkFmse=false`__ [ `true` | `false` ]
->
+> 
 > Check the condition number of
 > the forecast MSE matrix in each step of the Kalman filter, and return
 > immediately if the matrix is ill-conditioned; see also the option
@@ -155,7 +155,7 @@ __`ChkFmse=false`__ [ `true` | `false` ]
 > 
 
 __`Condition={ }`__ [ char | cellstr | empty ]
->
+> 
 > List of conditioning measurement variables. Condition time t|t-1 prediction errors (that enter the likelihood function) on time t
 > observations of these measurement variables.
 > 
@@ -167,7 +167,7 @@ __`Deviation=false`__ [ `true` | `false` ]
 > 
 
 __`Dtrends=@auto`__ [ `@auto` | `true` | `false` ]
->
+> 
 > Measurement data contain deterministic trends; `@auto` means `DTrends=`
 > will be set consistently with `Deviation=`.
 > 
@@ -179,7 +179,7 @@ __`FmseCondTol=eps( )`__ [ numeric ]
 > 
 
 __`InitCond='Stochastic'`__ [ `'fixed'` | `'optimal'` | `'stochastic'` | struct ]
->
+> 
 > The method or data that will be used initialise the Kalman filter;
 > user-supplied initial condition must be a databank with the mean values
 > (in which case the MSE of the initial condition will be set to zero) or a
@@ -187,43 +187,43 @@ __`InitCond='Stochastic'`__ [ `'fixed'` | `'optimal'` | `'stochastic'` | struct 
 > 
 
 __`InitUnit='FixedUnknown'`__ [ `'ApproxDiffuse'` | `'FixedUknown'` ]
->
+> 
 > Method of initializing unit root variables; see Description.
->
+> 
 
 __`LastSmooth=Inf`__ [ numeric ]
->
+> 
 > Last date up to which to smooth data backward from the end of the
 > filterRange; `Inf` means the smoother will run on the entire filterRange.
 > 
 
 __`Outlik={ }`__ [ cellstr | empty ]
->
+> 
 > List of parameters in deterministic trends that will be estimated by
 > concentrating them out of the likelihood function.
 > 
 
 __`ObjFunc='-LogLik'`__ [ `'-LogLik'` | `'PredErr'` ]
->
+> 
 > Objective function computed; can be either minus the log likelihood
 > function or weighted sum of prediction errors.
 > 
 
 __`ObjRange=Inf`__ [ DateWrapper | `Inf` ]
->
+> 
 > The objective function will be
 > computed on the specified filterRange only; `Inf` means the entire filter
 > filterRange.
 > 
 
 __`Relative=true`__ [ `true` | `false` ]
->
+> 
 > Std devs of shocks assigned in the model object will be treated as
 > relative std devs, and a common variance scale factor will be estimated.
 > 
 
 __`Weighting=[ ]`__ [ numeric | empty ]
->
+> 
 > Weighting vector or matrix for prediction errors when
 > `ObjFunc='PredErr'`; empty means prediction errors are weighted equally.
 > 
@@ -233,7 +233,7 @@ __`Weighting=[ ]`__ [ numeric | empty ]
 
 
 __`Multiply=[ ]`__ [ struct | empty ]
->
+> 
 > Databank with time series of
 > possibly time-varying multipliers for std deviations of shocks; the
 > numbers supplied will be multiplied by the std deviations assigned in
@@ -242,7 +242,7 @@ __`Multiply=[ ]`__ [ struct | empty ]
 > 
 
 __`Override=[ ]`__ [ struct | empty ]
->
+> 
 > Databank with time series for
 > possibly time-varying paths for std deviations, correlations
 > coefficients, or medians of shocks; these paths will override the values
@@ -254,7 +254,7 @@ __`Override=[ ]`__ [ struct | empty ]
 
 
 __`Simulate=false`__ [ `false` | cell ]
->
+> 
 > Use the backend algorithms from the [`simulate`](model/simulate) function
 > to run nonlinear simulation for each prediction step; specify options
 > that will be passed into `simulate` when running a prediction step.

@@ -18,7 +18,7 @@ title: hpf
 ## Input arguments
 
 __`x`__ [ Series ]
->
+> 
 > Input time series that will be filtered.
 > 
 
@@ -27,21 +27,21 @@ __`x`__ [ Series ]
 __`t`__ [ Series ]
 > >
 > Low-frequency (trend) component.
->
+> 
 
 __`c`__ [ Series ]
->
+> 
 > High-frequency (cyclical or gap) component.
 > 
 
 __`cutoff`__ [ numeric ]
->
+> 
 > Cut-off periodicity; periodicities above the cut-off are attributed to
 > trends, periodicities below the cut-off are attributed to gaps.
 > 
 
 __`lambda`__ [ numeric ] 
->
+> 
 > Smoothing parameter actually used; this output argument is useful when
 > `lambda=@auto` or when the option `cutoff=` is used instead of `lambda=`.
 > 
@@ -49,50 +49,50 @@ __`lambda`__ [ numeric ]
 ## Options
 
 __`cutoff=[ ]`__ [ numeric ]
->
+> 
 > Cut-off periodicity in periods (depending on the time series frequency);
 > this option can be specified instead of `lambda=`; the smoothing
 > parameter will be then determined based on the cut-off periodicity.
 > 
 
 __`cutoffYear=[ ]`__ [ numeric ]
->
+> 
 > Cut-off periodicity in years; this option can be specified instead of
 > `lambda=`; the smoothing parameter will be then determined based on the
 > cut-off periodicity.
 > 
 
 __`gamma=1`__ [ numeric | Series ]
->
+> 
 > Weight or weights on the deviations of the trend from observations; it
 > only makes sense to use this option to make the signal-to-noise ratio
 > time-varying; see the optimization problem below.
 > 
 
 __`infoSet=2`__ [ `1` | `2` ]
->
+> 
 > Information set assumption used in the filter: `1` runs a one-sided
 > filter, `2` runs a two-sided filter.
 > 
 
 __`lambda=@auto`__ [ numeric | @auto ]
->
+> 
 > Smoothing parameter; needs to be specified for Series objects with
 > indeterminate frequency; see Description for default values.
 > 
 
 __`level=`__ [ Series ]
->
+> 
 > Time series with hard tunes and soft tunes on the level of the trend.
 > 
 
 __`change=`__ [ Series ]
->
+> 
 > Time series with hard tunes and soft tunes on the change in the trend.
 > 
 
 __`log=`__ [ `true` | *`false`* ]
->
+> 
 > Logarithmize the data before filtering, de-logarithmize afterwards.
 > 
 

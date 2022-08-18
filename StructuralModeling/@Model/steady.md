@@ -12,36 +12,36 @@ title: steady
 ## Input arguments
 
 __`model`__ [ Model ]
->
+> 
 > Model for which the steady state values of its variables will be
 > calculated.
->
+> 
 
 ## Output arguments
 
 __`model`__ [ Model ]
->
+> 
 > Model with its newly calculated steady state values assigned.
->
+> 
 
 __`success`__ [ logical ]
->
+> 
 > A 1-by-n array of `true` or `false` where n is the number of parameter
 > variants in the `model`; each `true` indicates a successeful completion
 > (convergence) of steady state calculations.
->
+> 
 
 __`info`__ [ struct ]
->
+> 
 > Output info structure with the following fields:
->
+> 
 > * `.ExitFlags` - a 1-by-n cell array of arrays of solver.ExitFlag objects; the {i}(j)
 >   element indicates the exit flag for the i-th parameter variant and j-th
 >   block of steady equations.
->
+> 
 > * `.Blazer` - contains a solver.blazer.Steady object used when
 >   calculating the steady state values for each parameter variant.
->
+> 
 
 ## Options
 

@@ -103,10 +103,10 @@ __`deviation=false`__ [ `true` | `false` ]
 > 
 > If true, both the input data and the output data are (and are expected
 > to be) in the form of deviations from steady state:
->
+> 
 > * for variables not declared as `log-variables`, the deviations from
 > steady state are calculated as a plain difference: $x_t - \bar x_t$
->
+> 
 > * for variables declared as `log-variables`, the deviations from
 > steady state are calculated as a ratio: $x_t / \bar x_t$.
 > 

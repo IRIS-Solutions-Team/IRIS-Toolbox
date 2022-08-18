@@ -48,13 +48,13 @@ __`Error=false`__ [ `true` | `false` ]
 > 
 
 __`PreferredSchur="schur"`__ [ `"schur"` | `"qz"` ]
->
+> 
 > The preferred form of Schur decomposition for purely backward looking
 > models; `PreferredSchur="schur"` means plain Schur decomposition
 > (faster), `PreferredSchur="qz"` means generalized Schur decomposition
 > (unnecessary for backward looking models but consistent with forward
 > looking model solutions). 
->
+> 
 
 __`Progress=false`__ [ `true` | `false` ]
 > 

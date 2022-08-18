@@ -21,29 +21,29 @@ __`F`__ [ namedmat ]
 > 
 
 __`Freq`__ [ numeric ]
->
+> 
 > Vector of frequencies on which the FFRF has been
 > evaluated.
->
+> 
 
 __`Cog`__ [ numeric ]
->
+> 
 > Definition of the cut-off gain; if not specified, 
 > `Cog=1/2`.
->
+> 
 
 ## Output arguments 
 
 __`Cof`__ [ numeric ]
->
+> 
 > Cut-off frequency for each of the FFRF, i.e. the
 > frequency at which the gain of the FRF equals `X`.
->
+> 
 
 __`Cop`__ [ numeric ]
->
+> 
 > Cut-off periodicity.
->
+> 
 
 ## Options 
 

@@ -13,21 +13,21 @@ title: textual.nonunique
 ## Input arguments
 
 __`inputList`__ [ string ]
->
+> 
 > List of strings.
->
+> 
 
 ## Output arguments
 
 __`flag`__ [ `true` | `false` ]
->
+> 
 > True if there are duplicate (nonunique) entries in the `inputList`.
->
+> 
 
 __`nonuniques`__ [ string ]
->
+> 
 > List of nonunique (duplicate) entries from the `inputList`. 
->
+> 
 
 ## Description
 
@@ -45,6 +45,7 @@ flag =
    0
 nonuniques =
   1x0 empty cell array
+
 >> [flag, nonuniques] = textual.nonunique(["a", "b", "c", "a", "a", "c"})
 flag = 
   logical

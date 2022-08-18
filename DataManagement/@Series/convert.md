@@ -49,9 +49,9 @@ __`RemoveNaN=false`__ [ `true` | `false` ]
 __`Missing=@default`__ [ `@default` | numeric | `"previous"` | `"next"` ]
 
 > Fill missing observations with this value before conversion:
->
+> 
 > * `@default` means no preprocessing;
->
+> 
 > * `"previous"` or `"next"` means fill in the nearest preceding or nearest
 > following value available in the time series.
 

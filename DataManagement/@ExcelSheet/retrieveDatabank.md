@@ -20,32 +20,32 @@ __`excelSheet`__ [ ExcelSheet ]
 > 
 
 __`excelRange`__ [ string | numeric ] 
->
+> 
 > Excel row range (if the ExcelSheet object has Row orientation) or
 > column range (column orientation) from which the time series will be
 > retrieved.
->
+> 
 
 
 ## Output arguments 
 
 __`outputDb`__ [ | ] 
->
+> 
 > Output databank with the requsted time series.
->
+> 
 
 ## Options 
 
 __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary ] 
->
+> 
 > Add the requested time series to an existing databank; the type (Matlab
 > class) of this databank needs to be consistent with option `OutputType=`.
->
+> 
 
 __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ] 
->
+> 
 > Type (Matlab class) of the output databank.
->
+> 
 
 ## Description 
 

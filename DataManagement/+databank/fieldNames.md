@@ -13,18 +13,18 @@ title: databank.fieldNames
 ## Input Arguments
 
 __`db`__ [ struct | Dictionary ]
->
+> 
 > Databank, i.e. a struct or Dicionary object.
->
+> 
 
 
 ## Output Arguments
 
 __`list`__ [ string ]
->
+> 
 > List of all field names contained in the input `db`, arranged as a
 > row vector of strings.
->
+> 
 
 
 ## Description

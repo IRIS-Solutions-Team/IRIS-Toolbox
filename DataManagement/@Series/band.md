@@ -15,17 +15,17 @@ title: band
 __`mid`__ [ Series ]
 > 
 > Time series with the mid point for the band.
->
+> 
 
 __`lower`__ [ Series ]
->
+> 
 > Time series with the lower band or lower bands.
->
+> 
 
 __`upper`__ [ Series ]
->
+> 
 > Time series with the upper band or upper bands.
->
+> 
 
 ## Output arguments
 

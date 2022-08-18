@@ -1,8 +1,8 @@
 ---
-title: finish
+title: iris.finish
 ---
 
-{== Close the current IrisT session ==}
+{== End the current IrisT session ==}
 
 
 ## Syntax
@@ -21,7 +21,7 @@ path. The IrisT root folder stays on the permanent Matlab path.
 ## Example
 
 ```matlab
->> iris.finish
+>> iris.finish()
 ```
 
 
