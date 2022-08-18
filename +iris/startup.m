@@ -134,7 +134,7 @@ function options = local_resolveInputOptions(varargin)
     options.CheckId = true;
     options.TeX = true;
     options.LegacyWarning = true;
-    options.NumericDates = false;
+    options.NumericDailyDates = false;
     if nargin==0
         return
     end
@@ -142,22 +142,22 @@ function options = local_resolveInputOptions(varargin)
     inputOptions = string(varargin);
     inputOptions = strip(erase(inputOptions, ["-", "_"]));
     for n = inputOptions
-        if contains(n, ["Shutup", "Silent"], "ignoreCase", true)
+        if contains(n, ["shutup", "silent"], "ignoreCase", true)
             options.Silent = true;
         elseif contains(n, "tseries")
             options.SeriesConstructor = @tseries;
         elseif contains(n, "Series")
             options.SeriesConstructor = @Series;
-        elseif contains(n, ["NoIdChk", "NoIdCheck"], "ignoreCase", true)
+        elseif contains(n, ["noIdChk", "noIdCheck"], "ignoreCase", true)
             options.CheckId = false;
-        elseif contains(n, "NoTex", "ignoreCase", true)
+        elseif contains(n, "noTex", "ignoreCase", true)
             options.TeX = false;
-        elseif contains(n, "NoMatlabCheck", "ignoreCase", true)
+        elseif contains(n, "noMatlabCheck", "ignoreCase", true)
             options.CheckMatlab = false;
-        elseif contains(n, "NoLegacyWarning", "ignoreCase", true)
+        elseif contains(n, "noLegacyWarning", "ignoreCase", true)
             options.LegacyWarning = false;
-        elseif contains(n, "numericDates", "ignoreCase", true)
-            options.NumericDates = true;
+        elseif contains(n, "numericDailyDates", "ignoreCase", true)
+            options.NumericDailyDates = true;
         end
     end
     %)
