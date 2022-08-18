@@ -1,13 +1,4 @@
 function outputData = fourierData(data, opt)
-% fourierData  Convert time-domain data to freq-domain data for likelihood
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
 
 data = data(~opt.InxToExclude, :, :);
 [numY, numPeriods, numPages] = size(data);

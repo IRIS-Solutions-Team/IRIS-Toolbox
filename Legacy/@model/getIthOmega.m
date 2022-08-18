@@ -1,11 +1,4 @@
 function [Omg, stdcorr] = getIthOmega(this, variantsRequested, overrideStdcorr, multiplyStd, numPeriods)
-% getIthOmega  Get covariance matrix of shocks from Stdcorr vector possibly combining it with user supplied time varying numbers
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 if nargin<=1
     variantsRequested = 1 : countVariants(this);

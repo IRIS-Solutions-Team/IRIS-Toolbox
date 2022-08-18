@@ -1,8 +1,3 @@
-% expandFirstOrder  Reconstruct forward expansion up to t+k for one parameter variant
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [R, Y] = expandFirstOrder(R0, Y0, expansion, k)
 
 nv = size(R0, 3);

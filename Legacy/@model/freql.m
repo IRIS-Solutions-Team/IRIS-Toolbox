@@ -1,11 +1,4 @@
 function [obj, regOutp] = freql(this, argin)
-% freql  Approximate likelihood function in frequency domain
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % TODO: Non-stationary measurement variables
 

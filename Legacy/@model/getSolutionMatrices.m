@@ -1,8 +1,3 @@
-% getSolutionMatrices  Return state space matrices for given parameter variant
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function ...
     [T, R, K, Z, H, D, U, Omega, Zb, Y, inxV, inxW, numUnitRoots, inxInit] ...
     = getSolutionMatrices(this, variantsRequested, keepExpansion, keepTriangular)

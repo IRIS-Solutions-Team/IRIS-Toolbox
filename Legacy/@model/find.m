@@ -1,13 +1,4 @@
 function [indexOfAllFound, varargout] = find(this, caller, varargin)
-% find  Find equations or quantities by their labels
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
 
 if any(strcmpi(varargin, '-rexp'))
     throw( exception.Base('Obsolete:RexpFlag', 'error') ); 
