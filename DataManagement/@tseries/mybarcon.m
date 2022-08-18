@@ -1,11 +1,4 @@
 function [H,Colors] = mybarcon(Ax,X,Y,varargin)
-% mybarcon  Contribution bar graph
-%
-% Backend IRIS function.
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 if isempty(X) || isempty(Y)
     H = [ ];
@@ -130,3 +123,4 @@ grfun.excludefromlegend(H(ixExclude,:));
 set(Ax,'nextPlot',nextPlot);
 
 end
+

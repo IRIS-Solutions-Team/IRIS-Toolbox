@@ -1,52 +1,3 @@
-% trend  Estimate time trend in time series data.
-%
-% __Syntax__
-%
-% Input arguments marked with a `~` sign may be omitted.
-%
-%     x = trend(x, ~range, ...)
-%
-%
-% __Input arguments__
-%
-% * `x` [ tseries ] - Input time series.
-%
-% * `~range` [ numeric | `@all` | char ] - Range for which the trend will be
-% computed; if omitted or assigned `@all`, the entire range of the input times series.
-%
-%
-% __Output arguments__
-%
-% * `x` [ tseries ] - Output trend time series.
-%
-%
-% __Options__
-%
-% * `'Break='` [ numeric | *empty* ] - Vector of breaking points at which
-% the trend may change its slope.
-%
-% * `'Connect='` [ *`true`* | `false` ] - Calculate the trend by connecting
-% the first and the last observations.
-%
-% * `'Diff='` [ `true` | *`false`* ] - Estimate the trend on differenced
-% data.
-%
-% * `'Log='` [ `true` | *`false`* ] - Logarithmize the input data, 
-% de-logarithmize the output data.
-%
-% * `'Season='` [ `true` | *`false`* | `2` | `4` | `6` | `12` ] - Include
-% deterministic seasonal factors in the trend.
-%
-%
-% __Description__
-%
-%
-% __Example__
-%
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
-
 function [this, tt, ts] = trend(this, varargin)
 
 if ~isempty(varargin) && validate.range(varargin{1})
@@ -99,3 +50,4 @@ if nargout>1
 end
 
 end
+

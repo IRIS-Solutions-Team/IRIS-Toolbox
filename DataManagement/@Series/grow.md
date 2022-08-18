@@ -86,9 +86,5 @@ Any values contained in the input time series `inputSeries` outside the
 Extend a quarterly time series `x` using the gross rates of growth calculated
 from another time series, `y`:
 
-    x = grow(x, "roc", roc(y), qq(2020,1):qq(2030,4));
-
-
--[IrisToolbox] for Macroeconomic Modeling
--Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+x = grow(x, "roc", roc(y), qq(2020,1):qq(2030,4));
 

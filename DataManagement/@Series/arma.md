@@ -78,13 +78,13 @@ on.
 
 ## Examples
 
-```matlab
-% Construct an AR(1) process with autoregression coefficient 0.8, built
-% from normally distributed innovations:
+Construct an AR(1) process with autoregression coefficient 0.8, built
+from normally distributed innovations:
 
-    X = Series(0:20, 0);
-    E = Series(1:20, @randn);
-    X = arma(X, E, [1, -0.8], [ ], 1:20);
-    plot(X);
+```matlab
+X = Series(0:20, 0);
+E = Series(1:20, @randn);
+X = arma(X, E, [1, -0.8], [ ], 1:20);
+plot(X);
 ```
 

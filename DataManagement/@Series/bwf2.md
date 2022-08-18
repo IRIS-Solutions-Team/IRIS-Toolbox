@@ -1,10 +1,10 @@
 ---
-title: function-name
+title: bwf
 ---
 
-# `qualifier.function-name`
+# `bwf`
 
-{== H1 tag line ==}
+{== Swap output arguments of the Butterworth filter with tunes ==}
 
 
 ## Syntax 
@@ -38,7 +38,7 @@ __`zzz=default`__ [ zzz | ___ ]
 
 ## Description 
 
-
+See help on [`tseries/bwf`](tseries/bwf).
 
 ## Examples
 

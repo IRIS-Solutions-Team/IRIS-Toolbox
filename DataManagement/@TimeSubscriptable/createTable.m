@@ -1,8 +1,3 @@
-% createTable  Create table from Series object
-% 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function outputTable = createTable(startDate, data, comments, headers, padDates)
 
 if ndims(data)>2

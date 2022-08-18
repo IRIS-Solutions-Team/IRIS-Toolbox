@@ -44,24 +44,24 @@ vector or matrix are reorganized from last to first.
 
 ```matlab
 x = tseries(qq(2000,1):qq(2000,4),1:4)
-%     x =
-%         tseries object: 4-by-1
-%         2000Q1:  1
-%         2000Q2:  2
-%         2000Q3:  3
-%         2000Q4:  4
-%         ''
-%         user data: empty
-%         export files: [0]
+    x =
+        tseries object: 4-by-1
+        2000Q1:  1
+        2000Q2:  2
+        2000Q3:  3
+        2000Q4:  4
+        ''
+        user data: empty
+        export files: [0]
 >> flipud(x)
-%     ans =
-%         tseries object: 4-by-1
-%         2000Q1:  4
-%         2000Q2:  3
-%         2000Q3:  2
-%         2000Q4:  1
-%         ''
-%         user data: empty
-%         export files: [0]
+    ans =
+        tseries object: 4-by-1
+        2000Q1:  4
+        2000Q2:  3
+        2000Q3:  2
+        2000Q4:  1
+        ''
+        user data: empty
+        export files: [0]
 ```
 

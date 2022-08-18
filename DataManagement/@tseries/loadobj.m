@@ -1,8 +1,3 @@
-% loadobj  Prepare tseries object for loading from disk
-%
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 function this = loadobj(this, varargin)
 
 if isstruct(this)

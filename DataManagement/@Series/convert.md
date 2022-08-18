@@ -118,7 +118,3 @@ circumstances since dimension mismatch may occur.
 
 ## Example
 
-
--[IrisToolbox] for Macroeconomic Modeling
--Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
-

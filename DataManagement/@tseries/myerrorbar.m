@@ -1,13 +1,3 @@
-% myerrorbar  [Not a public function] Add error bars to an existing plot.
-%
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
-
 function H = myerrorbar(axesHandle, X, Y, Lo, Hi, opt, varargin)
 
 if isfield(opt, 'excludefromlegend') && ~isfield(opt, 'ExcludeFromLegend')

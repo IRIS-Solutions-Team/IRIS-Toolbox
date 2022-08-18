@@ -1,8 +1,3 @@
-% Type `web Series/arf.md` for help on this function
-%
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 % >=R2019b
 %(
 function this = arf(this, A, Z, range, opt)

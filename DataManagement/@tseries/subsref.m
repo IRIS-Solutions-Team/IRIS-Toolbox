@@ -1,35 +1,3 @@
-% subsref  Subscripted reference function for time series
-%
-% __Syntax Returning Numeric Array__
-%
-%     ... = X(Dates)
-%     ... = X(Dates, ...)
-%
-%
-% __Syntax Returning tseries Object__
-%
-%     ... = X{Dates}
-%     ... = X{Dates, ...}
-%
-%
-% __Input Arguments__
-%
-% * `X` [ Series ] - Time series object.
-%
-% * `Dates` [ Dater ] - Dates for which the time series
-% observations will be returned, either as a numeric array or as another
-% tseries object.
-%
-%
-% __Description__
-%
-%
-% __Example__
-%
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 function varargout = subsref(this, s, varargin)
 
 if isstruct(s) && isequal(s(1).type, '.')

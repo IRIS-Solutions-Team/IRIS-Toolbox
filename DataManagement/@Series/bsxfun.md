@@ -52,11 +52,11 @@ See help on built-in `bsxfun` for more help.
 
 ## Examples
 
-```matlab
-% Create a multivariate time series and subtract mean from its
-% individual columns.
+Create a multivariate time series and subtract mean from its
+individual columns.
 
-    x = Series(1:10, rand(10, 4));
-    xx = bsxfun(@minus, x, mean(x));
+```matlab
+x = Series(1:10, rand(10, 4));
+xx = bsxfun(@minus, x, mean(x));
 ```
 

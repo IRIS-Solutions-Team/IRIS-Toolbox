@@ -1,8 +1,3 @@
-% binop  Binary operators and functions on TimeSubscriptable objects
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [outputSeries, varargout] = binop(fn, a, b, varargin)
 
 if isa(a, 'TimeSubscriptable') && isa(b, 'TimeSubscriptable')

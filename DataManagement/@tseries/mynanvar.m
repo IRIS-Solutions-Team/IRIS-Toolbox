@@ -1,13 +1,4 @@
 function x = mynanvar(x, flag, dim)
-% mynanvar  Variance implemeted for data with in-sample NaNs
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
 
 ndimsX = ndims(x);
 if dim>ndimsX
@@ -41,3 +32,4 @@ x(index) = x(index) ./ n(index);
 x(~index) = 0;
 
 end
+
