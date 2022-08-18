@@ -1,3 +1,7 @@
+---
+title: startup
+---
+
 # `iris.startup`
 
 {== Start an IrisT session ==}
@@ -54,7 +58,7 @@ __`"noTeX"`__
 __`"noMatlabCheck"`__
 >
 > Do not perform verification of the minimum required Matlab release.
->
+> 
 
 
 ## Examples
@@ -66,7 +70,7 @@ iris.startup
 ```
 
 
-### Startup with no intro message on the screen
+### Startup with no intro message 
 
 ```matlab
 iris.startup("silent")
