@@ -1,13 +1,4 @@
 function outputSeries = cat(n, varargin)
-% cat  Concatenation of Series objects in n-th dimension
-%
-% Backend [IrisToolbox] methodk
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
-%--------------------------------------------------------------------------
 
 if numel(varargin)==1
     % Matlab calls horzcat(x) first for [x; y]

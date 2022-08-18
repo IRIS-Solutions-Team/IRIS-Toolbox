@@ -1,39 +1,4 @@
 function [x,index] = sort(x,crit)
-% sort  Sort tseries columns by specified criterion.
-%
-% Syntax
-% =======
-%
-%     [Y,INDEX] = sort(X,CRIT)
-%
-% Input arguments
-% ================
-%
-% * `X` [ tseries ] - Input tseries object whose columns will be sorted
-% in order determined by the criterion `crit`.
-%
-% * `CRIT` [ 'sumsq' | 'sumabs' | 'max' | 'maxabs' | 'min' | 'minabs' ] -
-% Criterion used to sort the input tseries object columns.
-%
-% Output arguments
-% =================
-%
-% * `Y` [ tseries ] - Output tseries object with columns sorted in order
-% determined by the input criterion, `CRIT`.
-%
-% * `INDEX` [ numeric ] - Vector of indices, `y = x{:,index}`.
-%
-% Description
-% ============
-%
-% Example
-% ========
-%
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
-
-%**************************************************************************
 
 s = size(x.data);
 x.data = x.data(:,:);
@@ -62,3 +27,4 @@ if length(s) > 2
 end
 
 end
+

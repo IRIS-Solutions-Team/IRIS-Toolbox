@@ -67,8 +67,3 @@ __`outputSeries`__ [ Series ]
 
 ## Example
 
-
-
--[IrisToolbox] for Macroeconomic Modeling
--Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
-

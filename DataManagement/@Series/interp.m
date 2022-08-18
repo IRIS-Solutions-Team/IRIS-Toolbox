@@ -1,40 +1,4 @@
 function this = interp(this, varargin)
-% interp  Interpolate missing observations
-%
-% __Syntax__
-%
-%     X = interp(X, Range, ...)
-%
-%
-% __Input Arguments__
-%
-% * `X` [ tseries ] - Input time series.
-%
-% * `Range` [ numeric | char ] - Date range within which any missing
-% observations (`NaN`) will be interpolated using observations available
-% within that range.
-%
-%
-% __Output Arguments__
-%
-% * `X` [ tseries ] - Tseries object with the missing observations
-% interpolated.
-%
-%
-% __Options__
-%
-% * `Method='Cubic'` [ char | `'Cubic'` ] - Any valid method accepted by the
-% built-in `interp1( )` function.
-%
-%
-% __Description__
-%
-%
-% __Example__
-%
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 if isempty(this)
     return
@@ -73,3 +37,4 @@ end
 this = fill(this, data, actualStart);
 
 end%
+

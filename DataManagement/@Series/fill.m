@@ -1,8 +1,3 @@
-% fill  Safely replace time series data 
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function this = fill(this, newData, newStart, newComment, newUserData)
 
 oldClass = class(this.Data);
