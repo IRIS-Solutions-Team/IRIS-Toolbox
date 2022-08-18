@@ -1,4 +1,6 @@
-# system
+---
+title: system
+---
 
 {== System matrices for the unsolved model ==}
 

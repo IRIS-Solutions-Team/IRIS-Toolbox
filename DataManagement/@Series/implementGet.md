@@ -1,8 +1,7 @@
+
 ---
 title: implementGet
 ---
-
-# `implementGet`
 
 {== Implement get method for tseries objects ==}
 

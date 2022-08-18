@@ -1,10 +1,9 @@
+
 ---
 title: assigned
 ---
 
-# `assigned`
-
-{== Get vector of assigned quantities and vector of assigned std deviations and cross-correlations. ==}
+{== Get vector of assigned quantities and vector of assigned std deviations and cross-correlations ==}
 
 
 ## Syntax 

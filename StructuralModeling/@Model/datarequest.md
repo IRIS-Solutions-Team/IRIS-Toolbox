@@ -1,8 +1,7 @@
+
 ---
 title: datarequest
 ---
-
-# `datarequest`
 
 {== Request model specific data from database ==}
 

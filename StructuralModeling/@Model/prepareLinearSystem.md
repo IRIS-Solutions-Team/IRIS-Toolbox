@@ -1,8 +1,7 @@
----
-title: prepareLinearSystem
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== H1 tag line ==}
 

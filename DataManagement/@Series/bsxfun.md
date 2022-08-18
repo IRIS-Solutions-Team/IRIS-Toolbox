@@ -1,10 +1,9 @@
+
 ---
 title: bsxfun
 ---
 
-# `bsxfun`
-
-{== Implement bsxfun for tseries class. ==}
+{== Implement bsxfun for tseries class ==}
 
 
 ## Syntax 

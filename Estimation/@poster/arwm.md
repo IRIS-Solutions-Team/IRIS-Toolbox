@@ -2,8 +2,6 @@
 title: arwm
 ---
 
-# `arwm`
-
 {== Adaptive random-walk Metropolis posterior simulator ==}
 
 

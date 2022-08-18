@@ -1,8 +1,7 @@
+
 ---
 title: databank.toTable
 ---
-
-# `databank.toTable`
 
 {== Retrieve time series from databank and arrange them in a table ==}
 

@@ -1,8 +1,7 @@
+
 ---
 title: checkStructureAfter
 ---
-
-# `checkStructureAfter`
 
 {== Check model structure after loss function.==}
 

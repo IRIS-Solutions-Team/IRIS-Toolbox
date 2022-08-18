@@ -1,10 +1,9 @@
+
 ---
 title: acf
 ---
 
-# `acf`
-
-{== Autocovariance and autocorrelation function for model variables==}
+{== Autocovariance and autocorrelation function for model variables ==}
 
 
 ## Syntax 

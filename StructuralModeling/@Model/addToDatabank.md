@@ -1,8 +1,7 @@
----
-title: addToDatabank
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Add model quantities to existing or new databank ==}
 

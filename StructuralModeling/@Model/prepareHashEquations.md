@@ -1,8 +1,7 @@
----
-title: prepareHashEquations
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Prepare anonymous functions for evaluating hash equations ==}
 

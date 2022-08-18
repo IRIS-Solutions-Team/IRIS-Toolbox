@@ -1,23 +1,22 @@
----
-title: fromIMF.data
----
 
-# databank.fromIMF.data
+---
+title: databank.fromIMF.data
+---
 
 {== Download databank of time series from IMF Data Portal ==}
 
 
-# Syntax for plain vanilla requests (most datasets)
+## Syntax for plain vanilla requests (most datasets)
 
     [outputDb, info] = databank.fromIMF.data(dataset, frequency, areas, indicators, ...)
 
 
-# Syntax for requests that need more dimensions
+## Syntax for requests that need more dimensions
 
     [outputDb, info] = databank.fromIMF.data(dataset, frequency, areas, dimensions, ...)
 
 
-# Input Arguments
+## Input Arguments
 
 __`dataset`__ [ string ]
 >
@@ -57,7 +56,7 @@ __`counter=empty`__ [ string ]
 > empty string or empty array means all counterparty reference areas.
 >
 
-# Output Arguments
+## Output arguments
 
 __`outputDb`__ [ struct | Dictionary ]
 >
@@ -73,7 +72,7 @@ __`info`__ [ struct ]
 > * `.Response` - a JSON struct with the IMF data portal response
 >
 
-# Options for HTTP Request
+## Options for HTTP Request
 
 
 __`EndDate=-Inf`__ [ Dater ]
@@ -109,7 +108,7 @@ __`WhenEmpty="warning"`__ [ `"error"` | `"warning"` ]
 >   without interrupting the execution of the function.
 >
 
-# Options for output databank
+## Options for output databank
 
 __`AddToDatabank=struct()`__ [ struct | Dictionary ]
 >
@@ -122,7 +121,7 @@ __`ApplyMultiplier=true`__ [ `true` | `false` ]
 > basic units (e.g. from millions).
 >
 
-# Options for output time series names
+## Options for output time series names
 
 __`NameFunc=[]`__ [ empty | function_handle ]
 >
@@ -149,7 +148,7 @@ __`Separator="_"`__ [ string ]
 > the output time series names.
 >
 
-# Description
+## Description
 
 This function returns a databank of time series from the IMF data portal.
 To create a data request, you need to know the IMF dataset code, the
@@ -166,9 +165,9 @@ specific requests. Sometimes, the function needs to be called several times
 before an actual data response is returned.
 
 
-# Examples
+## Examples
 
-## Plain vanilla three-dimensional requests
+### Plain vanilla three-dimensional requests
 
 Most of the IMF datasets need three dimensions to be specified: 
 
@@ -199,7 +198,7 @@ time series:
 d = databank.fromIMF.data("IFS", Frequency.QUARTERLY, "US", [], "includeArea", false)
 ```
 
-## Multi-dimensional requests
+### Multi-dimensional requests
 
 Some IMF datasets require some extra dimensions; for instance, the IMF
 Directions of Trade Statistics dataset (code `DOT`) needs an extra

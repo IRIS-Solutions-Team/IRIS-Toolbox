@@ -1,10 +1,9 @@
+
 ---
 title: cutoff
 ---
 
-# `cutoff`
-
-{== Approximate cut-off frequency and periodicity from sample frequency response function. ==}
+{== Approximate cut-off frequency and periodicity from sample frequency response function ==}
 
 
 ## Syntax 

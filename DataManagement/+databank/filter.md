@@ -1,8 +1,7 @@
----
-title: filter
----
 
-# `filter`
+---
+title: databank.filter
+---
 
 {== Filter databank fields by their names, classes or user filter ==}
 

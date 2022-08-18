@@ -1,4 +1,6 @@
-# `ExcelSheet.fromFile`
+---
+title: ExcelSheet.fromFile
+---
 
 {== Construct a new ExcelSheet object from an XLS file ==}
 

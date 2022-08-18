@@ -1,8 +1,7 @@
----
-title: systemMatrices
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== First-order system matrices describing the unsolved model ==}
 

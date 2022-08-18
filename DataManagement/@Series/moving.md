@@ -1,4 +1,6 @@
-# moving  
+---
+title: moving  
+---
 
 {== Apply function to moving window of time series observations ==}
 

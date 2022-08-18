@@ -1,8 +1,7 @@
----
-title: getIdInitialConditions
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Get positions and shifts of initial conditions ==}
 

@@ -1,8 +1,7 @@
----
-title: addplainparam
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Add plain parameters to databank ==}
 

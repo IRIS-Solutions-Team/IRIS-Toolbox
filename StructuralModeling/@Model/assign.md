@@ -1,8 +1,7 @@
+
 ---
 title: assign
 ---
-
-# `assign`
 
 {== Assign parameters, steady states, std deviations or cross-correlations ==}
 

@@ -2,9 +2,7 @@
 title: simulateSelective
 ---
 
-# `qualifier.function-name`
-
-{== Run equations-selective simulation on one time frame==}
+{== Run equations-selective simulation on one time frame ==}
 
 
 ## Syntax 

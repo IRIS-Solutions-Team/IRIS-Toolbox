@@ -1,8 +1,7 @@
+
 ---
 title: hpdi
 ---
-
-# `hpdi`
 
 {== Highest probability density interval ==}
 

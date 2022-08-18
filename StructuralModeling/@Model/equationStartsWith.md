@@ -1,10 +1,9 @@
+
 ---
-title: equationStartsWith
+title: qualifier.function-name
 ---
 
-# `qualifier.function-name`
-
-{== Look up equations starting with pattern==}
+{== Look up equations starting with pattern ==}
 
 
 ## Syntax 

@@ -1,15 +1,14 @@
+
 ---
-title: toSeries
+title: databank.toSeries
 ---
 
-# `toSeries`
-
-{== Consolidate multiple time series into one time series ==}
+{== Consolidate multiple time series into one time series object ==}
 
 
 ## Syntax 
 
-    outputSeries = toSeries(inputDb, ~names, ~dates, ~column)
+    outputSeries = databank.toSeries(inputDb, ~names, ~dates, ~column)
 
 
 ## Input arguments 

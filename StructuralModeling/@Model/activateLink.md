@@ -1,8 +1,7 @@
----
-title: activateLink
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== (Re)Activate dynamic links for selected LHS names ==}
 

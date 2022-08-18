@@ -1,8 +1,7 @@
+
 ---
 title: textual.nonunique
 ---
-
-# `textual.nonunique`
 
 {== Find nonunique entries in a list ==}
 

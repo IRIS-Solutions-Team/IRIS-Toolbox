@@ -1,4 +1,6 @@
-# rmse
+---
+title: rmse
+---
 
 {== Calculate RMSE for given observations and predictions ==}
 

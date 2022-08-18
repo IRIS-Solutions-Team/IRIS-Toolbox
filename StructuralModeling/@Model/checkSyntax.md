@@ -1,10 +1,9 @@
+
 ---
 title: checkSyntax
 ---
 
-# `checkSyntax`
-
-{== Check equations for syntax errors==}
+{== Check equations for syntax errors ==}
 
 
 ## Syntax 

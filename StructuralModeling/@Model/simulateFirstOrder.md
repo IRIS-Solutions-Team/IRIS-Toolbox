@@ -1,8 +1,7 @@
----
-title: simulateFirstOrder
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Run first-order simulation on one time frame ==}
 

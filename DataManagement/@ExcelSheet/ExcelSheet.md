@@ -2,8 +2,6 @@
 title: ExcelSheet
 ---
 
-# `ExcelSheet`
-
 {== Excel spreadsheet data and time series extractor ==}
 
 

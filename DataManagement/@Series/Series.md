@@ -1,4 +1,6 @@
-# Series
+---
+title: Series
+---
 
 {== Create new time series object ==}
 

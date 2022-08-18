@@ -1,8 +1,7 @@
----
-title: "&"
----
 
-# `&` 
+---
+title: &
+--- 
 
 {== Reference to the steady-state level of a variable ==}
 

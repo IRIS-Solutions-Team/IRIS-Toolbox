@@ -1,10 +1,9 @@
+
 ---
-title: simulateStacked
+title: qualifier.function-name
 ---
 
-# `qualifier.function-name`
-
-{== Run stacked-time simulation on one time frame==}
+{== Run stacked-time simulation on one time frame ==}
 
 
 ## Syntax 

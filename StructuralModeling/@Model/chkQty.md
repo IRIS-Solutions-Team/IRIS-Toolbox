@@ -2,9 +2,7 @@
 title: chkQty
 ---
 
-# `chkQty`
-
-{== Check quantities for missing or log-zero values==}
+{== Check quantities for missing or log-zero values ==}
 
 
 ## Syntax 

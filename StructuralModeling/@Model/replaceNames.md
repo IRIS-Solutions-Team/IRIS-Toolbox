@@ -1,4 +1,6 @@
-# replaceNames
+---
+title: replaceNames
+---
 
 {== Replace model names with some other names ==}
 

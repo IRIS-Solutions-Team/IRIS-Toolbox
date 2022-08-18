@@ -1,8 +1,7 @@
+
 ---
 title: deactivateLink
 ---
-
-# `deactivateLink`
 
 {== Deactivate dynamic links for selected LHS names ==}
 

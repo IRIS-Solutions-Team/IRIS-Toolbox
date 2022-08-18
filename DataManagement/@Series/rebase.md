@@ -1,4 +1,6 @@
-# rebase
+---
+title: rebase
+---
 
 {== Rebase times series data to specified period ==}
 

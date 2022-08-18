@@ -1,4 +1,6 @@
-# analyticGradients
+---
+title: analyticGradients
+---
 
 {== Evaluate analytic/symbolic derivatives of model equations ==}
 

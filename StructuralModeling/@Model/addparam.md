@@ -1,8 +1,7 @@
----
-title: addparam
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Add model parameters to databank ==}
 

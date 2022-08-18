@@ -1,8 +1,7 @@
+
 ---
 title: diffloglik
 ---
-
-# `diffloglik`
 
 {== Approximate gradient and hessian of log-likelihood function ==}
 

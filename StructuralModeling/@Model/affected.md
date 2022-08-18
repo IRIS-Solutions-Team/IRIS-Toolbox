@@ -2,8 +2,6 @@
 title: affected
 ---
 
-# `qualifier.function-name`
-
 {== Equations affected by parameter changes since last system ==}
 
 

@@ -4,7 +4,7 @@
 
 ## Categorical list of functions 
 
-### Constructing model objects 
+### Constructing plan objects 
 
 Function | Description 
 ---|---

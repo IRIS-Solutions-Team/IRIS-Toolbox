@@ -1,8 +1,7 @@
+
 ---
 title: diffFirstOrder
 ---
-
-# `diffFirstOrder`
 
 {== Calculate first-order derivatives of equations ==}
 

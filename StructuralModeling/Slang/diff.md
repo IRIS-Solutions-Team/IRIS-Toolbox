@@ -1,4 +1,6 @@
-# diff
+---
+title: diff
+---
 
 {== First difference pseudofunction ==}
 

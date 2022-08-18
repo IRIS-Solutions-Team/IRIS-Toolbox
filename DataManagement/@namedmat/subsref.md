@@ -1,8 +1,7 @@
+
 ---
 title: subsref
 ---
-
-# `subsref`
 
 {== Subscripted reference to NamedMatrix objects ==}
 

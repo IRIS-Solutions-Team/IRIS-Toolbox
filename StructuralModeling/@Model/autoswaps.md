@@ -1,8 +1,7 @@
+
 ---
 title: autoswaps
 ---
-
-# `autoswaps`
 
 {== Inquire about or assign autoswap pairs ==}
 

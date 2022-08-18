@@ -1,4 +1,6 @@
-# databank.eval
+---
+title: databank.eval
+---
 
 {== Evaluate an expression within a databank context ==}
 
@@ -10,7 +12,7 @@
     outputDb = databank.eval(inputDb, expressionsDb)
 
 
-## Input Arguments
+## Input arguments
 
 
 __`inputDb`__ [ struct | Dictionary ]
@@ -38,7 +40,7 @@ __`expressionsDb`__ [ struct | Dictionary ]
 >
 
 
-# Output Arguments
+## Output arguments
 
 
 __`output`__ [ * ]
@@ -60,8 +62,7 @@ __`outputDb`__ [ struct | Dictionary ]
 > 
 
 
-# Description
-
+## Description
 
 Any names, including dot-separated composite names, not immediately
 followed by an opening parenthesis (round bracket), are treated as

@@ -1,8 +1,7 @@
+
 ---
 title: implementPlot
 ---
-
-# `implementPlot`
 
 {== Plot functions for Series objects ==}
 

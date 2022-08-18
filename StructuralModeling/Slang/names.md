@@ -1,3 +1,4 @@
+
 # Declaring model names
 
 {== Declare names of model quantities: Variables, shocks, parameters ==}

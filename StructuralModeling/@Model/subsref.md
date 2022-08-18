@@ -1,8 +1,7 @@
----
-title: subsref
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Subscripted reference for model objects ==}
 

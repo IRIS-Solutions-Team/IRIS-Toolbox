@@ -1,8 +1,7 @@
----
-title: plot
----
 
-# `plot`
+---
+title: databank.plot
+---
 
 {== Quickly create a databank chartpack ==}
 

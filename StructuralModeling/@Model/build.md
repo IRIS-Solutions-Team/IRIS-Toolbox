@@ -1,8 +1,7 @@
+
 ---
 title: build
 ---
-
-# `build`
 
 {== Build or rebuild model object ==}
 

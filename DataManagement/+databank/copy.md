@@ -1,4 +1,7 @@
-# databank.copy
+
+---
+title: databank.copy
+---
 
 {== Copy fields of source databank to target databank ==}
 

@@ -1,11 +1,10 @@
+
 ---
 title: changeLogStatus
 ---
 
-# `changeLogStatus`
 
-
-{==  Change log status of model variables==}
+{==  Change log status of model variables ==}
 
 ## Syntax 
 

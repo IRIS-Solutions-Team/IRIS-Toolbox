@@ -1,8 +1,7 @@
+
 ---
 title: assignNameValue
 ---
-
-# `assignNameValue`
 
 {== Assign name-value pairs to model object ==}
 

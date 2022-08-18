@@ -1,4 +1,6 @@
-# dd  |  Dater.dd  |  dater.dd
+---
+title: Dater.dd
+---
 
 {== Create daily dates ==}
 

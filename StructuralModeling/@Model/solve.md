@@ -1,14 +1,16 @@
-# solve 
+---
+title: solve 
+---
 
 {== Calculate first-order solution matrices ==}
 
 
-# Syntax 
+## Syntax 
 
     m = solve(model, ...)
 
 
-# Input arguments 
+## Input arguments 
 
 __`model`__ [ Model ]
 > 
@@ -16,7 +18,7 @@ __`model`__ [ Model ]
 > must also have the steady state values assigned for all variables.
 > 
 
-# Output arguments 
+## Output arguments 
 
 __`model`__ [ Model ]
 > 

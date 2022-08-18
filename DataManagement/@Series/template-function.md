@@ -2,8 +2,6 @@
 title: function-name
 ---
 
-# `qualifier.function-name`
-
 {== H1 tag line ==}
 
 

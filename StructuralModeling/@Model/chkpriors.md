@@ -1,8 +1,7 @@
+
 ---
 title: chkpriors
 ---
-
-# `chkpriors`
 
 {== Check compliance of initial conditions with priors and bounds.==}
 

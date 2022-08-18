@@ -2,8 +2,6 @@
 title: changeLinearStatus
 ---
 
-# `qualifier.function-name`
-
 {== H1 tag line ==}
 
 

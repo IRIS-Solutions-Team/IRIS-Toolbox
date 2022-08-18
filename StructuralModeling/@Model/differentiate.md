@@ -1,8 +1,7 @@
+
 ---
 title: differentiate
 ---
-
-# `differentiate`
 
 {== Evaluate analytical gradients of model equations ==}
 

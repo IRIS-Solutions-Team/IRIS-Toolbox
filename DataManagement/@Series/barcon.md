@@ -1,8 +1,7 @@
+
 ---
 title: barcon
 ---
-
-# `barcon`
 
 {== Contribution bar graph for time series (Series) objects ==}
 

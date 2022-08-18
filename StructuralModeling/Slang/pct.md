@@ -1,4 +1,6 @@
-# pct
+---
+title: pct
+---
 
 {== Percent change ==}
 

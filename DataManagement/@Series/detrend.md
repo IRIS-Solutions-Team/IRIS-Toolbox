@@ -1,10 +1,9 @@
+
 ---
 title: detrend
 ---
 
-# `detrend`
-
-{== Remove linear time trend from time series data. ==}
+{== Remove linear time trend from time series data ==}
 
 
 ## Syntax 

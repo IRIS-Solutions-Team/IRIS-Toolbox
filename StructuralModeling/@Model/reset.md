@@ -1,4 +1,6 @@
-# reset
+---
+title: reset
+---
 
 {== Reset specific values within model object ==}
 

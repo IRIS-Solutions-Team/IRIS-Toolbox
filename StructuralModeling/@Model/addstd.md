@@ -1,8 +1,7 @@
----
-title: addstd
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Add model std deviations to databank ==}
 

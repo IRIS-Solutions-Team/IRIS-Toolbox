@@ -1,8 +1,7 @@
----
-title: apply
----
 
-# `databank.apply`
+---
+title: databank.apply
+---
 
 {== Apply function to a selection of databank fields ==}
 

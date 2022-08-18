@@ -1,8 +1,7 @@
----
-title: getInxOfInitInPresample
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Get index of initial conditions in presample data ==}
 

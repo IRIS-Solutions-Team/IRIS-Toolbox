@@ -1,10 +1,9 @@
+
 ---
 title: doubledata
 ---
 
-# `doubledata`
-
-{== Convert tseries observations to double precision. ==}
+{== Convert tseries observations to double precision ==}
 
 
 ## Syntax 

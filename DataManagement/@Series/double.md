@@ -1,10 +1,9 @@
+
 ---
 title: double
 ---
 
-# `double`
-
-{== Return tseries observations as double-precision numeric array. ==}
+{== Return tseries observations as double-precision numeric array ==}
 
 
 ## Syntax 

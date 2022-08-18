@@ -1,8 +1,7 @@
----
-title: implementGet
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Implement get method for Model objects ==}
 

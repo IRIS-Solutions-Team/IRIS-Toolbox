@@ -1,8 +1,7 @@
+
 ---
 title: expsm
 ---
-
-# `expsm`
 
 {== Exponential smoothing ==}
 

@@ -1,4 +1,6 @@
-# databank.toArray
+---
+title: databank.toArray
+---
 
 {== Create numeric array from time series data ==}
 

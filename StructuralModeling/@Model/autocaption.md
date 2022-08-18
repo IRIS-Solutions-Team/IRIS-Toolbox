@@ -1,10 +1,9 @@
+
 ---
-title: autocaption
+title: qualifier.function-name
 ---
 
-# `qualifier.function-name`
-
-{== Create captions for reporting model variables or parameters. ==}
+{== Create captions for reporting model variables or parameters ==}
 
 
 ## Syntax 

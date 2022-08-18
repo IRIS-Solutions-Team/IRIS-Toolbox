@@ -1,10 +1,9 @@
+
 ---
-title: simulateFrames
+title: qualifier.function-name
 ---
 
-# `qualifier.function-name`
-
-{== Implement simulation by frames==}
+{== Implement simulation by frames ==}
 
 
 ## Syntax 

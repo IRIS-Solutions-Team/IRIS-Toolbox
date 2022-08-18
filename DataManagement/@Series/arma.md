@@ -1,10 +1,9 @@
+
 ---
 title: arma
 ---
 
-# `arma`
-
-{== Apply ARMA model to input series. ==}
+{== Apply ARMA model to input series ==}
 
 
 ## Syntax 

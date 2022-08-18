@@ -1,10 +1,9 @@
+
 ---
 title: byAttributes
 ---
 
-# `byAttributes`
-
-{== Look up model quantities and equation by attributes==}
+{== Look up model quantities and equation by attributes ==}
 
 
 ## Syntax

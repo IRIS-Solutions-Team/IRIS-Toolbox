@@ -1,10 +1,9 @@
+
 ---
 title: select
 ---
 
-# `select`
-
-{== Select submatrix by referring to row names and column names. ==}
+{== Select submatrix by referring to row names and column names ==}
 
 
 ## Syntax 

@@ -1,4 +1,6 @@
-# estimate  
+---
+title: estimate  
+---
 
 {== Estimate Dynamo using static principal components ==}
 

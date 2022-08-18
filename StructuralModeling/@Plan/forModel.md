@@ -1,4 +1,6 @@
-# Plan.forModel 
+---
+title: Plan.forModel 
+---
 
 {== Create simulation Plan for Model object ==}
 

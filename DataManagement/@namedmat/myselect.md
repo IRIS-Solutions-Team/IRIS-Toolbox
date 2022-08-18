@@ -2,9 +2,7 @@
 title: myselect
 ---
 
-# `myselect`
-
-{== Implementation of namedmat selection. ==}
+{== Implementation of namedmat selection ==}
 
 
 ## Syntax 

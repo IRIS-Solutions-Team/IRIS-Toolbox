@@ -1,8 +1,7 @@
----
-title: postprocessKalmanOutput
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.==}
 

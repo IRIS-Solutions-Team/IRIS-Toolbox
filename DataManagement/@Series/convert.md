@@ -1,4 +1,6 @@
-# convert
+---
+title: convert
+---
 
 {== Convert time series to another frequency ==}
 

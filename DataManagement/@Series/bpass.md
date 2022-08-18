@@ -2,8 +2,6 @@
 title: bpass
 ---
 
-# `bpass`
-
 {== Band-pass filter ==}
 
 

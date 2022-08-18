@@ -1,10 +1,9 @@
+
 ---
 title: errorbar
 ---
 
-# `errorbar`
-
-{== Line plot with error bars. ==}
+{== Line plot with error bars ==}
 
 
 ## Syntax 

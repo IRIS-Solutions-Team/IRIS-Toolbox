@@ -1,8 +1,7 @@
+
 ---
 title: checkZeroLog
 ---
-
-# `checkZeroLog`
 
 {== Check steady levels and growth rates of log-variables for non-positive numbers ==}
 

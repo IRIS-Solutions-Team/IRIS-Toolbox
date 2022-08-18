@@ -1,8 +1,7 @@
+
 ---
 title: blazer
 ---
-
-# `blazer`
 
 {== Inquire about or assign autoswap pairs ==}
 

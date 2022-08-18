@@ -2,9 +2,7 @@
 title: createAffected
 ---
 
-# `createAffected`
-
-{== Create logical array of equations affected by changes in parameters and steady-state values==}
+{== Create logical array of equations affected by changes in parameters and steady-state values ==}
 
 
 ## Syntax 

@@ -1,8 +1,7 @@
+
 ---
 title: bn
 ---
-
-# `bn`
 
 {== Beveridge-Nelson trends ==}
 

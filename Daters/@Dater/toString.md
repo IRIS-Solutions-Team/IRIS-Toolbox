@@ -1,6 +1,8 @@
-# toString
+---
+title: toString
+---
 
-{== Print IrisT dates as formatted strings ==}
+{== Print date as formatted string ==}
 
 
 ## Syntax

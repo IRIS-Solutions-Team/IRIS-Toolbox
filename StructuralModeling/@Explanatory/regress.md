@@ -1,4 +1,6 @@
-# regress  
+---
+title: regress  
+---
 
 {== Estimate parameters and residual models in Explanatory object ==}
 

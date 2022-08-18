@@ -2,9 +2,7 @@
 title: prepareRectangular
 ---
 
-# `qualifier.function-name`
-
-{== Populate @Rectangular properties derived from @Model==}
+{== Populate @Rectangular properties derived from @Model ==}
 
 
 ## Syntax 

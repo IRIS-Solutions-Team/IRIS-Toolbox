@@ -1,8 +1,7 @@
+
 ---
 title: createHashEquations
 ---
-
-# `createHashEquations`
 
 {== H1 tag line ==}
 

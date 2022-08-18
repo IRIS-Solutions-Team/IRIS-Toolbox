@@ -1,4 +1,6 @@
-# kalmanFilter
+---
+title: kalmanFilter
+---
 
 {== Kalman smoother and estimator of out-of-likelihood parameters ==}
 

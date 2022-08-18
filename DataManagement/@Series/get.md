@@ -1,8 +1,7 @@
+
 ---
 title: get
 ---
-
-# `get`
 
 {== Query tseries object property ==}
 

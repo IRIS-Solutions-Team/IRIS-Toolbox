@@ -1,8 +1,7 @@
+
 ---
 title: createTrendArray
 ---
-
-# `createTrendArray`
 
 {== Create row-oriented array with steady path for each variable ==}
 

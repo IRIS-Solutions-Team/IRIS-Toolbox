@@ -1,8 +1,7 @@
----
-title: retrieve
----
 
-# `retrieve`
+---
+title: databank.retrieve
+---
 
 {== Retrieve selected fields from databank ==}
 

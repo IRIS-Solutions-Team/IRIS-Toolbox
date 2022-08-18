@@ -1,10 +1,9 @@
+
 ---
-title: checkInitialConditions
+title: qualifier.function-name
 ---
 
-# `qualifier.function-name`
-
-{== Look up initial conditions missing from input databank==}
+{== Look up initial conditions missing from input databank ==}
 
 
 ## Syntax 

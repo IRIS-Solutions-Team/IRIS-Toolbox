@@ -1,4 +1,6 @@
-# movsum
+---
+title: movprod
+---
 
 {== Moving product pseudofunction ==}
 

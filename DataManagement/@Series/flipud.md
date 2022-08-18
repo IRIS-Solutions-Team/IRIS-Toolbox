@@ -1,10 +1,9 @@
+
 ---
 title: flipud
 ---
 
-# `flipud`
-
-{== Flip time series data up to down. ==}
+{== Flip time series data up to down ==}
 
 
 ## Syntax 

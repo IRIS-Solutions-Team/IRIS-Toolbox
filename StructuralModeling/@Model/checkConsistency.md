@@ -2,8 +2,6 @@
 title: checkConsistency
 ---
 
-# `checkConsistency`
-
 {== Check internal consistency of object properties ==}
 
 

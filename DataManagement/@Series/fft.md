@@ -1,10 +1,9 @@
+
 ---
 title: fft
 ---
 
-# `fft`
-
-{== Discrete Fourier transform of tseries object. ==}
+{== Discrete Fourier transform of tseries object ==}
 
 
 ## Syntax 

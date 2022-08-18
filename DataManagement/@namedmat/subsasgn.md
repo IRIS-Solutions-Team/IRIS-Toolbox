@@ -2,9 +2,7 @@
 title: subsasgn
 ---
 
-# `subsasgn`
-
-{== [Not a public function] Subscripted assignment for namedmat objects. ==}
+{== [Not a public function] Subscripted assignment for namedmat objects ==}
 
 
 ## Syntax 

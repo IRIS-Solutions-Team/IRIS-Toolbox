@@ -1,4 +1,6 @@
-# table  
+---
+title: table  
+---
 
 {== Create table based on selected indicators from Model object ==}
 

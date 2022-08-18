@@ -1,4 +1,6 @@
-# solutionMatrices
+---
+title: solutionMatrices
+---
 
 {== Access first-order state-space (solution) matrices ==}
 

@@ -1,8 +1,7 @@
+
 ---
 title: checkStructureBefore
 ---
-
-# `checkStructureBefore`
 
 {== Check model structure before loss function.==}
 

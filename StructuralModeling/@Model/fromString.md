@@ -1,4 +1,6 @@
-# Model.fromString
+---
+title: Model.fromString
+---
 
 {== Create new Model object from string array ==}
 

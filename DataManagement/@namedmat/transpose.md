@@ -1,10 +1,9 @@
+
 ---
 title: transpose
 ---
 
-# `transpose`
-
-{== Transpose each page of matrix with names rows and columns. ==}
+{== Transpose each page of matrix with names rows and columns ==}
 
 
 ## Syntax 

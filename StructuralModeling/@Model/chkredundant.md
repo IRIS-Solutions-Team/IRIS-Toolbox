@@ -1,8 +1,7 @@
+
 ---
 title: chkredundant
 ---
-
-# `chkredundant`
 
 {== Check for redundant shocks and/or parameters.==}
 

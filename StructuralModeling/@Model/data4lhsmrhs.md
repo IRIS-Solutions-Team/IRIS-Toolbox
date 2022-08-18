@@ -2,8 +2,6 @@
 title: data4lhsmrhs
 ---
 
-# `data4lhsmrhs`
-
 {== Prepare model data array ==}
 
 

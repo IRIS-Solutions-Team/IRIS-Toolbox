@@ -1,14 +1,17 @@
-# databank.withEmpty
+
+---
+title: databank.withEmpty
+---
 
 {== Create databank with empty time series ==}
 
 
-# Syntax
+## Syntax
 
     outputDb = databank.withEmpty(names, ...)
 
 
-# Input Arguments
+## Input Arguments
 
 __`names` [ char | cellstr | string ] 
 > 
@@ -16,7 +19,7 @@ __`names` [ char | cellstr | string ]
 > new empty time series will be created.
 > 
 
-# Output Arguments
+## Output Arguments
 
 __`outputDb` [ struct ] 
 > 
@@ -24,16 +27,16 @@ __`outputDb` [ struct ]
 > created or added.
 > 
 
-# Options
+## Options
 
 __`AddToDatabank=struct()`__ [ struct ] 
 > 
 > Add the new empty time series to this databank.
 > 
 
-# Description
+## Description
 
 
-# Example
+## Example
 
 

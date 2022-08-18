@@ -1,4 +1,6 @@
-# movavg
+---
+title: movavg
+---
 
 {== Moving average pseudofunction ==}
 

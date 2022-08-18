@@ -1,10 +1,9 @@
+
 ---
-title: addcorr
+title: qualifier.function-name
 ---
 
-# `qualifier.function-name`
-
-{== Add model cross-correlations to databank==}
+{== Add model cross-correlations to databank ==}
 
 ## Syntax
 >

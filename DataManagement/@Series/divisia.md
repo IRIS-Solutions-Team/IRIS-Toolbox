@@ -1,10 +1,9 @@
+
 ---
 title: divisia
 ---
 
-# `divisia`
-
-{== Discrete Divisia index. ==}
+{== Discrete Divisia index ==}
 
 
 ## Syntax 

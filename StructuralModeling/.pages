@@ -1,5 +1,6 @@
 title: Structural Modeling
 nav:
-    - index.md
+    - "index.md"
     - "@Model"
+    - "@Plan"
 

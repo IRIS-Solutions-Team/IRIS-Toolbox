@@ -1,10 +1,9 @@
+
 ---
 title: beenSolved
 ---
 
-# `beenSolved`
-
-{== True if first-order solution has been successfully calculated==}
+{== True if first-order solution has been successfully calculated ==}
 
 
 ## Syntax

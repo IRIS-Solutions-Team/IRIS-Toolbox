@@ -1,8 +1,7 @@
+
 ---
 title: eig
 ---
-
-# `eig`
 
 {== Eigenvalues of model transition matrix ==}
 

@@ -1,4 +1,6 @@
-# stats  
+---
+title: stats  
+---
 
 {== Evaluate selected statistics of ARWM chain ==}
 

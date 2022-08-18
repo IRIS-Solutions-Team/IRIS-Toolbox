@@ -1,4 +1,6 @@
-# ww  |  Dater.ww  |  dater.ww
+---
+title: Dater.ww
+---
 
 {== Create weekly dates ==}
 

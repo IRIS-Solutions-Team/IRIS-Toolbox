@@ -2,8 +2,6 @@
 title: forceString
 ---
 
-# `forceString`
-
 {== Convert char to string in ExcelSheet buffer ==}
 
 

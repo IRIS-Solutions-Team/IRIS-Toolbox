@@ -1,10 +1,9 @@
+
 ---
 title: colnames
 ---
 
-# `colnames`
-
-{== Names of columns in namedmat object. ==}
+{== Names of columns in namedmat object ==}
 
 
 ## Syntax 

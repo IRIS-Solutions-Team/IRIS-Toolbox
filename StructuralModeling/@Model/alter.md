@@ -1,8 +1,7 @@
----
-title: alter
----
 
-# `qualifier.function-name`
+---
+title: qualifier.function-name
+---
 
 {== Expand or reduce number of parameter variants in model object ==}
 

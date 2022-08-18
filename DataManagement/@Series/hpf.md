@@ -1,4 +1,6 @@
-# hpf  
+---
+title: hpf  
+---
 
 {== Hodrick-Prescott filter with conditioning information ==}
 

@@ -1,3 +1,4 @@
+
 % >=R2019b
 %(
 function [outputSeries, names, dates] = toSeries(inputDb, names, dates, columns)

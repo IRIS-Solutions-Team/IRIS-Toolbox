@@ -1,10 +1,9 @@
+
 ---
-title: varyParams
+title: qualifier.function-name
 ---
 
-# `qualifier.function-name`
-
-{== Create array of user-supplied time-varying values for regular parameters==}
+{== Create array of user-supplied time-varying values for regular parameters ==}
 
 
 ## Syntax 

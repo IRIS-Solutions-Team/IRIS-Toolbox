@@ -2,9 +2,7 @@
 title: spy
 ---
 
-# `spy`
-
-{== Visualise time series observations that pass a test ==}
+{== Visualise time series observations based on a true-false test ==}
 
 
 ## Syntax 
