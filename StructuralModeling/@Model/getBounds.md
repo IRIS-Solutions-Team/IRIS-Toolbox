@@ -1,14 +1,13 @@
-
 ---
-title: qualifier.function-name
+title: getBounds
 ---
 
-{== H1 tag line ==}
+{== Get lower and upper bounds imposed on model quantities ==}
 
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = getBounds(___)
 
 
 ## Input arguments 

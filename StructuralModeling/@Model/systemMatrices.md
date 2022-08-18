@@ -1,6 +1,5 @@
-
 ---
-title: qualifier.function-name
+title: systemMatrices
 ---
 
 {== First-order system matrices describing the unsolved model ==}
@@ -8,7 +7,7 @@ title: qualifier.function-name
 
 ## Syntax
 
-    output = system(model)
+    output = systemMatrices(model)
 
 
 ## Input Arguments

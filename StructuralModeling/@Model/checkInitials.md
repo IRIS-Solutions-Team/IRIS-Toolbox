@@ -1,14 +1,13 @@
-
 ---
-title: qualifier.function-name
+title: checkInitials
 ---
 
-{== H1 tag line ==}
+{== Check if databank contains all initial conditions for simulation ==}
 
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = checkInitials(___)
 
 
 ## Input arguments 

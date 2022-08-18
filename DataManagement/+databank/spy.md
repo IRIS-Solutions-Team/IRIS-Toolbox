@@ -1,4 +1,3 @@
-
 ---
 title: databank.spy
 ---
@@ -8,7 +7,7 @@ title: databank.spy
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = databank.spy(___)
 
 
 ## Input arguments 

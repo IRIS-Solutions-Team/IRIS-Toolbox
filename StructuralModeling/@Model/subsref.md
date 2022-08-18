@@ -1,6 +1,5 @@
-
 ---
-title: qualifier.function-name
+title: subsref
 ---
 
 {== Subscripted reference for model objects ==}

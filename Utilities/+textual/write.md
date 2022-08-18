@@ -1,5 +1,3 @@
-
-
 ---
 title: textual.write
 ---

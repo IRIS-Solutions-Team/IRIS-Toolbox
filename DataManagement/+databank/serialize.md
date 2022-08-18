@@ -1,4 +1,3 @@
-
 ---
 title: databank.serialize
 ---

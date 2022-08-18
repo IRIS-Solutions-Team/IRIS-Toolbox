@@ -1,14 +1,13 @@
-
 ---
-title: qualifier.function-name
+title: changeGrowthStatus
 ---
 
-{== H1 tag line ==}
+{== Change growth status for selected variables ==}
 
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = changeGrowthStatus(___)
 
 
 ## Input arguments 

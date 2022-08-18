@@ -1,14 +1,13 @@
-
 ---
-title: qualifier.function-name
+title: resetBounds
 ---
 
-{== H1 tag line ==}
+{== Reset lower and upper bounds imposed on model quantities ==}
 
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = resetBounds(___)
 
 
 ## Input arguments 

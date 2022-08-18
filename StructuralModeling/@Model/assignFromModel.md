@@ -1,14 +1,13 @@
-
 ---
-title: qualifier.function-name
+title: assignFromModel
 ---
 
-{== H1 tag line ==}
+{== Assign model quantities from another model ==}
 
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = assignFromModel(___)
 
 
 ## Input arguments 

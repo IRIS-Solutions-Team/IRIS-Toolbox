@@ -1,9 +1,8 @@
-
 ---
 title: blazer
 ---
 
-{== Inquire about or assign autoswap pairs ==}
+{== Analyze sequential block structure of steady equations ==}
 
 
 ## Syntax
@@ -22,22 +21,22 @@ title: blazer
 
  `nameBlk` [ cell ]
 >
->     Lists of variables that each individual block will be solved for; the
->     `nameBlk{i}.Level` element is a string array with the names of the
->     variables whose levels will be solved for in the i-th block; the
->     `nameBlk{i}.Change` element is a string array with the names of the
->     variables whose changes (differences or rates of growth) will be solved
->     for in the i-th block.
+> Lists of variables that each individual block will be solved for; the
+> `nameBlk{i}.Level` element is a string array with the names of the
+> variables whose levels will be solved for in the i-th block; the
+> `nameBlk{i}.Change` element is a string array with the names of the
+> variables whose changes (differences or rates of growth) will be solved
+> for in the i-th block.
 >
 >
  `eqtnBlk` [ cell ] 
 >
->     List of equations in each block.
+> List of equations in each block.
 >
 >
  `blkType` [ solver.block.Type ] 
 >
->     Type of each block: `SOLVE` or `ASSIGN`.
+> Type of each block: `SOLVE` or `ASSIGN`.
 >
 >
  `blazerObj` [ blazer.Blazer ]

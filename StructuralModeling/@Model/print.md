@@ -1,14 +1,13 @@
-
 ---
-title: qualifier.function-name
+title: print
 ---
 
-{== H1 tag line ==}
+{== Print model object ==}
 
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = print(___)
 
 
 ## Input arguments 

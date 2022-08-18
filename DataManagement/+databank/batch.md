@@ -1,4 +1,3 @@
-
 ---
 title: databank.batch
 ---
@@ -8,7 +7,7 @@ title: databank.batch
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = databank.batch(___)
 
 
 ## Input arguments 

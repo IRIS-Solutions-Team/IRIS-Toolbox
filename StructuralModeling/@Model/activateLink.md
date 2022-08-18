@@ -1,9 +1,8 @@
-
 ---
-title: qualifier.function-name
+title: activateLink
 ---
 
-{== (Re)Activate dynamic links for selected LHS names ==}
+{== Activate dynamic links for selected LHS names ==}
 
 
 ## Syntax 

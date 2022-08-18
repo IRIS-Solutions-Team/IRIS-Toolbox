@@ -2,12 +2,12 @@
 title: changeLinearStatus
 ---
 
-{== H1 tag line ==}
+{== Change linear status of model ==}
 
 
 ## Syntax 
 
-    [___] = qualifier.function-name(___)
+    [___] = changeLinearStatus(___)
 
 
 ## Input arguments 
