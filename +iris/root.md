@@ -1,5 +1,5 @@
 ---
-title: root
+title: iris.root
 ---
 
 {== Current IrisT root folder ==}

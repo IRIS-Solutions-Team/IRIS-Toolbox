@@ -1,5 +1,5 @@
 ---
-title: startup
+title: iris.startup
 ---
 
 {== Start an IrisT session ==}
