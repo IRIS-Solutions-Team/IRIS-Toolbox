@@ -112,6 +112,7 @@ TimeSubscriptable ...
         varargout = retrieveColumns(varargin)
         varargout = setData(varargin)
         varargout = shift(varargin)
+        varargout = trend(varargin)
 
 
         function value = get.Self(this)
