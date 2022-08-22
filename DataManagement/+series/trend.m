@@ -1,4 +1,3 @@
-function [T, TT, TS, season] = trend(x, varargin)
 % trend  Deterministic trend in numeric array
 %
 % Backend IRIS function
@@ -7,9 +6,11 @@ function [T, TT, TS, season] = trend(x, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
+function [T, TT, TS, season] = trend(x, varargin)
+
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('numeric.trend');
+    parser = extend.InputParser();
     parser.addRequired('InputData', @isnumeric);
     parser.addParameter('Break', [ ], @(x) isempty(x) || (isnumeric(x) && all(x==round(x)) && all(x>=1)) || validate.date(x));
     parser.addParameter('Season', [ ], @(x) isempty(x) || isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>0));
@@ -20,8 +21,6 @@ if isempty(parser)
 end
 parser.parse(x, varargin{:});
 opt = parser.Options;
-
-%--------------------------------------------------------------------------
 
 numPeriods = size(x, 1);
 [breakPoints, season] = preprocessOptions(opt, numPeriods);

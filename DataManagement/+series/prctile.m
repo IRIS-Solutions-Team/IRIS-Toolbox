@@ -1,4 +1,3 @@
-function y = prctile(x, percents, varargin)
 % prctile  Percentiles from numeric data
 %
 % Backend IRIS function
@@ -7,9 +6,11 @@ function y = prctile(x, percents, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
+function y = prctile(x, percents, varargin)
+
 persistent inputParser
 if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.prctile');
+    inputParser = extend.InputParser();
     inputParser.addRequired('inputData', @isnumeric);
     inputParser.addRequired('percents', @(x) isnumeric(x) && all(x>=0) && all(x<=100));
     inputParser.addOptional('dim', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
@@ -24,7 +25,7 @@ numPercents = length(percents);
 
 % Put the requested dimension first, and unfold x(:, :)
 x0 = x;
-[x, redimStruct] = numeric.redim(x, dim);
+[x, redimStruct] = series.redim(x, dim);
 
 [numRows, numColumns] = size(x);
 y = nan(numPercents, numColumns);
@@ -51,7 +52,7 @@ if ~isempty(x)
     end
 end
 
-y = numeric.redim(y, dim, redimStruct);
+y = series.redim(y, dim, redimStruct);
 
 return
 

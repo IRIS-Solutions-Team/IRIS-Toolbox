@@ -1,4 +1,3 @@
-function this = destdize(this, meanX, stdX)
 % destdize  Destandardize time series by multiplying it by std dev and adding mean
 %
 % __Syntax__
@@ -26,19 +25,16 @@ function this = destdize(this, meanX, stdX)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
+function this = destdize(this, meanX, stdX)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('TimeSubscriptable.destdize');
-    inputParser.addRequired('inputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    inputParser.addRequired('meanX', @isnumeric);
-    inputParser.addRequired('stdX', @isnumeric);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('inputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    ip.addRequired('meanX', @isnumeric);
+    ip.addRequired('stdX', @isnumeric);
 end
-inputParser.parse(this, meanX, stdX);
-
-%--------------------------------------------------------------------------
+ip.parse(this, meanX, stdX);
 
 sizeData = size(this.Data);
 sizeMean = size(meanX);
@@ -57,7 +53,7 @@ assert( ...
     'Dimension mismatch between input time series and std deviation.' ...
 )
 
-this = unop(@numeric.destdize, this, 0, meanX, stdX);
+this = unop(@series.destdize, this, 0, meanX, stdX);
 
 end%
 

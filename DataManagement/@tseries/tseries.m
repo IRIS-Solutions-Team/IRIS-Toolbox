@@ -161,7 +161,6 @@ classdef ( ...
 
 
     methods
-        varargout = arma(varargin)
         varargout = band(varargin)
 
         function varargout = bands(varargin)
@@ -170,25 +169,10 @@ classdef ( ...
 
         varargout = barcon(varargin)
 
-        varargout = bpass(varargin)
-        varargout = bsxfun(varargin)
-        varargout = chowlin(varargin)
         varargout = conbar(varargin)
-        varargout = detrend(varargin)
         varargout = double(varargin)
         varargout = doubledata(varargin)
         varargout = errorbar(varargin)
-
-
-        varargout = expsm(varargin)
-        function varargout = expsmooth(varargin)
-            [varargout{1:nargout}] = expsm(varargin{:});
-        end%
-
-
-        varargout = fft(varargin)
-        varargout = find(varargin)
-        varargout = flipud(varargin)
 
 
         % Backward compatibility
@@ -198,9 +182,6 @@ classdef ( ...
 
 
         varargout = get(varargin)
-        varargout = hpdi(varargin)
-        varargout = infoset2line(varargin)
-        varargout = interp(varargin)
         varargout = isempty(varargin)
         varargout = isequal(varargin)
         varargout = isscalar(varargin)
@@ -254,8 +235,6 @@ classdef ( ...
     methods (Hidden)
         varargout = max(varargin)
         varargout = min(varargin)
-        varargout = df(varargin)
-        varargout = divisia(varargin)
 
 
         function disp(varargin)

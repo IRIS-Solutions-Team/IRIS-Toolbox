@@ -1,15 +1,11 @@
-function int = hpdi(x, coverage, varargin)
 % hpdi  Highest probability density interval
 %
-% Backend IRIS function.
-% No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team & Troy Matheson
+function int = hpdi(x, coverage, varargin)
 
 persistent inputParser
 if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.prctile');
+    inputParser = extend.InputParser();
     inputParser.addRequired('InputData', @isnumeric);
     inputParser.addRequired('Coverage', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=100);
     inputParser.addOptional('Dim', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
@@ -20,7 +16,7 @@ dim = inputParser.Results.Dim;
 %--------------------------------------------------------------------------
 
 % Put requested dimenstion first, unfold array into 2D
-[x, redimStruct] = numeric.redim(x, dim);
+[x, redimStruct] = series.redim(x, dim);
 
 % Proceed columwise
 [numRows, numColumns] = size(x);
@@ -41,6 +37,7 @@ for i = 1 : numColumns
 end
 
 % Rearrange results back to conform with input array dimensions
-int = numeric.redim(int, dim, redimStruct);
+int = series.redim(int, dim, redimStruct);
 
-end
+end%
+

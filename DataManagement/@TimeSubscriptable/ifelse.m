@@ -1,4 +1,3 @@
-function this = ifelse(this, test, ifTrue, varargin)
 % ifelse  Replace time series values based on a test condition
 %
 % __Syntax__
@@ -37,6 +36,8 @@ function this = ifelse(this, test, ifTrue, varargin)
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
+
+function this = ifelse(this, test, ifTrue, varargin)
 
 persistent inputParser
 if isempty(inputParser)
@@ -81,4 +82,5 @@ end
 this.Data = data;
 this = trim(this);
 
-end
+end%
+

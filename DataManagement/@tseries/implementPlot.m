@@ -125,7 +125,7 @@ set(axesHandle, 'xTickMode', 'auto', 'xTickLabelMode', 'auto');
 
 isBar = isequal(plotFunc, @bar) ...
      || isequal(plotFunc, @barcon) ...
-     || isequal(plotFunc, @numeric.barcon);
+     || isequal(plotFunc, @series.barcon);
 
 if isequal(opt.XLimMargins, true) || (isequal(opt.XLimMargins, @auto) && isBar)
     setappdata(axesHandle, 'IRIS_XLIM_ADJUST', true);

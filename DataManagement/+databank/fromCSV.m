@@ -185,7 +185,7 @@ if numel(commentRow)<numel(nameRow)
 end
 
 % Apply user selection, white out all names that user did not select
-if ~all(strcmpi(opt.Select, '__all__'))
+if ~(isequal(opt.Select, @all) || isequal(opt.Select, '__all__'))
     if ischar(opt.Select)
         opt.Select = regexp(opt.Select, '\w+', 'match');
     end

@@ -1,4 +1,3 @@
-function int = hpdi(this, coverage, varargin)
 % hpdi  Highest probability density interval
 %
 % __Syntax__
@@ -32,8 +31,7 @@ function int = hpdi(this, coverage, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
+function int = hpdi(this, coverage, varargin)
 
 persistent inputParser
 if isempty(inputParser)
@@ -45,8 +43,7 @@ end
 inputParser.parse(this, coverage, varargin{:});
 dim = inputParser.Results.Dim;
 
-%--------------------------------------------------------------------------
+int = unop(@series.hpdi, this, dim, coverage, dim);
 
-int = unop(@numeric.hpdi, this, dim, coverage, dim);
+end%
 
-end

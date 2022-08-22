@@ -44,9 +44,6 @@
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
-
 function [this, tt, ts] = trend(this, varargin)
 
 if ~isempty(varargin) && validate.range(varargin{1})
@@ -58,15 +55,13 @@ end
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('tseries.trend');
+    pp = extend.InputParser();
     pp.KeepUnmatched = true;
     pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     pp.addOptional('Range', Inf, @validate.range);
 end
 parse(pp, this, varargin{:});
 trendOpt = pp.UnmatchedInCell;
-
-%--------------------------------------------------------------------------
 
 [data, ~, ~, range] = getDataFromTo(this, range);
 
@@ -80,7 +75,7 @@ sizeData = size(data);
 ndimsData = ndims(data);
 data = data(:, :);
 
-[data, tt, ts] = numeric.trend(data, 'StartDate', startDate, trendOpt{:});
+[data, tt, ts] = series.trend(data, 'StartDate', startDate, trendOpt{:});
 
 if ndimsData>2
     data = reshape(data, sizeData);
@@ -98,4 +93,5 @@ if nargout>1
     end
 end
 
-end
+end%
+

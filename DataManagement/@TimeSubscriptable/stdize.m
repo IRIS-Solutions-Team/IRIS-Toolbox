@@ -52,7 +52,7 @@ normalize = parser.Results.normalize;
 
 %--------------------------------------------------------------------------
 
-[this.Data, meanX, stdX] = numeric.stdize(this.Data, normalize);
+[this.Data, meanX, stdX] = series.stdize(this.Data, normalize);
 
 end%
 

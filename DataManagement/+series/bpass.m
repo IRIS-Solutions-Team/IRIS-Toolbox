@@ -1,4 +1,3 @@
-function [x, trend] = bpass(x, band, varargin)
 % bpass  General band-pass filter for numeric data
 %
 % Backend IRIS function
@@ -7,21 +6,23 @@ function [x, trend] = bpass(x, band, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.bpass');
-    inputParser.addRequired('InputData', @isnumeric);
-    inputParser.addRequired('Band', @(x) isnumeric(x) && numel(x)==2);
-    inputParser.addParameter('AddTrend', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Method', 'cf', @(x) (ischar(x) || isa(x, 'string'))  && any(strcmpi(x, {'cf', 'hwfsf'})));
-    inputParser.addParameter('UnitRoot', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Window', 'hamming', @(x) (ischar(x) || isa(x, 'string')) && any(strcmpi(x, {'hamming', 'hanning', 'none'})));
-    inputParser.addParameter('StartDate', [ ], @(x) isempty(x) || (validate.date(x) && isscalar(x)));
-    inputParser.addParameter('Detrend', true, @(x) isequal(x, true) || isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
+function [x, trend] = bpass(x, band, varargin)
+
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('InputData', @isnumeric);
+    ip.addRequired('Band', @(x) isnumeric(x) && numel(x)==2);
+    ip.addParameter('AddTrend', true, @(x) isequal(x, true) || isequal(x, false));
+    ip.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
+    ip.addParameter('Method', 'cf', @(x) (ischar(x) || isa(x, 'string'))  && any(strcmpi(x, {'cf', 'hwfsf'})));
+    ip.addParameter('UnitRoot', true, @(x) isequal(x, true) || isequal(x, false));
+    ip.addParameter('Window', 'hamming', @(x) (ischar(x) || isa(x, 'string')) && any(strcmpi(x, {'hamming', 'hanning', 'none'})));
+    ip.addParameter('StartDate', [ ], @(x) isempty(x) || (validate.date(x) && isscalar(x)));
+    ip.addParameter('Detrend', true, @(x) isequal(x, true) || isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
 end
-inputParser.parse(x, band, varargin{:});
-opt = inputParser.Options;
+ip.parse(x, band, varargin{:});
+opt = ip.Options;
 
 %--------------------------------------------------------------------------
 
@@ -59,7 +60,7 @@ if detrend
     if ~isempty(opt.StartDate)
         opt.Detrend = [ {'StartDate', opt.StartDate}, opt.Detrend ];
     end
-    [trend, tt, ts, season] = numeric.trend(x, opt.Detrend{:});
+    [trend, tt, ts, season] = series.trend(x, opt.Detrend{:});
 else
     trend = zeros(size(x));
     tt = zeros(size(x));
@@ -136,7 +137,7 @@ return
         % Christiano-Fitzgerald filter
         if any(numObs~=numObs0)
             % Re-calculate C-F projection matrix only if needed
-            A = numeric.christianofitzgerald( ...
+            A = series.christianofitzgerald( ...
                 numObs, lowPer, highPer, double(opt.UnitRoot), 0 ...
             );
         end

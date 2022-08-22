@@ -78,6 +78,25 @@ TimeSubscriptable ...
 
 
     methods
+        varargout = arma(varargin)
+        varargout = bpass(varargin)
+        varargout = bsxfun(varargin)
+        varargout = chowlin(varargin)
+        varargout = detrend(varargin)
+        varargout = df(varargin)
+        varargout = expsm(varargin)
+
+        function varargout = expsmooth(varargin)
+            [varargout{1:nargout}] = expsm(varargin{:});
+        end%
+
+        varargout = fft(varargin)
+        varargout = find(varargin)
+        varargout = flipud(varargin)
+
+        varargout = hpdi(varargin)
+        varargout = infoset2line(varargin)
+        varargout = interp(varargin)
         varargout = clip(varargin)
         varargout = comment(varargin)
         varargout = getData(varargin)
@@ -963,7 +982,7 @@ TimeSubscriptable ...
             if nargin<3
                 dim = 2;
             end
-            x = unop(@numeric.prctile, x, dim, p, dim);
+            x = unop(@series.prctile, x, dim, p, dim);
         end%
 
 

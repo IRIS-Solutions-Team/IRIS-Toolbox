@@ -83,7 +83,7 @@ numQuantiles = numel(tau);
 
 % Put dim-th dimension first, and unfold higher dimensions into 2D (so that x
 % is a 2D matrix)
-[x, redimStruct] = numeric.redim(x, dim);
+[x, redimStruct] = series.redim(x, dim);
 numRows = size(x, 1);
 
 [xs, pos] = sort(x, 1);
@@ -104,6 +104,6 @@ else
     end
 end
 
-q = numeric.redim(q, dim, redimStruct);
+q = series.redim(q, dim, redimStruct);
 
 end

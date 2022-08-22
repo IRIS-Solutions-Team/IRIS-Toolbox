@@ -42,20 +42,20 @@ transform = opt.Transform;
 %
 % Resolve source names
 %
-sourceNames = hereResolveSourceNames();
+sourceNames = here_resolveSourceNames();
 
 %
 % Resolve target databank
 %
-targetDb = hereResolveTargetDb();
+targetDb = here_resolveTargetDb();
 
 %
 % Resolve target names
 %
-targetNames = hereResolveTargetNames();
+targetNames = here_resolveTargetNames();
 
 numSourceNames = numel(sourceNames);
-hereCheckDimensions();
+here_checkDimensions();
 
 inxSuccess = true(1, numSourceNames);
 for i = 1 : numSourceNames
@@ -76,14 +76,14 @@ for i = 1 : numSourceNames
 end
 
 if any(~inxSuccess)
-    hereThrowTransformFailed();
+    here_throwTransformFailed();
 end
 
 return
 
-    function sourceNames = hereResolveSourceNames()
+    function sourceNames = here_resolveSourceNames()
         %(
-        if isequal(opt.SourceNames, @all) || all(strcmpi(opt.SourceNames, '__all__'))
+        if isequal(opt.SourceNames, @all) || isequal(opt.SourceNames, "__all__")
             sourceNames = databank.fieldNames(sourceDb);
         elseif isa(opt.SourceNames, 'function_handle') 
             func = opt.SourceNames;
@@ -101,7 +101,7 @@ return
     end%
 
 
-    function targetDb = hereResolveTargetDb()
+    function targetDb = here_resolveTargetDb()
         targetDb = opt.TargetDb;
         if isequal(targetDb, @empty)
             if isa(sourceDb, 'Dictionary')
@@ -113,7 +113,7 @@ return
     end%
 
 
-    function targetNames = hereResolveTargetNames()
+    function targetNames = here_resolveTargetNames()
         %(
         if isequal(opt.TargetNames, @auto) || all(strcmpi(opt.TargetNames, '__auto__'))
             targetNames = sourceNames;
@@ -129,7 +129,7 @@ return
     end%
 
 
-    function hereCheckDimensions()
+    function here_checkDimensions()
         numTargetNames = numel(targetNames);
         if numSourceNames~=numTargetNames
             thisError = [
@@ -142,7 +142,7 @@ return
     end%
 
 
-    function hereThrowTransformFailed()
+    function here_throwTransformFailed()
         thisError = [
             "Databank:TransformFailed"
             "Transformation function failed when applied to this source databank field: %s"

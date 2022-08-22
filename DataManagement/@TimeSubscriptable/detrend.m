@@ -1,4 +1,3 @@
-function this = detrend(this, varargin)
 % detrend  Remove linear time trend from time series data.
 %
 % Syntax
@@ -39,11 +38,9 @@ function this = detrend(this, varargin)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
+function this = detrend(this, varargin)
 
-%--------------------------------------------------------------------------
+    this = this - trend(this, varargin{:});
 
-this = this - trend(this, varargin{:});
+end%
 
-end

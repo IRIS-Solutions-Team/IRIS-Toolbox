@@ -1,4 +1,3 @@
-function d = redate(d, oldDate, newDate)
 % redate  Redate all time series objects in a database
 %
 % __Syntax__
@@ -34,6 +33,8 @@ function d = redate(d, oldDate, newDate)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
+function d = redate(d, oldDate, newDate)
+
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.redate');
@@ -41,20 +42,19 @@ if isempty(parser)
 end
 parser.parse(d);
 
-%--------------------------------------------------------------------------
-
 list = fieldnames(d);
-inxOfSeries = structfun(@(x) isa(x, 'TimeSubscriptable'), d);
-inxOfStructs = structfun(@isstruct, d);
+freq = dater.getFrequency(oldDate);
+inxSeries = structfun(@(x) isa(x, 'TimeSubscriptable') && getFrequency(x)==freq, d);
+inxStructs = structfun(@isstruct, d);
 
 % Cycle over all TimeSubscriptable objects
-for i = find(inxOfSeries(:)')
+for i = reshape(find(inxSeries), 1, [])
    d.(list{i}) = redate(d.(list{i}), oldDate, newDate);
 end
 
-% Call recusively redate(~) on sub-databases
-for i = find(inxOfStructs(:)')
-   d.(list{i}) = dbredate(d.(list{i}), oldDate, newDate);
+% Call recusively redate(~) on nested databases
+for i = reshape(find(inxStruct), 1, [])
+   d.(list{i}) = databank.redate(d.(list{i}), oldDate, newDate);
 end
 
 end%

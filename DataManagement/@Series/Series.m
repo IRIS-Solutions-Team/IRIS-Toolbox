@@ -111,7 +111,7 @@ classdef ( ...
 
 
         function varargout = barcon(varargin)
-            [varargout{1:nargout}] = Series.implementPlot(@numeric.barcon, varargin{:});
+            [varargout{1:nargout}] = Series.implementPlot(@series.barcon, varargin{:});
         end%
 
 

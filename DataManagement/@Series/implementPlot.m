@@ -100,7 +100,7 @@ return
             return
         end
         if isequal(opt.XLimMargins, @auto) ...
-           && ~(isequal(plotFunc, @bar) || isequal(plotFunc, @numeric.barcon))
+           && ~(isequal(plotFunc, @bar) || isequal(plotFunc, @series.barcon))
            return
         end
         xLimMarginsOld = getappdata(axesHandle, 'IRIS_XLimMargins');

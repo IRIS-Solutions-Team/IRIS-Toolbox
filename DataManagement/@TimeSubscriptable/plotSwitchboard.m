@@ -20,10 +20,10 @@ switch plotFuncString
     case {'histogram', 'scatter', 'binscatter', 'bubblechart'}
         isTimeAxis = false;
         plotHandle = local_implementNoTimeAxis(axesHandle, plotFunc, yData, plotSpec, varargin);
-    case {'barcon', 'numeric.barcon'}
+    case {'barcon', 'series.barcon'}
         % Do not pass plotSpec but do pass user options
         isTimeAxis = true;
-        plotHandle = numeric.barcon(axesHandle, xData, yData, varargin{:});
+        plotHandle = series.barcon(axesHandle, xData, yData, varargin{:});
     case {'bands'}
         isTimeAxis = true;
         plotHandle = implementBands( );

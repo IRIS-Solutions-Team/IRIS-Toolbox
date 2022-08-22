@@ -63,7 +63,7 @@ function [this, trend] = bpass(this, band, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('tseries.bpass');
+    pp = extend.InputParser();
     pp.KeepUnmatched = true;
     pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     pp.addRequired('Band', @(x) isnumeric(x) && numel(x)==2);
@@ -84,7 +84,7 @@ end
 [inputData, startDate] = getDataFromTo(this, range);
 
 % Run the band-pass filter
-[filterData, trendData] = numeric.bpass( ...
+[filterData, trendData] = series.bpass( ...
     inputData, band, ...
     'StartDate', startDate, ...
     unmatched{:} ...

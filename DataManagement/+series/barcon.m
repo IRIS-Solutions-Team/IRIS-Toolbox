@@ -1,15 +1,11 @@
-function handlePositive = barcon(handleAxes, time, data, varargin)
 % barcon  Contribution bar chart for numeric data
 %
-% Backend IRIS function
-% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
+function handlePositive = barcon(handleAxes, time, data, varargin)
 
 persistent inputParser
 if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.barcon');
+    inputParser = extend.InputParser('series.barcon');
     inputParser.KeepUnmatched = true;
     inputParser.addRequired('Axes', @(x) isscalar(x) && isgraphics(x, 'Axes'));
     inputParser.addRequired('Time', @(x) isnumeric(x) || isa(x, 'datetime'));
