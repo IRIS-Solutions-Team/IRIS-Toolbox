@@ -142,4 +142,6 @@ classdef ( ...
             this = persistentSeries;
         end%
     end
+
 end
+

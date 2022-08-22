@@ -7,18 +7,18 @@ TimeSubscriptable ...
     < iris.mixin.GetterSetter ...
     & iris.mixin.UserDataContainer
 
-    properties 
+    properties
         % Start  Date of first observation in time series
         Start (1, 1) = NaN
 
         % Comment  User comments attached to individual columns of time series
-        Comment string = "" 
+        Comment string = ""
 
         % Data  Numeric or logical array of time series data
-        Data = double.empty(0, 1) 
+        Data = double.empty(0, 1)
 
         % MissingValue  Representation of missing value
-        MissingValue = NaN 
+        MissingValue = NaN
 
         % Headers  Short titles for individual columns
         Headers = []
@@ -68,51 +68,86 @@ TimeSubscriptable ...
         RangeAsDateWrapper
 
         % MissingTest  Test for missing values
-        MissingTest 
+        MissingTest
     end
 
 
     properties (Constant)
-        StartDateWhenEmpty = NaN 
+        StartDateWhenEmpty = NaN
     end
 
 
     methods
+
         varargout = arma(varargin)
         varargout = bpass(varargin)
         varargout = bsxfun(varargin)
         varargout = chowlin(varargin)
+        varargout = clip(varargin)
+        varargout = comment(varargin)
         varargout = detrend(varargin)
         varargout = df(varargin)
         varargout = expsm(varargin)
+        varargout = fft(varargin)
+        varargout = find(varargin)
+        varargout = flipud(varargin)
+        varargout = get(varargin)
+        varargout = getData(varargin)
+        varargout = getDataFromMultiple(varargin)
+        varargout = getDataFromTo(varargin)
+        varargout = getDataNoFrills(varargin)
+        varargout = hpdi(varargin)
+        varargout = ifelse(varargin)
+        varargout = infoset2line(varargin)
+        varargout = init(varargin)
+        varargout = interp(varargin)
+        varargout = isempty(varargin)
+        varargout = isscalar(varargin)
+        varargout = length(varargin)
+        varargout = max(varargin)
+        varargout = maxabs(varargin)
+        varargout = min(varargin)
+        varargout = ndims(varargin)
+        varargout = pctmean(varargin)
+        varargout = permute(varargin)
+        varargout = plotpred(varargin)
+        varargout = redate(varargin)
+        varargout = removeWeekends(varargin)
+        varargout = repmat(varargin)
+        varargout = resetComment(varargin)
+        varargout = reshape(varargin)
+        varargout = resolveRange(varargin)
+        varargout = retrieveColumns(varargin)
+        varargout = select(varargin)
+        varargout = setData(varargin)
+        varargout = shift(varargin)
+        varargout = sort(varargin)
+        varargout = subsasgn(varargin)
+        varargout = subsref(varargin)
+        varargout = trend(varargin)
+        varargout = windex(varargin)
+        varargout = wmean(varargin)
+        varargout = x12(varargin)
+
+
+        function date = startdate(this)
+            date = Dater(this.Start);
+        end%
+
+
+        function date = enddate(this)
+            date = Dater(this.End);
+        end%
+
+
+        function varargout = x13(varargin)
+            [varargout{1:nargout}] = x12(varargin{:});
+        end%
+
 
         function varargout = expsmooth(varargin)
             [varargout{1:nargout}] = expsm(varargin{:});
         end%
-
-        varargout = fft(varargin)
-        varargout = find(varargin)
-        varargout = flipud(varargin)
-
-        varargout = hpdi(varargin)
-        varargout = infoset2line(varargin)
-        varargout = interp(varargin)
-        varargout = clip(varargin)
-        varargout = comment(varargin)
-        varargout = getData(varargin)
-        varargout = getDataFromTo(varargin)
-        varargout = getDataNoFrills(varargin)
-        varargout = getDataFromMultiple(varargin)
-        varargout = ifelse(varargin)
-        varargout = init(varargin)
-        varargout = redate(varargin)
-        varargout = removeWeekends(varargin)
-        varargout = resetComment(varargin)
-        varargout = resolveRange(varargin)
-        varargout = retrieveColumns(varargin)
-        varargout = setData(varargin)
-        varargout = shift(varargin)
-        varargout = trend(varargin)
 
 
         function value = get.Self(this)
@@ -123,12 +158,12 @@ TimeSubscriptable ...
         function value = getStartAsNumeric(this)
             value = double(this.Start);
         end%
-         
+
 
         function value = getStart(this)
             value = Dater(this.Start);
         end%
-         
+
 
         function value = get.StartAsDateWrapper(this)
             value = getStart(this);
@@ -138,12 +173,12 @@ TimeSubscriptable ...
         function value = get.StartAsNumeric(this)
             value = getStartAsNumeric(this);
         end%
-         
+
 
         function value = get.StartAsDate(this)
             value = getStart(this);
         end%
-         
+
 
         function value = getBalancedStartAsNumeric(this)
             if isnan(this.Start) || isempty(this.Data)
@@ -170,8 +205,8 @@ TimeSubscriptable ...
         function value = get.BalancedStart(this)
             value = getBalancedStart(this);
         end%:w
-                
-        
+
+
         function value = getEnd(this)
             value = Dater(getEndAsNumeric(this));
         end%
@@ -195,12 +230,12 @@ TimeSubscriptable ...
         function value = get.EndAsNumeric(this)
             value = getEndAsNumeric(this);
         end%
-         
+
 
         function value = get.EndAsDate(this)
             value = getEnd(this);
         end%
-         
+
 
         function value = get.EndAsDateWrapper(this)
             value = getEnd(this);
@@ -232,7 +267,7 @@ TimeSubscriptable ...
         function value = get.BalancedEnd(this)
             value = getBalancedEnd(this);
         end%
-         
+
 
         function value = get.Frequency(this)
             value = Frequency.fromNumeric(this.FrequencyAsNumeric); %#ok<PROP>
@@ -320,14 +355,18 @@ TimeSubscriptable ...
 
 
     methods (Hidden)
+        varargout = checkConsistency(varargin)
         varargout = trim(varargin)
+        varargout = rearrangePred(varargin)
+        varargout = implementConstructor(varargin)
+        varargout = implementGet(varargin)
     end
 
 
     methods
         function missingTest = get.MissingTest(this)
             missingValue = this.MissingValue;
-            if isequaln(missingValue, NaN) 
+            if isequaln(missingValue, NaN)
                 if isreal(this.Data)
                     missingTest = @isnan;
                 else
@@ -390,10 +429,10 @@ TimeSubscriptable ...
             this = this@iris.mixin.UserDataContainer( );
 
             % Cast struct as TimeSubscriptable
-            if nargin==1 && isstruct(varargin{1}) 
+            if nargin==1 && isstruct(varargin{1})
                 this = struct2obj(this, varargin{1});
                 if ~checkConsistency(this)
-                    exception.error([ 
+                    exception.error([
                         "TimeSubscriptable:InvalidStructPassedToConstructor"
                         "The struct passed into the TimeSubscriptable constructor "
                         "is invalid or its fields are not consistent. "
@@ -437,11 +476,6 @@ TimeSubscriptable ...
 
             this = implementConstructor(this, dates, values, comment, userData, skipInputParser);
         end%
-    end
-
-
-    methods (Hidden)
-        varargout = implementConstructor(varargin)
     end
 
 
@@ -597,13 +631,6 @@ TimeSubscriptable ...
         varargout = vertcat(varargin)
         varargout = yearly(varargin)
     end
-
-
-
-    methods (Hidden)
-        varargout = checkConsistency(varargin)
-    end
-
 
 
 

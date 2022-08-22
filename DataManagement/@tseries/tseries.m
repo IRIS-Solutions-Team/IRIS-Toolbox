@@ -182,21 +182,10 @@ classdef ( ...
 
 
         varargout = get(varargin)
-        varargout = isempty(varargin)
-        varargout = isequal(varargin)
-        varargout = isscalar(varargin)
-        varargout = length(varargin)
-        varargout = ndims(varargin)
-        varargout = pctmean(varargin)
-        varargout = permute(varargin)
         varargout = plot(varargin)
         varargout = plotcmp(varargin)
         varargout = plotyy(varargin)
-        varargout = plotpred(varargin)
         varargout = range(varargin)
-        varargout = repmat(varargin)
-        varargout = reshape(varargin)
-        varargout = select(varargin)
 
 
         function obj = Series(this)
@@ -207,34 +196,11 @@ classdef ( ...
 
         varargout = single(varargin)
         varargout = singledata(varargin)
-        varargout = sort(varargin)
         varargout = spy(varargin)
-        varargout = subsasgn(varargin)
-        varargout = subsref(varargin)
-        varargout = trend(varargin)
-        varargout = wmean(varargin)
-        varargout = x12(varargin)
-
-
-        function date = startdate(this)
-            date = Dater(this.Start);
-        end%
-
-
-        function date = enddate(this)
-            date = Dater(this.End);
-        end%
-
-
-        function varargout = x13(varargin)
-            [varargout{1:nargout}] = x12(varargin{:});
-        end%
     end
 
 
     methods (Hidden)
-        varargout = max(varargin)
-        varargout = min(varargin)
 
 
         function disp(varargin)
@@ -244,8 +210,6 @@ classdef ( ...
 
 
         varargout = implementGet(varargin)
-        varargout = maxabs(varargin)
-        varargout = rearrangePred(varargin)
     end
 
 
