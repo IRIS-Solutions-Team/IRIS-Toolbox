@@ -5,8 +5,8 @@ classdef Behavior
         DotReferenceFunc = [ ]
         LogStyleInSolutionVectors (1, 1) string = string(model.Quantity.LOG_PREFIX)
     end
-    
-    
+
+
     methods
         varargout = implementGet(varargin)
         varargout = implementSet(varargin)
@@ -82,3 +82,4 @@ classdef Behavior
         end%
     end
 end
+

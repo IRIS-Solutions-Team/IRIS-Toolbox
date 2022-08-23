@@ -15,7 +15,7 @@ classdef D2S
         SystemXbMinus = double.empty(1, 0)
         SystemXb = double.empty(1, 0)
         SystemE = double.empty(1, 0)
-    
+
         IndexOfXfToRemove = logical.empty(1, 0)
         IdentityA = double.empty(0, 0)
         IdentityB = double.empty(0, 0)

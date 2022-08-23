@@ -13,7 +13,7 @@ classdef Equation < model.Insertable
 
     properties (Constant, Hidden)
         PREAMBLE = '@(x,t,L)'
-        TYPE_ORDER = int8([1, 2, 3, 4, 5, 6]);
+        TYPE_ORDER = int8([1, 2, 3, 4, 5, 6])
     end
 
 
