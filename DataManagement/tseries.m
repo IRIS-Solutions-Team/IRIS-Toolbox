@@ -1,11 +1,6 @@
-
-classdef ( ...
-    CaseInsensitiveProperties=true ...
-    , InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper, ?Dater} ...
-) tseries
-
-    methods
-        function this = loadobj(this, varargin)
+classdef tseries
+    methods (Static)
+         function this = loadobj(this, varargin)
             try
                 start = this.start;
             catch
@@ -24,6 +19,5 @@ classdef ( ...
             this = Series(start, data, comment);
         end%
     end
-
 end
 

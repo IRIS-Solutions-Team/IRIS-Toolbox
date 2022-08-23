@@ -1,5 +1,5 @@
 % # Overview of Series objects
-% 
+%{ 
 % Series objects are two- or higher-dimensional arrays whose rows (indexing along first dimension) are
 % referenced by dates. The arrays can be one of the following types:
 % 
@@ -65,7 +65,7 @@
 % [`rmse`](rmse.md)                                            | Calculate RMSE for given observations and predictions
 % [`regress`](regress.md)                                      | Ordinary or weighted least-square regression
 % 
-
+%}
 
 
 classdef ( ...

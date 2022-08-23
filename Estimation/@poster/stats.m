@@ -109,8 +109,7 @@ for i = 1 : numParams
             sqrt(sum((iTheta - thetaMean(i)).^2) / (numDraws-1));
     end
     if isnumeric(opt.hpdi) && ~isempty(opt.hpdi)
-        [low, high] = tseries.myhpdi(iTheta, opt.hpdicover, 2);
-        outputStats.hpdi.(name) = [low, high];
+        outputStats.hpdi.(name) = series.hpdi(iTheta, opt.hpdicover, 2);
     end
     if isnumeric(opt.hist) && ~isempty(opt.hist)
         outputStats.hist.(name) = {histBins, histCount};
