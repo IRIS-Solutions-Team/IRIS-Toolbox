@@ -1,47 +1,6 @@
 function varargout = tolerance(this, varargin)
 % tolerance  Get or set model-specific tolerance levels
-%{
-% ## Syntax for Getting Tolerance ##
-%
-%     tolStruct = tolerance(model)
-%     tol = tolerance(model, scope)
-%
-%
-% ## Syntax for Setting Tolerance ##
-%
-%     model = tolerance(model, tolStruct)
-%     model = tolerance(model, @default)
-%     model = tolerance(model, scope, tol)
-%     model = tolerance(model, scope, @default)
-%
-%
-% ## Input Arguments ##
-%
-% * `model` [ model ] - Model object.
-%
-% * `scope` [ `'Solve'` | `'Eigen'` | `'MSE'` | `'Steady'` ] - Scope in
-% which the new tolerance level will be used.
-%
-% * `tol` [ numeric ] - New tolerance level used to detect singularities
-% and unit roots; if `@default` tolerance will be set to its default value.
-%
-% * `tolStruct` [ struct ] - Struct with new levels of tolerance for
-% each scope.
-%
-%
-% ## Output Arguments ##
-%
-% * `tol` [ numeric ] - Currently assigned level of tolerance.
-%
-% * `tolStruct` [ numeric ] - Structure with currently assigned levels of
-% tolerance for each scope.
-%
-% * `model` [ model ] - Model object with the new levels of tolerance set.
-%
-%
-% ## Description ##
-%
-%}
+
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team

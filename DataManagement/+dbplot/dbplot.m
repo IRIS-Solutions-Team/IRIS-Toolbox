@@ -202,7 +202,7 @@ function q = evalExpr(q, d, opt)
                 % First, calculate deviations, then apply a tranformation function.
                 if isnumericscalar(opt.DeviationFrom)
                     t = opt.DeviationFrom;
-                    if isa(series{k}, 'tseries')
+                    if isa(series{k}, 'Series')
                         if ~isfinite(series{k}(t))
                             invalidBase{end+1} = ch.eval{:}; %#ok<AGROW>
                         end
@@ -290,7 +290,6 @@ end%
 
 
 function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargin)
-    TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
     vecHFig = [ ];
     vecHAx = { };
     plotDb = struct( );
@@ -373,7 +372,7 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
             end
             if isa(inputDataCat, 'TimeSubscriptable')
                 try
-                    plotDb.(plotDbName) = TIME_SERIES_CONSTRUCTOR(reportRange, data, finalLegend);
+                    plotDb.(plotDbName) = Series(reportRange, data, finalLegend);
                 catch %#ok<CTCH>
                     plotDb.(plotDbName) = NaN;
                 end

@@ -3,32 +3,34 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-function this = linearTrend(constructor, range, varargin)
+function this = linearTrend(range, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('TimeSubscriptable.linearTrend');
-    inputParser.addRequired('range', @validate.properRange);
-    inputParser.addOptional('step', 1, @validate.numericScalar);
-    inputParser.addOptional('startValue', 0, @(x) isnumeric(x) && size(x, 1)==1);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.KeepUnmatched = true;
+    ip.addRequired('range', @validate.properRange);
+    ip.addParameter('Step', 1, @validate.numericScalar);
+    ip.addParameter('StartValue', 0, @(x) isnumeric(x) && size(x, 1)==1);
 end
-inputParser.parse(range, varargin{:});
-step = inputParser.Results.step;
-startValue = inputParser.Results.startValue;
-range = double(range);
-startDate = range(1);
+ip.parse(range, varargin{:});
+opt = ip.Results;
 
-%--------------------------------------------------------------------------
+    step = opt.Step;
+    startValue = opt.StartValue;
 
-numPeriods = round(range(end) - range(1) + 1);
-zeroStart = zeros(size(step));
-step = repmat(step, numPeriods-1, 1);
-data = cumsum([zeroStart; step], 1);
-if any(startValue(:))~=0
-    startValue = repmat(startValue, numPeriods, 1);
-    data = data + startValue;
-end
-this = constructor(startDate, data);
+    range = double(range);
+    startDate = range(1);
+
+    numPeriods = round(range(end) - range(1) + 1);
+    zeroStart = zeros(size(step));
+    step = repmat(step, numPeriods-1, 1);
+    data = cumsum([zeroStart; step], 1);
+    if any(startValue(:))~=0
+        startValue = repmat(startValue, numPeriods, 1);
+        data = data + startValue;
+    end
+    this = Series(startDate, data, ip.UnmatchedInCell{:});
 
 end%
 

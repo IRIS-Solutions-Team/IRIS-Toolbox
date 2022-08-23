@@ -16,7 +16,7 @@ if isempty(pp)
     addRequired(pp, 'generator', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
 
     addParameter(pp, 'Arguments', "$0", @locallyValidateArguments);
-    addParameter(pp, 'AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
+    addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
 parse(pp, inputDb, newNameTemplate, generator, varargin{:});
@@ -61,7 +61,7 @@ end
 %
 % Create output databank
 %
-if isequal(opt.AddToDatabank, @default)
+if isequal(opt.AddToDatabank, @auto)
     outputDb = inputDb;
 else
     outputDb = opt.AddToDatabank;

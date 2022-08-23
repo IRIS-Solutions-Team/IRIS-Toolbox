@@ -40,7 +40,7 @@ catch
 end
 
 pp = inputParser( );
-pp.addRequired('X',@(x) isa(x,'tseries'));
+pp.addRequired('X',@(x) isa(x,'Series'));
 pp.addRequired('Func',@(x) isequal(x,@all) || isequal(x,@any));
 pp.parse(X,Func);
 

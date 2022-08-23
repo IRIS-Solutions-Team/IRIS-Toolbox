@@ -1,6 +1,6 @@
 classdef seriesobj < report.genericobj & report.condformatobj
     properties
-        data = { feval(iris.get('DefaultTimeSeriesConstructor')) };
+        data = { Series() };
     end
     
 
@@ -59,9 +59,9 @@ classdef seriesobj < report.genericobj & report.condformatobj
 
         function [this, varargin] = specargin(this, varargin)
             if ~isempty(varargin)
-                if isa(varargin{1}, 'tseries') || iscell(varargin{1})
+                if isa(varargin{1}, 'Series') || iscell(varargin{1})
                     this.data = varargin{1};
-                    if isa(this.data, 'tseries')
+                    if isa(this.data, 'Series')
                         this.data = {this.data};
                     end
                 end
@@ -105,7 +105,7 @@ classdef seriesobj < report.genericobj & report.condformatobj
             r = this.options.round;
             if ~isequal(r, Inf)
                 for i = 1 : length(this.data)
-                    if isa(this.data{i}, 'tseries')
+                    if isa(this.data{i}, 'Series')
                         this.data{i} = round(this.data{i}, r);
                     end
                 end

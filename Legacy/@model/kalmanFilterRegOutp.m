@@ -14,10 +14,7 @@ catch
     isNamedMat = false;
 end
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
-
-%--------------------------------------------------------------------------
+TIME_SERIES_TEMPLATE = Series();
 
 ixy = this.Quantity.Type==1;
 ixe = this.Quantity.Type==31 | this.Quantity.Type==32;

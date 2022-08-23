@@ -5,8 +5,7 @@
 
 function D = hdatafinal(Y)
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES = Series( );
 
 D = struct();
 

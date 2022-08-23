@@ -247,7 +247,7 @@ classdef InputParser ...
 
         function addDateOptions(this, context)
             configStruct = iris.get( );
-            addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime) || isequal(x, @default) || isequal(x, @iso));
+            addParameter(this, 'DateFormat', @auto, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime) || isequal(x, @auto) || isequal(x, @iso));
             addParameter(this, {'EnforceFrequency', 'Frequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || isa(Frequency(x), 'Frequency'));
             addParameter(this, {'Months', 'Month'}, iris.Configuration.Months, @iris.Configuration.validateMonths);
             addParameter(this, {'ConversionMonth', 'StandInMonth'}, iris.Configuration.ConversionMonth, @iris.Configuration.validateConversionMonth);
@@ -255,11 +255,8 @@ classdef InputParser ...
             addParameter(this, 'WDay', iris.Configuration.WDay, @iris.Configuration.validateWDay);
             addParameter(this, 'DatePosition', 'c', @(x) (ischar(x) || isstring(x)) && startsWith(lower(string(x)), ["s", "e", "c"]));
 
-            % Backward compatibility options for datxtick( )
-            addParameter(this, {'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || validate.anyString(x, "yearstart", "yearend", "yearly") || isa(x, 'function_handle'));
             this.HasDateOptions = true;
             if nargin>1
-                % Context can be one of {'', 'tseries', 'TimeSubscriptable'}
                 this.DateOptionsContext = context;
             end
         end%
@@ -273,7 +270,7 @@ classdef InputParser ...
 
 
         function addBaseYearOption(this)
-            addParameter(this, 'BaseYear', @config, @iris.Configuration.validateBaseYear);
+            addParameter(this, 'BaseYear', @auto, @iris.Configuration.validateBaseYear);
         end%
 
 
@@ -393,20 +390,15 @@ classdef InputParser ...
             end
             %)
         end%
-        
-        
+
+
         function opt = resolveDateOptions(opt, context)
             %(
-            configStruct = iris.get( );
-
-            if isequal(opt.DateFormat, @config)
-                switch context % this.DateOptionsContext
-                    case 'TimeSubscriptable'
-                        opt.DateFormat = configStruct.PlotDateTimeFormat;
-                    case 'tseries'
-                        opt.DateFormat = configStruct.PlotDateFormat;
-                    otherwise
-                        opt.DateFormat = configStruct.DateFormat;
+            if isequal(opt.DateFormat, @auto)
+                if strcmpi(context, 'Series')
+                    opt.DateFormat = iris.get('PlotDateTimeFormat');
+                else
+                    opt.DateFormat = iris.get('DateFormat');
                 end
             end
             %)

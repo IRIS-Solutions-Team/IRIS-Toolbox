@@ -50,16 +50,15 @@ function [d, cc, ff, u, e] = forecast(this, inp, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TEMPLATE_SERIES = Series();
 
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('DFM.forecast');
     inputParser.addRequired('a', @(x) isa(x, 'DFM'));
-    inputParser.addRequired('InputData', @(x) isa(x, 'tseries') || isstruct(x));
+    inputParser.addRequired('InputData', @validate.databank);
     inputParser.addRequired('Range', @isnumeric);
-    inputParser.addRequired('Condition', @(x) isempty(x) || isa(x, 'tseries') || isstruct(x));
+    inputParser.addRequired('Condition', @(x) isempty(x) || isa(x, 'Series') || isstruct(x));
     inputParser.addParameter('Cross', true, ...
         @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
     inputParser.addParameter('InvFunc', 'auto', @(x) all(strcmpi(x, 'auto')) || isa(x, 'function_handle'));
@@ -82,11 +81,11 @@ range = double(range);
 if isstruct(inp) ...
       && ~isfield(inp, 'init') ...
       && isfield(inp, 'mean') ...
-      && isa(inp.mean, 'tseries')
+      && isa(inp.mean, 'Series')
    inp = inp.mean;
 end
 
-if isa(inp, 'tseries')
+if isa(inp, 'Series')
    % Only mean tseries supplied; no uncertainty in initial condition.
    reqRange = range(1)-pp : range(1)-1;
    req = datarequest('y*', this, inp, reqRange);

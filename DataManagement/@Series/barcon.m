@@ -29,8 +29,8 @@ function varargout = barcon(varargin)
 %
 % __Options__
 %
-% * `DateFormat=@config` [ char | `@config` ] - Date format string;
-% `@config` means the `PlotDateTimeFormat` setting from the current IRIS
+% * `DateFormat=@auto` [ char | `@auto` ] - Date format string;
+% `@auto` means the `PlotDateTimeFormat` setting from the current IRIS
 % configuration will be used.
 %
 % * `ColorMap=lines( )` [ numeric ] - Color map to fill the contribution bars.

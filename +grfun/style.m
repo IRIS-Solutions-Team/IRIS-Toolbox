@@ -201,7 +201,7 @@ for i = 1 : length(list)
     name = regexprep(list{i},'_*$','');
     for j = 1 : nh
         value = x{1+rem(j-1+Opt.offset,nx)};
-        if isequal(value, @default) || isequal(value, @auto)
+        if isequal(value, @auto)
             continue
         end
         try

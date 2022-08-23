@@ -73,8 +73,8 @@ function this = cumsumk(this, range, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('tseries.cumsumk');
-    addRequired(pp, 'TimeSeries', @(x) isa(x, 'tseries'));
+    pp = extend.InputParser();
+    addRequired(pp, 'TimeSeries', @(x) isa(x, 'Series'));
     addRequired(pp, 'Range', @validate.properRange);
     addParameter(pp, 'K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, 'Rho', 1, @(x) isnumeric(x) && isscalar(x));

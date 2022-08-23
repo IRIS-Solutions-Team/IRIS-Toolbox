@@ -67,9 +67,6 @@
 
 function [this, D, CC, FF, U, E, ctf, range] = estimate(this, d, range, crit, varargin)
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
-
 persistent ip
 if isempty(ip)
     ip = extend.InputParser('DFM.estimate');
@@ -86,12 +83,12 @@ if isempty(ip)
 end
 opt = ip.parse(this, d, range, crit, varargin{:});
 
+TEMPLATE_SERIES = Series();
+
 
 % Get input data.
 [y, range] = getEstimationData(this, d, range);
 this.Range = range;
-
-%--------------------------------------------------------------------------
 
 % Standardize input data
 y0 = y;

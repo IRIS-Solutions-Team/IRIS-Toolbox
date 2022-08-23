@@ -123,7 +123,7 @@ for irow = find(any(anch,2)).'
     index = anch(irow,:);
     name = list{irow};
     if isData
-        if isfield(D,name) && isa(D.(name),'tseries')
+        if isfield(D,name) && isa(D.(name),'Series')
             [~,ndata] = size(D.(name).data);
             values = nan(ndata, size(anch,2));
             for idata = 1 : ndata

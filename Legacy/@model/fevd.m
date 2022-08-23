@@ -57,18 +57,16 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model/fevd');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Time', @validate.date);
-    inputParser.addParameter('MatrixFormat', 'namedmat', @validate.matrixFormat);
-    inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('model/fevd');
+    ip.addRequired('Model', @(x) isa(x, 'model'));
+    ip.addRequired('Time', @validate.date);
+    ip.addParameter('MatrixFormat', 'namedmat', @validate.matrixFormat);
+    ip.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
 end
-inputParser.parse(this, time, varargin{:});
-opt = inputParser.Options;
+ip.parse(this, time, varargin{:});
+opt = ip.Options;
 
 % Tell whether time is numPeriods or Range.
 if isscalar(time) && round(time)==time && time>0
@@ -134,8 +132,8 @@ if nargout>3
     dbRel = struct( );
     for i = find(imag(id)==0)
         c = strcat(rowNames{i}, ' <-- ', colNames);
-        dbAbs.(name{i}) = TIME_SERIES_CONSTRUCTOR(range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
-        dbRel.(name{i}) = TIME_SERIES_CONSTRUCTOR(range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
+        dbAbs.(name{i}) = Series(range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
+        dbRel.(name{i}) = Series(range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
     end
     % Add parameter database.
     dbAbs = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, dbAbs);

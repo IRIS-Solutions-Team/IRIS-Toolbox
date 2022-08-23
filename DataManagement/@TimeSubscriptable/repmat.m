@@ -34,20 +34,14 @@ function this = repmat(this, varargin)
 %
 
 isnumericscalar = @(x) isnumeric(x) && isscalar(x);
-pp = inputParser( );
-pp.addRequired('X', @(x) isa(x, 'tseries'));
-pp.addRequired('RepK', ...
-    @(x) ~isempty(x) && all(cellfun(isnumericscalar,x)) && isequal(x{1},1));
-pp.parse(this,varargin);
+ip = inputParser();
+ip.addRequired('X', @(x) isa(x, 'Series'));
+ip.addRequired('RepK', @(x) ~isempty(x) && all(cellfun(isnumericscalar,x)) && isequal(x{1},1));
+ip.parse(this, varargin);
 
-%--------------------------------------------------------------------------
-
-if varargin{1}(1)~=1
-    utils.error('tseries:repmat', ...
-        'Time series cannot be repeated in first dimension.');
-end
-
-this.data = repmat(this.data, varargin{:});
+varargin{1} = 1;
+this.Data = repmat(this.Data, varargin{:});
 this.Comment = repmat(this.Comment, varargin{:});
 
-end
+end%
+

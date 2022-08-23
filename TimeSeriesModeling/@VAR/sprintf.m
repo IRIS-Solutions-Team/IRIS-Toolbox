@@ -69,7 +69,7 @@ if isempty(pp)
     pp.addParameter({'ResidualNames', 'ENames', 'EName'}, string.empty(1, 0), @validate.list);
     pp.addParameter( 'Format', '%+.16g', @(x) validate.stringScalar(x) && contains(x, "%+"));
     pp.addParameter({'HardParameters', 'HardParameter'}, true, @validate.logicalScalar);
-    pp.addParameter( 'Tolerance', @default, @(x) isa(x, @default) || validate.numericScalar(x));
+    pp.addParameter( 'Tolerance', @auto, @(x) isa(x, @auto) || validate.numericScalar(x));
     pp.addParameter({'EndogenousNames', 'YNames', 'YName'}, string.empty(1, 0), @validate.list);
     pp.addParameter("ExogenousNames", string.empty(1, 0), @validate.list);
 end
@@ -81,7 +81,7 @@ if ~isempty(opt.Decimal)
 end
 opt.Format = string(opt.Format);
 
-if isequal(opt.Tolerance, @default)
+if isequal(opt.Tolerance, @auto)
     opt.Tolerance = this.Tolerance.Solve;
 end
 

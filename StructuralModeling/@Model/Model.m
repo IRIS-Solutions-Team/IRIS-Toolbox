@@ -72,9 +72,9 @@ classdef Model ...
 % but not declared.
 %
 %
-% __`BaseYear=@config`__ [ numeric | `@config` ]
+% __`BaseYear=@auto`__ [ numeric | `@auto` ]
 % >
-% Base year for constructing deterministic time trends; `@config` means the
+% Base year for constructing deterministic time trends; `@auto` means the
 % base year will be read from iris configuration.
 %
 %

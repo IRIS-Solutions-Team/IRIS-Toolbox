@@ -207,8 +207,8 @@ end
 isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
-    'dateformat', @config, @iris.Configuration.validateDateFormat
-    'months, month', @config, @iris.Configuration.validateMonths
+    'dateformat', @auto, @iris.Configuration.validateDateFormat
+    'months, month', @auto, @iris.Configuration.validateMonths
     'ConversionMonth', iris.Configuration.ConversionMonth, @iris.Configuration.validateConversionMonth
     'Wday', iris.Configuration.WDay, @iris.Configuration.validateWDay
     'case, changecase', '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'}))
@@ -641,9 +641,8 @@ return
 
 
 
-    function populateDatabase( )
-        TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-        TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+    function populateDatabase()
+        TEMPLATE_SERIES = Series();
         count = 0;
         nName = length(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);

@@ -4,10 +4,7 @@ function ff = outputFactorData(this, x, Px, range, ixy, opt)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
-
-%--------------------------------------------------------------------------
+TEMPLATE_SERIES = Series();
 
 nx = size(this.C, 2);
 nPer = length(range);

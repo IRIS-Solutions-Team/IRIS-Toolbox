@@ -14,15 +14,14 @@ catch
 end
 
 % Parse required input arguments.
-pp = inputParser( );
-pp.addRequired('Data', @(x) isempty(x) || isnumeric(x) || isa(x, 'tseries') || isstruct(x));
-pp.parse(data);
+ip = inputParser();
+ip.addRequired('Data', @(x) isempty(x) || isnumeric(x) || isa(x, 'Series') || isstruct(x));
+ip.parse(data);
 
 
 isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
-    'output','auto',@(x) validate.anyString(x,"auto","dbase","tseries","array"), ...
     'MaxIter',0,@(x) isnumericscalar(x) && x >= 0, ...
     'method','chol',@(x) validate.anyString(x,"chol","qr","svd","householder"), ...
     'ndraw',0,@(x) isnumericscalar(x) && x >= 0, ...
@@ -44,7 +43,7 @@ ny = size(V.A, 1);
 nv = size(V.A, 3);
 
 % Create an empty SVAR object
-this = SVAR( );
+this = SVAR();
 this.B = nan(ny, ny, nv);
 this.B0 = nan(ny, ny, nv);
 this.A0 = nan(ny, ny, nv);

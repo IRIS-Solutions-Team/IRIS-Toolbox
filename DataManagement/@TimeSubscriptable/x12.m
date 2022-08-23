@@ -17,7 +17,7 @@
 %
 % __Input Arguments__
 %
-% * `X` [ tseries ] - Input data that will seasonally adjusted or filtered
+% * `X` [ Series ] - Input data that will seasonally adjusted or filtered
 % by the Census X12 Arima; `X` must be a quarterly or monthly time series.
 %
 % * `Range` [ numeric | char | `@all` ] - Date range on which the X12 will
@@ -27,7 +27,7 @@
 %
 % __Output Arguments__
 %
-% * `Y`, `Y1`, `Y2`, ... [ tseries ] - Requested output data, by default
+% * `Y`, `Y1`, `Y2`, ... [ Series ] - Requested output data, by default
 % only one type of output is returned, the seasonlly adjusted data; see the
 % option `'output='`.
 %
@@ -41,7 +41,7 @@
 % estimates for each of the ARIMA models fitted; `Model` matches the size
 % of `X` is 2nd and higher dimensions.
 %
-% * `X` [ tseries ] - Original input data with forecasts and/or backcasts
+% * `X` [ Series ] - Original input data with forecasts and/or backcasts
 % appended if the options `'forecast='` and/or `'backcast='` are used.
 %
 %
@@ -66,8 +66,8 @@
 % * `Display=false` [ `true` | `false` ] - Display X12 output messages in
 % command window; if false the messages will be saved in a TXT file.
 %
-% * `Dummy=[ ]` [ tseries | empty ] - User dummy variable or variables (in
-% case of a multivariate tseries object) used in X13-ARIMA-SEATS
+% * `Dummy=[ ]` [ Series | empty ] - User dummy variable or variables (in
+% case of a multivariate time series object) used in X13-ARIMA-SEATS
 % regression; the dummy variables must also include values for forecasts
 % and backcasts if you request them; the type of the dummy can be specified
 % in the option `DummyType=`.
@@ -229,8 +229,8 @@ function varargout = x12(this, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('tseries.x12');
-    pp.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    pp = extend.InputParser();
+    pp.addRequired('InputSeries', @(x) isa(x, 'Series'));
     pp.addOptional('Range', Inf, @validate.range);
 
     pp.addParameter({'Backcast', 'Backcasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
@@ -356,18 +356,18 @@ return
         dummyFcast = dummy(end-opt.Forecast+1:end, :);
         dummyBcast = dummy(1:opt.Backcast, :);
         if any(isnan(dummyIn(:)))
-            utils.warning('tseries:x12', ...
+            utils.warning('Series:x12', ...
                 ['Dummy variable(s) contain(s) in-sample ', ...
                 'missing observations or NaNs. ', ...
                 'The NaNs will be replaced with zeros.']);
         end
         if any(isnan(dummyFcast(:)))
-            utils.warning('tseries:x12', ...
+            utils.warning('Series:x12', ...
                 ['Dummy variable(s) contain(s) missing observations or NaNs ', ...
                 'on the forecast range. The NaNs will be replaced with zeros.']);
         end
         if any(isnan(dummyBcast(:)))
-            utils.warning('tseries:x12', ...
+            utils.warning('Series:x12', ...
                 ['Dummy variable(s) contain(s) missing observations or NaNs ', ...
                 'on the backcast range. The NaNs will be replaced with zeros.']);
         end

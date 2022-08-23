@@ -1,15 +1,13 @@
 function [outputData, exitFlag, finalAddf, finalDcy] = simulate(this, inputData, range, varargin)
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.simulate');
-    parser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
-    parser.addRequired('D', @isstruct);
-    parser.addRequired('Range', @(x) validate.properRange(x));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('model.simulate');
+    ip.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
+    ip.addRequired('D', @isstruct);
+    ip.addRequired('Range', @(x) validate.properRange(x));
 end
-parser.parse(this, inputData, range);
+ip.parse(this, inputData, range);
 [opt, legacyOpt] = parseSimulateOptions(this, varargin{:});
 
 range = range(1) : range(end);
@@ -232,11 +230,11 @@ for ithRun = 1 : numRuns
     if strcmpi(s.Method, 'Selective') && nargout>2
         label = s.Selective.EqtnLabelN;
         finalDcy{ithRun} = permute(finalDcy{ithRun}, [2, 1, 3]);
-        finalDcy{ithRun} = TIME_SERIES_CONSTRUCTOR( range(1), finalDcy{ithRun}, label );
+        finalDcy{ithRun} = Series( range(1), finalDcy{ithRun}, label );
         finalAddf{ithRun} = permute(finalAddf{ithRun}, [2, 1, 3]);
         nSgm = size(finalAddf{ithRun}, 3);
         label = repmat(label, 1, 1, nSgm);
-        finalAddf{ithRun} = TIME_SERIES_CONSTRUCTOR( range(1), finalAddf{ithRun}, label );
+        finalAddf{ithRun} = Series( range(1), finalAddf{ithRun}, label );
     end
 
     % Update progress bar.

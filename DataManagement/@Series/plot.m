@@ -76,10 +76,10 @@ __`Tight=false`__ [ `true` | `false` ]
 > Make the y-axis tight.
 > 
 
-__`DateFormat=@config`__ [ char |  string | `@config` ] 
+__`DateFormat=@auto`__ [ char |  string | `@auto` ] 
 >
 > Date format string, or array of format strings (possibly different for
-> each date); `@config` means the date format from the current IRIS
+> each date); `@auto` means the date format from the current IRIS
 > configuration will be used.
 >
 
@@ -96,7 +96,7 @@ __`DateFormat=@config`__ [ char |  string | `@config` ]
 
 function varargout = plot(varargin)
 
-[varargout{1:nargout}] = Series.implementPlot(@plot, varargin{:});
+    [varargout{1:nargout}] = Series.implementPlot(@plot, varargin{:});
 
 end%
 

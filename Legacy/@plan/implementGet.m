@@ -7,10 +7,7 @@ function [answ, flag, query] = implementGet(this, query, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
-
-%--------------------------------------------------------------------------
+TIME_SERIES_TEMPLATE = Series();
 
 answ = [ ];
 flag = true;

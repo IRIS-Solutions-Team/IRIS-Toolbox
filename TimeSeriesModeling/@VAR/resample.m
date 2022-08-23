@@ -74,7 +74,6 @@ pp.parse(this, inp, range, numDraws);
 
 islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
-    'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
     'Deviation, Deviations', false, islogicalscalar   
     'method', 'montecarlo', @(x) isa(x, 'function_handle') ...
     || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'})))

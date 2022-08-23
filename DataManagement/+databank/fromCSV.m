@@ -39,7 +39,7 @@ arguments
 
     opt.Postprocess = []
 
-    opt.DateFormat = @config
+    opt.DateFormat = @auto
     opt.EnforceFrequency = false
         opt.Frequency__EnforceFrequency = []
     opt.Months = iris.Configuration.Months
@@ -83,7 +83,7 @@ if isempty(ip)
 
     addParameter(ip, "Postprocess", []);
 
-    addParameter(ip, "DateFormat", @config);
+    addParameter(ip, "DateFormat", @auto);
     addParameter(ip, "EnforceFrequency", false);
         addParameter(ip, "Frequency__EnforceFrequency", []);
     addParameter(ip, "Months", iris.Configuration.Months);
@@ -605,8 +605,7 @@ return
 
 
     function [outputDb, namesCreated] = here_populateDatabank(outputDb)
-        TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-        TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+        TEMPLATE_SERIES = Series();
         count = 0;
         lenNameRow = numel(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);

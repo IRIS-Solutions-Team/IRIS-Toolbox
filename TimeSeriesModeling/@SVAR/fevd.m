@@ -57,8 +57,6 @@ function [X, Y, XX, YY] = fevd(this, time, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
 
 defaults = { 
     'MatrixFormat', 'namedmat', @validate.matrixFormat
@@ -113,9 +111,9 @@ if nargout > 2 && ~isempty(this.EndogenousNames)
         if nv>1
             c = repmat(c, 1, 1, nv);
         end
-        XX.(name) = TIME_SERIES_CONSTRUCTOR(range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
+        XX.(name) = Series(range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
         if nargout > 3
-            YY.(name) = TIME_SERIES_CONSTRUCTOR(range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
+            YY.(name) = Series(range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
         end
     end
 end

@@ -8,7 +8,7 @@ if nargin<3
 end
 
 if nargin<4
-    dateFormat = @config;
+    dateFormat = @auto;
 end
 
 %-------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ if timeFrequency==Frequency.INTEGER
     xData = dater.getSerial(time);
 else
     xData = dater.toMatlab(time, lower(positionWithinPeriod));
-    if isequal(dateFormat, @config) || isequal(dateFormat, @default)
+    if isequal(dateFormat, @auto)
         temp = iris.get('PlotDateTimeFormat');
         dateFormat = temp.(Frequency.toChar(timeFrequency));
     end

@@ -148,7 +148,7 @@ classdef (CaseInsensitiveProperties=true) ...
             % order afterwards. Use the option `BackorderResiduals` to control if
             % also the structural shocks are to be brought back in original order.
             %
-            % * `'output'` [ *`'auto'`* | `'dbase'` | `'tseries'` ] - Format of output
+            % * `'output'` [ *`'auto'`* | `'dbase'` | `'Series'` ] - Format of output
             % data.
             %
             % * `'progress'` [ `true` | *`false`* ] - Display progress bar in the

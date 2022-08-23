@@ -47,8 +47,6 @@ function [X, YXVec, stdDb] = fmse(this, time, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
 persistent ip
 if isempty(ip)
     ip = extend.InputParser();
@@ -102,7 +100,7 @@ if nargout>2
     dbStd = struct( );
     for i = find(imag(id)==0)
         name = this.Quantity.Name{id(i)};
-        stdDb.(name) = TIME_SERIES_CONSTRUCTOR( ...
+        stdDb.(name) = Series( ...
             range, ...
             sqrt( permute(X(i, i, :, :), [3, 4, 1, 2]) ) ...
         );

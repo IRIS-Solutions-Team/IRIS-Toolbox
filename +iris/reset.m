@@ -9,7 +9,6 @@ function irisConfig = reset(opt)
 
 arguments
     opt.Silent = false
-    opt.SeriesConstructor = @Series
     opt.CheckId (1, 1) logical = true
     opt.TeX (1, 1) logical = false
 end
@@ -25,7 +24,6 @@ persistent ip
 if isempty(ip)
     ip = inputParser();
     addParameter(ip, "Silent", false);
-    addParameter(ip, "SeriesConstructor", @Series);
     addParameter(ip, "CheckId", true);
     addParameter(ip, "TeX", false);
 end
@@ -38,7 +36,6 @@ opt = ip.Results;
 iris.Configuration.clear( );
 
 irisConfig = iris.Configuration(opt);
-irisConfig.DefaultTimeSeriesConstructor = opt.SeriesConstructor;
 save(irisConfig);
 
 if opt.CheckId

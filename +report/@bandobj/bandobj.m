@@ -30,14 +30,14 @@ classdef bandobj < report.seriesobj
             [this,varargin] = specargin@report.seriesobj(this,varargin{:});
             if ~isempty(varargin)
                 this.Low = varargin{1};
-                if isa(this.Low,'tseries')
+                if isa(this.Low,'Series')
                     this.Low = { this.Low };
                 end
                 varargin(1) = [ ];
             end
             if ~isempty(varargin)
                 this.High = varargin{1};
-                if isa(this.High,'tseries')
+                if isa(this.High,'Series')
                     this.High = { this.High };
                 end
                 varargin(1) = [ ];

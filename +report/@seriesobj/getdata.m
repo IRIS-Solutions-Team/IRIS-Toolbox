@@ -65,18 +65,18 @@ return
             x = inp{1};
             if isa(func, 'function_handle')
                 x = feval(func, x);
-                if ~isa(x, 'tseries') && ~isnumericscalar(x)
+                if ~isa(x, 'Series') && ~isnumericscalar(x)
                     utils.error('seriesobj:getdata', ...
                         ['Function %s fails to evaluate to tseries or numeric scalar ', ...
                         'when applied to this series: ''%s''.'], ...
                         func2str(func), this.title);
                 end
             end
-            if isa(x, 'tseries')
+            if isa(x, 'Series')
                 x = x(date);
             end
             if ~isnumericscalar(x)
-                if ~isa(x, 'tseries') && ~isnumericscalar(x)
+                if ~isa(x, 'Series') && ~isnumericscalar(x)
                     utils.error('seriesobj:getdata', ...
                         ['Value in column #%g ', ...
                         'fails evalute to numeric scalar for this series: ''%s''.'], ...

@@ -52,17 +52,15 @@ function d = emptydb(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.emptydb');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addParameter('Include', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    parser.addParameter('Size', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)>=2 && x(1)==0 && all(x==round(x)) && all(x>=0)));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('model.emptydb');
+    ip.addRequired('Model', @(x) isa(x, 'model'));
+    ip.addParameter('Include', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    ip.addParameter('Size', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)>=2 && x(1)==0 && all(x==round(x)) && all(x>=0)));
 end
-parser.parse(this, varargin{:});
-opt = parser.Options;
+ip.parse(this, varargin{:});
+opt = ip.Options;
 
 if ~isa(opt.Include, 'function_handle') && ~iscellstr(opt.Include)
     opt.Include = cellstr(opt.Include);
@@ -101,7 +99,7 @@ inxParameters = this.Quantity.Type==4;
 if isequal(opt.Size, @auto)
     opt.Size = [0, countVariants(this)];
 end
-emptyTimeSeries = TIME_SERIES_CONSTRUCTOR([ ], zeros(opt.Size));
+emptyTimeSeries = Series([], zeros(opt.Size));
 
 
 % Add comment to time series for each variable

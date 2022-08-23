@@ -75,9 +75,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         % GhostscriptPath  Path to the GS executable
         GhostscriptPath = [ ]
-
-        % DefaultTimeSeriesConstructor  Function handle to default time series constructor
-        DefaultTimeSeriesConstructor = @Series
         %)
     end
 
@@ -509,14 +506,14 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
         function flag = validateDateFormat(x)
-            flag =  isequal(x, @config) || isequal(x, @excel) ...
+            flag =  isequal(x, @auto) || isequal(x, @excel) ...
                 || ischar(x) || iscellstr(x) || isstring(x) ...
                 || iris.Configuration.validateDateFormatStruct(x);
         end%
 
 
         function flag = validatePlotDateFormat(x)
-            flag =  isequal(x, @config) ...
+            flag =  isequal(x, @auto) ...
                 || ischar(x) || iscellstr(x) || isstring(x) ...
                 || iris.Configuration.validateDateFormatStruct(x);
         end%
@@ -543,12 +540,12 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
         function flag = validateBaseYear(x)
-            flag = isequal(x, @config) || (isnumeric(x) && isscalar(x) && x==round(x));
+            flag = isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x));
         end%
 
 
         function flag = validateMonths(x)
-            flag = isequal(x, @config) || (iscellstr(x) && numel(x)==12 && isequal(x, unique(x, 'stable')));
+            flag = isequal(x, @auto) || (iscellstr(x) && numel(x)==12 && isequal(x, unique(x, 'stable')));
         end%
 
 

@@ -12,7 +12,7 @@ if isempty(ip)
     ip = extend.InputParser();
     ip.KeepUnmatched = true;
     ip.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || validate.date(x));
-    ip.addParameter('DateFormat', @default, @(x) isequal(x, @default) || isstring(x) || ischar(x) || iscellstr(x));
+    ip.addParameter('DateFormat', @auto, @(x) isequal(x, @auto) || isstring(x) || ischar(x) || iscellstr(x));
     ip.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
     ip.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     ip.addParameter('Smooth', false, @validate.logicalScalar);
@@ -21,7 +21,6 @@ if isempty(ip)
 end
 opt = parse(ip, varargin{:});
 unmatchedOptions = ip.UnmatchedInCell;
-
 
 dates = reshape(double(dates), 1, []);
 enforceXLimHere = true;
@@ -84,7 +83,7 @@ end
 
 varargout = { 
     plotHandle, dates, yData, ...
-    axesHandle, xData, ...
+    xData, axesHandle, ...
     unmatchedOptions
 };
 

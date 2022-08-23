@@ -115,7 +115,7 @@ if isa(axesHandle, 'function_handle')
     axesHandle = axesHandle();
 end
 
-[plotHandle, dates, midData, axesHandle, xCoor] ...
+[plotHandle, dates, midData, xCoor, axesHandle] ...
     = Series.implementPlot(@plot, axesHandle, opt.Range, mid, '', opt.PlotSettings{:});
 
 lowerData = getData(lower, dates);

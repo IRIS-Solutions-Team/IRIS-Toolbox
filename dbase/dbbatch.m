@@ -96,7 +96,7 @@ function [d, list0, list, flag] = dbbatch(d, newName, userExpression, varargin)
 %
 % __Example__
 %
-% For each field (all assumed to be tseries) create a first difference, and
+% For each field (all assumed to be time series) create a first difference, and
 % name the new series `DX` where `X` is the name of the original series.
 %
 %     d = dbbatch(d, 'D$0', 'diff(d.$0)');
@@ -113,12 +113,12 @@ function [d, list0, list, flag] = dbbatch(d, newName, userExpression, varargin)
 %
 %     d = dbbatch(d, '$1', 'x12(d.$0)', 'nameFilter', '(.*)u');
 %
-% or, if you want to make sure only tseries objects will be selected (in
-% case there are database entries ending with a `u` other than tseries
+% or, if you want to make sure only time series objects will be selected (in
+% case there are database entries ending with a `u` other than time series
 % objects)
 %
 %     d = dbbatch(d, '$1', 'x12(d.$0)', ...
-%         'nameFilter=', '(.*)u', 'classFilter=', 'tseries');
+%         'nameFilter=', '(.*)u', 'classFilter=', 'Series');
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -302,7 +302,7 @@ function [list0, tkn] = query(d, opt)
     if ~isequal(freqFilter, Inf)
         inxOfPassed = false(size(list0));
         for i = 1 : numel(list0)
-            inxOfPassed(i) = ~isa(d.(list0{i}), 'tseries') ...
+            inxOfPassed(i) = ~isa(d.(list0{i}), 'Series') ...
                 || any(freq(d.(list0{i})) == freqFilter);
         end
         list0 = list0(inxOfPassed);

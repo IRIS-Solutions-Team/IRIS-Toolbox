@@ -1,5 +1,5 @@
 function This = permute(This,Order)
-% permute  Permute dimensions of a tseries object.
+% permute  Permute dimensions of a time series object.
 %
 %
 % Syntax
@@ -39,7 +39,7 @@ function This = permute(This,Order)
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 pp = inputParser( );
-pp.addRequired('X',@(x) isa(x,'tseries'));
+pp.addRequired('X',@(x) isa(x,'Series'));
 pp.addRequired('Order',@(x) isnumeric(x) && ~isempty(x) && x(1) == 1);
 pp.parse(This,Order);
 

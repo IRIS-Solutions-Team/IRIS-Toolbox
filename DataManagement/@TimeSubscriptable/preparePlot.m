@@ -7,7 +7,7 @@ function [axesHandle, dates, inputSeries, plotSpec, unmatched] = preparePlot(var
 
 persistent ip
 if isempty(ip)
-    ip = extend.InputParser('@Series/preparePlot');
+    ip = extend.InputParser();
     ip.KeepUnmatched = true;
     ip.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     ip.addOptional('PlotSpec', cell.empty(1, 0), @local_validatePlotSpec);

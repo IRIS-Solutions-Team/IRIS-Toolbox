@@ -14,7 +14,7 @@ numExtdPeriods = numel(extdRange);
 order = opt.Order;
 numGroups = max(1, this.NumGroups);
 
-isTimeWeights = ~isempty(opt.TimeWeights) && isa(opt.TimeWeights, 'tseries');
+isTimeWeights = ~isempty(opt.TimeWeights) && isa(opt.TimeWeights, 'Series');
 isGrpWeights = ~isempty(opt.GroupWeights);
 
 if ~isTimeWeights && ~isGrpWeights

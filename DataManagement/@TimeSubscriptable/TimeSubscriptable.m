@@ -1,6 +1,5 @@
 classdef ( ...
-    Abstract ...
-    , CaseInsensitiveProperties=true ...
+    CaseInsensitiveProperties=true ...
     , InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper, ?Dater} ...
 ) ...
 TimeSubscriptable ...
@@ -128,6 +127,16 @@ TimeSubscriptable ...
         varargout = windex(varargin)
         varargout = wmean(varargin)
         varargout = x12(varargin)
+
+
+        function out = double(this)
+            out = double(this.Data);
+        end%
+
+
+        function out = single(this)
+            out = single(this.Data);
+        end%
 
 
         function date = startdate(this)
@@ -360,6 +369,22 @@ TimeSubscriptable ...
         varargout = rearrangePred(varargin)
         varargout = implementConstructor(varargin)
         varargout = implementGet(varargin)
+
+        function disp(varargin)
+            implementDisp(varargin{:});
+        end%
+
+        function index = end(this, k, varargin)
+            if k==1
+                index = this.EndAsNumeric;
+            else
+                index = size(this.Data, k);
+            end
+        end%
+
+        function n = numel(~, varargin)
+            n = 1;
+        end%
     end
 
 
@@ -636,6 +661,7 @@ TimeSubscriptable ...
 
     methods (Access=protected, Hidden)
         varargout = binop(varargin)
+        varargout = implementDisp(varargin)
 
 
         function data = createDataFromFunction(this, data, numDates)
@@ -658,7 +684,6 @@ TimeSubscriptable ...
         end%
 
 
-        implementDisp(varargin)
         varargout = implementFilter(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)

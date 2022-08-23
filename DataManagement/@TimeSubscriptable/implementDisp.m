@@ -1,36 +1,30 @@
+
 function implementDisp(this, name, disp2dFunc)
-% implementDisp  Implement disp method for numeric time series
-%
-% Backend [IrisToolbox] method
-% No help provided
 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
+    config = iris.get();
 
-config = iris.get( );
+    try
+        name; %#ok<VUNUS>
+    catch %#ok<CTCH>
+        name = '';
+    end
 
-try
-    name; %#ok<VUNUS>
-catch %#ok<CTCH>
-    name = '';
-end
+    start = double(this.Start);
+    freq = dater.getFrequency(start);
 
-start = double(this.Start);
-freq = dater.getFrequency(start);
+    if nargin<3
+        disp2dFunc = 'disp2d';
+    end
 
-if nargin<3
-    disp2dFunc = 'disp2d';
-end
+    dispHeader(this, config.DispIndent);
+    dispDataClass(this, config.DispIndent);
+    textual.looseLine( );
 
-%--------------------------------------------------------------------------
+    data = this.Data;
+    dataNDim = ndims(data);
+    dispND(start, data, this.Comment, this.Headers, [ ], name, disp2dFunc, dataNDim, config);
 
-dispHeader(this, config.DispIndent);
-dispDataClass(this, config.DispIndent);
-textual.looseLine( );
-
-data = this.Data;
-dataNDim = ndims(data);
-dispND(start, data, this.Comment, this.Headers, [ ], name, disp2dFunc, dataNDim, config);
+    implementDisp@iris.mixin.UserDataContainer(this, name);
 
 end%
 

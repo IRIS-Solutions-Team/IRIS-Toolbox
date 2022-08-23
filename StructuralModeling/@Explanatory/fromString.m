@@ -77,9 +77,9 @@ if isempty(pp) || isempty(INIT_EXPLANATORY)
 
     addParameter(pp, 'ControlNames', string.empty(1, 0), @(x) isempty(x) || isstring(x) || iscellstr(x));
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
-    addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
-    addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
-    addParameter(pp, 'LhsReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
+    addParameter(pp, 'ResidualNamePattern', @auto, @(x) isequal(x, @auto) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
+    addParameter(pp, 'FittedNamePattern', @auto, @(x) isequal(x, @auto) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
+    addParameter(pp, 'LhsReference', @auto, @(x) isequal(x, @auto) || validate.stringScalar(x));
 
     INIT_EXPLANATORY = Explanatory( );
 end
@@ -204,13 +204,13 @@ return
 
     function obj = hereCreateObject( )
         obj = INIT_EXPLANATORY;
-        if ~isequal(opt.ResidualNamePattern, @default)
+        if ~isequal(opt.ResidualNamePattern, @auto)
             obj.ResidualNamePattern = string(opt.ResidualNamePattern);
         end
-        if ~isequal(opt.FittedNamePattern, @default)
+        if ~isequal(opt.FittedNamePattern, @auto)
             obj.FittedNamePattern = string(opt.FittedNamePattern);
         end
-        if ~isequal(opt.LhsReference, @default)
+        if ~isequal(opt.LhsReference, @auto)
             obj.LhsReference = string(opt.LhsReference);
         end
         if ~isempty(opt.EnforceCase)

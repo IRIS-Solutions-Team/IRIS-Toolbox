@@ -38,7 +38,7 @@ if isempty(ip)
     addParameter(ip, 'Summary', 'table', @(x) any(strcmpi(x, {'struct', 'table'})));
     addParameter(ip, 'UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
 
-    addParameter(ip, 'Algorithm', @default, @(x) isequal(x, @default) || ischar(x) || isstring(x));
+    addParameter(ip, 'Algorithm', @auto, @(x) isequal(x, @auto) || ischar(x) || isstring(x));
     addParameter(ip, 'Display', 'iter', @(x) validate.anyString(x, 'iter', 'final', 'none', 'off'));
     addParameter(ip, 'MaxFunEvals', 2000, @(x) validate.numericScalar(x, 0, Inf));
     addParameter(ip, 'MaxIter', 500, @(x) validate.numericScalar(x, 0, Inf));

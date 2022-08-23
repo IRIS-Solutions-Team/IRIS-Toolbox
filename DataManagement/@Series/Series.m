@@ -71,7 +71,7 @@
 classdef ( ...
     CaseInsensitiveProperties=true, ...
     InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper, ?Dater} ...
-) Series < tseries 
+) Series < TimeSubscriptable
 
     methods % Constructor
         function this = Series(varargin)
@@ -86,13 +86,7 @@ classdef ( ...
 
 {== Construct new time series object ==}
 %}
-            this = this@tseries(varargin{:});
-        end%
-
-
-        function obj = tseries(this)
-            obj = tseries( );
-            obj = struct2obj(obj, this);
+            this = this@TimeSubscriptable(varargin{:});
         end%
     end
 
@@ -111,6 +105,11 @@ classdef ( ...
 
 
         function varargout = barcon(varargin)
+            exception.warning([
+                "Legacy"
+                "Function Series/barcon is deprecated, and will be remove in the near future"
+                "Use the standard bar(___, ""stacked"") instead."
+            ]);
             [varargout{1:nargout}] = Series.implementPlot(@series.barcon, varargin{:});
         end%
 
@@ -128,7 +127,6 @@ classdef ( ...
 
 
     methods (Static)
-        varargout = linearTrend(varargin)
         varargout = implementPlot(varargin)
         varargout = empty(varargin)
         varargout = seasonDummy(varargin)

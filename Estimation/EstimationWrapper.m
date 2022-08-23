@@ -59,7 +59,7 @@ classdef EstimationWrapper < handle
             fields = fieldnames(outsideOptimOpt);
             for i = 1 : numel(fields)
                 value = outsideOptimOpt.(fields{i});
-                if ~isequal(value, @default)
+                if ~isequal(value, @auto)
                     this.SolverOptions = optionsFunction( ...
                         this.SolverOptions, fields{i}, value ...
                     );
