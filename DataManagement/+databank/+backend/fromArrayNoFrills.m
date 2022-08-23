@@ -13,8 +13,8 @@ function outputDb = fromArrayNoFrills( ...
     targetDb ...
 )
 
-if nargin<8
-    targetDb = false;
+try, targetDb;
+    catch, targetDb = false;
 end
 
 TIME_SERIES_TEMPLATE = Series();

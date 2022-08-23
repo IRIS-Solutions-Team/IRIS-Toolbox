@@ -62,7 +62,7 @@ function [outputData, info] = simulate(this, inputData, range, opt)
 
 arguments
     this Explanatory
-    inputData {locallyValidateInputData}
+    inputData {local_validateInputData}
     range {validate.properRange}
 
     opt.AddToDatabank = @auto
@@ -177,10 +177,10 @@ end
 %
 % Extract exogenized points from the Plan
 %
-[anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( );
+[anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = here_extractExogenized( );
 
 
-hereExpandPagesIfNeeded( );
+here_expandPagesIfNeeded( );
 
 
 %
@@ -209,18 +209,18 @@ for blk = 1 : numBlocks
         this__ = this(eqn);
         lhsName__ = this__.LhsName;
         residualName__ = this__.ResidualName;
-        [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
+        [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( );
         [subBlock, res] = createData4Simulate(this__, outputData, controls);
         if period(eqn)
             %
             % Period by period
             %
-            hereRunPeriodByPeriod( );
+            here_runPeriodByPeriod( );
         else
             %
             % All periods at once
             %
-            hereRunOnce(baseRangeColumns);
+            here_runOnce(baseRangeColumns);
         end
         updateDataBlock(this__, outputData, subBlock, res);
     else
@@ -229,9 +229,9 @@ for blk = 1 : numBlocks
                 this__ = this(eqn);
                 lhsName__ = this__.LhsName;
                 residualName__ = this__.ResidualName;
-                [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
+                [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( );
                 [subBlock, res] = createData4Simulate(this__, outputData, controls);
-                hereRunOnce(column);
+                here_runOnce(column);
                 updateDataBlock(this__, outputData, subBlock, res);
             end
         end
@@ -248,7 +248,7 @@ end
 %
 inxNaNParameters = arrayfun(@(x) any(any(~isfinite(x.Parameters(1, x.IncParameters, :)))), this);
 if any(inxNaNParameters)
-    hereReportNaNParameters( );
+    here_reportNaNParameters( );
 end
 
 
@@ -260,7 +260,7 @@ reorder = [blocks{:}];
 pos = pos(reorder);
 inxNaNLhs = any(any(~isfinite(outputData.YXEPG(pos, baseRangeColumns, :)), 3), 2);
 if any(inxNaNLhs)
-    hereReportNaNSimulation( );
+    here_reportNaNSimulation( );
 end
 
 
@@ -269,14 +269,11 @@ end
 %
 if storeToDatabank
     %
-    % Include only the LHS variables and their residuals in the output
-    % databank; do not include RHS-only variables 
+    % Create only the LHS variables and their residuals in the output
+    % databank; copy RHS-only variables over from the input databank
     %
     namesToInclude = [this.LhsName, this.ResidualName];
     outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], [ ], opt);
-    if validate.databank(inputData) && validate.databank(outputData)
-        outputDb = appendData(this, inputData, outputData, range, opt);
-    end
 end
 
 
@@ -289,7 +286,7 @@ end
 return
 
 
-    function [anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( )
+    function [anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = here_extractExogenized( )
         if isempty(opt.Plan) && ~any(opt.ExogenizeWhenData)
             inxExogenizedAlways = logical.empty(0);
             inxExogenizedWhenData = logical.empty(0);
@@ -311,7 +308,7 @@ return
 
         %
         % If some equations are identities, `inxExogenized___` is only
-        % returned for non-identities; expand the array here and set
+        % returned for non-identities; expand the array here_ and set
         % `inxExogenized___` to `false` for all identities/periods.
         %
         inxIdentity = [this.IsIdentity];
@@ -326,7 +323,7 @@ return
     end%
 
 
-    function [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( )
+    function [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( )
         if anyExogenized
             inxExogenizedAlways__ = inxExogenizedAlways(eqn, :);
             inxExogenizedWhenData__ = inxExogenizedWhenData(eqn, :);
@@ -341,7 +338,7 @@ return
 
 
 
-    function hereRunPeriodByPeriod( )
+    function here_runPeriodByPeriod( )
         posLhs__ = this__.DependentTerm.Position;
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
@@ -407,7 +404,7 @@ return
 
 
 
-    function hereRunOnce(columnsToRun)
+    function here_runOnce(columnsToRun)
         posLhs__ = this__.DependentTerm.Position;
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
@@ -477,7 +474,7 @@ return
 
 
 
-    function hereExpandPagesIfNeeded( )
+    function here_expandPagesIfNeeded( )
         if numPages==1 && nv>1
             outputData.YXEPG = repmat(outputData.YXEPG, 1, 1, nv);
             return
@@ -496,7 +493,7 @@ return
 
 
 
-    function hereReportNaNParameters( )
+    function here_reportNaNParameters( )
         report = lhsNames(inxNaNParameters);
         thisWarning  = [ 
             "Explanatory:MissingObservationInSimulationRange"
@@ -509,7 +506,7 @@ return
 
 
 
-    function hereReportNaNSimulation( )
+    function here_reportNaNSimulation( )
         report = outputData.Names(sort(pos(inxNaNLhs)));
         thisWarning  = [ 
             "Explanatory:MissingObservationInSimulationRange"
@@ -524,7 +521,7 @@ end%
 % Local Validators
 %
 
-function locallyValidateInputData(input)
+function local_validateInputData(input)
     if validate.databank(input)
         return
     end
