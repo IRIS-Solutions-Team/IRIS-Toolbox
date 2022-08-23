@@ -89,13 +89,13 @@ else
     end
 end
 
-logPrefix = model.component.Quantity.LOG_PREFIX;
+logPrefix = model.Quantity.LOG_PREFIX;
 yVector = string(printSolutionVector(this, "y", logPrefix));
 xVector0 = string(printSolutionVector(this, this.Vector.System{2}, logPrefix));
 xVector1 = string(printSolutionVector(this, this.Vector.System{2}+1i, logPrefix));
 eVector = string(printSolutionVector(this, "e", logPrefix));
-mEquations = string(model.component.Equation.extractInput(this.Equation.Input(1:numM), "dynamic"));
-tEquations = string(model.component.Equation.extractInput(this.Equation.Input(numM+(1:numT)), "dynamic"));
+mEquations = string(model.Equation.extractInput(this.Equation.Input(1:numM), "dynamic"));
+tEquations = string(model.Equation.extractInput(this.Equation.Input(numM+(1:numT)), "dynamic"));
 list = {yVector, xVector1, eVector, mEquations, tEquations};
 
 % Number of forward-looking variables.

@@ -409,7 +409,7 @@ classdef Steady < solver.block.Block
                 %
                 % Redifferentiate this equation wrt the quantities needed only
                 %
-                d = model.component.Gradient.diff(this.ParentBlazer.Equations{posEqn}, vecWrtNeeded, "array");
+                d = model.Gradient.diff(this.ParentBlazer.Equations{posEqn}, vecWrtNeeded, "array");
                 d = str2func(this.PREAMBLE + string(d));
                 gr = {d; vecWrtNeeded; [ ]};
             end

@@ -37,7 +37,7 @@ info.FMSE = F;
 %
 pe = [];
 if isfield(regOutp, 'Pe')
-    logPrefix = string(model.component.Quantity.LOG_PREFIX);
+    logPrefix = string(model.Quantity.LOG_PREFIX);
     pe = struct();
     for i = find(inxY)
         name = string(this.Quantity.Name(i));

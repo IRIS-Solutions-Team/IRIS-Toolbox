@@ -21,7 +21,7 @@
 
 classdef SystemPriorWrapper < handle
     properties
-        Quantity = model.component.Quantity.empty(1, 0)
+        Quantity = model.Quantity.empty(1, 0)
         SystemPriors = SystemPrior.empty(1, 0)
         SystemProperties = SystemProperty.empty(1, 0)
         LogDensityOutOfBounds = -Inf

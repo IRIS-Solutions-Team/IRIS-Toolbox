@@ -45,7 +45,7 @@ for i = 1 : numel(this.Id)
             if type=="median"
                 data = real(exp(data));
             else
-                name = model.component.Quantity.LOG_PREFIX + name;
+                name = model.Quantity.LOG_PREFIX + name;
             end
         end
 

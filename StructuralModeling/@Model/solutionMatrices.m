@@ -52,7 +52,7 @@ if opt.RemoveInactiveShocks
     Omg = Omg(inxShocksToKeep, inxShocksToKeep);
 end
 
-logPrefix = model.component.Quantity.LOG_PREFIX;
+logPrefix = model.Quantity.LOG_PREFIX;
 yVector = string(printSolutionVector(this, "y", logPrefix));
 xiVector = string(printSolutionVector(this, this.Vector.Solution{2}, logPrefix));
 xifVector = xiVector(1:numXif);

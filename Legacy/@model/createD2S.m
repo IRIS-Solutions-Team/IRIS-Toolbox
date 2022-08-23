@@ -58,7 +58,7 @@ numX = numel(this.Vector.System{2});
 nu = sum(imag(this.Vector.System{2})>=0);
 np = numX - nu;
 
-this.D2S = model.component.D2S( );
+this.D2S = model.D2S( );
 
 % __Preallocate__
 % Preallocate vectors of positions in derivative matrices

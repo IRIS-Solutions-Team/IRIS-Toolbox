@@ -29,7 +29,7 @@ if flag, return, end
 [response, flag] = implementGet(this.Gradient, query, this.Quantity, varargin{:});
 if flag, return, end
 
-[response, flag] = model.component.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
+[response, flag] = model.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
 if flag, return, end
 
 [response, flag] = implementGet(this.Vector, query, varargin{:});

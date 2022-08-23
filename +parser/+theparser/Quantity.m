@@ -106,7 +106,7 @@ classdef Quantity < parser.theparser.Generic
             qty.Label(end+(1:numQuantities)) = label;
             qty.Alias(end+(1:numQuantities)) = alias;
             qty.Attributes(end+(1:numQuantities)) = {attributes};
-            qty.Bounds(:, end+(1:numQuantities)) = repmat(model.component.Quantity.DEFAULT_BOUNDS, 1, numQuantities);
+            qty.Bounds(:, end+(1:numQuantities)) = repmat(model.Quantity.DEFAULT_BOUNDS, 1, numQuantities);
 
             qty.IxLog(end+(1:numQuantities)) = repmat(this.IsLog, 1, numQuantities);
             qty.IxLagrange(end+(1:numQuantities)) = repmat(this.IsLagrange, 1, numQuantities);

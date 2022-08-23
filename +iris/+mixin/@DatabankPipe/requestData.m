@@ -16,7 +16,7 @@ end
 numPages = dbInfo.NumPages;
 X = nan(numNames, numPeriods, numPages);
 
-logPrefix = model.component.Quantity.LOG_PREFIX;;
+logPrefix = model.Quantity.LOG_PREFIX;;
 inxLogInput = ismember(namesInRows, dbInfo.NamesWithLogInputData);
 hasAnyNamesWithLogInputData = ~isempty(dbInfo.NamesWithLogInputData);
 

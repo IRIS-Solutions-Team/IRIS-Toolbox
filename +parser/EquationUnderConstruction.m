@@ -1,5 +1,5 @@
 classdef EquationUnderConstruction ...
-    < model.component.Insertable
+    < model.Insertable
 
     properties
         LhsDynamic = cell.empty(1, 0)

@@ -428,7 +428,7 @@ classdef Model ...
         function value = getAutoswapsForPlan(this)
             pairingVector = this.Pairing.Autoswaps.Simulate;
             [namesExogenized, namesEndogenized] = ...
-                model.component.Pairing.getAutoswaps(pairingVector, this.Quantity);
+                model.Pairing.getAutoswaps(pairingVector, this.Quantity);
             value = [ namesExogenized(:), namesEndogenized(:) ];
         end%
 

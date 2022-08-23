@@ -58,7 +58,7 @@ end
 % variables) named costd_shock
 %
 costd = "costd_" + condShocks;
-add = model.component.Quantity.fromNames(costd);
+add = model.Quantity.fromNames(costd);
 [qty, ~, ~, posCostd] = insert(qty, add, 4, 'last');
 
 %
@@ -66,7 +66,7 @@ add = model.component.Quantity.fromNames(costd);
 %
 loss = hereCreateLossFunc();
 
-add = model.component.Equation.fromInput(loss);
+add = model.Equation.fromInput(loss);
 [eqn, ~, ~, posLoss] = insert(eqn, add, 2, 'last');
 
 add = parser.EquationUnderConstruction.forLoss(loss);
@@ -156,7 +156,7 @@ end%
 function qty = locallyEnsureDiscountParameter(qty, discount)
     %(
     if ~any(string(discount)==string(qty.Name))
-        add = model.component.Quantity.fromNames(discount);
+        add = model.Quantity.fromNames(discount);
         add.Type = 4;
         qty = insert(qty, add, 4, 'last');
     end
@@ -169,7 +169,7 @@ function [qty, posCondShocks] = locallyCreateSlacks(qty)
     inxVariablesNeedCond = qty.Type==2;
     numShocksToAdd = nnz(inxVariablesNeedCond);
     newShockNames = cellstr(string(qty.SLACK_PREFIX) + string(qty.Name(inxVariablesNeedCond)));
-    add = model.component.Quantity.fromNames(newShockNames);
+    add = model.Quantity.fromNames(newShockNames);
     [qty, ~, ~, posCondShocks] = insert(qty, add, 32, 'last');
     %)
 end%

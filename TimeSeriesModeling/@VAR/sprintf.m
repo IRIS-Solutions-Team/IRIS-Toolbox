@@ -196,11 +196,11 @@ for v = 1 : nv
     % Add std and corr to the parameter database
     if ~opt.HardParameters
         for i = 1 : ny
-            name = model.component.Quantity.printStd(residualNames(i));
+            name = model.Quantity.printStd(residualNames(i));
             d{v}.(name) = sqrt(c(i, i));
             for j = 1 : i-1
                 if abs(R(i, j))>opt.Tolerance
-                    name = model.component.Quantity.printCorr(residualNames(i), residualNames(j));
+                    name = model.Quantity.printCorr(residualNames(i), residualNames(j));
                     d{v}.(name) = R(i, j);
                 end
             end

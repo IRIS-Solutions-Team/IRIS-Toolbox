@@ -85,7 +85,7 @@ inxLogInput = false(1, numAllNames);
 
 % Find the index of names that are not in the databank, are allowed to be
 % log_ names and the corresponding log_name is in the databank
-logPrefix = model.component.Quantity.LOG_PREFIX;
+logPrefix = model.Quantity.LOG_PREFIX;
 if any(~inxFound) && ~isempty(logNames)
     inxAllowedLog = ismember(allNames, logNames);
     inxFoundLog = ismember(logPrefix + allNames, dbNames);

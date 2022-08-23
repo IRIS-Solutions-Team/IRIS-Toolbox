@@ -39,8 +39,8 @@ eqtn(:) = {''};
 eqtn(ixx) = equation.Dynamic(ixx);
 
 % Replace x(:,n,t+k) with xN, xNpK, or xNmK, and &x(n) with Ln.
-eqtn = model.component.Gradient.array2symb(eqtn);
-lossDisc = model.component.Gradient.array2symb(lossDisc);
+eqtn = model.Gradient.array2symb(eqtn);
+lossDisc = model.Gradient.array2symb(lossDisc);
 
 % First transition equation.
 first = find(ixt, 1);
@@ -196,13 +196,13 @@ end
 % in all equations.
 new = simplifyZeroMultipliers(new);
 
-new.Dynamic = model.component.Gradient.symb2array(new.Input);
+new.Dynamic = model.Gradient.symb2array(new.Input);
 
 % Replace steady-state references in steady equations
-new.Steady = model.component.Gradient.symb2array(new.Input);
+new.Steady = model.Gradient.symb2array(new.Input);
 new.Steady = replace(new.Steady, 'L', 'x');
 
-new.Input = model.component.Gradient.symb2array(new.Input, 'input', quantity.Name);
+new.Input = model.Gradient.symb2array(new.Input, 'input', quantity.Name);
 
 % Add semicolons at the end of each new equation
 pos = posLossEqtn : numel(new.Input);

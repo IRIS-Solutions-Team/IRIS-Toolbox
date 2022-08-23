@@ -47,9 +47,9 @@ function varargout = autoswaps(this, varargin)
 
 if isempty(varargin)
     % ## Get Autoswap Structure ##
-    auto = model.component.AutoswapStruct( );
-    [~, ~, auto.Simulate] = model.component.Pairing.getAutoswaps(this.Pairing.Autoswaps.Simulate, this.Quantity);
-    [~, ~, auto.Steady] = model.component.Pairing.getAutoswaps(this.Pairing.Autoswaps.Steady, this.Quantity);
+    auto = model.AutoswapStruct( );
+    [~, ~, auto.Simulate] = model.Pairing.getAutoswaps(this.Pairing.Autoswaps.Simulate, this.Quantity);
+    [~, ~, auto.Steady] = model.Pairing.getAutoswaps(this.Pairing.Autoswaps.Steady, this.Quantity);
     varargout{1} = auto;
 
 else
@@ -84,7 +84,7 @@ return
             namesExogenized = transpose(namesExogenized(:));
             namesEndogenized = struct2cell(auto);
             namesEndogenized = transpose(namesEndogenized(:));
-            p = model.component.Pairing.setAutoswaps( ...
+            p = model.Pairing.setAutoswaps( ...
                 p, type, this.Quantity ...
                 , namesExogenized, namesEndogenized ...
             );

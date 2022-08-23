@@ -28,28 +28,28 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         Reporting = rpteq( )
 
         % D2S  Derivatives to system matrices conversion
-        D2S = model.component.D2S( )
+        D2S = model.D2S( )
 
         % Quantity  Container for model quantities (variables, shocks, parameters)
-        Quantity = model.component.Quantity( )
+        Quantity = model.Quantity( )
 
         % Equation  Container for model equations (equations, dtreds, links)
-        Equation = model.component.Equation( )
+        Equation = model.Equation( )
 
         % Incidence  Incidence matrices for dynamic and steady equations
-        Incidence = struct( 'Dynamic', model.component.Incidence( ), ...
-                            'Steady',  model.component.Incidence( ) )
+        Incidence = struct( 'Dynamic', model.Incidence( ), ...
+                            'Steady',  model.Incidence( ) )
 
         % Link  Dynamic links
-        Link = model.component.Link.empty(0)
+        Link = model.Link.empty(0)
 
         % Gradient  Symbolic gradients of model equations
-        Gradient = model.component.Gradient(0)
+        Gradient = model.Gradient(0)
 
 
         % Pairing  Definition of pairs in autoswaps, measurement trends,
         % links, and assignment equations
-        Pairing = model.component.Pairing(0, 0)
+        Pairing = model.Pairing(0, 0)
 
         % PreparserControl  Preparser control parameters
         PreparserControl = struct( )
@@ -58,13 +58,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         Substitutions = struct( )
 
         % Vector  Vectors of variables in rows of system and solution matrices
-        Vector = model.component.Vector( )
+        Vector = model.Vector( )
 
         % Variant  Parameter variant dependent properties
-        Variant = model.component.Variant( )
+        Variant = model.Variant( )
 
         % Behavior  Settings to control behavior of model objects
-        Behavior = model.component.Behavior( )
+        Behavior = model.Behavior( )
 
         % Export  Export files
         Export = iris.mixin.Export.empty(1, 0)
@@ -80,7 +80,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
     properties (GetAccess=public, SetAccess=protected, Hidden, Transient)
         % LastSystem  Handle to last derivatives and system matrices
-        LastSystem = model.component.LastSystem( )
+        LastSystem = model.LastSystem( )
 
         % Affected  Logical array of equations affected by changes in parameters and steady-state values
         Affected = logical.empty(0)
