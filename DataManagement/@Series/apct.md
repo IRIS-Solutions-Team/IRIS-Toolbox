@@ -17,7 +17,7 @@ X = apct(X, ~Shift)
 
 ## Input arguments 
 
-__`X`__ [ TimeSubscriptable ] 
+__`X`__ [ Series ] 
 > 
 > Input time series.
 > 
@@ -31,7 +31,7 @@ __`~Shift=-1`__ [ numeric ]
 
 ## Output arguments 
 
-__`X`__ [ TimeSubscriptable ] 
+__`X`__ [ Series ] 
 > 
 > Annualized percentage rate of change
 > in the input data.

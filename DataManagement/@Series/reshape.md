@@ -14,7 +14,7 @@ title: reshape
 
 ## Input arguments 
 
-__`X`__ [ TimeSubscriptable ] 
+__`X`__ [ Series ] 
 > 
 > Time series  whose data will be reshaped in
 > 2nd and/or higher dimensions.
@@ -28,7 +28,7 @@ __`NewSize`__ [ numeric ]
 
 ## Output arguments 
 
-__`X`__ [ TimeSubscriptable ] 
+__`X`__ [ Series ] 
 > 
 > Reshaped time series.
 > 

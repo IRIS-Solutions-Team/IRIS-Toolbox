@@ -16,7 +16,7 @@ x = difflog(x, ~shift)
 
 ## Input arguments 
 
-__`x`__ [ TimeSubscriptable ] 
+__`x`__ [ Series ] 
 > 
 > Input time series.
 > 
@@ -31,7 +31,7 @@ __`~shift`__ [ numeric ]
 
 ## Output arguments 
 
-__`x`__ [ TimeSubscriptable ]
+__`x`__ [ Series ]
 > 
 > First difference of the log of the input time series.
 > 

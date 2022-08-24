@@ -19,7 +19,7 @@ title: comment
 
 ## Input arguments 
 
-__`x`__ [ TimeSubscriptable ]
+__`x`__ [ Series ]
 > 
 > Time series
 > 
@@ -30,7 +30,7 @@ __`newComment`__ [ string ]
 > to each column of the input time series, `x`.
 > 
 
-__`y`__ [ TimeSubscriptable ]
+__`y`__ [ Series ]
 > 
 > Another time series whose column comment(s) will be
 > assigned to the input time series, `x`.
@@ -39,7 +39,7 @@ __`y`__ [ TimeSubscriptable ]
 
 ## Output arguments 
 
-__`x`__ [ TimeSubscriptable ]
+__`x`__ [ Series ]
 > 
 > Output time series with new comments
 > assigned.

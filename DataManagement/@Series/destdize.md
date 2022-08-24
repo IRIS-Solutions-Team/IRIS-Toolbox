@@ -14,9 +14,9 @@ title: destdize
 
 ## Input arguments 
 
-__`x`__ [ TimeSubscriptable ] 
+__`x`__ [ Series ] 
 > 
-> Input TimeSubscriptable object.
+> Input Series object.
 > 
 
 __`meanX`__ [ numeric ] 
@@ -32,7 +32,7 @@ __`stdX`__ [ numeric ]
 
 ## Output arguments 
 
-__`x`__ [ TimeSubscriptable ] 
+__`x`__ [ Series ] 
 > 
 > Destandardized output data.
 > 

@@ -16,7 +16,7 @@ this = diff(this, ~shift)
 
 ## Input arguments 
 
-__`this`__ [ TimeSubscriptable ] 
+__`this`__ [ Series ] 
 >
 > Input time series.
 >
@@ -30,7 +30,7 @@ __`~shift`__ [ numeric ]
 
 ## Output arguments 
 
-__`this`__ [ TimeSubscriptable ]
+__`this`__ [ Series ]
 >
 >    First difference of logarithms of the input time series.
 >

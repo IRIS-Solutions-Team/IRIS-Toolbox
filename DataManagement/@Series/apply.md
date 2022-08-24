@@ -19,7 +19,7 @@ Function that will be applied to the input series `x` period by period
 referencing the input time series (`x`, `y1`, `y2`, etc...) in the
 `func`.
 
-__`x`__ [ TimeSubscriptable ] -
+__`x`__ [ Series ] -
 Input series to which the `func` will be applied period by period.
 
 __`dates`__ [ Dater ] -

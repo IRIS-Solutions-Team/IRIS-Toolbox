@@ -16,7 +16,7 @@ x = aroc(x, ~shift)
 
 ## Input arguments 
 
-__`x`__ [ TimeSubscriptable ]  
+__`x`__ [ Series ]  
 >
 > Input time series.
 >
@@ -29,7 +29,7 @@ __`~shift=-1`__ [ numeric ]
 
 ## Output arguments 
 
-__`x`__ [ TimeSubscriptable ] - 
+__`x`__ [ Series ] - 
 >
 > Annualized percentage rate of change in the input data.
 >

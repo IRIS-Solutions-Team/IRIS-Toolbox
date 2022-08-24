@@ -4,7 +4,7 @@ title: binop
 
 # `binop`
 
-{== Binary operators and functions on TimeSubscriptable objects ==}
+{== Binary operators and functions on Series objects ==}
 
 
 ## Syntax 

@@ -14,7 +14,7 @@ title: clip
 
 ## Input arguments 
 
-__`inputSeries`__ [ TimeSubscriptable ]
+__`inputSeries`__ [ Series ]
 >
 > Input time series whose date range will be clipped.
 >
@@ -31,7 +31,7 @@ __`newEnd`__ [ Dater | `Inf` ]
 
 ## Output arguments 
 
-__`outputSeries`__ [ TimeSubscriptable ]
+__`outputSeries`__ [ Series ]
 >
 > Output time series  with its date range clipped to the new range from
 > `newStart` to `newEnd`. 
