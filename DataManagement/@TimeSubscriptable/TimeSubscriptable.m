@@ -82,6 +82,7 @@ TimeSubscriptable ...
         varargout = arma(varargin)
         varargout = bpass(varargin)
         varargout = bsxfun(varargin)
+        varargout = chainlink(varargin)
         varargout = chowlin(varargin)
         varargout = clip(varargin)
         varargout = comment(varargin)
@@ -122,6 +123,7 @@ TimeSubscriptable ...
         varargout = setData(varargin)
         varargout = shift(varargin)
         varargout = sort(varargin)
+        varargout = spy(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)
         varargout = trend(varargin)
@@ -518,14 +520,31 @@ TimeSubscriptable ...
 
 
     methods % Plotting
+        varargout = band(varargin)
+        varargout = plot(varargin)
+
+
         function varargout = area(varargin)
             this = TimeSubscriptable.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@area, varargin{:});
         end%
 
+        function varargout = bands(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@bands, varargin{:});
+        end%
+
         function varargout = bar(varargin)
             this = TimeSubscriptable.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@bar, varargin{:});
+        end%
+
+        function varargout = barcon(varargin)
+            exception.warning([
+                "Legacy"
+                "Function Series/barcon is deprecated, and will be remove in the near future"
+                "Use the standard bar(___, ""stacked"") instead."
+            ]);
+            [varargout{1:nargout}] = Series.implementPlot(@series.barcon, varargin{:});
         end%
 
         function varargout = binscatter(varargin)
@@ -536,6 +555,10 @@ TimeSubscriptable ...
         function varargout = bubblechart(varargin)
             this = TimeSubscriptable.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@bubblechart, varargin{:});
+        end%
+
+        function varargout = errorbar(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@series.errorbar, varargin{:});
         end%
 
         function varargout = histogram(varargin)
@@ -723,6 +746,18 @@ TimeSubscriptable ...
     methods (Static)
         varargout = createTable(varargin)
         varargout = linearTrend(varargin)
+        varargout = seasonDummy(varargin)
+        varargout = randomlyGrowing(varargin)
+        varargout = empty(varargin)
+        varargout = implementPlot(varargin)
+
+        function this = template(varargin)
+            persistent persistentSeries
+            if ~isa(persistentSeries, 'Series')
+                persistentSeries = Series();
+            end
+            this = persistentSeries;
+        end%
     end
 
 

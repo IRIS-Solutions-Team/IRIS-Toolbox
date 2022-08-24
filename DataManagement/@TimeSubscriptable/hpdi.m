@@ -31,19 +31,29 @@
 % __Example__
 %
 
-function int = hpdi(this, coverage, varargin)
+function int = hpdi(this, coverage, dim)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('Series.hpdi');
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'Series'));
-    inputParser.addRequired('Coverage', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=100);
-    inputParser.addOptional('Dim', 2, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
+% >=R2019b
+%(
+arguments
+    this Series
+    coverage (1, 1) double {mustBePositive}
+    dim (1, 1) double {mustBeInteger, mustBePositive} = 2
 end
-inputParser.parse(this, coverage, varargin{:});
-dim = inputParser.Results.Dim;
+%)
+% >=R2019b
 
-int = unop(@series.hpdi, this, dim, coverage, dim);
+
+% <=R2019a
+%{
+try, dim;
+    catch, dim = 2;
+end
+%}
+% <=R2019a
+
+
+    int = unop(@series.hpdi, this, dim, coverage, dim);
 
 end%
 
