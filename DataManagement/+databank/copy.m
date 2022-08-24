@@ -81,7 +81,7 @@ return
     function sourceNames = here_resolveSourceNames()
         %(
         testForAll = @(x) isequal(x, @all) || isequal(x, "__all__") || isequal(x, '__all__');
-        if testForAll(opt.SourceNames, @all)
+        if testForAll(opt.SourceNames)
             sourceNames = databank.fieldNames(sourceDb);
         elseif isa(opt.SourceNames, 'function_handle') 
             func = opt.SourceNames;

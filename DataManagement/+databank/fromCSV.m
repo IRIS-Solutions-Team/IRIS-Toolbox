@@ -177,9 +177,12 @@ if numel(commentRow)<numel(nameRow)
     commentRow(numel(commentRow)+1:numel(nameRow)) = {''};
 end
 
-% Apply user selection, white out all names that user did not select
 testForAll = @(x) isequal(x, @all) || isequal(x, "__all__") || isequal(x, '__all__');
-if ~testForAll(opt.Select)
+
+% Apply user selection, white out all names that user did not select
+if testForAll(opt.Select)
+    % Pass
+else
     if ischar(opt.Select)
         opt.Select = regexp(opt.Select, '\w+', 'match');
     end
