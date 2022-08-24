@@ -1,24 +1,24 @@
 
 % >=R2019b
-%(
+%{
 function varargout = comment(this, newComment)
 
 arguments
     this Series
     newComment {local_validateNewComment} = @get
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function varargout = comment(this, newComment)
 
 if nargin<2
     newComment = @get;
 end
-%}
+%)
 % <=R2019a
 
 

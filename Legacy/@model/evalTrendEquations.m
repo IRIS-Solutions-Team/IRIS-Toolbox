@@ -1,14 +1,14 @@
 function [W, dW] = evalTrendEquations(this, posOutlikParams, inputData, variantsRequested)
 
 % >=R2019b
-%(
+%{
 arguments
     this
     posOutlikParams (1, :) double
     inputData (:, :, :) double
     variantsRequested (1, :) double
 end
-%)
+%}
 % >=R2019b
 
 

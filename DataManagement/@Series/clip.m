@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 
 arguments
@@ -9,12 +9,12 @@ arguments
 
     newEnd {validate.mustBeScalarOrEmpty, validate.mustBeDate(newEnd)} = []
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [this, newStart, newEnd] = clip(this, newStart, varargin)
 
 persistent ip
@@ -24,7 +24,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 newEnd = ip.Results.newEnd;
-%}
+%)
 % <=R2019a
 
 
