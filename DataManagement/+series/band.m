@@ -53,7 +53,7 @@ for i = 1 : numBands
 
     % Draw patch object, mix its face color.
     set(axesHandle, 'nextPlot', 'add');
-    p = patch(axesHandle, xData, yData, 'white');
+    p = fill(axesHandle, xData, yData, 'white');
     set(axesHandle, 'nextPlot', nextPlot);
 
     faceCol = col{min(i, end)}; % white*[1, 1, 1] + (1-white)*col{min(i, end)};

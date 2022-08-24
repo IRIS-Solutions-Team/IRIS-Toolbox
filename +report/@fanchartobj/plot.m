@@ -36,7 +36,7 @@ for i = 1 : nint
     hData = -sqrt(2)*erfcinv(probdata(i)+1)*hstData;
     vData = [lData;flipud(hData)];
     vData = vData + [cData;flipud(cData)];
-    pt(i) = patch([grid;flipud(grid)], vData, 'white');
+    pt(i) = fill([grid;flipud(grid)], vData, 'white');
     ch = get(hAx, 'children');
     ch(ch == pt(i)) = [ ];
     ch(end+1) = pt(i); %#ok<AGROW>
