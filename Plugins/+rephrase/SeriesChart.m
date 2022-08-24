@@ -3,7 +3,7 @@ classdef SeriesChart ...
     & rephrase.ChartMixin
 
     properties
-        Type = rephrase.Type.SERIESCHART
+        Type = string(rephrase.Type.SERIESCHART)
     end
 
 
@@ -19,7 +19,7 @@ classdef SeriesChart ...
 
     properties (Constant, Hidden)
         PossibleChildren = [ 
-            rephrase.Type.SERIES
+            string(rephrase.Type.SERIES)
         ]
     end
 

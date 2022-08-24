@@ -36,10 +36,6 @@ classdef Element ...
         end%
 
 
-        function this = convertTypeToString(this)
-        end%
-
-
         function show(this, level, last)
             %(
             if nargin<2

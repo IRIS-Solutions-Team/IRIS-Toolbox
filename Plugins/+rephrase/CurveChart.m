@@ -4,7 +4,7 @@ classdef CurveChart ...
     & rephrase.ChartMixin
 
     properties
-        Type = rephrase.Type.CURVECHART
+        Type = string(rephrase.Type.CURVECHART)
     end
 
 
@@ -17,8 +17,8 @@ classdef CurveChart ...
 
     properties (Constant, Hidden)
         PossibleChildren = [ 
-            rephrase.Type.CURVE
-            rephrase.Type.MARKER
+            string(rephrase.Type.CURVE)
+            string(rephrase.Type.MARKER)
         ]
     end
 

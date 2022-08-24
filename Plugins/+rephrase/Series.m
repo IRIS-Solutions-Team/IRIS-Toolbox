@@ -5,7 +5,7 @@ classdef Series ...
     & rephrase.PlotMixin
 
     properties % (Constant)
-        Type = rephrase.Type.SERIES
+        Type = string(rephrase.Type.SERIES)
     end
 
 

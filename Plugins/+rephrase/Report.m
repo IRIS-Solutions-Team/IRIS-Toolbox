@@ -2,7 +2,7 @@ classdef Report ...
     < rephrase.Container
 
     properties % (Constant)
-        Type = rephrase.Type.REPORT
+        Type = string(rephrase.Type.REPORT)
     end
 
 
@@ -18,16 +18,16 @@ classdef Report ...
 
     properties (Constant, Hidden)
         PossibleChildren = [
-            rephrase.Type.GRID
-            rephrase.Type.TABLE
-            rephrase.Type.CHART
-            rephrase.Type.SERIESCHART
-            rephrase.Type.CURVECHART
-            rephrase.Type.TEXT
-            rephrase.Type.PAGEBREAK
-            rephrase.Type.MATRIX
-            rephrase.Type.PAGER
-            rephrase.Type.SECTION
+            string(rephrase.Type.GRID)
+            string(rephrase.Type.TABLE)
+            string(rephrase.Type.CHART)
+            string(rephrase.Type.SERIESCHART)
+            string(rephrase.Type.CURVECHART)
+            string(rephrase.Type.TEXT)
+            string(rephrase.Type.PAGEBREAK)
+            string(rephrase.Type.MATRIX)
+            string(rephrase.Type.PAGER)
+            string(rephrase.Type.SECTION)
         ]
         EMBED_REPORT_DATA = "// report-data-script-here"
         EMBED_USER_STYLE = "/* user-defined-css-here */"

@@ -3,7 +3,7 @@ classdef Grid ...
     < rephrase.Container
 
     properties % (Constant)
-        Type = rephrase.Type.GRID
+        Type = string(rephrase.Type.GRID)
     end
 
 
@@ -15,11 +15,11 @@ classdef Grid ...
 
     properties (Constant, Hidden)
         PossibleChildren = [
-            rephrase.Type.TABLE
-            rephrase.Type.CHART
-            rephrase.Type.SERIESCHART
-            rephrase.Type.CURVECHART
-            rephrase.Type.MATRIX
+            string(rephrase.Type.TABLE)
+            string(rephrase.Type.CHART)
+            string(rephrase.Type.SERIESCHART)
+            string(rephrase.Type.CURVECHART)
+            string(rephrase.Type.MATRIX)
         ]
     end
 

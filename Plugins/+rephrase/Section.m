@@ -2,20 +2,20 @@ classdef Section ...
     < rephrase.Container
 
     properties % (Constant)
-        Type = rephrase.Type.SECTION
+        Type = string(rephrase.Type.SECTION)
     end
 
 
     properties (Constant, Hidden)
         PossibleChildren = [
-            rephrase.Type.GRID
-            rephrase.Type.TABLE
-            rephrase.Type.CHART
-            rephrase.Type.SERIESCHART
-            rephrase.Type.CURVECHART
-            rephrase.Type.MATRIX
-            rephrase.Type.PAGER
-            rephrase.Type.SECTION
+            string(rephrase.Type.GRID)
+            string(rephrase.Type.TABLE)
+            string(rephrase.Type.CHART)
+            string(rephrase.Type.SERIESCHART)
+            string(rephrase.Type.CURVECHART)
+            string(rephrase.Type.MATRIX)
+            string(rephrase.Type.PAGER)
+            string(rephrase.Type.SECTION)
         ]
     end
 

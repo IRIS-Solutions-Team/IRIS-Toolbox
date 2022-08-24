@@ -3,7 +3,7 @@ classdef Pager ...
     < rephrase.Container
 
     properties % (Constant)
-        Type = rephrase.Type.PAGER
+        Type = string(rephrase.Type.PAGER)
     end
 
 
@@ -14,12 +14,12 @@ classdef Pager ...
 
     properties (Constant, Hidden)
         PossibleChildren = [
-            rephrase.Type.GRID
-            rephrase.Type.TABLE
-            rephrase.Type.CHART
-            rephrase.Type.SERIESCHART
-            rephrase.Type.CURVECHART
-            rephrase.Type.MATRIX
+            string(rephrase.Type.GRID)
+            string(rephrase.Type.TABLE)
+            string(rephrase.Type.CHART)
+            string(rephrase.Type.SERIESCHART)
+            string(rephrase.Type.CURVECHART)
+            string(rephrase.Type.MATRIX)
         ]
     end
 

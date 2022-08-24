@@ -20,7 +20,7 @@ classdef (Abstract) DataMixin ...
             if isa(input, 'Series')
                 parent = this.Parent;
                 freq = input.Frequency;
-                if ismember(parent.Type, [rephrase.Type.CHART, rephrase.Type.SERIESCHART, rephrase.Type.CURVECHART])
+                if ismember(string(parent.Type), [string(rephrase.Type.CHART), string(rephrase.Type.SERIESCHART), string(rephrase.Type.CURVECHART)])
                     startDate = dater.fromIsoString(freq, parent.Settings_StartDate);
                     endDate = dater.fromIsoString(freq, parent.Settings_EndDate);
                     values = getDataFromTo(input, startDate, endDate);

@@ -2,7 +2,7 @@ classdef Table ...
     < rephrase.Container
 
     properties % (Constant)
-        Type = rephrase.Type.TABLE
+        Type = string(rephrase.Type.TABLE)
     end
 
 
@@ -20,9 +20,9 @@ classdef Table ...
 
     properties (Constant, Hidden)
         PossibleChildren = [
-            rephrase.Type.SERIES
-            rephrase.Type.DIFFSERIES
-            rephrase.Type.HEADING
+            string(rephrase.Type.SERIES)
+            string(rephrase.Type.DIFFSERIES)
+            string(rephrase.Type.HEADING)
         ]
     end
 
