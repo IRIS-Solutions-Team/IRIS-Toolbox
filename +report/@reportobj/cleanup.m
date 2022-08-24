@@ -1,36 +1,29 @@
-function cleanup(this)
 % cleanup  Clean up temporary files and folders
-%
-% Backend IRIS function
-% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
+function cleanup(this)
 
-%--------------------------------------------------------------------------
+    tempFile = this.hInfo.tempFile;
+    tempDir = this.hInfo.tempDir;
+    numOfTempFiles = length(tempFile);
+    beenDeleted = false(1, numOfTempFiles);
 
-tempFile = this.hInfo.tempFile;
-tempDir = this.hInfo.tempDir;
-numOfTempFiles = length(tempFile);
-beenDeleted = false(1, numOfTempFiles);
-
-for i = 1 : numOfTempFiles
-    file = tempFile{i};
-    if ~isempty(dir(file))
-        delete(file);
-        beenDeleted(i) = isempty(dir(file));
+    for i = 1 : numOfTempFiles
+        file = tempFile{i};
+        if ~isempty(dir(file))
+            delete(file);
+            beenDeleted(i) = isempty(dir(file));
+        end
     end
-end
-tempFile(beenDeleted) = [ ];
+    tempFile(beenDeleted) = [ ];
 
-if ~isempty(tempDir)
-    status = rmdir(tempDir);
-    if status==1
-        tempDir = '';
+    if ~isempty(tempDir)
+        status = rmdir(tempDir);
+        if status==1
+            tempDir = '';
+        end
     end
-end
 
-this.hInfo.tempFile = tempFile;
-this.hInfo.tempDir = tempDir;
+    this.hInfo.tempFile = tempFile;
+    this.hInfo.tempDir = tempDir;
 
 end%
