@@ -32,10 +32,10 @@ opt = ip.Results;
 
 stringify = @(x) reshape(string(x), 1, []);
 
-test = @(x) isequal(x, @all) || isequal(x, "__all__");
-isNameFilter = ~test(opt.Name);
-isClassFilter = ~test(opt.Class);
-isValueFilter = ~test(opt.Value);
+testForAll = @(x) isequal(x, @all) || isequal(x, "__all__") || isequal(x, '__all__');
+isNameFilter = ~testForAll(opt.Name);
+isClassFilter = ~testForAll(opt.Class);
+isValueFilter = ~testForAll(opt.Value);
 
 allKeys = stringify(fieldnames(inputDb));
 if ~isNameFilter && ~isClassFilter && ~isValueFilter
