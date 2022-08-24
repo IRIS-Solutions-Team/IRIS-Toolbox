@@ -1,4 +1,5 @@
-classdef tseries
+
+classdef (Abstract) tseries
     methods (Static)
          function this = loadobj(this, varargin)
             try
