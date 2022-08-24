@@ -1,8 +1,3 @@
-% differentiate  Evaluate analytical gradients of model equations
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function gradient = differentiate(this, options)
 
 %
@@ -22,7 +17,7 @@ inxPG = inxP | inxG;
 
 % Reset gradient object
 numEquations = numel(this.Equation);
-gradient = model.component.Gradient(numEquations);
+gradient = model.Gradient(numEquations);
 
 %
 % Measurment trends
@@ -32,7 +27,7 @@ gradient = model.component.Gradient(numEquations);
 for iEq = find(inxD)
     vecWrt = find(this.Incidence.Dynamic, iEq, inxPG);
     eqtn = this.Equation.Dynamic{iEq};
-    d = model.component.Gradient.diff(eqtn, vecWrt, "cell");
+    d = model.Gradient.diff(eqtn, vecWrt, "cell");
     % Derivatives of measurement trends must be vectorized ./ .* .^ because they will be
     % evaluated on vectors of inputs (ttrend, etc.), unlike other derivatives.
     for i = 1 : numel(d)
@@ -59,10 +54,10 @@ for iEq = find(inxMT)
     d = [ ];
     idsWithinGradient = [ ];
     if ~isequal(options.Symbolic, false)
-        d = model.component.Gradient.diff(this.Equation.Dynamic{iEq}, vecWrt, options.DiffOutput);
+        d = model.Gradient.diff(this.Equation.Dynamic{iEq}, vecWrt, options.DiffOutput);
         if string(options.DiffOutput)=="array"
-            idsWithinGradient = model.component.Gradient.lookupIdsWithinGradient(d);
-            d = model.component.Gradient.repmatGradient(d);
+            idsWithinGradient = model.Gradient.lookupIdsWithinGradient(d);
+            d = model.Gradient.repmatGradient(d);
         end
     end
     gradient.Dynamic(:, iEq) = {d; vecWrt; idsWithinGradient};
@@ -72,10 +67,10 @@ for iEq = find(inxMT)
         d = [ ];
         idsWithinGradient = [ ];
         if ~isequal(options.Symbolic, false)
-            d = model.component.Gradient.diff(this.Equation.Steady{iEq}, vecWrt, options.DiffOutput);
+            d = model.Gradient.diff(this.Equation.Steady{iEq}, vecWrt, options.DiffOutput);
             if string(options.DiffOutput)=="array"
-                idsWithinGradient = model.component.Gradient.lookupIdsWithinGradient(d);
-                d = model.component.Gradient.repmatGradient(d);
+                idsWithinGradient = model.Gradient.lookupIdsWithinGradient(d);
+                d = model.Gradient.repmatGradient(d);
             end
         end
         gradient.Steady(:, iEq) = {d; vecWrt; idsWithinGradient};
@@ -90,7 +85,7 @@ for iEq = find(inxL)
     vecWrt = find(this.Incidence.Dynamic, iEq, inxYXE);
     d = [ ];
     if ~isequal(options.Symbolic, false) && ~isempty(this.Equation.Dynamic{iEq}) 
-        d = model.component.Gradient.diff(this.Equation.Dynamic{iEq}, vecWrt, options.DiffOutput);
+        d = model.Gradient.diff(this.Equation.Dynamic{iEq}, vecWrt, options.DiffOutput);
     end
     gradient.Dynamic(1:2, iEq) = {d; reshape(vecWrt, 1, [ ])};
     gradient.Steady(1:2, iEq) = {d; reshape(vecWrt, 1, [ ])};

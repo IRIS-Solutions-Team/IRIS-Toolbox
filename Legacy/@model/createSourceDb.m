@@ -1,15 +1,6 @@
-% createSourceDb  Create model specific source database
-%
-% Backend [IrisToolbox] function
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function outputDb = createSourceDb(this, range, varargin)
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_TEMPLATE = Series();
 
 isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 numColumnsRequested = [ ];

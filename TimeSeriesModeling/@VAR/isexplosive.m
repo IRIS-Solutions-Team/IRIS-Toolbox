@@ -20,8 +20,8 @@ function flag = isexplosive(this, varargin)
 %
 % __Options__
 %
-% * `Tolerance=@default` [ numeric | `@default` ] - Tolerance for the
-% eigenvalue test; `@default` means `eps( )^(5/9)`.
+% * `Tolerance=@auto` [ numeric | `@auto` ] - Tolerance for the
+% eigenvalue test; `@auto` means `eps( )^(5/9)`.
 %
 %
 % __Description__
@@ -37,12 +37,12 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('VAR.isexplosive');
     addRequired(pp, 'VAR', @(x) isa(x, 'VAR'));
-    addParameter(pp, 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
+    addParameter(pp, 'Tolerance', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x, [0, Inf]));
 end
 parse(pp, this, varargin{:});
 opt = pp.Options;
 
-if isequal(opt.Tolerance, @default)
+if isequal(opt.Tolerance, @auto)
     opt.Tolerance = this.Tolerance.Eigen;
 end
 

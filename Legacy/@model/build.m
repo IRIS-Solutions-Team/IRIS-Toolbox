@@ -1,8 +1,3 @@
-% build  Build or rebuild model object
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function this = build(this, opt)
 
 context = opt.Context;
@@ -76,7 +71,7 @@ numQuants = numel(this.Quantity);
 defaultFloor = 0;
 preallocateFunc = getPreallocateFunc(this);
 numVariants = locallyGetNumVariants(this.Quantity, context);
-this.Variant = model.component.Variant( ...
+this.Variant = model.Variant( ...
     numVariants, this.Quantity, this.Vector, lenExpansion, numHashed, numObserved, ...
     defaultStd, defaultFloor, preallocateFunc ...
 );

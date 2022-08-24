@@ -1,68 +1,14 @@
 function d = emptydb(this, varargin)
-% emptydb  Create model database with empty time series for each variable and shock
-%
-% ## Syntax ##
-%
-%     outputDatabank = emptydb(m)
-%
-%
-% ## Input arguments ##
-%
-% * `m` [ model ] - Model for which the empty database will be created.
-%
-%
-% ## Output arguments ##
-%
-% * `outputDatabank` [ struct ] - Databank with an empty time series for
-% each variable and each shock, and a vector of currently assigned values
-% for each parameter.
-%
-%
-% ## Options ##
-%
-% * `Include=@all` [ char | cellstr | string | `@all` ] - Types of
-% quantities that will be included in the output databank; `@all` means all
-% variables, shocks and parameters will be included; see Description.
-%
-% * `Size=[0, 1]` [ numeric ] - Size of the empty time series; the size in
-% first dimension must be zero.
-%
-%
-% ## Description ##
-%
-% The output databank will, by default, include an empty time series for
-% each measurement and transition variable, and measurement and transition
-% shock, as well as a numeric array for each parameter. To create a
-% databank with only some of these quantities, use the option `Include=`,
-% and assign a cellstr or a string array combining the following:
-%
-% * `Variables` to include measurement and transition variables;
-% * `MeasurementVariables` to include measurement variables;
-% * `TransitionVariables` to include transition variables;
-% * `Shocks` to include measurement and transition shocks;
-% * `MeasurementShocks` to include measurement shocks;
-% * `TransitionShocks` to include transition shocks;
-% * `Parameters` to include parameters;
-% * `Std` to include std deviations of shocks.
-%
-%
-% ## Example ##
-%
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.emptydb');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addParameter('Include', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    parser.addParameter('Size', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)>=2 && x(1)==0 && all(x==round(x)) && all(x>=0)));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('model.emptydb');
+    ip.addRequired('Model', @(x) isa(x, 'model'));
+    ip.addParameter('Include', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    ip.addParameter('Size', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)>=2 && x(1)==0 && all(x==round(x)) && all(x>=0)));
 end
-parser.parse(this, varargin{:});
-opt = parser.Options;
+ip.parse(this, varargin{:});
+opt = ip.Options;
 
 if ~isa(opt.Include, 'function_handle') && ~iscellstr(opt.Include)
     opt.Include = cellstr(opt.Include);
@@ -101,7 +47,7 @@ inxParameters = this.Quantity.Type==4;
 if isequal(opt.Size, @auto)
     opt.Size = [0, countVariants(this)];
 end
-emptyTimeSeries = TIME_SERIES_CONSTRUCTOR([ ], zeros(opt.Size));
+emptyTimeSeries = Series([], zeros(opt.Size));
 
 
 % Add comment to time series for each variable

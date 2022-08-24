@@ -1,4 +1,6 @@
-# estimate
+---
+title: estimate
+---
 
 {== Estimate model parameters by optimizing selected objective function ==}
 

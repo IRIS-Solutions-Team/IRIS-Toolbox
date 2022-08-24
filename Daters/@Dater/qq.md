@@ -1,4 +1,6 @@
-# qq  |  Dater.qq  |  dater.qq
+---
+title: Dater.qq
+---
 
 {== Create quarterly dates ==}
 

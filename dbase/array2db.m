@@ -40,24 +40,23 @@ function d = array2db(X, date, list, varargin)
 %#ok<*CTCH>
 %#ok<*VUNUS>
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TEMPLATE_SERIES = Series( );
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('dbase.array2db');
-    inputParser.addRequired('InputArray', @isnumeric);
-    inputParser.addRequired('Dates', @isnumeric);
-    inputParser.addRequired('List', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    inputParser.addOptional('IndexLog', [ ], @(x) isempty(x) || islogical(x) || isstruct(x));
-    inputParser.addOptional('Databank', struct( ), @isstruct);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser('dbase.array2db');
+    ip.addRequired('InputArray', @isnumeric);
+    ip.addRequired('Dates', @isnumeric);
+    ip.addRequired('List', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    ip.addOptional('IndexLog', [ ], @(x) isempty(x) || islogical(x) || isstruct(x));
+    ip.addOptional('Databank', struct( ), @isstruct);
 
-    inputParser.addParameter('Comments', cell.empty(1, 0), @iscellstr);
+    ip.addParameter('Comments', cell.empty(1, 0), @iscellstr);
 end
-inputParser.parse(X, date, list, varargin{:});
-ixLog = inputParser.Results.IndexLog;
-d = inputParser.Results.Databank;
-opt = inputParser.Options;
+ip.parse(X, date, list, varargin{:});
+ixLog = ip.Results.IndexLog;
+d = ip.Results.Databank;
+opt = ip.Options;
 
 if ischar(list)
     list = regexp(list, '\w+', 'match');

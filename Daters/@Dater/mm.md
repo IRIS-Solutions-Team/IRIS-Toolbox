@@ -1,4 +1,6 @@
-# mm  |  Dater.mm  |  dater.mm
+---
+title: Dater.mm
+--
 
 {== Create monthly dates ==}
 

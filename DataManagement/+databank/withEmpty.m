@@ -1,6 +1,4 @@
 function outputDatabank = withEmpty(listOfNames)
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
 persistent parser
 if isempty(parser)

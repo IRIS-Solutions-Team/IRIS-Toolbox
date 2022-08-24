@@ -1,12 +1,5 @@
 function [F, Pe, V, delta, PDelta, sampleCov, this] ...
     = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt);
-% kalmanFilterRegOutp  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 try
     isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
@@ -14,10 +7,7 @@ catch
     isNamedMat = false;
 end
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
-
-%--------------------------------------------------------------------------
+TIME_SERIES_TEMPLATE = Series();
 
 ixy = this.Quantity.Type==1;
 ixe = this.Quantity.Type==31 | this.Quantity.Type==32;

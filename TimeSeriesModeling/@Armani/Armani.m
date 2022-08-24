@@ -12,12 +12,14 @@ classdef Armani
 % Tolerance  Tolerance level for zeros in the AR and MA polynomials
         Tolerance (1, 1) double = 1e-14
 
+
 % Parameters  Empty array
 % >=R2019b
 %{
         Parameters (1, :, :) double = double.empty(1, 0, 1)
 %}
 % >=R2019b
+
 
 % <=R2019a
 %(
@@ -115,7 +117,7 @@ classdef Armani
                 % Do nothing
             elseif isnumeric(x)
                 x = filter(this.MA, this.AR, x, varargin{:});
-            elseif isa(x, 'TimeSubscriptable')
+            elseif isa(x, 'Series')
                 x.Data = filter(this.MA, this.AR, x.Data, varargin{:});
             else
                 throw(exception.Base([

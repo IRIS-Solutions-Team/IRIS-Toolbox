@@ -27,11 +27,11 @@
 % ## Options ##
 %
 %
-% __`Ellipsis=char(8230)`__ [ `@config` | numeric ]
+% __`Ellipsis=char(8230)`__ [ `@auto` | numeric ]
 % >
 % A single character that will be added at the end of the `output` string
 % to indicate that the `input` string has been abbreviated;
-% `Ellipsis=@config` means that the ellipsis character will be determined
+% `Ellipsis=@auto` means that the ellipsis character will be determined
 % from `iris.get( )`. 
 %
 %
@@ -60,7 +60,7 @@ if isempty(pp)
      addRequired(pp, 'inputString', @validate.stringScalar);
 
      addParameter(pp, 'MaxLength', 20, @(x) validate.roundScalar(x, 1, Inf));
-     addParameter(pp, 'Ellipsis', char(8230), @(x) isequal(x, @config) || (validate.stringScalar(x) && strlength(x)==1));
+     addParameter(pp, 'Ellipsis', char(8230), @(x) isequal(x, @auto) || (validate.stringScalar(x) && strlength(x)==1));
 end
 %)
 opt = parse(pp, x, varargin{:});

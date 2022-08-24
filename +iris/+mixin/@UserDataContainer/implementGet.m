@@ -13,7 +13,7 @@ answ = [ ];
 flag = true;
 if any(strcmpi(query, {'BaseYear', 'TOrigin'}))
     answ = this.BaseYear;
-    if isequal(answ, @config) || isempty(answ)
+    if isequal(answ, @auto) || isempty(answ)
         answ = iris.get('BaseYear');
     end
 else

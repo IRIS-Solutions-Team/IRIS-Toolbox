@@ -1,8 +1,3 @@
-% prepareHashEquations  Prepare anonymous functions for evaluating hash equations
-% 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [ ...
     hashEquationsAll, hashEquationsIndividually, ...
     hashEquationsInput, hashIncidence ...
@@ -14,7 +9,7 @@ function [ ...
 inxHash = this.Equation.InxHashEquations;
 eqtn = this.Equation.Dynamic(inxHash);
 eqtn = cellfun(@vectorize, eqtn, 'UniformOutput', false);
-preamble = model.component.Equation.PREAMBLE;
+preamble = model.Equation.PREAMBLE;
 
 %
 % Function to evaluate all hash equations at once

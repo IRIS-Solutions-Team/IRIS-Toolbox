@@ -1,4 +1,3 @@
-
 % >=R2019b
 %{
 function outputDb = generate(inputDb, valueFunc, targetNames, sourceNames, opt)

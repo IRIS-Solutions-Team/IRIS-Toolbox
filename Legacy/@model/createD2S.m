@@ -1,8 +1,3 @@
-% createD2S  Create derivatives-to-system convertor
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
-
 function this = createD2S(this, opt)
 
 numQuantities = numel(this.Quantity);
@@ -58,7 +53,7 @@ numX = numel(this.Vector.System{2});
 nu = sum(imag(this.Vector.System{2})>=0);
 np = numX - nu;
 
-this.D2S = model.component.D2S( );
+this.D2S = model.D2S( );
 
 % __Preallocate__
 % Preallocate vectors of positions in derivative matrices

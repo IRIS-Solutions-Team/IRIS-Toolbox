@@ -1,4 +1,3 @@
-
 function [ch, info] = plot(db, list, varargin)
 
     ch = databank.Chartpack();

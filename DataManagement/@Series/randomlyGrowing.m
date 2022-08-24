@@ -1,4 +1,3 @@
-
 % >=R2019b
 %{
 function this = randomlyGrowing(range, params, opt)

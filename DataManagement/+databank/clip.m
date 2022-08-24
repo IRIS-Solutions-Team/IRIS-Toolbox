@@ -1,8 +1,3 @@
-% Type `web +databank/clip.md` for help on this function
-%
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 % >=R2019b
 %{
 function outputDb = clip(inputDb, newStart, newEnd, opt)
@@ -82,7 +77,7 @@ for n = list
     else
         field__ = inputDb.(n);
     end
-    if isa(field__, 'TimeSubscriptable')
+    if isa(field__, 'Series')
         if isequaln(freq, NaN) || getFrequencyAsNumeric(field__)==freq
             field__ = clip(field__, newStart, newEnd);
         end

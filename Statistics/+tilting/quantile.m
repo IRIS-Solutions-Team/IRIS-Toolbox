@@ -49,7 +49,7 @@ end
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tilting/quantile');
-    inputParser.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
+    inputParser.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'Series'));
     inputParser.addRequired('Weights', @isnumeric);
     inputParser.addRequired('Tau', @(x) isnumeric(x) && all(x(:)>0 & x(:)<1));
     inputParser.addOptional('Dim', 2, @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=1);
@@ -57,7 +57,7 @@ end
 inputParser.parse(x, w, tau, varargin{:});
 dim = inputParser.Results.Dim;
 
-if isa(x, 'TimeSubscriptable')
+if isa(x, 'Series')
     [q, dim] = applyFunctionAlongDim(x, @tilting.quantile, w, tau, dim);
     return
 end
@@ -83,7 +83,7 @@ numQuantiles = numel(tau);
 
 % Put dim-th dimension first, and unfold higher dimensions into 2D (so that x
 % is a 2D matrix)
-[x, redimStruct] = numeric.redim(x, dim);
+[x, redimStruct] = series.redim(x, dim);
 numRows = size(x, 1);
 
 [xs, pos] = sort(x, 1);
@@ -104,6 +104,6 @@ else
     end
 end
 
-q = numeric.redim(q, dim, redimStruct);
+q = series.redim(q, dim, redimStruct);
 
 end

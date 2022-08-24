@@ -1,14 +1,16 @@
-# solve 
+---
+title: solve 
+---
 
 {== Calculate first-order solution matrices ==}
 
 
-# Syntax 
+## Syntax 
 
     m = solve(model, ...)
 
 
-# Input arguments 
+## Input arguments 
 
 __`model`__ [ Model ]
 > 
@@ -16,7 +18,7 @@ __`model`__ [ Model ]
 > must also have the steady state values assigned for all variables.
 > 
 
-# Output arguments 
+## Output arguments 
 
 __`model`__ [ Model ]
 > 
@@ -46,13 +48,13 @@ __`Error=false`__ [ `true` | `false` ]
 > 
 
 __`PreferredSchur="schur"`__ [ `"schur"` | `"qz"` ]
->
+> 
 > The preferred form of Schur decomposition for purely backward looking
 > models; `PreferredSchur="schur"` means plain Schur decomposition
 > (faster), `PreferredSchur="qz"` means generalized Schur decomposition
 > (unnecessary for backward looking models but consistent with forward
 > looking model solutions). 
->
+> 
 
 __`Progress=false`__ [ `true` | `false` ]
 > 

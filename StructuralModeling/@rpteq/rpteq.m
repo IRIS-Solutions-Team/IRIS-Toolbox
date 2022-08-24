@@ -145,7 +145,7 @@ classdef rpteq < iris.mixin.GetterSetter ...
                 return
             end
 
-            if isa(varargin{1}, 'model.component.Equation')
+            if isa(varargin{1}, 'model.Equation')
                 % Preparsed code from model object.
                 eqn = varargin{1};
                 euc = varargin{2};

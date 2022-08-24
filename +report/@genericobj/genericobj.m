@@ -154,14 +154,14 @@ classdef genericobj < handle
             % @auto or {@auto,Subtitle}
             if isequal(Title,@auto)
                 try
-                    if isa(This.data{1}, 'tseries')
+                    if isa(This.data{1}, 'Series')
                         x = comment(This.data{1});
                         Title = x{1};
                     end
                 catch
                     try
                         ch = This.children{1};
-                        if isa(ch.data{1}, 'tseries')
+                        if isa(ch.data{1}, 'Series')
                             x = comment(ch.data{1});
                             Title = x{1};
                         end

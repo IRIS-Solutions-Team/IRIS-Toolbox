@@ -1,4 +1,3 @@
-
 function outputDb = load(fileName, varargin)
 
 if numel(varargin)==1 && iscellstr(varargin{1})

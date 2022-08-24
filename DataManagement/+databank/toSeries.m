@@ -1,48 +1,3 @@
-% toSeries  Consolidate multiple time series into one time series
-%{
-% Syntax
-%--------------------------------------------------------------------------
-%
-%     outputSeries = toSeries(inputDb, ~names, ~dates, ~column)
-%
-%
-% Input Arguments
-%--------------------------------------------------------------------------
-%
-% __``__ [ ]
-%
-%>    
-%
-%
-% Output Arguments
-%--------------------------------------------------------------------------
-%
-% __``__ [ ]
-%
-%>    
-%
-%
-% Options
-%--------------------------------------------------------------------------
-%
-%
-% __`=`__ [ | ]
-%
-%>    
-%
-%
-% Description
-%--------------------------------------------------------------------------
-%
-%
-% Example
-%--------------------------------------------------------------------------
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 
 % >=R2019b
 %{
@@ -80,7 +35,7 @@ columns = ip.Results.columns;
 
 if isequal(names, @all)
     names = keys(inputDb);
-    inxSeries = cellfun(@(n) isa(inputDb.(n), "TimeSubscriptable"), names);
+    inxSeries = cellfun(@(n) isa(inputDb.(n), 'Series'), names);
     names = names(inxSeries);
 else
     names = reshape(string(names), 1, [ ]);

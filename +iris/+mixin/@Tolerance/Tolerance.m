@@ -47,7 +47,7 @@ classdef Tolerance
             if validate.numericScalar(value, eps( ), Inf)
                 return
             end
-            if isequal(value, @default)
+            if isequal(value, @auto)
                 value = this.(sprint('DEFAULT_%s', upper(prop)));
                 return
             end

@@ -1,5 +1,3 @@
-% forceString  Convert char to string in ExcelSheet buffer
-
 function this = forceString(this)
 
 inx = cellfun(@ischar, this.Buffer);

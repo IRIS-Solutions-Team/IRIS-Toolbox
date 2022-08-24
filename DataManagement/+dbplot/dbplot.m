@@ -202,7 +202,7 @@ function q = evalExpr(q, d, opt)
                 % First, calculate deviations, then apply a tranformation function.
                 if isnumericscalar(opt.DeviationFrom)
                     t = opt.DeviationFrom;
-                    if isa(series{k}, 'tseries')
+                    if isa(series{k}, 'Series')
                         if ~isfinite(series{k}(t))
                             invalidBase{end+1} = ch.eval{:}; %#ok<AGROW>
                         end
@@ -290,7 +290,6 @@ end%
 
 
 function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargin)
-    TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
     vecHFig = [ ];
     vecHAx = { };
     plotDb = struct( );
@@ -371,9 +370,9 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
             if ~isvarname(plotDbName)
                 plotDbName = sprintf('Panel%g', count);
             end
-            if isa(inputDataCat, 'TimeSubscriptable')
+            if isa(inputDataCat, 'Series')
                 try
-                    plotDb.(plotDbName) = TIME_SERIES_CONSTRUCTOR(reportRange, data, finalLegend);
+                    plotDb.(plotDbName) = Series(reportRange, data, finalLegend);
                 catch %#ok<CTCH>
                     plotDb.(plotDbName) = NaN;
                 end
@@ -458,7 +457,7 @@ function [actualRange, data, isOk] = callPlot( func, funcArgs, aa, ...
     data = [ ];
     isOk = true;
 
-    if isa(inputDataCat, 'TimeSubscriptable')
+    if isa(inputDataCat, 'Series')
         switch func2str(func)
             case {'plot', 'bar', 'barcon', 'stem'}
                 [~, actualRange, data] = func( ...
@@ -660,7 +659,7 @@ end%
 
 
 function appropriateRange = selectAppropriateRange(range, inputSeries)
-    if isa(inputSeries, 'TimeSubscriptable')
+    if isa(inputSeries, 'Series')
         freq = inputSeries.Frequency;
     else
         freq = Frequency.INTEGER;

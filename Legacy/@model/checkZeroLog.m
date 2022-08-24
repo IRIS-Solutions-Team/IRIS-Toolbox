@@ -1,11 +1,4 @@
 function [flag, list, inxInvalidLevel, inxInvalidGrowth] = checkZeroLog(this, variantsRequested)
-% checkZeroLog  Check steady levels and growth rates of log-variables for non-positive numbers
-%
-% Backend [IrisToolbox] method
-% No help provided 
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 if nargin<2
     variantsRequested = ':';

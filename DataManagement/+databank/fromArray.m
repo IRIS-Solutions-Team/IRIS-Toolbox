@@ -1,10 +1,3 @@
-%
-% Type <a href="matlab: ihelp databank.fromArray">ihelp databank.fromArray</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
-
 % >=R2019b
 %{
 function outputDb = fromArray(array, names, startDate, opt)
@@ -45,7 +38,7 @@ opt = iris.utils.resolveOptionAliases(opt, [], Except("AddToDatabank"));
 
 outputDb = databank.backend.fromArrayNoFrills( ...
     permute(array, [2, 1, 3:ndims(array)]), names, startDate ...
-    , opt.Comments, @all, @default, opt.OutputType, opt.TargetDb ...
+    , opt.Comments, @all, opt.OutputType, opt.TargetDb ...
 );
 
 end%

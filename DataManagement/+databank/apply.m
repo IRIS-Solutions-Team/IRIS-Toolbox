@@ -1,10 +1,3 @@
-%
-% Type <a href="matlab: ihelp databank.apply">ihelp databank.apply</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
-
 % >=R2019b
 %{
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
@@ -29,8 +22,8 @@ arguments
         opt.RemoveSuffix__RemoveEnd = []
     opt.RemoveSource (1, 1) logical = false
     opt.SourceNames {locallyValidateNames} = @all
-    opt.TargetNames {locallyValidateNames} = @default
-    opt.TargetDb {locallyValidateDb} = @default
+    opt.TargetNames {locallyValidateNames} = @auto
+    opt.TargetDb {locallyValidateDb} = @auto
         opt.AddToDatabank__TargetDb = []
     opt.WhenError (1, 1) string {mustBeMember(opt.WhenError, ["keep", "remove", "error"])} = "keep"
 end
@@ -61,8 +54,8 @@ if isempty(ip)
         addParameter(ip, "RemoveSuffix__RemoveEnd", []);
     addParameter(ip, "RemoveSource", false);
     addParameter(ip, "SourceNames", @all);
-    addParameter(ip, "TargetNames", @default);
-    addParameter(ip, "TargetDb", @default);
+    addParameter(ip, "TargetNames", @auto);
+    addParameter(ip, "TargetDb", @auto);
         addParameter(ip, "AddToDatabank__TargetDb", []);
     addParameter(ip, "WhenError", "keep");
 end
@@ -105,7 +98,7 @@ newNames = repmat({''}, size(namesFields));
 
 
 outputDb = opt.TargetDb;
-if isequal(outputDb, @default)
+if isequal(outputDb, @auto)
     outputDb = inputDb;
 end
 
@@ -131,7 +124,7 @@ for i = 1 : numFields
     if iscellstr(opt.TargetNames)
         inxName = strcmp(opt.SourceNames, name__);
         newName__ = opt.TargetNames{inxName};
-    elseif isa(opt.TargetNames, 'function_handle') && ~isequal(opt.TargetNames, @default)
+    elseif isa(opt.TargetNames, 'function_handle') && ~isequal(opt.TargetNames, @auto)
         newName__ = opt.TargetNames(name__);
     else
         newName__ = name__;

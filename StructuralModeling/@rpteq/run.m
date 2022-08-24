@@ -101,29 +101,28 @@ function outputData = run(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TEMPLATE_SERIES = Series();
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('rpteq.run');
-    parser.addRequired('ReportingEquations', @(x) isa(x, 'rpteq'));
-    parser.addRequired('InputData', @(x) isempty(x) || isstruct(x));
-    parser.addRequired('SimulationDates', @(x) isa(x, 'DateWrapper') || isnumeric(x));
-    parser.addOptional('Model', [ ], @(x) isempty(x) || isa(x, 'model'));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('ReportingEquations', @(x) isa(x, 'rpteq'));
+    ip.addRequired('InputData', @(x) isempty(x) || isstruct(x));
+    ip.addRequired('SimulationDates', @(x) isa(x, 'DateWrapper') || isnumeric(x));
+    ip.addOptional('Model', [ ], @(x) isempty(x) || isa(x, 'model'));
 
-    parser.addParameter('AppendPresample', false, @(x) validate.logicalScalar(x) || isstruct(x));
-    parser.addParameter('AppendPostsample', false, @(x) validate.logicalScalar(x) || isstruct(x));
-    parser.addParameter('DbOverlay', false, @(x) validate.logicalScalar(x) || isstruct(x));
-    parser.addParameter('Fresh', false, @validate.logicalScalar);
+    ip.addParameter('AppendPresample', false, @(x) validate.logicalScalar(x) || isstruct(x));
+    ip.addParameter('AppendPostsample', false, @(x) validate.logicalScalar(x) || isstruct(x));
+    ip.addParameter('DbOverlay', false, @(x) validate.logicalScalar(x) || isstruct(x));
+    ip.addParameter('Fresh', false, @validate.logicalScalar);
 end
-parse(parser, varargin{:});
-this = parser.Results.ReportingEquations;
-inputData = parser.Results.InputData;
-dates = parser.Results.SimulationDates;
+parse(ip, varargin{:});
+this = ip.Results.ReportingEquations;
+inputData = ip.Results.InputData;
+dates = ip.Results.SimulationDates;
 dates = double(dates);
-m = parser.Results.Model;
-opt = parser.Options;
+m = ip.Results.Model;
+opt = ip.Options;
 
 %--------------------------------------------------------------------------
 
@@ -239,7 +238,7 @@ return
             if ~isField
                 continue
             end
-            if isa(inputData.(iithName), 'TimeSubscriptable')
+            if isa(inputData.(iithName), 'Series')
                 D.(iithName) = getDataFromTo(inputData.(iithName), extdRange);
                 continue
             end

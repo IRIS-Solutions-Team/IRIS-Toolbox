@@ -1,4 +1,6 @@
-# regress  
+---
+title: regress  
+---
 
 {== Estimate parameters and residual models in Explanatory object ==}
 
@@ -45,22 +47,22 @@ __`outputDb`__ [ struct | Dictionary ]
 > 
 
 __`info`__ [ struct ]
->
+> 
 > Information structure with the following fields:
->
+> 
 > * `.FittedRange` - A K-by-N cell array with the dates of the fitted
 >   periods for each of the K equations and each of the N data pages or
 >   parameter variants.
->
+> 
 > * `.ExitFlagsResidualModels` - A K-by-N numeric array with the
 >   Optimization Tbx exit flags from estimating the residual models; `NaN`
 >   means no residual model was estimated.
->
+> 
 > * `.ExitFlagsParameters` - A K-by-N numeric array with the Optimization
 >   Tbx exit flags from estimating the parameters; `NaN` means the
 >   parameters were estimated by linear regression with no iterative
 >   procedure.
->
+> 
 
 ##  Options
 

@@ -1,53 +1,5 @@
-%
-% Type <a href="matlab: ihelp Series/band">ihelp Series/band</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
-
-
-%{
----
-title: band
----
-
-# `band`
-
-{== Draw time series with uncerainty bands ==}
-
-## Syntax
-
-    [plotHandle, info] = band([mid, lower, upper], ___)
-    [plotHandle, info] = band(mid, lower, upper, ___)
-
-
-## Input arguments
-
-__`mid`__ [ Series ]
-> 
-> Time series with the mid point for the band.
->
-
-__`lower`__ [ Series ]
->
-> Time series with the lower band or lower bands.
->
-
-__`upper`__ [ Series ]
->
-> Time series with the upper band or upper bands.
->
-
-## Output arguments
-
-%}
-
-
-%---8<---
-
-
 % >=R2019b
-%{
+%(
 function varargout = band(mid, lower, upper, opt)
 
 arguments
@@ -65,12 +17,12 @@ arguments
     opt.Relative (1, 1) logical = true
     opt.ExcludeFromLegend (1, 1) logical = true
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [plotHandle, info] = band(mid, varargin)
 
 persistent ip
@@ -93,7 +45,7 @@ parse(ip, varargin{:});
 lower = ip.Results.lower;
 upper = ip.Results.upper;
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -115,7 +67,7 @@ if isa(axesHandle, 'function_handle')
     axesHandle = axesHandle();
 end
 
-[plotHandle, dates, midData, axesHandle, xCoor] ...
+[plotHandle, dates, midData, xCoor, axesHandle] ...
     = Series.implementPlot(@plot, axesHandle, opt.Range, mid, '', opt.PlotSettings{:});
 
 lowerData = getData(lower, dates);
@@ -156,6 +108,4 @@ function locallyValidateBounds(x)
     error("Input value must be a time series.");
     %)
 end%
-
-
 

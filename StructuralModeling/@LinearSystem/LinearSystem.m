@@ -267,7 +267,7 @@ classdef LinearSystem ...
                 end
                 return
             end
-            [x, last] = numeric.removeTrailingNaNs(x, 3);
+            [x, last] = iris.utils.removeTrailingNaNs(x, 3);
             if any(isnan(x(:)))
                 x = fillmissing(x, 'previous', 3);
             end

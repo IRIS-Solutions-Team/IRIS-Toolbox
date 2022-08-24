@@ -28,8 +28,8 @@ prepareBlazer(model, this);
 
 this = processLogOptions(this, opt);
 
-opt.Exogenize = locallyPreprocessSwaps(opt.Exogenize);
-opt.Endogenize = locallyPreprocessSwaps(opt.Endogenize);
+opt.Exogenize = local_preprocessSwaps(opt.Exogenize);
+opt.Endogenize = local_preprocessSwaps(opt.Endogenize);
 
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
     [namesToExogenize, namesToEndogenize] = resolveAutoswap(model, "steady", opt.Exogenize, opt.Endogenize);
@@ -70,7 +70,7 @@ end%
 % Local functions
 %
 
-function list = locallyPreprocessSwaps(list)
+function list = local_preprocessSwaps(list)
     %(
     if ~validate.text(list)
         return

@@ -1,11 +1,3 @@
-% implementGet  Implement get method for model objects
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [response, flag, query] = implementGet(this, query, varargin)
 
 [response, flag] = implementGet@iris.mixin.UserDataContainer(this, query, varargin{:});
@@ -29,7 +21,7 @@ if flag, return, end
 [response, flag] = implementGet(this.Gradient, query, this.Quantity, varargin{:});
 if flag, return, end
 
-[response, flag] = model.component.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
+[response, flag] = model.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
 if flag, return, end
 
 [response, flag] = implementGet(this.Vector, query, varargin{:});

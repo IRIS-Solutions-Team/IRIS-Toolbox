@@ -59,7 +59,7 @@ try
         baseYear = get(baseYear, 'baseYear');
     end
 catch
-    baseYear = @config;
+    baseYear = @auto;
 end
 
 if ~isnumeric(baseYear)

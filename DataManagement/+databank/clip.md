@@ -1,4 +1,6 @@
-# databank.clip
+---
+title: databank.clip
+---
 
 {== Clip all time series in databank to a new range ==}
 
@@ -11,10 +13,10 @@
 ## Input Arguments
 
 __`inputDatabank`__ [ struct | Dictionary ]
->
+> 
 > Input databank whose time series (of the matching frequency) will be
 > clipped to a new range defined by `newStart` and `newEnd`.
->
+> 
 
 __`newStart`__ [ Dater | `-Inf` ]
 > 

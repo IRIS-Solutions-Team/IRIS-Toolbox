@@ -66,8 +66,7 @@ function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_TEMPLATE = Series();
 
 %( Input parser
 persistent pp

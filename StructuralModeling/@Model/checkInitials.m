@@ -56,7 +56,7 @@ for i = 1 : numel(idInit)
         continue
     end
     field = inputDb.(names(pos));
-    if ~isa(field, 'TimeSubscriptable')
+    if ~isa(field, 'Series')
         inxValid(i) = false;
         continue
     end

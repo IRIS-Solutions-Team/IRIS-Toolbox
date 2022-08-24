@@ -27,7 +27,7 @@ function hard = prepareHardOptions(transition, ~, highRange, ~, opt)
     invalidFreq = string.empty(1, 0);
     for name = ["Level", "Rate", "Diff"]
         x__ = opt.("Hard" + name);
-        if isa(x__, 'TimeSubscriptable') && ~isempty(x__) 
+        if isa(x__, 'Series') && ~isempty(x__) 
             if isfreq(x__, highFreq)
                 x = getDataFromTo(x__, initStart, highEnd);
                 if any(isfinite(x(:)))
@@ -58,7 +58,7 @@ function hard = prepareHardOptions(transition, ~, highRange, ~, opt)
             here_reportInvalidNumInitials();
         end
         hard.Level(1:numInit) = Xi0;
-    elseif isa(opt.Initials, 'TimeSubscriptable')
+    elseif isa(opt.Initials, 'Series')
         Xi0 = getDataFromTo(opt.Initials, initStart, initEnd);
         hard.Level(1:numInit) = Xi0;
     end

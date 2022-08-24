@@ -82,7 +82,6 @@ pp.parse(this, inp, range, cond);
 isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
-    'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
     'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
     'dboverlay, dbextend', false, islogicalscalar
     'Deviation, Deviations', false, islogicalscalar
@@ -95,9 +94,7 @@ defaults = {
 };
 %)
 
-
 opt = passvalopt(defaults, varargin{1:end});
-
 
 range = double(range);
 

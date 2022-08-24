@@ -64,7 +64,7 @@ classdef TimeRecursive
                         break
                     end
                     try
-                        flag = evalin('caller', sprintf('isa(%s, ''TimeSubscriptable'')', tkn{1}));
+                        flag = evalin('caller', sprintf('isa(%s, ''Series'')', tkn{1}));
                     catch
                         flag = false;
                     end

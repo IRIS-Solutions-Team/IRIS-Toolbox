@@ -1,11 +1,3 @@
-% file2model  Translate model file to model object properties
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [this, opt] = file2model(this, modelSource, opt, preparserOpt, parserOpt, optimalOpt, varargin)
 
 this.LinearStatus = opt.Linear;

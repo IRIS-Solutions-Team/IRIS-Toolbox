@@ -2,8 +2,6 @@
 title: databank.fromFred.data
 ---
 
-# `databank.fromFred.data`
-
 {== Download time series from Fred, the St Louis Fed databank ==}
 
 

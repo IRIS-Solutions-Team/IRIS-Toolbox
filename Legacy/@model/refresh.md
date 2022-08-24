@@ -2,8 +2,6 @@
 title: refresh
 ---
 
-# refresh
-
 {== Refresh dynamic links ==}
 
 
@@ -20,7 +18,7 @@ __`model`__ [ Model ]
 > Model object whose dynamic links will be refreshed.
 > 
 
-# Output arguments
+## Output arguments
 
 __`model`__ [ Model ] 
 > 

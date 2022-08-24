@@ -25,8 +25,8 @@ return
 
 
     function resetLastSystem( )
-        % Reset LastSystem to a new model.component.LastSystem handle object.
-        this.LastSystem = model.component.LastSystem( );
+        % Reset LastSystem to a new model.LastSystem handle object.
+        this.LastSystem = model.LastSystem( );
 
         % __Parameters and steady states__
         this.LastSystem.Values = nan(1, numQuantities);

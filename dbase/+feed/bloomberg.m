@@ -47,10 +47,6 @@ function d = bloomberg(s,f,freq,fromdate,todate,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
-%--------------------------------------------------------------------------
-
 % Convert security list to cell array
 if ischar(s)   
   s = cellstr(s);
@@ -103,7 +99,7 @@ for i = 1:numel(data)
     end
     ticker = regexp(s{i},'\w+','match','once');
     for j=1:size(f,1)
-        tmp = TIME_SERIES_CONSTRUCTOR(dates,data{i}(:,j+1),[desc.NAME{i} ', ' f{j,4}]);
+        tmp = Series(dates,data{i}(:,j+1),[desc.NAME{i} ', ' f{j,4}]);
         if size(f,1)>1
             d.(ticker).(f{j,3}) = tmp;
         else

@@ -10,7 +10,7 @@ function flag = checkConsistency(this)
 %--------------------------------------------------------------------------
 
 flag = ischar(this.Caption) ...
-       && (isequal(this.BaseYear, @config) || isnumeric(this.BaseYear));
+       && (isequal(this.BaseYear, @auto) || isnumeric(this.BaseYear));
 
 end%
 

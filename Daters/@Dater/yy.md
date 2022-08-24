@@ -1,4 +1,6 @@
-# yy  |  Dater.yy  |  dater.yy
+---
+title: Dater.yy
+---
 
 {== Create yearly dates ==}
 

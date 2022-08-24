@@ -1,38 +1,3 @@
-% retrieveSeries  Retrieve time series from ExcelSheet
-%{
-% ## Syntax ##
-%
-%     output = function(input, ...)
-%
-%
-% ## Input Arguments ##
-%
-% __`input`__ [ | ] -
-% Description
-%
-%
-% ## Output Arguments ##
-%
-% __`output`__ [ | ] -
-% Description
-%
-%
-% ## Options ##
-%
-% __`OptionName=Default`__ [ | ] -
-% Description
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function outputSeries = retrieveSeries(this, locationRef, varargin)
 
 dataRange = this.DataRange;

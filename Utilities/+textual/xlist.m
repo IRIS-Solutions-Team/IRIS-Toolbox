@@ -1,14 +1,11 @@
-function output = xlist(glue, varargin)
 % textual.xlist  Create list of all combinations of components
 %{
-% Syntax
-%--------------------------------------------------------------------------
+% ## Syntax
 %
 %     output = textual.xlist(glue, component, component, etc...)
 %
 %
-% Input Arguments
-%--------------------------------------------------------------------------
+% ## Input arguments
 % 
 % __`glue`__ [ char | string ]
 %
@@ -32,8 +29,7 @@ function output = xlist(glue, varargin)
 %>    Horizontal string vector composed from the input components.
 %
 %
-% Description
-%--------------------------------------------------------------------------
+% ## Description
 %
 % If each of the inputs is a scalar (a char vector, a string scalar, or a
 % numeric scalar), the final `output` is either a char vector or a string
@@ -49,8 +45,7 @@ function output = xlist(glue, varargin)
 % chars.
 %
 %
-% Example
-%--------------------------------------------------------------------------
+% ## Example
 %
 % Example of scalar components;  
 %
@@ -67,8 +62,7 @@ function output = xlist(glue, varargin)
 %     >> join(["my", "scalar", "xlist"], "_")
 %
 %
-% Example
-%--------------------------------------------------------------------------
+% ## Example
 %
 % Example of array components
 %
@@ -87,30 +81,27 @@ function output = xlist(glue, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function output = xlist(glue, varargin)
+    glue = string(glue);
+    varargin = cellfun(@local_ensureType, varargin, 'uniformOutput', false);
+    output = varargin{end};
+    for x = varargin(end-1:-1:1)
+        output = reshape(x{:} + glue + reshape(output, [], 1), 1, []);
+    end
+end%
 
-output = hereEnsureType(varargin{end});
-for component = varargin(end-1:-1:1)
-    add = hereEnsureType(component{1});
-    temp = cellfun(@(x) strcat(x, glue, output), add, 'UniformOutput', false);
-    output = [temp{:}];
-end
-output = reshape(string(output), 1, [ ]);
 
-return
-
-    function c = hereEnsureType(c)
-        if isnumeric(c)
-            c = arrayfun(@(x) sprintf('%g', x), c, 'UniformOutput', false);
+function c = local_ensureType(c)
+    if isnumeric(c)
+        c = arrayfun(@(x) sprintf('%g', x), c, 'UniformOutput', false);
+        c = string(c);
+    else
+        try
             c = string(c);
-        else
-            try
-                c = string(c);
-            catch exc
-                error('Inputs to textual.crosslist(~) must be char, cellstr, string or numeric');
-            end
+        catch exc
+            error('Inputs to textual.crosslist(~) must be char, cellstr, string or numeric');
         end
-        c = reshape(c, 1, [ ]);
-    end%
+    end
+    c = reshape(c, 1, [ ]);
 end%
 

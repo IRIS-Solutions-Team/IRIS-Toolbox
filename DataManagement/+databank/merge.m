@@ -1,8 +1,3 @@
-% Type `web +databank/merge.md` for help on this function
-%
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 % >=R2019b
 %{
 function [mainDb, info] = merge(method, mainDb, mergeWith, opt)

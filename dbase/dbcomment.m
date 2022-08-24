@@ -1,5 +1,5 @@
 function D = dbcomment(D,M)
-% dbcomment  Create model-based comments for database tseries entries.
+% dbcomment  Create model-based comments for database time series entries.
 %
 % Syntax
 % =======
@@ -16,7 +16,7 @@ function D = dbcomment(D,M)
 % Output arguments
 % =================
 %
-% * `D` [ struct ] - Database where every tseries entry is (if possible)
+% * `D` [ struct ] - Database where every time series entry is (if possible)
 % assigned a comment based on the description of a model variable or
 % parameter found in the model object, `M`.
 %
@@ -36,7 +36,7 @@ list = fieldnames(D);
 c = get(M,'descript');
 for i = 1 : length(list)
     name = list{i};
-    if ~isa(D.(name), 'tseries') && ~isfield(c,name)
+    if ~isa(D.(name), 'Series') && ~isfield(c,name)
         continue
     end
     try %#ok<TRYNC>

@@ -1,5 +1,5 @@
 function [x, inxIncluded, range, inxNotFound, inxNonSeries] = db2array(d, list, range, sw)
-% db2array  Convert tseries database entries to numeric array.
+% db2array  Convert time series database entries to numeric array.
 %
 % __Syntax__
 %
@@ -11,7 +11,7 @@ function [x, inxIncluded, range, inxNotFound, inxNonSeries] = db2array(d, list, 
 % __Input Arguments__
 %
 % * `d` [ struct | Dictionary ] -
-% Input databank with tseries objects that will be converted to a numeric
+% Input databank with time series objects that will be converted to a numeric
 % array.
 %
 % * `list` [ char | cellstr | rexp | `@all` ] - List of time series names
@@ -27,7 +27,7 @@ function [x, inxIncluded, range, inxNotFound, inxNonSeries] = db2array(d, list, 
 % __Output Arguments__
 %
 % * `x` [ numeric ] - Numeric array with observations from individual
-% tseries objects in columns.
+% time series objects in columns.
 %
 % * `includedList` [ cellstr ] - List of time series names that have been 
 % included in the output array.
@@ -40,18 +40,18 @@ function [x, inxIncluded, range, inxNotFound, inxNonSeries] = db2array(d, list, 
 %
 % The output array, `x`, is always NPer-by-NList-by-NAlt, where NPer is the
 % length of the `range` (the number of periods), NList is the number of
-% tseries included in the `list`, and NAlt is the maximum number of columns
-% that any of the tseries included in the `list` have.
+% time series included in the `list`, and NAlt is the maximum number of columns
+% that any of the time series included in the `list` have.
 %
-% If all tseries data have the same size in 2nd and higher dimensions, the
+% If all time series data have the same size in 2nd and higher dimensions, the
 % output array will respect that size in 3rd and higher dimensions. For
-% instance, if all tseries data are NPer-by-2-by-5, the output array will
-% be NPer-by-Nx-by-2-by-5. If some tseries data have unmatching size in 2nd
+% instance, if all time series data are NPer-by-2-by-5, the output array will
+% be NPer-by-Nx-by-2-by-5. If some time series data have unmatching size in 2nd
 % or higher dimensions, the output array will be always a 3D array with all
 % higher dimensions unfolded in 3rd dimension.
 %
-% If some tseries data have smaller size in 2nd or higher dimensions than
-% other tseries entries, the last available column will be repeated for the
+% If some time series data have smaller size in 2nd or higher dimensions than
+% other time series entries, the last available column will be repeated for the
 % missing columns.
 %
 %
@@ -132,7 +132,7 @@ catch
     sw.Warn.NoRangeFound = true;
 end
 
-try, sw.BaseYear; catch, sw.BaseYear = @config; end
+try, sw.BaseYear; catch, sw.BaseYear = @auto; end
 
 try, sw.ExpandMethod; catch, sw.ExpandMethod = 'RepeatLast'; end %#ok<*NOCOM>
 
@@ -154,9 +154,9 @@ range = double(range);
 %--------------------------------------------------------------------------
 
 if isequal(list, @all)
-    list = dbnames(d, 'ClassFilter', 'tseries');
+    list = dbnames(d, 'ClassFilter', 'Series');
 elseif isa(list, 'rexp')
-    list = dbnames(d, 'ClassFilter', 'tseries', 'NameFilter', list);
+    list = dbnames(d, 'ClassFilter', 'Series', 'NameFilter', list);
 elseif ischar(list)
     list = regexp(list, '\w+', 'match');
 elseif isstring(list)
@@ -219,7 +219,7 @@ for i = 1 : nList
             addData( );
         else
             field = d.(name);
-            if isa(field, 'TimeSubscriptable')
+            if isa(field, 'Series')
                 ithX = [ ];
                 getSeriesData( );
                 addData( );

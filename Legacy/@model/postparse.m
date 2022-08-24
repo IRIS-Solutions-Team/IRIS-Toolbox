@@ -135,8 +135,8 @@ qty = seal(qty);
 % Read them after placeholders for optimal policy have been created
 try
     [eqn, this.Pairing.Dtrends] = readDtrends(eqn, euc, qty);
-    this.Pairing.Autoswaps = model.component.Pairing.readAutoswaps(qty, puc);
-    this.Pairing.Assignments = model.component.Pairing.readAssignments(eqn, euc, qty);
+    this.Pairing.Autoswaps = model.Pairing.readAutoswaps(qty, puc);
+    this.Pairing.Assignments = model.Pairing.readAssignments(eqn, euc, qty);
 catch exc
     throw(exception.Rethrow(exc));
 end
@@ -191,8 +191,8 @@ hereCheckTimeAndSteadyRef( );
 % equations, including the loss function and its discount factor; the
 % occurences in the loss function will be replaced later with the
 % occurences in the Lagrangian derivatives.
-this.Incidence.Dynamic = model.component.Incidence(numEqtn, numQuant, minSh, maxSh);
-this.Incidence.Steady = model.component.Incidence(numEqtn, numQuant, minSh, maxSh);
+this.Incidence.Dynamic = model.Incidence(numEqtn, numQuant, minSh, maxSh);
+this.Incidence.Steady = model.Incidence(numEqtn, numQuant, minSh, maxSh);
 this.Incidence.Dynamic = fill(this.Incidence.Dynamic, qty, eqn.Dynamic, inxM | inxT | inxD | inxL); % [^1]
 this.Incidence.Steady = fill(this.Incidence.Steady, qty, eqn.Steady, inxM | inxT);
 inxCopy = (inxM | inxT | inxL) & cellfun('isempty', eqn.Steady);   
@@ -260,7 +260,7 @@ end
 
 
 % Create the Link component
-this.Link = model.component.Link(eqn, euc, qty);
+this.Link = model.Link(eqn, euc, qty);
 
 
 % Reset parsed file name
@@ -343,19 +343,19 @@ return
         % Insert the new names between at the beginning of the block of existing
         % transition variables.
         %
-        add = model.component.Quantity.fromNames(newNames);
+        add = model.Quantity.fromNames(newNames);
         add.IxLagrange(:) = true;
         qty = insert(qty, add, 2, 'first');
 
 %         if hasFloors
-%             floorParameterName = string(model.component.Quantity.FLOOR_PREFIX) + string(optimalOpt.NonNegative);
+%             floorParameterName = string(model.Quantity.FLOOR_PREFIX) + string(optimalOpt.NonNegative);
 % 
 %             % Floor parameter may be declared by the user
-%             inxFloorParameter = startsWith(qty.Name, model.component.Quantity.FLOOR_PREFIX) & qty.Type==4;
+%             inxFloorParameter = startsWith(qty.Name, model.Quantity.FLOOR_PREFIX) & qty.Type==4;
 %             if any(inxFloorParameter)
 %                 posFloorParameter = find(inxFloorParameter);
 %             else
-%                 add = model.component.Quantity( );
+%                 add = model.Quantity( );
 %                 add.Name = {char(floorParameterName)};
 %                 add.Label = {['Floor for ', optimalOpt.NonNegative]};
 %                 add.Alias = {char.empty(1, 0)};
@@ -392,7 +392,7 @@ return
         % variables. At the same time, remove the loss function so
         % a total of `numEquationsToAdd-1` placeholders need to be created.
         %
-        add = model.component.Equation( );
+        add = model.Equation( );
         add.Input = repmat({''}, 1, numEquationsToAdd);
         add.Label = repmat({''}, 1, numEquationsToAdd);
         add.Alias = repmat({''}, 1, numEquationsToAdd);

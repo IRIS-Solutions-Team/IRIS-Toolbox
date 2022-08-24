@@ -45,10 +45,6 @@ function d = haver(hpath, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-
-%-----------------------------------------------------------
-
 data = {}; meta = []; i=2; %#ok<*AGROW>
 for dbfile = varargin(1:2:end)
     h = haver([hpath dbfile{1} '.dat']);
@@ -74,7 +70,8 @@ for i=1:size(data, 2)
         otherwise
             error('unknown freq: %s', meta(i).Frequency)
     end
-    d.(meta(i).VarName)= TIME_SERIES_CONSTRUCTOR(dates, data{i}(:, 2), meta(i).Descriptor, meta(i));
+    d.(meta(i).VarName)= Series(dates, data{i}(:, 2), meta(i).Descriptor, meta(i));
 end
 
-end
+end%
+

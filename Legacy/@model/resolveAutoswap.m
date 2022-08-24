@@ -10,8 +10,6 @@ function [namesToExogenize, namesToEndogenize] = resolveAutoswap(this, kind, nam
 
 PTR = @int16;
 
-%--------------------------------------------------------------------------
-
 if startsWith(kind, "simulate", "ignoreCase", true)
     ptrAutoswaps = this.Pairing.Autoswaps.Simulate;
 elseif startsWith(kind, "steady", "ignoreCase", true)

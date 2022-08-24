@@ -1,5 +1,3 @@
-% postprocessKalmanOutput  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
-
 function [info, this] = postprocessKalmanOutput(this, regOutp, extdRange, opt)
 
 TIME_SERIES_TEMPLATE = Series();
@@ -37,7 +35,7 @@ info.FMSE = F;
 %
 pe = [];
 if isfield(regOutp, 'Pe')
-    logPrefix = string(model.component.Quantity.LOG_PREFIX);
+    logPrefix = string(model.Quantity.LOG_PREFIX);
     pe = struct();
     for i = find(inxY)
         name = string(this.Quantity.Name(i));

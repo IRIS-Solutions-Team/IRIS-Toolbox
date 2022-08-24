@@ -5,26 +5,25 @@
 
 function outputDb = returnData(this, X, range, names)
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
-TIME_SERIES_TEMPLATE.Start = range(1);
+    TIME_SERIES_TEMPLATE = Series();
+    TIME_SERIES_TEMPLATE.Start = range(1);
 
-numNames = numel(names);
+    numNames = numel(names);
 
-sizeX = size(X);
-ndimsX = ndims(X);
-X = X(:, :, :);
+    sizeX = size(X);
+    ndimsX = ndims(X);
+    X = X(:, :, :);
 
-outputDb = struct( );
-for i = 1 : numNames
-    ithName = names{i};
-    ithData = X(i, :, :);
-    if ndimsX>3
-        ithData = reshape(ithData, [1, sizeX(2:end)]);
+    outputDb = struct( );
+    for i = 1 : numNames
+        ithName = names{i};
+        ithData = X(i, :, :);
+        if ndimsX>3
+            ithData = reshape(ithData, [1, sizeX(2:end)]);
+        end
+        ithData = permute(ithData, [2:ndimsX, 1]);
+        outputDb.(ithName) = fill(TIME_SERIES_TEMPLATE, ithData);
     end
-    ithData = permute(ithData, [2:ndimsX, 1]);
-    outputDb.(ithName) = fill(TIME_SERIES_TEMPLATE, ithData);
-end
 
 end%
 

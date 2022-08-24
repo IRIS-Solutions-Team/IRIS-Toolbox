@@ -45,7 +45,7 @@ end
 %
 maxStdCorr = 0;
 if needsRefresh
-    eps = model.component.Incidence.getIncidenceEps(this.Link.RhsExpn);
+    eps = model.Incidence.getIncidenceEps(this.Link.RhsExpn);
     temp = [eps(2, :), reshape(this.Link.LhsPtr, 1, [ ])] - numQuantities;
     maxStdCorr = max([0, temp]);
 end

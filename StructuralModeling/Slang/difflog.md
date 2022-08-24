@@ -1,4 +1,6 @@
-# difflog
+---
+title: difflog
+---
 
 {== First log-difference pseudofunction ==}
 

@@ -7,9 +7,7 @@ function outp = hdata2tseries(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TIME_SERIES = TIME_SERIES_CONSTRUCTOR();
-
+TIME_SERIES = Series();
 
 islogicalscalar = @(x) islogical(x) && isscalar(x);
 %(

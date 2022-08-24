@@ -1,55 +1,10 @@
-% autoswaps  Inquire about or assign autoswap pairs
-%{
-% ## Syntax for Inquiring About Autoswap Pairs ##
-%
-%     a = autoswaps(model)
-%
-%
-% ## Syntax for Assigning Autoswap Pairs ##
-%
-%     model = autoswaps(model, a)
-%
-%
-% ## Input Arguments ##
-%
-% **`model`** [ Model ] -
-% Model object that will be inquired about autoswap pairs or assigned new
-% autoswap pairs.
-%
-% **`a`** [ AutoswapStruct ] -
-% AutoswapStruct object containing two substructs, `.Simulate` and
-% `.Steady`. Each field in the substructs defines a variable/shock pair (in
-% `.Simulate`), or a variable/parameter pair (in `.Steady`).
-%
-%
-% ## Output Arguments ##
-%
-% **`model`** [ Model ] -
-% Model object with the definitions of autoswap pairs newly assigned.
-%
-% **`a`** [ AutoswapStruct ] -
-% AutoswapStruct object containing two substructs, `.Simulate` and
-% `.Steady`. Each field in the substructs defines a variable/shock pair (in
-% `.Simulate`), or a variable/parameter pair (in `.Steady`).
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function varargout = autoswaps(this, varargin)
 
 if isempty(varargin)
     % ## Get Autoswap Structure ##
-    auto = model.component.AutoswapStruct( );
-    [~, ~, auto.Simulate] = model.component.Pairing.getAutoswaps(this.Pairing.Autoswaps.Simulate, this.Quantity);
-    [~, ~, auto.Steady] = model.component.Pairing.getAutoswaps(this.Pairing.Autoswaps.Steady, this.Quantity);
+    auto = model.AutoswapStruct( );
+    [~, ~, auto.Simulate] = model.Pairing.getAutoswaps(this.Pairing.Autoswaps.Simulate, this.Quantity);
+    [~, ~, auto.Steady] = model.Pairing.getAutoswaps(this.Pairing.Autoswaps.Steady, this.Quantity);
     varargout{1} = auto;
 
 else
@@ -84,7 +39,7 @@ return
             namesExogenized = transpose(namesExogenized(:));
             namesEndogenized = struct2cell(auto);
             namesEndogenized = transpose(namesEndogenized(:));
-            p = model.component.Pairing.setAutoswaps( ...
+            p = model.Pairing.setAutoswaps( ...
                 p, type, this.Quantity ...
                 , namesExogenized, namesEndogenized ...
             );

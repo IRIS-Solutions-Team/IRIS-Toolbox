@@ -71,14 +71,11 @@ function [this, d, cc, ff, uu, ee] = filter(this, inp, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
-
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('DFM.forecast');
     inputParser.addRequired('a', @(x) isa(x, 'DFM'));
-    inputParser.addRequired('InputData', @(x) isa(x, 'tseries') || isstruct(x));
+    inputParser.addRequired('InputData', @(x) isa(x, 'Series') || isstruct(x));
     inputParser.addRequired('Range', @isnumeric);
     inputParser.addParameter('Cross', true, ...
         @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1));
@@ -90,7 +87,8 @@ end
 inputParser.parse(this, inp, range, varargin{:});
 opt = inputParser.Options;
 
-%--------------------------------------------------------------------------
+TEMPLATE_SERIES = Series();
+
 
 nx = size(this.C, 2);
 p = size(this.A, 2)/nx;

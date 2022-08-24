@@ -21,7 +21,7 @@ if all(strcmpi(classBlazer, 'solver.blazer.Steady'))
     % Steady state solution
     %
 
-    [inxPwL, inxLwP] = hereGetParameterLinks( ); % [^1] [^2]
+    [inxPwL, inxLwP] = here_getParameterLinks( ); % [^1] [^2]
     %
     % [^1]: inxPwL is the index of parameters that are LHS names in links
     %
@@ -93,7 +93,7 @@ blz.Model.Equation = this.Equation;
 
 return
 
-    function [inxPwL, inxLwP] = hereGetParameterLinks( )
+    function [inxPwL, inxLwP] = here_getParameterLinks( )
         numEquations = countEquations(this);
         numQuantities = countQuantities(this);
         inxL = this.Equation.Type==4;
@@ -123,7 +123,7 @@ end%
 % Local Functions
 %
 
-function flag = locallyValidateLogList(input)
+function flag = local_validateLogList(input)
     %(
     if isempty(input)
         flag = true;

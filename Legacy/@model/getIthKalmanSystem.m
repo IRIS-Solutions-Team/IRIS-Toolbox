@@ -1,12 +1,5 @@
 function [T, R, K, Z, H, D, U, Zb, inxV, inxW, numUnit, inxInit] = ...
     getIthKalmanSystem(this, variantRequested, requiredForward)
-% getIthKalmanSystem  Return description of state space for Kalman filter
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 if nargin<3
     requiredForward = 0;

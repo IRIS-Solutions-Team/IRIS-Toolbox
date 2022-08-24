@@ -1,4 +1,6 @@
-# access
+---
+title: access
+---
 
 {== Access properties of Model objects ==}
 
@@ -41,10 +43,10 @@ __`"parameters"`__
 
 __`"exogenous-variables"`__
 
->
+> 
 > Return a string array of all the names of the respective type in order of
 > their apperance in the declaration sections of the source model file(s).
->
+> 
 
 __`fileName`__
 > 

@@ -35,7 +35,6 @@ MINIMUM_MATLAB = 'R2018a';
     % Check [IrisToolbox] release and id file
     config = iris.reset( ...
         "silent", options.Silent ...
-        , "seriesConstructor", options.SeriesConstructor ...
         , "checkId", options.CheckId ...
         , "tex", options.TeX ...
     );
@@ -65,12 +64,6 @@ return
 
         % IrisT root folder
         fprintf('\tRoot folder: %s', root);
-        fprintf('\n');
-
-        % Default time series constructor
-        defaultTimeSeriesConstructor = config.DefaultTimeSeriesConstructor;
-        defaultTimeSeriesConstructor = func2str(defaultTimeSeriesConstructor);
-        fprintf('\tDefault time series constructor: @%s', defaultTimeSeriesConstructor);
         fprintf('\n');
 
         % LaTeX engine
@@ -130,7 +123,6 @@ function options = local_resolveInputOptions(varargin)
     options = struct();
     options.CheckMatlab = true;
     options.Silent = false;
-    options.SeriesConstructor = @Series;
     options.CheckId = true;
     options.TeX = true;
     options.LegacyWarning = true;
@@ -144,10 +136,6 @@ function options = local_resolveInputOptions(varargin)
     for n = inputOptions
         if contains(n, ["shutup", "silent"], "ignoreCase", true)
             options.Silent = true;
-        elseif contains(n, "tseries")
-            options.SeriesConstructor = @tseries;
-        elseif contains(n, "Series")
-            options.SeriesConstructor = @Series;
         elseif contains(n, ["noIdChk", "noIdCheck"], "ignoreCase", true)
             options.CheckId = false;
         elseif contains(n, "noTex", "ignoreCase", true)

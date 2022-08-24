@@ -10,42 +10,37 @@ function outputDb = createOutputDatabank( ...
     this, inputDb, dataBlock, namesToInclude, fitted, lhsTransform, opt ...
 )
 
-if isempty(namesToInclude) && isempty(fitted) && isempty(lhsTransform)
-    return
-end
+    extendedRange = dataBlock.ExtendedRange;
+    array = dataBlock.YXEPG;
+    names = dataBlock.Names;
+    inxToInclude = ismember(names, namesToInclude);
+    if ~isempty(fitted)
+        array = [array; fitted];
+        names = [names, this.FittedName];
+        inxToInclude = [inxToInclude, true(1, size(fitted, 1))];
+    end
+    if ~isempty(lhsTransform)
+        array = [array; lhsTransform];
+        names = [names, this.LhsTransformName];
+        inxToInclude = [inxToInclude, true(1, size(lhsTransform, 1))];
+    end
+    comments = names;
 
-extendedRange = dataBlock.ExtendedRange;
-array = dataBlock.YXEPG;
-names = dataBlock.Names;
-inxToInclude = ismember(names, namesToInclude);
-if ~isempty(fitted)
-    array = [array; fitted];
-    names = [names, this.FittedName];
-    inxToInclude = [inxToInclude, true(1, size(fitted, 1))];
-end
-if ~isempty(lhsTransform)
-    array = [array; lhsTransform];
-    names = [names, this.LhsTransformName];
-    inxToInclude = [inxToInclude, true(1, size(lhsTransform, 1))];
-end
-comments = names;
+    if isequal(opt.AddToDatabank, @auto)
+        opt.AddToDatabank = inputDb;
+    end
 
-if isequal(opt.AddToDatabank, @auto)
-    opt.AddToDatabank = inputDb;
-end
+    outputDb = databank.backend.fromArrayNoFrills( ...
+          array, ...
+          names, ...
+          dataBlock.ExtendedRange(1), ...
+          comments, ...
+          inxToInclude, ...
+          opt.OutputType, ...
+          opt.AddToDatabank ...
+    );
 
-outputDb = databank.backend.fromArrayNoFrills( ...
-      array, ...
-      names, ...
-      dataBlock.ExtendedRange(1), ...
-      comments, ...
-      inxToInclude, ...
-      @Series, ...
-      opt.OutputType, ...
-      opt.AddToDatabank ...
-);
-
-outputDb = appendData(this, inputDb, outputDb, extendedRange, opt);
+    outputDb = appendData(this, inputDb, outputDb, extendedRange, opt);
 
 end%
 

@@ -10,7 +10,7 @@ function [this, isValidRequest, isValidValue] = implementSet(this, query, value,
     isValidValue = true;
 
     if any(strcmpi(query, {'BaseYear', 'TOrigin'}))
-        isValidValue = isintscalar(value) || isequal(value, @config);
+        isValidValue = isintscalar(value) || isequal(value, @auto);
         if isValidValue
             this.BaseYear = value;
         end

@@ -187,20 +187,20 @@ classdef (CaseInsensitiveProperties=true) Options
             addParameter(pp, 'JacobCalculation', this.DEFAULT_JACOB_CALCULATION, @(x) startsWith(x, ["Analytical", "ForwardDiff"], "ignoreCase", true));
             addParameter(pp, 'LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE);
             addParameter(pp, "SkipJacobUpdate", this.DEFAULT_SKIP_JACOB_UPDATE);
-            addParameter(pp, {'MaxIterations', 'MaxIter'}, this.DEFAULT_MAX_ITERATIONS, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
-            addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, this.DEFAULT_MAX_FUNCTION_EVALUATIONS, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
+            addParameter(pp, {'MaxIterations', 'MaxIter'}, this.DEFAULT_MAX_ITERATIONS, @(x) isequal(x, @auto) || (isnumericscalar(x) || round(x)==x || x>0));
+            addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, this.DEFAULT_MAX_FUNCTION_EVALUATIONS, @(x) isequal(x, @auto) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
             addParameter(pp, 'TrimObjectiveFunction', this.DEFAULT_TRIM_OBJECTIVE_FUNCTION, @(x) isequal(x, true) || isequal(x, false));
-            addParameter(pp, 'FiniteDifferenceStepSize', this.DEFAULT_FINITE_DIFFERENCE_STEP_SIZE, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
+            addParameter(pp, 'FiniteDifferenceStepSize', this.DEFAULT_FINITE_DIFFERENCE_STEP_SIZE, @(x) isequal(x, @auto) || (isnumericscalar(x) && x>0));
             addParameter(pp, 'FiniteDifferenceType', this.DEFAULT_FINITE_DIFFERENCE_TYPE, @(x) any(strcmpi(x, {'forward', 'central'})));
             addParameter(pp, 'PseudoinvWhenSingular', this.DEFAULT_PSEUDOINV_WHEN_SINGULAR, @validate.logicalScalar);
             addParameter(pp, 'ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @validate.logicalScalar);
             addParameter(pp, 'LastBroydenUpdate', this.DEFAULT_LAST_BROYDEN_UPDATE, @validate.numericScalar);
-            addParameter(pp, 'FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || validate.numericScalar(x, 0, Inf) || isa(x, 'function_handle'));
+            addParameter(pp, 'FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @auto) || validate.numericScalar(x, 0, Inf) || isa(x, 'function_handle'));
             addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, this.DEFAULT_FUNCTION_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
             addParameter(pp, {'StepTolerance', 'TolX'}, this.DEFAULT_STEP_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
 
-            addParameter(pp, {'DeflateStep', 'StepDown'}, this.DEFAULT_DEFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>0 && x<1));
-            addParameter(pp, {'InflateStep', 'StepUp'}, this.DEFAULT_INFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>1));
+            addParameter(pp, {'DeflateStep', 'StepDown'}, this.DEFAULT_DEFLATE_STEP, @(x) isequal(x, @auto) || isequal(x, false) || (isnumericscalar(x) && x>0 && x<1));
+            addParameter(pp, {'InflateStep', 'StepUp'}, this.DEFAULT_INFLATE_STEP, @(x) isequal(x, @auto) || isequal(x, false) || (isnumericscalar(x) && x>1));
 
             addParameter(pp, 'LastStepSizeOptim', this.DEFAULT_LAST_STEP_SIZE_OPTIM, @(x) isnumeric(x) && isscalar(x) && x>=0);
             addParameter(pp, 'InitStepSize', this.DEFAULT_INIT_STEP_SIZE, @(x) isnumeric(x) && isscalar(x) && x>0 && x<=2);
@@ -282,9 +282,9 @@ function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
         pp = extend.InputParser('solver.Options.parseOptimTbx');
         addParameter(pp, 'Algorithm', 'levenberg-marquardt', @ischar);
         addParameter(pp, 'Display', 'iter*', @validateDisplay);
-        addParameter(pp, {'MaxIterations', 'MaxIter'}, @default, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
-        addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
-        addParameter(pp, 'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
+        addParameter(pp, {'MaxIterations', 'MaxIter'}, @auto, @(x) isequal(x, @auto) || (isnumericscalar(x) || round(x)==x || x>0));
+        addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, @auto, @(x) isequal(x, @auto) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
+        addParameter(pp, 'FiniteDifferenceStepSize', @auto, @(x) isequal(x, @auto) || (isnumericscalar(x) && x>0));
         addParameter(pp, 'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'})));
         addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, iris.mixin.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
         addParameter(pp, {'StepTolerance', 'TolX'}, iris.mixin.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
@@ -314,7 +314,7 @@ function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
     list = fieldnames(userOpt);
     for i = 1 : numel(list)
         name = list{i};
-        if isequal(userOpt.(name), @default)
+        if isequal(userOpt.(name), @auto)
             continue
         end
         try
@@ -350,7 +350,7 @@ end%
 %
 
 function flag = validateDisplay(x)
-    flag = isequal(x, @auto) || isequal(x, @default) ...
+    flag = isequal(x, @auto) ...
            || isequal(x, true) || isequal(x, false) ...
            || (isnumeric(x) && isscalar(x) && x==round(x) && x>=0) ...
            || any(strcmpi(x, {'on', 'iter*', 'iter', 'final', 'none', 'notify', 'off'}));

@@ -19,7 +19,7 @@ function transition = prepareTransitionOptions(transition, aggregation, highRang
     transition.Intercept = opt.TransitionIntercept;
     transition.Std = opt.TransitionStd;
 
-    if isa(transition.Std, 'TimeSubscriptable')
+    if isa(transition.Std, 'Series')
         transition.Std = getDataFromTo(transition.Std, highStart, highEnd);
         transition.Std = abs(transition.Std);
         inxNaN = isnan(transition.Std);

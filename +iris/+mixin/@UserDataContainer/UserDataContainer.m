@@ -12,7 +12,7 @@ classdef UserDataContainer
         Caption = '' 
 
         % BaseYear  Base year for time trends created by this object
-        BaseYear = @config 
+        BaseYear = @auto 
     end
     
     

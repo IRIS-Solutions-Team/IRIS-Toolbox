@@ -36,7 +36,7 @@ classdef Rectangular ...
         HashEquationsInput
 
         % HashIncidence  Incidence object for hash equations
-        HashIncidence = model.component.Incidence.empty(0)
+        HashIncidence = model.Incidence.empty(0)
 
         HashMultipliers = double.empty(0)
         MultipliersHashedYX = logical.empty(0)

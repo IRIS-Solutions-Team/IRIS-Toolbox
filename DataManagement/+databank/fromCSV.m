@@ -1,10 +1,3 @@
-%
-% Type <a href="matlab: ihelp databank.fromCSV">ihelp databank.fromCSV</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
-
 % >=R2019b
 %{
 function [outputDb, info] = fromCSV(fileName, opt)
@@ -39,7 +32,7 @@ arguments
 
     opt.Postprocess = []
 
-    opt.DateFormat = @config
+    opt.DateFormat = @auto
     opt.EnforceFrequency = false
         opt.Frequency__EnforceFrequency = []
     opt.Months = iris.Configuration.Months
@@ -83,7 +76,7 @@ if isempty(ip)
 
     addParameter(ip, "Postprocess", []);
 
-    addParameter(ip, "DateFormat", @config);
+    addParameter(ip, "DateFormat", @auto);
     addParameter(ip, "EnforceFrequency", false);
         addParameter(ip, "Frequency__EnforceFrequency", []);
     addParameter(ip, "Months", iris.Configuration.Months);
@@ -185,7 +178,7 @@ if numel(commentRow)<numel(nameRow)
 end
 
 % Apply user selection, white out all names that user did not select
-if ~all(strcmpi(opt.Select, '__all__'))
+if ~(isequal(opt.Select, @all) || isequal(opt.Select, '__all__'))
     if ischar(opt.Select)
         opt.Select = regexp(opt.Select, '\w+', 'match');
     end
@@ -605,8 +598,7 @@ return
 
 
     function [outputDb, namesCreated] = here_populateDatabank(outputDb)
-        TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-        TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+        TEMPLATE_SERIES = Series();
         count = 0;
         lenNameRow = numel(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
@@ -782,5 +774,4 @@ function name = getUserdataFieldName(c)
     end
     %)
 end%
-
 

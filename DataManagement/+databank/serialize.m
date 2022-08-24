@@ -1,41 +1,3 @@
-% serialize  Serialize databank entries to character vector
-%{
-% ## Syntax ##
-%
-%     [c, listSerialized] = databank.serialized(inputDb, dates, ...)
-%
-%
-% ## Input Arguments ##
-%
-% __`inputDb`__ [ struct | Dictionary | containers.Map ] -
-% Input databank whose time series and numeric entries will be serialized
-% to a character vector.
-%
-%
-% __`dates`__ [ DateWrapper | numeric | `Inf` ] -
-% Dates at which time series entries will be serialized; `Inf` means the
-% all encompassing range determined from all time series entries.
-%
-%
-% ## Output Arguments ##
-%
-% __`c`__ [ char ] -
-% Character vector serializing the `inputDb`.
-%
-%
-% ## Options ##
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [c, listSerialized] = serialize(inputDb, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
@@ -134,7 +96,7 @@ inxSerialized = false(size(namesToSave));
 for i = 1 : numNamesToSave
     x = inputDb.(namesToSave{i});
     
-    if isa(x, 'TimeSubscriptable')
+    if isa(x, 'Series')
         freq__ = x.FrequencyAsNumeric;
         if opt.MatchFreq && any(userFreq~=freq__)
             continue

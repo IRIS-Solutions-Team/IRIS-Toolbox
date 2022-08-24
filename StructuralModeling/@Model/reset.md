@@ -1,4 +1,6 @@
-# reset
+---
+title: reset
+---
 
 {== Reset specific values within model object ==}
 
@@ -26,7 +28,7 @@ __`request`__ [ `"corr"` | `"plainparameters"` | `"parameters"` | `"steady"` | `
 ## Output Arguments
 
 __`model`__ [ Model ] 
->
+> 
 > Model object with the requested values reset.
 > 
 

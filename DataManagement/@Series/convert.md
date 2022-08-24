@@ -1,4 +1,6 @@
-# convert
+---
+title: convert
+---
 
 {== Convert time series to another frequency ==}
 
@@ -47,9 +49,9 @@ __`RemoveNaN=false`__ [ `true` | `false` ]
 __`Missing=@default`__ [ `@default` | numeric | `"previous"` | `"next"` ]
 
 > Fill missing observations with this value before conversion:
->
+> 
 > * `@default` means no preprocessing;
->
+> 
 > * `"previous"` or `"next"` means fill in the nearest preceding or nearest
 > following value available in the time series.
 
@@ -117,8 +119,4 @@ circumstances since dimension mismatch may occur.
 
 
 ## Example
-
-
--[IrisToolbox] for Macroeconomic Modeling
--Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 

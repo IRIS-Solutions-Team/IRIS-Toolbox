@@ -1,8 +1,3 @@
-% solutionMatrices  Access first-order state-space (solution) matrices
-%
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 % >=R2019b
 %{
 function output = solutionMatrices(this, opt)
@@ -52,7 +47,7 @@ if opt.RemoveInactiveShocks
     Omg = Omg(inxShocksToKeep, inxShocksToKeep);
 end
 
-logPrefix = model.component.Quantity.LOG_PREFIX;
+logPrefix = model.Quantity.LOG_PREFIX;
 yVector = string(printSolutionVector(this, "y", logPrefix));
 xiVector = string(printSolutionVector(this, this.Vector.Solution{2}, logPrefix));
 xifVector = xiVector(1:numXif);

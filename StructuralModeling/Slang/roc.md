@@ -1,4 +1,6 @@
-# roc
+---
+title: roc
+---
 
 {== Gross rate of change pseudofunction ==}
 

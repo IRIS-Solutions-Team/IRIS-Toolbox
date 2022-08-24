@@ -15,7 +15,7 @@ if isnumeric(input)
 end
 
 freq = Dater.getFrequency(range(1));
-if isa(input, 'TimeSubscriptable')
+if isa(input, 'Series')
     if isfreq(input, freq)
         value = getDataFromTo(input, startDate, endDate);
         if ~canHaveMissing && any(~isfinite(value(:)))

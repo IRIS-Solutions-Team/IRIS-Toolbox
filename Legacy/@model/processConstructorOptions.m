@@ -9,7 +9,7 @@ if isempty(ip) || isempty(ipParser) || isempty(ipOptimal)
     addParameter(ip, 'AllowExogenous', false, @validate.logicalScalar);
     addParameter(ip, 'Context', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
     addParameter(ip, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
-    addParameter(ip, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
+    addParameter(ip, {'baseyear', 'torigin'}, @auto, @(x) isequal(x, @auto) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(ip, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, "ThrowErrorAs", "error", @(x) ismember(lower(x), ["error", "warning"]));
     addParameter(ip, 'Comment', '', @(x) ischar(x) || isstring(x) || iscellstr(x));

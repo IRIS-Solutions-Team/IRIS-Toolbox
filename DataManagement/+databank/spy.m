@@ -1,10 +1,3 @@
-% spy  Visualize databank time series based on test condition
-%{
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function spy(inputDatabank, listSeries, startDate, endDate)
 
 startDate = double(startDate);
@@ -33,7 +26,7 @@ inxToKeep = true(1, numSeries);
 for i = 1 : numel(listSeries)
     name__ = listSeries{i};
     if ~isfield(inputDatabank, name__) ...
-        || ~isa(inputDatabank.(name__), 'TimeSubscriptable')
+        || ~isa(inputDatabank.(name__), 'Series')
         inxToKeep(i) = false;
     end
 end

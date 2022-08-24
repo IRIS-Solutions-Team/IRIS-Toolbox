@@ -20,8 +20,8 @@ altSyntax(this);
 logList = string.empty(1, 0);
 logExcept = logical.empty(1, 0);
 
-qty = model.component.Quantity( );
-eqn = model.component.Equation( );
+qty = model.Quantity( );
+eqn = model.Equation( );
 euc = parser.EquationUnderConstruction( );
 puc = parser.PairingUnderConstruction( );
 
@@ -91,7 +91,7 @@ return
         if isempty(namesToDeclare)
             return
         end
-        add = model.component.Quantity.fromNames(namesToDeclare);
+        add = model.Quantity.fromNames(namesToDeclare);
         qty = insert(qty, add, 4, 'last');
         %)
     end%

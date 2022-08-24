@@ -1,4 +1,6 @@
-# movsum
+---
+title: movsum
+---
 
 {== Moving sum pseudofunction ==}
 

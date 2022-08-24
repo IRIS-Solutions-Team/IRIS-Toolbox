@@ -1,4 +1,6 @@
-# table  
+---
+title: table  
+---
 
 {== Create table based on selected indicators from Model object ==}
 
@@ -9,7 +11,7 @@
     outputTable = table(model, request, ...)
 
 
- # Input arguments
+## Input arguments
 
 __`model`__ [ Model ] 
 > 

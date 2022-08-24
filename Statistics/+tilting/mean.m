@@ -3,14 +3,14 @@ function [m, dim] = mean(x, w, varargin)
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tilting/quantiles');
-    inputParser.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
+    inputParser.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'Series'));
     inputParser.addRequired('Weights', @isnumeric);
     inputParser.addOptional('Dim', 2, @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=1);
 end
 inputParser.parse(x, w, varargin{:});
 dim = inputParser.Results.Dim;
 
-if isa(x, 'TimeSubscriptable')
+if isa(x, 'Series')
     [x, dim] = applyFunctionAlongDim(x, @tilting.mean, w, dim);
     return
 end

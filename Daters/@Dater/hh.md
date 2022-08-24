@@ -1,4 +1,6 @@
-# hh  |  Dater.hh  |  dater.hh
+---
+title: Dater.hh
+---
 
 {== Create half-yearly dates ==}
 
@@ -12,12 +14,12 @@
 
 ## Syntax to create Dater objects
 
-    date = hh(...)
+    date = Dater.hh(___)
 
 
 ## Syntax to create numeric date codes
 
-    dateCode = dater.hh(...)
+    dateCode = dater.hh(___)
 
 
 ## Input arguments

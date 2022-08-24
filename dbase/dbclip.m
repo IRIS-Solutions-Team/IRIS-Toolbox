@@ -101,7 +101,7 @@ list = fieldnames(D);
 numList = numel(list);
 for i = 1 : numList
     name = list{i};
-    if isa(D.(name), 'TimeSubscriptable') && ~isempty(D.(name))
+    if isa(D.(name), 'Series') && ~isempty(D.(name))
         freqX = dater.getFrequency(D.(name).start);
         posOfStart = find(freqX==freqOfStart, 1);
         posOfEnd = find(freqX==freqOfEnd, 1);

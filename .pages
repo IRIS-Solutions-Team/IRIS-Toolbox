@@ -1,5 +1,4 @@
 nav:
-    - "Home": index.md
-    - "Setup": "./+iris"
-    - "Structural modeling": "./StructuralModeling"
-
+    - Home: index.md
+    - "+iris"
+    - "StructuralModeling"
