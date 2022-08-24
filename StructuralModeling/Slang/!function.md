@@ -1,6 +1,6 @@
 # !function
 
-{== Create exportable m-file function to be saved in working directory==}
+{== Create exportable m-file function to be saved in working directory ==}
 
 __Syntax__
 

@@ -1,5 +1,3 @@
-% ExcelSheet  Excel spreadsheet data and time series extractor
-
 classdef ExcelSheet ...
     < matlab.mixin.Copyable
 

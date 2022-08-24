@@ -1,4 +1,6 @@
-# Model.fromString
+---
+title: Model.fromString
+---
 
 {== Create new Model object from string array ==}
 
@@ -11,7 +13,7 @@
 ## Input arguments
 
 __`inputString`__ [ string ]
->
+> 
 > Input string array whose elements will be joined as lines of model source
 > codemodel source code.
 > 
@@ -19,9 +21,9 @@ __`inputString`__ [ string ]
 ## Output arguments
 
 __`m`__ [ Model ]
->
+> 
 > New Model object based on the `inputString`.
->
+> 
 
 ## Options
 

@@ -1,11 +1,4 @@
 function checkSyntax(this, qty, eqn)
-% checkSyntax  Check equations for syntax errors
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 numQuan = length(qty);
 sh0 = this.Incidence.Dynamic.PosZeroShift;

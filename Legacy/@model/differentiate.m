@@ -1,8 +1,3 @@
-% differentiate  Evaluate analytical gradients of model equations
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function gradient = differentiate(this, options)
 
 %

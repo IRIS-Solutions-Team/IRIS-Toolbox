@@ -1,8 +1,3 @@
-% createTrendArray  Create row-oriented array with steady path for each variable
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [X, inxLog, allNames] = createTrendArray(this, variantsRequested, needsDelog, id, vecTime)
 
 nv = countVariants(this);

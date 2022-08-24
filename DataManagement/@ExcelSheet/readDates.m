@@ -1,39 +1,4 @@
 function dates = readDates(this, locationRef, varargin)
-% readDates  Read and store dates from excel sheet
-%{
-% ## Syntax ##
-%
-%     dates = readDates(excelSheet, locationRef, ...)
-%
-%
-% ## Input Arguments ##
-%
-% __`excelSheet`__ [ ExcelSheet ] -
-% Description
-%
-%
-% ## Output Arguments ##
-%
-% __`output`__ [ | ] -
-% Description
-%
-%
-% ## Options ##
-%
-% __`OptionName=Default`__ [ | ] -
-% Description
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 
 dataRange = this.DataRange;
 if isempty(dataRange)

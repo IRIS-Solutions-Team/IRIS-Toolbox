@@ -1,8 +1,3 @@
-% functionsFromEquations  Convert equation strings to anonymous functions
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function this = functionFromEquations(this)
 
 inxM = this.Equation.Type==1;

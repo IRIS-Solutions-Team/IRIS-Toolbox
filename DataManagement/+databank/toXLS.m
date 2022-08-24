@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function namesSaved = toXLS(inputDb, fileName, opt)

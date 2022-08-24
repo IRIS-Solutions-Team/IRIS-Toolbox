@@ -1,4 +1,6 @@
-# autoswap 
+---
+title: autoswap
+---
 
 {== Exogenize variables and endogenize shocks autoswap pairs ==}
 

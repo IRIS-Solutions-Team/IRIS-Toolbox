@@ -1,4 +1,6 @@
-# min
+---
+title: min
+---
 
 {== Define loss function for optimal policy ==}
 

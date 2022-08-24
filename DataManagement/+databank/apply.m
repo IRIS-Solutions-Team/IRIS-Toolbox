@@ -1,10 +1,3 @@
-%
-% Type <a href="matlab: ihelp databank.apply">ihelp databank.apply</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
-
 % >=R2019b
 %(
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)

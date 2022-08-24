@@ -1,11 +1,3 @@
-% simuleteFrames  Implement simulation by frames
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [prepared, outputYXEPG] = simulateFrames(this, systemProperty, run, prepareOnly)
 
 if nargin<4

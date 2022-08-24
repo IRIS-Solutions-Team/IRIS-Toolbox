@@ -1,11 +1,3 @@
-% checkInitialCondition  Look up initial conditions missing from input databank
-%
-% Beckend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function checkInitialCondition(this, inxNaNYXEPG, firstColumn)
 
 %--------------------------------------------------------------------------

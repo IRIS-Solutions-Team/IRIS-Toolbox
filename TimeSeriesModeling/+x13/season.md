@@ -1,4 +1,6 @@
-# x13.season
+---
+title: x13.season
+---
 
 {== Interface to X13-Arima seasonal adjustment procedure ==}
  
@@ -12,29 +14,29 @@
 ## Input Arguments
 
 __`inputSeries`__ [ Series ]
->
+> 
 > Input time series that will be subjected to a X13-ARIMA seasonal
 > adjustment procedure.
->
+> 
 
 __`range=Inf`__ [ Dater ]
->
+> 
 > Date range on which the seasonal adjustment will be performed; any
 > observations outside the `range` will be clipped off before running
 > the procedure; if not specified, all observations available will be
 > used.
->
+> 
 
 ## Output Arguments
 
 __`outputSeries`__ [ Series ]
->
+> 
 > One or more output time series that correspond to the type of output
 > requested in the option `Output`.
->
+> 
 
 __`info`__ [ struct ] 
->
+> 
 > Information struct with details on the X13-ARIMA procedure run. The
 > `info` struct includes the following fields and nested fields:
 > 
@@ -60,35 +62,35 @@ __`info`__ [ struct ]
 > file name wkithout and extension (the same file name with different
 > extensions is used for both input and output files); when `Cleanup=true`,
 > the input and output files are all deleted automatically.
->
+> 
 
 ## General Options
 
 __`Output="d10"`__ [ string ]
->
+> 
 > Types of output requested to be returned as time series from the
 > X13-ARIMA procedure; see the Output Tables in Description; the number
 > of the `outputSeries` arguments corresponds to the number of elements
 > in this option.
->
+> 
 
 __`Range=Inf`__ [ Dater ]
->
+> 
 > Date range that will be extracted from the `inputSeries` before
 > running the X13-ARIMA procedure; the observations outside the range
 > will be discarded.
->
+> 
 
 __`Display=false`__ [ `true` | `false` ]
->
+> 
 > Print the screen output produced by the X13-ARIMA procedure; the
 > message is also captured in the output argument `info.Message`.
->
+> 
 
 __`Cleanup=true`__ [ `true` | `false` ]
->
+> 
 > Delete all input and output files automatically.
->
+> 
 
 ## X13-ARIMA Options
 

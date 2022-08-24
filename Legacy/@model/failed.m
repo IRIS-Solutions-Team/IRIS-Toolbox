@@ -1,31 +1,3 @@
-% failed  Give access to the last failed model object.
-%
-% Syntax
-% =======
-%
-%     m = model.failed( )
-%
-%
-% Output arguments
-% =================
-%
-% * `m` [ numeric ] - The model object with the parameterisation that
-% failed to converge on steady state or to solve during one of the
-% following functions: [`model/estimate`](model/estimate), 
-% [`model/diffloglik`](model/diffloglik), [`model/fisher`](model/fisher).
-%
-%
-% Description
-% ============
-%
-%
-% Example
-% ========
-%
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 function varargout = failed(this, steadySuccess, checkSteadySuccess, steadyErrors, solveInfo)
 
 persistent store

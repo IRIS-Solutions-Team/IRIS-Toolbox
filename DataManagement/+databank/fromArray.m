@@ -1,10 +1,3 @@
-%
-% Type <a href="matlab: ihelp databank.fromArray">ihelp databank.fromArray</a> for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
-
 % >=R2019b
 %(
 function outputDb = fromArray(array, names, startDate, opt)

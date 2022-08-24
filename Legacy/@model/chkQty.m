@@ -1,11 +1,4 @@
 function flag = chkQty(this, variantsRequested, varargin)
-% chkQty  Check quantities for missing or log-zero values
-%
-% Backend IRIS function
-% No help provided 
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 if isequal(variantsRequested, Inf)
     variantsRequested = ':';

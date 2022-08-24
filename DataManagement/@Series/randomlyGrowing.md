@@ -1,4 +1,6 @@
-# Series.randomlyGrowing
+---
+title: Series.randomlyGrowing
+---
 
 {== Create randomly growing time series ==}
 
@@ -12,47 +14,47 @@
 ## Input Arguments
 
 __`range`__ [ Dater ]
->
+> 
 > Date range on which the randomly growing time series will be created.
->
+> 
 
 __`[mean=0, stdev=1]`__ [ numeric ]
->
+> 
 > The mean and std deviation of the Normal distribution from which the
 > log-growth rate or the difference will be drawn; see Description.
->
+> 
 
 ## Output Arguments
 
 __`outputSeries`__ [ Series ]
->
+> 
 > Output time series.
->
+> 
 
 ## Options
 
 __`Comment=""`__ [ string ]
->
+> 
 > Comment, or an array of comments (depending on the `Dimensions` option)
 > that will be assigned to the `outputSeries`.
->
+> 
 
 __`Dimensions=1`__ [ numeric ]
->
+> 
 > The size of the `outputSeries` in 2nd and higher dimensions.
->
+> 
     
 __`Exponentiate=true`__ [ `true` | `false` ]
->
+> 
 > Exponentiate the cumulative sum of random numbers to create the
 > `outputSeries`.
->
+> 
 
 __`Initial=0`__ [ numeric ]
->
+> 
 > Initial value for the cumulative sum of random numbers (before
 > exponentiation when `Exponentiate=true`.
->
+> 
 
 ## Description
 

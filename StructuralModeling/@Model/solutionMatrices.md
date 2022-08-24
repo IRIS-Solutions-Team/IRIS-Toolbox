@@ -1,4 +1,6 @@
-# solutionMatrices
+---
+title: solutionMatrices
+---
 
 {== Access first-order state-space (solution) matrices ==}
 
@@ -11,62 +13,62 @@
 ## Input Arguments
 
 __`model`__ [ Model ]
->
+> 
 > Solved model object.
->
+> 
 
 
 
 ## Output Arguments
 
 __`T`__ [ numeric ]
->
+> 
 > Transition matrix.
->
+> 
 
 
 __`R`__ [ numeric ]
->
+> 
 > Matrix at the shock vector in transition equations.
->
+> 
 
 
 __`K`__ [ numeric ]
->
+> 
 > Constant vector in transition equations.
->
+> 
 
 
 __`Z`__ [ numeric ]
->
+> 
 > Matrix mapping transition variables to measurement
->
+> 
 
 variables.
 
 __`H`__ [ numeric ]
->
+> 
 > Matrix at the shock vector in measurement
->
+> 
 
 equations.
 
 __`D`__ [ numeric ]
->
+> 
 > Constant vector in measurement equations.
->
+> 
 
 
 __`U`__ [ numeric ]
->
+> 
 > Transformation matrix for predetermined variables.
->
+> 
 
 
 __`Omg`__ [ numeric ]
->
+> 
 > Covariance matrix of shocks.
->
+> 
 
 
 

@@ -1,49 +1,7 @@
-function [Cof, Cop] = cutoff(F, Freq, Cog)
-% cutoff  Approximate cut-off frequency and periodicity from sample frequency response function.
-%
-% Syntax
-% =======
-%
-%     [Cof, Cop] = cutoff(F, Freq)
-%     [Cof, Cop] = cutoff(F, Freq, Cog)
-%
-% Input arguments
-% ================
-%
-% * `F` [ namedmat ] - Frequency response function (FRF), i.e. the first
-% output argument from [`model/ffrf`](model/ffrf) or
-% [`VAR/ffrf`](VAR/ffrf).
-%
-% * `Freq` [ numeric ] - Vector of frequencies on which the FFRF has been
-% evaluated.
-%
-% * `Cog` [ numeric ] - Definition of the cut-off gain; if not specified, 
-% `Cog=1/2`.
-%
-% Output arguments
-% =================
-%
-% * `Cof` [ numeric ] - Cut-off frequency for each of the FFRF, i.e. the
-% frequency at which the gain of the FRF equals `X`.
-%
-% * `Cop` [ numeric ] - Cut-off periodicity.
-%
-% Description
-% ============
-%
-% Because the function `cutoff` calculates the cut-off frequencies based on
-% a vector of discrete points describing the frequency response function, 
-% it uses simple interpolation between two neighbouring points.
-%
-% Example
-% ========
-%
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
-
 %#ok<*VUNUS>
 %#ok<*CTCH>
+
+function [Cof, Cop] = cutoff(F, Freq, Cog)
 
 try
     Cog; 

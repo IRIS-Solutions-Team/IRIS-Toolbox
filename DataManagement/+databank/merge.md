@@ -1,4 +1,6 @@
-# databank.merge
+---
+title: databank.merge
+---
 
 {== Merge two or more databanks ==}
 

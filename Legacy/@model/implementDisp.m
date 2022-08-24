@@ -1,11 +1,4 @@
 function implementDisp(this)
-% implementDisp  Implement display method for model objects
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 STR_VARIANT = 'Parameter Variant';
 CONFIG = iris.get( );

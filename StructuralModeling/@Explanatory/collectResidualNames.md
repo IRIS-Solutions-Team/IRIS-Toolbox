@@ -1,4 +1,6 @@
-# collectLhsNames  
+---
+title: collectLhsNames  
+---
 
 {== Collect names of LHS variables ==}
 
@@ -11,7 +13,7 @@
 ## Input Arguments
 
 __`this`__ [ Explanatory ]
->
+> 
 > Explanatory object or array from which the names of all residuals will be
 > collected and returned.
 > 
@@ -19,7 +21,7 @@ __`this`__ [ Explanatory ]
 ## Output Arguments
 
 __`residualNames`__ [ string ]
->
+> 
 > The names of all residuals collected from `this` Explanatory object or array.
 > 
 

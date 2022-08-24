@@ -1,4 +1,6 @@
-# Plan.forExplanatory 
+---
+title: Plan.forExplanatory 
+---
 
 {== Create simulation Plan for Explanatory object ==}
 

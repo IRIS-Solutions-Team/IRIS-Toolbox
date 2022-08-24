@@ -1,4 +1,6 @@
-# ii  |  Dater.ii  |  dater.ii
+---
+title: Dater.ii
+---
 
 {== Create integer dates (numbered observations) ==}
 

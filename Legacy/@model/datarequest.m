@@ -1,11 +1,3 @@
-% datarequest  Request model specific data from database
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 function varargout = datarequest(req, this, data, range, whichSet, expandMethod)
 
 %#ok<*CTCH>

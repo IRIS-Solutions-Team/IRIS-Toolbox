@@ -1,4 +1,6 @@
-# dd  |  Dater.dd  |  dater.dd
+---
+title: Dater.dd
+---
 
 {== Create daily dates ==}
 
@@ -36,7 +38,7 @@
 > 
 
 `day=1` [ numeric ]
->
+> 
 > Calendar day of the `month`; "end" means the last day of the respective `month`
 > (considering leap years for February).
 > 

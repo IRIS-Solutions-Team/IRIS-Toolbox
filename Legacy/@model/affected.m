@@ -1,8 +1,3 @@
-% affected  Equations affected by parameter changes since last system
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function inxEquationsAffected = affected(this, variantRequested, opt)
 
 inxP = this.Quantity.Type==4;
