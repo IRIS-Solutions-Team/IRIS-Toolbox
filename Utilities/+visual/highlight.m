@@ -148,14 +148,14 @@ for a = 1 : numel(axesHandle)
     % will be overpainted by the highlight patch.
     set(h, 'layer', 'top');
 
-    yData = getYData(h, LIM_MULTIPLE);
+    yData = local_getYData(h, LIM_MULTIPLE);
     for i = 1 : numel(range)
-        xData = locallyGetXData(h, range{i}, opt);
+        xData = local_getXData(h, range{i}, opt);
         if isempty(xData)
             continue
         end
 
-        ithPatchHandle = locallyDrawPatch(h, xData, yData, opt, unmatched);
+        ithPatchHandle = local_drawPatch(h, xData, yData, opt, unmatched);
 
         % Add caption to the highlight.
         if ~isempty(opt.Text)
@@ -193,7 +193,7 @@ set(patchHandles, 'HandleVisibility', opt.HandleVisibility);
 end%
 
 
-function xData = locallyGetXData(h, range, opt)
+function xData = local_getXData(h, range, opt)
     %(
     isLegacyTimeSeriesPlot = isequal(getappdata(h, 'IRIS_SERIES'), true);
     if isLegacyTimeSeriesPlot
@@ -252,7 +252,7 @@ function xData = locallyGetXData(h, range, opt)
 end%
 
 
-function yData = getYData(h, LIM_MULTIPLE)
+function yData = local_getYData(h, LIM_MULTIPLE)
     %(
     yData = get(h, 'YLim');
     height = yData(2) - yData(1);
@@ -261,7 +261,7 @@ function yData = getYData(h, LIM_MULTIPLE)
 end%
 
 
-function handlePatch = locallyDrawPatch(handleAxes, xData, yData, opt, unmatched)
+function handlePatch = local_drawPatch(handleAxes, xData, yData, opt, unmatched)
     %(
     xData = xData([1, 2, 2, 1]);
     yData = yData([1, 1, 2, 2]);
