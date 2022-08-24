@@ -9,7 +9,7 @@
 %
 % ## Input Arguments ##
 %
-% __`x`__ [ TimeSubscriptable ] - 
+% __`x`__ [ Series ] - 
 %>
 %>    Input time series.
 %
@@ -22,7 +22,7 @@
 %
 % ## Output Arguments ##
 %
-% __`x`__ [ TimeSubscriptable ] - 
+% __`x`__ [ Series ] - 
 %
 %>    Annualized percentage rate of change in the input data.
 %

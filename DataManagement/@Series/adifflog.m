@@ -9,7 +9,7 @@
 %
 % ## Input Arguments ##
 %
-% __`this`__ [ TimeSubscriptable ] -
+% __`this`__ [ Series ] -
 %>
 %>    Input time series.
 %
@@ -22,7 +22,7 @@
 %
 % ## Output Arguments ##
 %
-% __`this`__ [ TimeSubscriptable ] -
+% __`this`__ [ Series ] -
 %>
 %>    First difference of logarithms of the input time series.
 %

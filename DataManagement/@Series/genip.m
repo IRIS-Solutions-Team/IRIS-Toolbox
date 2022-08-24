@@ -193,7 +193,7 @@ if isempty(pp)
     pp = extend.InputParser();
     pp.KeepDefaultOptions = true;
 
-    addRequired(pp, 'lowInput', @(x) isa(x, 'TimeSubscriptable'));
+    addRequired(pp, 'lowInput', @(x) isa(x, 'Series'));
     addRequired(pp, 'highFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
     addRequired(pp, 'order', @(x) isequal(x, 0) || isequal(x, 1) || isequal(x, 2) || validate.anyString(x, 'level', 'diff', 'diffDiff'));
     addRequired(pp, 'aggregation', @(x) local_validateAggregation(x));
@@ -206,20 +206,20 @@ if isempty(pp)
     % Nested options
     addParameter(pp, 'TransitionIntercept', 0, @(x) isequal(x, @auto) || validate.numericScalar(x));
     % addParameter(pp, 'Transition_Rate', 1, @(x) isequal(x, @auto) || validate.numericScalar(x));
-    addParameter(pp, 'TransitionStd', 1, @(x) isequal(x, 1) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'TransitionStd', 1, @(x) isequal(x, 1) || isa(x, 'Series'));
 
-    addParameter(pp, 'HardLevel', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'HardDiff', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'HardRate', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'HardLevel', [ ], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'HardDiff', [ ], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'HardRate', [ ], @(x) isempty(x) || isa(x, 'Series'));
 
     %{
-    addParameter(pp, 'SoftLevel', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'SoftDiff', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    addParameter(pp, 'SoftRate', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'SoftLevel', [ ], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'SoftDiff', [ ], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'SoftRate', [ ], @(x) isempty(x) || isa(x, 'Series'));
     %}
 
     addParameter(pp, 'IndicatorModel', 'Difference', @(x) (ischar(x) || isstring(x)) && startsWith(x, ["diff", "rat"], "ignoreCase", true));
-    addParameter(pp, 'IndicatorLevel', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    addParameter(pp, 'IndicatorLevel', [ ], @(x) isempty(x) || isa(x, 'Series'));
 end
 %)
 
@@ -345,7 +345,7 @@ return
         fromFreq = lowInput.Frequency;
         if double(highFreq)<=double(fromFreq)
             thisError = [ 
-                "TimeSubscriptable:CannotInterpolateToLowerFreq"
+                "Series:CannotInterpolateToLowerFreq"
                 "Series can only be interpolated from a lower to a higher frequency. "
                 "You are attempting to interpolate from %s to %s." 
             ];
@@ -354,7 +354,7 @@ return
         numWithin = double(highFreq)/double(fromFreq);
         if numWithin~=round(numWithin)
             thisError = [ 
-                "TimeSubscriptable:CannotInterpolateToLowerFreq"
+                "Series:CannotInterpolateToLowerFreq"
                 "Function genip( ) can only be used to interpolate between "
                 "YEARLY, HALFYEARLY, QUARTERLY and MONTHLY frequencies. "
                 "You are attempting to interpolate from %s to %s." 

@@ -8,7 +8,7 @@ if any(~validateFrequencyOrInf(this, dates))
     if nargin<3
         type = 'error';
     end
-    throw( exception.Base('TimeSubscriptable:FrequencyMismatch', type), ...
+    throw( exception.Base('Series:FrequencyMismatch', type), ...
            Frequency.toChar(freqOfThis), charFreqOfDates{:} );
 end
 

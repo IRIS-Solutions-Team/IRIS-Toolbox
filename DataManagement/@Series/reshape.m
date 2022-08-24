@@ -8,7 +8,7 @@ function [this, sizeData] = reshape(this, newSize)
 %
 % __Input Arguments__
 %
-% * `X` [ TimeSubscriptable ] - Time series  whose data will be reshaped in
+% * `X` [ Series ] - Time series  whose data will be reshaped in
 % 2nd and/or higher dimensions.
 %
 % * `NewSize` [ numeric ] - New size of the time series data; the first
@@ -17,7 +17,7 @@ function [this, sizeData] = reshape(this, newSize)
 %
 % __Output Arguments__
 %
-% * `X` [ TimeSubscriptable ] - Reshaped time series.
+% * `X` [ Series ] - Reshaped time series.
 %
 %
 % __Description__

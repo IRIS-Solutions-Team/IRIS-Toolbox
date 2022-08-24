@@ -13,7 +13,7 @@
 ## Input arguments
 
 
-__`x`__ [ TimeSubscriptable ]
+__`x`__ [ Series ]
 >
 Input time series.
 

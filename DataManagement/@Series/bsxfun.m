@@ -52,7 +52,7 @@ pp.addRequired('X', @(x) isa(x, 'Series') || isnumeric(x));
 pp.addRequired('Y', @(x) isa(x, 'Series') || isnumeric(x));
 pp.parse(Func, X, Y);
 
-if isa(X, 'TimeSubscriptable') && isa(Y, 'TimeSubscriptable')
+if isa(X, 'Series') && isa(Y, 'Series')
     minStart = min(double(X.Start), double(Y.Start));
     maxEnd = max(X.EndAsNumeric, Y.EndAsNumeric);
     data1 = getDataFromTo(X, minStart, maxEnd);
@@ -60,7 +60,7 @@ if isa(X, 'TimeSubscriptable') && isa(Y, 'TimeSubscriptable')
     nPer = dater.rangeLength(minStart, maxEnd); 
     newCmt = [ ];
     newStart = minStart;
-elseif isa(X, 'TimeSubscriptable')
+elseif isa(X, 'Series')
     data1 = X.Data;
     data2 = Y;
     nPer = size(X.Data, 1);
@@ -82,7 +82,7 @@ if size(newData, 1)~=nPer
         'the size of input tseries in 1st dimension.']);
 end
 
-if isa(X, 'TimeSubscriptable')
+if isa(X, 'Series')
     X = replace(X, newData, newStart, newCmt);
 else
     X = replace(Y, newData, newStart, newCmt);

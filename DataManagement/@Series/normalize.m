@@ -46,7 +46,7 @@
 function this = normalize(this, dates, opt)
 
 arguments
-    this TimeSubscriptable
+    this Series
     dates double
 
     opt.Aggregation {validate.mustBeA(opt.Aggregation, "function_handle")} = @mean

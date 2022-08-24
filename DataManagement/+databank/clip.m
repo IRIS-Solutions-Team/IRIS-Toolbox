@@ -82,7 +82,7 @@ for n = list
     else
         field__ = inputDb.(n);
     end
-    if isa(field__, 'TimeSubscriptable')
+    if isa(field__, 'Series')
         if isequaln(freq, NaN) || getFrequencyAsNumeric(field__)==freq
             field__ = clip(field__, newStart, newEnd);
         end

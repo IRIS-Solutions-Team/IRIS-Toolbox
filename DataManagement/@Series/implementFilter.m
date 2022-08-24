@@ -9,7 +9,7 @@ function varargout = implementFilter(order, inputSeries, legacyRange, opt)
 
 arguments
     order (1, 1) double {mustBeInteger, mustBePositive}
-    inputSeries TimeSubscriptable
+    inputSeries Series
     legacyRange (1, :) double {validate.mustBeRange} = Inf
 
     opt.Range {validate.mustBeRange} = Inf
@@ -95,7 +95,7 @@ else
             || all(strcmpi(opt.Lambda, 'auto'))
         if freq==Frequency.INTEGER || freq==Frequency.DAILY
             exception.error([
-                "TimeSubscriptable:implementFilter"
+                "Series:implementFilter"
                 "Option Lambda= must be used for time series "
                 "with integer or daily date frequency."
             ]);
@@ -194,14 +194,14 @@ varargout{4} = lambda;
 return
 
     function [filterStart, filterEnd, levelStart, levelEnd, changeStart, changeEnd] = hereGetFilterRange( )
-        if ~isempty(opt.Level) && isa(opt.Level, 'TimeSubscriptable')
+        if ~isempty(opt.Level) && isa(opt.Level, 'Series')
             levelStart = opt.Level.Start;
             levelEnd = opt.Level.Start + size(opt.Level.Data, 1) - 1;
         else
             levelStart = [ ];
             levelEnd = [ ];
         end
-        if ~isempty(opt.Change) && isa(opt.Change, 'TimeSubscriptable')
+        if ~isempty(opt.Change) && isa(opt.Change, 'Series')
             changeStart = opt.Change.Start - 1;
             changeEnd = opt.Change.Start + size(opt.Change.Data, 1) - 1;
         else
@@ -214,7 +214,7 @@ return
 
     
     function gamma = hereGetGamma( )
-        if isa(opt.Gamma, 'TimeSubscriptable')
+        if isa(opt.Gamma, 'Series')
             gamma = getDataFromTo(opt.Gamma, filterStart, filterEnd);
             gamma(isnan(gamma)) = 1;
             gamma = gamma(:, :);

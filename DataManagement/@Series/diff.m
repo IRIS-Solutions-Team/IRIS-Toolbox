@@ -11,7 +11,7 @@
 % Input Arguments
 %--------------------------------------------------------------------------
 %
-% __`this`__ [ TimeSubscriptable ]
+% __`this`__ [ Series ]
 %
 %>    Input time series.
 %
@@ -25,7 +25,7 @@
 % Output Arguments
 %--------------------------------------------------------------------------
 %
-% __`this`__ [ TimeSubscriptable ]
+% __`this`__ [ Series ]
 %
 %>    First difference of the input time series.
 %

@@ -1,4 +1,4 @@
-% preparePlot  Preprocess common input arguments into TimeSubscriptable plot functions
+% preparePlot  Preprocess common input arguments into Series plot functions
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
@@ -9,60 +9,61 @@ persistent ip
 if isempty(ip)
     ip = extend.InputParser();
     ip.KeepUnmatched = true;
-    ip.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    ip.addOptional('PlotSpec', cell.empty(1, 0), @local_validatePlotSpec);
+    ip.addRequired('inputSeries', @(x) isa(x, 'Series'));
+    ip.addOptional('plotSpec', cell.empty(1, 0), @local_validatePlotSpec);
+
     ip.addParameter('Range', Inf);
     ip.addParameter('Transform', []);
     ip.addParameter('AxesHandle', []);
 end
 
-if ~isempty(varargin) && all(isgraphics(varargin{1}, 'Axes')) 
-    axesHandle = varargin{1};
-    varargin(1) = [ ];
-else
-    axesHandle = @gca;
-end
+    if ~isempty(varargin) && all(isgraphics(varargin{1}, 'Axes')) 
+        axesHandle = varargin{1};
+        varargin(1) = [ ];
+    else
+        axesHandle = @gca;
+    end
 
-if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
-    dates = double(varargin{1});
-    varargin(1) = [ ];
-elseif isnumeric(varargin{1})
-    dates = double(varargin{1});
-    varargin(1) = [ ];
-else
-    dates = Inf;
-end
+    if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
+        dates = double(varargin{1});
+        varargin(1) = [ ];
+    elseif isnumeric(varargin{1})
+        dates = double(varargin{1});
+        varargin(1) = [ ];
+    else
+        dates = Inf;
+    end
 
-if ~isempty(varargin)
-    inputSeries = varargin{1};
-    varargin(1) = [ ];
-else
-    inputSeries = [ ];
-end
+    if ~isempty(varargin)
+        inputSeries = varargin{1};
+        varargin(1) = [ ];
+    else
+        inputSeries = [ ];
+    end
 
-opt = ip.parse(inputSeries, varargin{:});
-plotSpec = ip.Results.PlotSpec;
-unmatched = ip.UnmatchedInCell;
+    opt = ip.parse(inputSeries, varargin{:});
+    plotSpec = ip.Results.plotSpec;
+    unmatched = ip.UnmatchedInCell;
 
-if ~isequal(opt.Range, Inf)
-    dates = double(opt.Range);
-end
+    if ~isequal(opt.Range, Inf)
+        dates = double(opt.Range);
+    end
 
-% Always wrap PlotSpec up in a cell array
-if ~iscell(plotSpec)
-    plotSpec = { plotSpec };
-end
+    % Always wrap PlotSpec up in a cell array
+    if ~iscell(plotSpec)
+        plotSpec = { plotSpec };
+    end
 
-if ~isempty(opt.AxesHandle)
-    axesHandle = opt.AxesHandle;
-end
-if isa(axesHandle, 'function_handle')
-    axesHandle = axesHandle();
-end
+    if ~isempty(opt.AxesHandle)
+        axesHandle = opt.AxesHandle;
+    end
+    if isa(axesHandle, 'function_handle')
+        axesHandle = axesHandle();
+    end
 
-if isa(opt.Transform, 'function_handle')
-    inputSeries = opt.Transform(inputSeries);
-end
+    if isa(opt.Transform, 'function_handle')
+        inputSeries = opt.Transform(inputSeries);
+    end
 
 end%
 

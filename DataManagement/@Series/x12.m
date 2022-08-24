@@ -235,7 +235,7 @@ if isempty(pp)
 
     pp.addParameter({'Backcast', 'Backcasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
     pp.addParameter({'CleanUp', 'DeleteTempFiles', 'DeleteTempFile', 'DeleteX12Files', 'DeleteX12File', 'Delete'}, true, @(x) isequal(x, true) || isequal(x, false));
-    pp.addParameter('Dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    pp.addParameter('Dummy', [ ], @(x) isempty(x) || isa(x, 'Series'));
     pp.addParameter('DummyType', 'Holiday', @(x) ischar(x) && any(strcmpi(x, {'Holiday', 'TD', 'AO'})));
     pp.addParameter('Display', false, @(x) isequal(x, true) || isequal(x, false));
     pp.addParameter({'Forecast', 'Forecasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
@@ -285,7 +285,7 @@ end
 
 % Fill in zeros for NaNs in dummy variables on the extended range.
 dummy = [ ];
-if ~isempty(opt.Dummy) && isa(opt.Dummy, 'TimeSubscriptable')
+if ~isempty(opt.Dummy) && isa(opt.Dummy, 'Series')
     dummy = getData(opt.Dummy, xRange);
     dummy = dummy(:, :);
     checkDummy( );

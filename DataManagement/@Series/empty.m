@@ -5,9 +5,9 @@
 
 function this = empty(varargin)
 
-if nargin==1 && isa(varargin{1}, 'TimeSubscriptable')
+if nargin==1 && isa(varargin{1}, 'Series')
     this = varargin{1};
-    this.Start = TimeSubscriptable.StartDateWhenEmpty;
+    this.Start = Series.StartDateWhenEmpty;
     data = this.Data;
     ndimsData = ndims(data);
     ref = repmat({':'}, 1, ndimsData);
@@ -27,7 +27,7 @@ else
             "first dimension (time dimension) must be zero."
         ]);
     end
-    this.Start = TimeSubscriptable.StartDateWhenEmpty;
+    this.Start = Series.StartDateWhenEmpty;
     this.Data = newData;
     this = resetComment(this);
 end

@@ -55,7 +55,7 @@ sizeX = size(dataX);
 dataX = dataX(:, :);
 
 % Get exogenous (z) data
-if isa(Z, 'TimeSubscriptable')
+if isa(Z, 'Series')
     dataZ = getData(Z, extdRange);
 else
     dataZ = Z;

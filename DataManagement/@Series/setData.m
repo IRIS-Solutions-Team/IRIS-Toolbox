@@ -1,11 +1,11 @@
-% setData  Assign data to TimeSubscriptable object
+% setData  Assign data to Series object
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
 function this = setData(this, s, y)
 
-ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
+ERROR_ASSIGNMENT = { 'Series:ErrorAssigning'
                      'Error when assigning to time series\nMatlab says: %s ' };
 
 testColon = @(x) (ischar(x) || isstring(x)) && all(strcmpi(x, ':'));
@@ -25,7 +25,7 @@ end
 [this, s, dates, freqTest] = locallyExpand(this, s);
 
 % Get RHS time series object data
-if isa(y, 'TimeSubscriptable')
+if isa(y, 'Series')
     checkFrequency(y, dates);
     y = getData(y, dates);
 end
@@ -73,7 +73,7 @@ end
 
 % Make sure empty time series have start date set to NaN no matter what
 if isempty(this.Data)
-    this.Start = TimeSubscriptable.StartDateWhenEmpty;
+    this.Start = Series.StartDateWhenEmpty;
 end
 
 % If RHS is empty and first index is ':', then some of the columns could
@@ -219,9 +219,9 @@ function [this, s, dates, freqTest] = locallyExpand(this, s)
         charFreqThis = Frequency.toChar(freqThis);
         freqDates = unique(freqDates(~freqTest), 'stable');
         charFreqDates = arrayfun(@Frequency.toChar, freqDates, 'UniformOutput', false);
-        thisError = [ "TimeSubscriptable:FrequencyMismatch"
+        thisError = [ "Series:FrequencyMismatch"
                       "Cannot reference %s dates when assigning to %1 time series " ];
-        %throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'error'), ...
+        %throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
         throw( ...
             exception.Base(thisError, 'error'), ...
             Frequency.toChar(freqThis), charFreqDates{:} ...

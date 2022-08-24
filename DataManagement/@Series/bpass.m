@@ -65,7 +65,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser();
     pp.KeepUnmatched = true;
-    pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    pp.addRequired('InputSeries', @(x) isa(x, 'Series'));
     pp.addRequired('Band', @(x) isnumeric(x) && numel(x)==2);
     pp.addOptional('Range', Inf, @validate.range);
 end

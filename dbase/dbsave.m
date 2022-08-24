@@ -245,7 +245,7 @@ for i = 1 : nList
     name = list{i};
     x = inp.(name);
     
-    if isa(x, 'TimeSubscriptable')
+    if isa(x, 'Series')
         ithFreq = x.FrequencyAsNumeric;
         if opt.MatchFreq && userFreq~=ithFreq
             continue

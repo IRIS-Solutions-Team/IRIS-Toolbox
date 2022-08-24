@@ -30,11 +30,11 @@ switch query
         
     case {'nanstart', 'nanstartdate', 'nanfirst', 'allstart', 'allstartdate'}
         if isnan(start) || isempty(this.Data)
-            answ = TimeSubscriptable.StartDateWhenEmpty;
+            answ = Series.StartDateWhenEmpty;
         else
             sample = all(~isnan(this.Data(:, :)), 2);
             if isempty(sample) || ~any(sample)
-                answ = TimeSubscriptable.StartDateWhenEmpty;
+                answ = Series.StartDateWhenEmpty;
             else
                 pos = find(sample, 1, 'first');
                 answ = dater.plus(start, pos-1);
@@ -49,11 +49,11 @@ switch query
         
     case {'nanend', 'nanenddate', 'nanlast', 'allend', 'allenddate'}
         if isnan(start) || isempty(this.Data)
-            answ = TimeSubscriptable.StartDateWhenEmpty;
+            answ = Series.StartDateWhenEmpty;
         else
             sample = all(~isnan(this.Data(:, :)), 2);
             if isempty(sample) || ~any(sample)
-                answ = TimeSubscriptable.StartDateWhenEmpty;
+                answ = Series.StartDateWhenEmpty;
             else
                 pos = find(sample, 1, 'last');
                 answ = dater.plus(start, pos-1);

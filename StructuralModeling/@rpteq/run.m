@@ -238,7 +238,7 @@ return
             if ~isField
                 continue
             end
-            if isa(inputData.(iithName), 'TimeSubscriptable')
+            if isa(inputData.(iithName), 'Series')
                 D.(iithName) = getDataFromTo(inputData.(iithName), extdRange);
                 continue
             end

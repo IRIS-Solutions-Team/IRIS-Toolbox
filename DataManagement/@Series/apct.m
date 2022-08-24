@@ -9,7 +9,7 @@
 %
 % __Input Arguments__
 %
-% * `X` [ TimeSubscriptable ] - Input time series.
+% * `X` [ Series ] - Input time series.
 %
 % * `~Shift=-1` [ numeric ] - Time shift, i.e. the number of periods over
 % which the rate of change will be calculated.
@@ -17,7 +17,7 @@
 %
 % __Output Arguments__
 %
-% * `X` [ TimeSubscriptable ] - Annualized percentage rate of change
+% * `X` [ Series ] - Annualized percentage rate of change
 % in the input data.
 %
 %

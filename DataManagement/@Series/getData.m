@@ -50,7 +50,7 @@ switch locallyDetermineCase(thisStart, timeRef)
     case {'NaN_[]', 'NaN_NaN'}
         data = repmat(missingValue, [0, sizeData(2:end)]);
         if nargout>1
-            dates = TimeSubscriptable.StartDateWhenEmpty;
+            dates = Series.StartDateWhenEmpty;
             if nargout>2
                 this = emptyData(this);
             end
@@ -60,7 +60,7 @@ switch locallyDetermineCase(thisStart, timeRef)
     case {'Date_NaN', 'Empty_NaN'}
         data = repmat(missingValue, [0, sizeData(2:end)]);
         if nargout>1
-            dates = TimeSubscriptable.StartDateWhenEmpty;
+            dates = Series.StartDateWhenEmpty;
             if nargout>2
                 this = emptyData(this);
             end

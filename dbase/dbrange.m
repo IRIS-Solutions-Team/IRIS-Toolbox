@@ -92,7 +92,7 @@ endDates = cell(1, numFreq);
 range = cell(1, numFreq);
 numEntries = numel(list);
 for i = 1 : numEntries
-    if isfield(d, list{i}) && isa(d.(list{i}), 'TimeSubscriptable')
+    if isfield(d, list{i}) && isa(d.(list{i}), 'Series')
         x = d.(list{i});
         inxFreq = getFrequency(x)==freqList;
         if any(inxFreq)

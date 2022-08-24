@@ -1,11 +1,11 @@
-% binop  Binary operators and functions on TimeSubscriptable objects
+% binop  Binary operators and functions on Series objects
 %
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [outputSeries, varargout] = binop(fn, a, b, varargin)
 
-if isa(a, 'TimeSubscriptable') && isa(b, 'TimeSubscriptable')
+if isa(a, 'Series') && isa(b, 'Series')
     sizeA = size(a.Data);
     sizeB = size(b.Data);
     a.Data = a.Data(:, :);
@@ -13,14 +13,14 @@ if isa(a, 'TimeSubscriptable') && isa(b, 'TimeSubscriptable')
     [rowA, colA] = size(a.Data);
     [rowB, colB] = size(b.Data);
     if colA==1 && colB~=1
-        % First input argument is TimeSubscriptable scalar; second TimeSubscriptable with
-        % multiple columns. Expand the first TimeSubscriptable to match the size of the
+        % First input argument is Series scalar; second Series with
+        % multiple columns. Expand the first Series to match the size of the
         % second in 2nd and higher dimensions.
         a.Data = repmat(a.Data, 1, colB);
         sizeOutputData = sizeB;
     elseif colA~=1 && colB==1
-        % First TimeSubscriptable non-scalar; second
-        % TimeSubscriptable scalar
+        % First Series non-scalar; second
+        % Series scalar
         b.Data = repmat(b.Data, 1, colA);
         sizeOutputData = sizeA;
     else
@@ -75,14 +75,14 @@ else
     sizeB = size(b);
     sizeA = size(a);
     strFn = func2str(fn);
-    if isa(a, 'TimeSubscriptable')
+    if isa(a, 'Series')
         outputSeries = a;
         a = a.Data;
         if any(strcmp(strFn, ...
                 {'times', 'plus', 'minus', 'rdivide', 'mdivide', 'power'})) ...
                 && sizeB(1)==1 && all(sizeB(2:end)==sizeA(2:end))
             % Expand non time seriesk data in first dimension to match the number
-            % of periods of the TimeSubscriptable object for elementwise operators.
+            % of periods of the Series object for elementwise operators.
             b = repmat(b, sizeA(1), 1);
         end
     else
@@ -92,7 +92,7 @@ else
                 {'times', 'plus', 'minus', 'rdivide', 'mdivide', 'power'})) ...
                 && sizeA(1)==1 && all(sizeA(2:end)==sizeB(2:end))
             % Expand non time series data in first dimension to match the number
-            % of periods of the TimeSubscriptable object for elementwise operators.
+            % of periods of the Series object for elementwise operators.
             a = repmat(a, sizeB(1), 1);
         end
     end
@@ -101,7 +101,7 @@ else
     sizeOutputData = size(outputSeries.Data);
     if sizeY(1)==sizeOutputData(1)
         % Size of the numeric result in 1st dimension matches the size of the
-        % input TimeSubscriptable object. Return a TimeSubscriptable object with the original
+        % input Series object. Return a Series object with the original
         % number of periods.
         outputSeries.Data = y;
         if numel(sizeY)~=numel(sizeOutputData) || any(sizeY(2:end)~=sizeOutputData(2:end))
@@ -110,7 +110,7 @@ else
         outputSeries = trim(outputSeries);
     else
         % Size of the numeric result has changed in 1st dimension from the
-        % size of the input TimeSubscriptable object. Return a numeric array.
+        % size of the input Series object. Return a numeric array.
         outputSeries = y;
     end
 end

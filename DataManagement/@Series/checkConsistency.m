@@ -1,5 +1,5 @@
 function flag = checkConsistency(this)
-% checkConsistency  Check internal consistency of TimeSubscriptable properties
+% checkConsistency  Check internal consistency of Series properties
 %
 % Backend IRIS function
 % No help provided

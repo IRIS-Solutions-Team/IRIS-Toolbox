@@ -370,7 +370,7 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
             if ~isvarname(plotDbName)
                 plotDbName = sprintf('Panel%g', count);
             end
-            if isa(inputDataCat, 'TimeSubscriptable')
+            if isa(inputDataCat, 'Series')
                 try
                     plotDb.(plotDbName) = Series(reportRange, data, finalLegend);
                 catch %#ok<CTCH>
@@ -457,7 +457,7 @@ function [actualRange, data, isOk] = callPlot( func, funcArgs, aa, ...
     data = [ ];
     isOk = true;
 
-    if isa(inputDataCat, 'TimeSubscriptable')
+    if isa(inputDataCat, 'Series')
         switch func2str(func)
             case {'plot', 'bar', 'barcon', 'stem'}
                 [~, actualRange, data] = func( ...
@@ -659,7 +659,7 @@ end%
 
 
 function appropriateRange = selectAppropriateRange(range, inputSeries)
-    if isa(inputSeries, 'TimeSubscriptable')
+    if isa(inputSeries, 'Series')
         freq = inputSeries.Frequency;
     else
         freq = Frequency.INTEGER;

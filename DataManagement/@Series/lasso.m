@@ -9,10 +9,10 @@
 %
 % __Input arguments__
 %
-% * `Y` [ TimeSubscriptable ] - Time series of left-hand-side (dependent)
+% * `Y` [ Series ] - Time series of left-hand-side (dependent)
 % observations.
 %
-% * `X` [ TimeSubscriptable ] - Time series of right-hand-side
+% * `X` [ Series ] - Time series of right-hand-side
 % (independent) observations. 
 %
 % * `~Range` [ numeric ] - Date range on which the lasso will be run;
@@ -25,12 +25,12 @@
 %
 % * `BStd` [ numeric ] - Vector of std errors of the estimates.
 %
-% * `Residuals` [ TimeSubscriptable ] - Time series with the lasso residuals.
+% * `Residuals` [ Series ] - Time series with the lasso residuals.
 %
 % * `EStd` [ numeric ] - Estimate of the std deviation of the lasso
 % residuals.
 %
-% * `Fitted` [ TimeSubscriptable ] - Time series with fitted LHS
+% * `Fitted` [ Series ] - Time series with fitted LHS
 % observations.
 %
 % * `Range` [ numeric ] - The actually used date range.
@@ -44,7 +44,7 @@
 % lasso; if `true` the constant will be placed last in the matrix of
 % lassoors.
 %
-% * `Weighting=[ ]` [ TimeSubscriptable | numeric | empty ] - Time series with weights on
+% * `Weighting=[ ]` [ Series | numeric | empty ] - Time series with weights on
 % observations in individual periods, or a discount factor for weighting
 % the observations from the most recent to the most distant.
 %
@@ -64,16 +64,16 @@ function [B, BStd, residuals, EStd, fitted, range, BCov] = lasso(Y, X, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('TimeSubscriptable.lasso');
-    pp.addRequired('Y', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
-    pp.addRequired('X', @(x) isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data));
+    pp = extend.InputParser('Series.lasso');
+    pp.addRequired('Y', @(x) isa(x, 'Series') && isnumeric(x.Data) && ismatrix(x.Data));
+    pp.addRequired('X', @(x) isa(x, 'Series') && isnumeric(x.Data) && ismatrix(x.Data));
     pp.addOptional('range', Inf, @validate.date);
 
     pp.addParameter({'Intercept', 'Constant', 'Const'}, false, @(x) isequal(x, true) || isequal(x, false));
     pp.addParameter( ...
         'Weighting', [ ], ...
         @(x) isempty(x) ...
-        || (isa(x, 'TimeSubscriptable') && isnumeric(x.Data) && ismatrix(x.Data)) ...
+        || (isa(x, 'Series') && isnumeric(x.Data) && ismatrix(x.Data)) ...
         || (isnumeric(x) && isscalar(x) && x>0 && x<1) ...
     );
 end
@@ -83,7 +83,7 @@ opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-isWeightingSeries = ~isempty(opt.Weighting) && isa(opt.Weighting, 'TimeSubscriptable');
+isWeightingSeries = ~isempty(opt.Weighting) && isa(opt.Weighting, 'Series');
 isWeightingScalar = ~isempty(opt.Weighting) && isnumeric(opt.Weighting);
 numLhs = size(Y.Data, 2);
 numRhs = size(X.Data, 2);

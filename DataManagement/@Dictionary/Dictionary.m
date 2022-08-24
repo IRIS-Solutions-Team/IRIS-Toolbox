@@ -86,8 +86,8 @@ classdef Dictionary ...
         EXCEPTION_TOO_MANY_OUTPUT_ARGS =  { 'Dictionary:EmptyKey'
                                             'Too many output arguments' };
 
-        EXCEPTION_UPDATE_SERIES = { 'Dictionary:UpdateMustBeTimeSubscriptable'
-                                    'Method updateSeries only works on entries of TimeSubscriptable class' }
+        EXCEPTION_UPDATE_SERIES = { 'Dictionary:UpdateMustBeSeries'
+                                    'Method updateSeries only works on entries of Series class' }
 
     end
 
@@ -309,7 +309,7 @@ classdef Dictionary ...
             elseif isstruct(this)
                 x = x.(char(key));
             end
-            if ~isa(x, 'TimeSubscriptable')
+            if ~isa(x, 'Series')
                 throw( exception.Base(this.EXCEPTION_UPDATE_SERIES, 'error') );
             end
 

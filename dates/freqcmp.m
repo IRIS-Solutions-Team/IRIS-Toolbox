@@ -58,11 +58,11 @@ if isequal(x, @all) || isequal(y, @all) || isequal(x, Inf) || isequal(y, Inf)
     return
 end
 
-if isa(x, 'TimeSubscriptable')
+if isa(x, 'Series')
     x = x.Start;
 end
 
-if isa(y, 'TimeSubscriptable')
+if isa(y, 'Series')
     y = y.End;
 end
 

@@ -6,7 +6,7 @@
 function this = moving(this, legacyRange, opt)
 
 arguments
-    this TimeSubscriptable
+    this Series
     legacyRange {validate.mustBeRange(legacyRange)} = Inf
 
     opt.Window {locallyValidateWindow(opt.Window)} = @auto

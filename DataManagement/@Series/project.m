@@ -11,11 +11,11 @@ end
 %( Input parser
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('TimeSubscriptable/project');
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    pp = extend.InputParser('Series/project');
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'Series'));
     addRequired(pp, 'function', @(x) isa(x, 'function_handle'));
     addRequired(pp, 'dates', @validate.properDate);
-    addOptional(pp, 'arguments', @(x) all(cellfun(@(y) validate.numeric(y) || isa(y, 'TimeSubscriptable'), x)));
+    addOptional(pp, 'arguments', @(x) all(cellfun(@(y) validate.numeric(y) || isa(y, 'Series'), x)));
 end
 %)
 parse(pp, this, func, dates, varargin);
@@ -73,7 +73,7 @@ function args__ = locallyPrepareArguments(args, c, startDate, endDate)
             if ~isscalar(args{ii})
                 args__{ii} = args__{ii}(c);
             end
-        elseif isa(args__{ii}, 'TimeSubscriptable')
+        elseif isa(args__{ii}, 'Series')
             temp = getDataFromTo(args__{ii}, startDate, endDate);
             sizeTemp = size(temp);
             if prod(sizeTemp(2:end))==1

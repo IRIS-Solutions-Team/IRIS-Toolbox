@@ -11,7 +11,7 @@
 %
 % ## Input Arguments ##
 %
-% __`this`__ [ TimeSubscriptable ] -
+% __`this`__ [ Series ] -
 % Input time series.
 %
 % __`~shift`__ [ numeric ] - Number of periods over which the first difference
@@ -21,7 +21,7 @@
 %
 % ## Output Arguments ##
 %
-% __`this`__ [ TimeSubscriptable ] -
+% __`this`__ [ Series ] -
 % First difference of the input time series.
 %
 %

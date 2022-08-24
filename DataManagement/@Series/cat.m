@@ -122,7 +122,7 @@ function [output, inxSeries, inxNumeric] = locallyCheckInputs(varargin)
     inxSeries = false(1, nargin);
     inxNumeric = false(1, nargin);
     for i = 1 : nargin
-        inxSeries(i) = isa(varargin{i}, 'TimeSubscriptable');
+        inxSeries(i) = isa(varargin{i}, 'Series');
         inxNumeric(i) = isnumeric(varargin{i});
     end
     inxToRemove = ~inxSeries & ~inxNumeric;

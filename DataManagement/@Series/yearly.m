@@ -39,12 +39,12 @@ function data = yearly(this, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('TimeSubscriptable.yearly');
-    addRequired(pp, 'InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    addOptional(pp, 'YearlyDates', Inf, @hereValidateDates);
+    pp = extend.InputParser('Series.yearly');
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'Series'));
+    addOptional(pp, 'yearlyDates', Inf, @hereValidateDates);
 end
 parse(pp, this, varargin{:});
-range = pp.Results.YearlyDates;
+range = pp.Results.yearlyDates;
 
 %--------------------------------------------------------------------------
 

@@ -62,7 +62,7 @@
 function this = filter(this, armani, range, opt)
 
 arguments
-    this TimeSubscriptable
+    this Series
     armani (1, 1) Armani
     range {validate.range} = Inf
 

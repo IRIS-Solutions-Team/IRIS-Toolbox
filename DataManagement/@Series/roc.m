@@ -28,7 +28,7 @@
 % Output Arguments
 %--------------------------------------------------------------------------
 %
-% __`x`__ [ TimeSubscriptable ]
+% __`x`__ [ Series ]
 %
 %>    Percentage rate of change in the input data.
 %

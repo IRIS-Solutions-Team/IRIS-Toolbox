@@ -20,7 +20,7 @@
 % referencing the input time series (`x`, `y1`, `y2`, etc...) in the
 % `func`.
 % 
-% __`x`__ [ TimeSubscriptable ] -
+% __`x`__ [ Series ] -
 % Input series to which the `func` will be applied period by period.
 %
 % __`dates`__ [ Dater ] -
@@ -108,7 +108,7 @@ function this = apply(func, this, dates, varargin)
     data = getDataFromTo(this, extendedStart, extendedEnd);
     sizeData = size(data);
 
-    inxSeries = cellfun(@(x) isa(x, 'TimeSubscriptable'), varargin);
+    inxSeries = cellfun(@(x) isa(x, 'Series'), varargin);
     varargin(inxSeries) = cellfun( ...
         @(x) getDataFromTo(x, extendedStart, extendedEnd) ...
         , varargin(inxSeries) ...

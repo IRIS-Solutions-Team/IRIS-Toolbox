@@ -9,7 +9,7 @@
 %
 % ## Input Arguments ##
 %
-% __`x`__ [ TimeSubscriptable ] -
+% __`x`__ [ Series ] -
 % Input time series.
 %
 % __`~shift`__ [ numeric | `'yoy'` ] -
@@ -21,7 +21,7 @@
 %
 % ## Output Arguments ##
 %
-% __`x`__ [ TimeSubscriptable ] -
+% __`x`__ [ Series ] -
 % Percentage rate of change in the input data.
 %
 %

@@ -61,7 +61,7 @@ for name = listNames
         continue
     end
     field = inputDb.(name);
-    if ~isa(field, 'TimeSubscriptable')
+    if ~isa(field, 'Series')
         continue
     end
     namesApplied = [namesApplied, name]; %#ok<*AGROW>

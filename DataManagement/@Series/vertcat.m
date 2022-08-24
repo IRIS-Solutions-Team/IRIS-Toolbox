@@ -45,10 +45,10 @@ if numel(varargin)==1
     return
 end
 
-% All inputs must be TimeSubscriptable or empty numeric
+% All inputs must be Series or empty numeric
 inxToKeep = true(size(varargin));
 for i = 1 : numel(varargin)
-    if isa(varargin{i}, 'TimeSubscriptable')
+    if isa(varargin{i}, 'Series')
         continue
     elseif isnumeric(varargin{i}) && isempty(varargin{i})
         inxToKeep(i) = false;

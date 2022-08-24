@@ -75,7 +75,7 @@ sizeLevelData = size(levelData);
 levelData = levelData(:, :);
 
 % Get change rate data
-if isa(change, 'TimeSubscriptable')
+if isa(change, 'Series')
     growthData = getDataFromTo(change, startAll, endAll);
     growthData = growthData(:, :);
 else
@@ -111,7 +111,7 @@ if numel(sizeLevelData)>2
 end
 
 % Update output series
-if isa(this, 'TimeSubscriptable')
+if isa(this, 'Series')
     this = setData(this, dater.colon(startAll, endAll), levelData);
 else
     this = Series(startAll, levelData);
@@ -120,7 +120,7 @@ end
 return
 
     function here_checkMissingObs( )
-        if isa(this, 'TimeSubscriptable')
+        if isa(this, 'Series')
             missingTest = this.MissingTest;
         else
             missingTest = @isnan;
@@ -192,7 +192,7 @@ end%
 
 function local_validateGrowthInput(input)
     %(
-    if isa(input, 'TimeSubscriptable') || validate.numericScalar(input)
+    if isa(input, 'Series') || validate.numericScalar(input)
         return
     end
     error("Validation:Failed", "Input value must be a time series or a numeric scalar");
@@ -211,7 +211,7 @@ end%
 
 
 function local_validateLevelInput(input)
-    if isa(input, 'TimeSubscriptable') || validate.numericScalar(input)
+    if isa(input, 'Series') || validate.numericScalar(input)
         return
     end
     error("Validation:Failed", "Input value for the level series must be a time series or a numeric scalar");

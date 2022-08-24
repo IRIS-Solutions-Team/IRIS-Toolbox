@@ -58,13 +58,13 @@ switch s(1).type
         % Run recognizeShift( ) to tell if the first reference is a lag/lead. If yes, 
         % the startdate `x` will be adjusted within recognizeShift( )
         sh = 0;
-        if numel(s)>1 || isa(y, 'TimeSubscriptable')
+        if numel(s)>1 || isa(y, 'Series')
             [this, s, sh] = recognizeShift(this, s);
         end
         % After a lag or lead, only one ( )-reference is allowed
         if numel(s)~=1 || ~isequal(s(1).type, '()')
             exception.error([
-                "TimeSubscriptable:InvalidSubscriptedAssignment"
+                "Series:InvalidSubscriptedAssignment"
                 "Invalid subscripted assignment to time series; use round "
                 "brackets to assign dated values to a time series."
             ]);

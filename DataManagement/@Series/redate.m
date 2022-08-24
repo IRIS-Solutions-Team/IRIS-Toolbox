@@ -59,14 +59,14 @@
 
 function this = redate(this, oldDate, newDate)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('tseries.redate');
-    pp.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    pp.addRequired('OldDate', @validate.date);
-    pp.addRequired('NewDate', @validate.date);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('InputSeries', @(x) isa(x, 'Series'));
+    ip.addRequired('OldDate', @validate.date);
+    ip.addRequired('NewDate', @validate.date);
 end
-parse(pp, this, oldDate, newDate);
+parse(ip, this, oldDate, newDate);
 
 %--------------------------------------------------------------------------
 

@@ -44,10 +44,10 @@ parser.parse(d);
 
 list = fieldnames(d);
 freq = dater.getFrequency(oldDate);
-inxSeries = structfun(@(x) isa(x, 'TimeSubscriptable') && getFrequency(x)==freq, d);
+inxSeries = structfun(@(x) isa(x, 'Series') && getFrequency(x)==freq, d);
 inxStructs = structfun(@isstruct, d);
 
-% Cycle over all TimeSubscriptable objects
+% Cycle over all Series objects
 for i = reshape(find(inxSeries), 1, [])
    d.(list{i}) = redate(d.(list{i}), oldDate, newDate);
 end

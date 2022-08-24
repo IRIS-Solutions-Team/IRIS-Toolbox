@@ -3,7 +3,7 @@ classdef ( ...
     , CaseInsensitiveProperties=true ...
     , InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper, ?Dater} ...
 ) ...
-TimeSubscriptable ...
+Series ...
     < iris.mixin.GetterSetter ...
     & iris.mixin.UserDataContainer
 
@@ -419,7 +419,7 @@ TimeSubscriptable ...
             end
             sizeData = size(this.Data);
             newSizeData = [0, sizeData(2:end)];
-            this.Start = TimeSubscriptable.StartDateWhenEmpty;
+            this.Start = Series.StartDateWhenEmpty;
             this.Data = repmat(this.MissingValue, newSizeData);
         end%
 
@@ -451,18 +451,18 @@ TimeSubscriptable ...
 
 
     methods
-        function this = TimeSubscriptable(varargin)
+        function this = Series(varargin)
 
             this = this@iris.mixin.GetterSetter( );
             this = this@iris.mixin.UserDataContainer( );
 
-            % Cast struct as TimeSubscriptable
+            % Cast struct as Series
             if nargin==1 && isstruct(varargin{1})
                 this = struct2obj(this, varargin{1});
                 if ~checkConsistency(this)
                     exception.error([
-                        "TimeSubscriptable:InvalidStructPassedToConstructor"
-                        "The struct passed into the TimeSubscriptable constructor "
+                        "Series:InvalidStructPassedToConstructor"
+                        "The struct passed into the Series constructor "
                         "is invalid or its fields are not consistent. "
                     ]);
                 end
@@ -474,8 +474,8 @@ TimeSubscriptable ...
                 return
             end
 
-            % TimeSubscriptable input
-            if nargin==1 && isequal(string(class(varargin{1})), "TimeSubscriptable")
+            % Series input
+            if nargin==1 && isequal(string(class(varargin{1})), "Series")
                 this = varargin{1};
                 return
             end
@@ -525,7 +525,7 @@ TimeSubscriptable ...
 
 
         function varargout = area(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@area, varargin{:});
         end%
 
@@ -534,7 +534,7 @@ TimeSubscriptable ...
         end%
 
         function varargout = bar(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@bar, varargin{:});
         end%
 
@@ -548,12 +548,12 @@ TimeSubscriptable ...
         end%
 
         function varargout = binscatter(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@binscatter, varargin{:});
         end%
 
         function varargout = bubblechart(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@bubblechart, varargin{:});
         end%
 
@@ -562,22 +562,22 @@ TimeSubscriptable ...
         end%
 
         function varargout = histogram(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@histogram, varargin{:});
         end%
 
         function varargout = scatter(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@scatter, varargin{:});
         end%
 
         function varargout = stairs(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@stairs, varargin{:});
         end%
 
         function varargout = stem(varargin)
-            this = TimeSubscriptable.lookupObject(varargin{:});
+            this = Series.lookupObject(varargin{:});
             [varargout{1:nargout}] = this.implementPlot(@stem, varargin{:});
         end%
     end
@@ -586,7 +586,7 @@ TimeSubscriptable ...
     methods (Static)
         function this = lookupObject(varargin)
             for v = varargin
-                if isa(v{:}, 'TimeSubscriptable')
+                if isa(v{:}, 'Series')
                     this = v{:};
                     return
                 end
@@ -701,8 +701,8 @@ TimeSubscriptable ...
             if isnumeric(data) || islogical(data) || isstring(data) || iscell(data)
                 return
             end
-            thisError = [ "TimeSubscriptable:InvalidClassOfData"
-                          "TimeSubscriptable can only be assigned "
+            thisError = [ "Series:InvalidClassOfData"
+                          "Series can only be assigned "
                           "numeric or logical classes of data. "];
             throw(exception.Base(thisError, 'error'));
         end%
@@ -850,7 +850,7 @@ TimeSubscriptable ...
             x = binop(@minus, a, b);
         end%
         function x = mldivide(x, y)
-            if (isa(x, 'TimeSubscriptable') && isa(y, 'TimeSubscriptable')) ...
+            if (isa(x, 'Series') && isa(y, 'Series')) ...
                     || (isnumeric(y) && length(y)==1)
                 x = binop(@ldivide, x, y);
             else
@@ -861,7 +861,7 @@ TimeSubscriptable ...
             x = binop(@power, x, y);
         end%
         function x = mrdivide(x, y)
-            if (isa(x, 'TimeSubscriptable') && isa(y, 'TimeSubscriptable')) ...
+            if (isa(x, 'Series') && isa(y, 'Series')) ...
                     || (isnumeric(x) && length(x)==1)
                 x = binop(@rdivide, x, y);
             else
@@ -869,7 +869,7 @@ TimeSubscriptable ...
             end
         end%
         function x = mtimes(x, y)
-            if isa(x, 'TimeSubscriptable') && isa(y, 'TimeSubscriptable')
+            if isa(x, 'Series') && isa(y, 'Series')
                 x = binop(@times, x, y);
             else
                 x = binop(@mtimes, x, y);

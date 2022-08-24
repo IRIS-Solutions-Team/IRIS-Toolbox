@@ -7,7 +7,7 @@
 %
 % __Input Arguments__
 %
-% * `x` [ TimeSubscriptable ] - Input TimeSubscriptable object.
+% * `x` [ Series ] - Input Series object.
 %
 % * `meanX` [ numeric ] - Mean that will be added the data.
 %
@@ -16,7 +16,7 @@
 %
 % __Output Arguments__
 %
-% * `x` [ TimeSubscriptable ] - Destandardized output data.
+% * `x` [ Series ] - Destandardized output data.
 %
 %
 % __Description__
@@ -30,7 +30,7 @@ function this = destdize(this, meanX, stdX)
 persistent ip
 if isempty(ip)
     ip = extend.InputParser();
-    ip.addRequired('inputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    ip.addRequired('inputSeries', @(x) isa(x, 'Series'));
     ip.addRequired('meanX', @isnumeric);
     ip.addRequired('stdX', @isnumeric);
 end

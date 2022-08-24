@@ -9,7 +9,7 @@
 %
 % __Input Arguments__
 %
-% * `X` [ TimeSubscriptable ] - Input time series.
+% * `X` [ Series ] - Input time series.
 %
 % * `Test` [ function_handle ] - Test function that returns `true` or
 % `false` for each observation.
@@ -25,7 +25,7 @@
 % 
 % __Output Arguments__
 %
-% `X` [ TimeSubscriptable ] - Output time series.
+% `X` [ Series ] - Output time series.
 %
 %
 % __Description__
@@ -37,50 +37,49 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-function this = ifelse(this, test, ifTrue, varargin)
+function this = ifelse(this, test, valueIfTrue, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('TimeSubscriptable.ifelse');
-    inputParser.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
-    inputParser.addRequired('Test', @(x) isa(x, 'function_handle'));
-    inputParser.addRequired('IfTrue');
-    inputParser.addOptional('IfFalse', [ ]);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('timeSeries', @(x) isa(x, 'Series'));
+    ip.addRequired('test', @(x) isa(x, 'function_handle'));
+    ip.addRequired('valueIfTrue');
+    ip.addOptional('valueIfFalse', [ ]);
 end
-inputParser.parse(this, test, ifTrue, varargin{:});
-ifFalse = inputParser.Results.IfFalse;
+ip.parse(this, test, valueIfTrue, varargin{:});
+valueIfFalse = ip.Results.IfFalse;
 
-%--------------------------------------------------------------------------
 
-data = this.Data;
-indexTrue = test(data);
+    data = this.Data;
+    indexTrue = test(data);
 
-if ~islogical(indexTrue) || ~isequal(size(data), size(indexTrue))
-    throw( ...
-        exception.Base('TimeSubscriptable:IfElseTest', 'error') ...
-    );
-end
-
-if isempty(ifTrue) && isempty(ifFalse)
-    return
-end
-
-if ~isempty(ifTrue)
-    if isequal(ifTrue, @missing) || isequal(ifTrue, @MissingValue)
-        ifTrue = this.MissingValue;
+    if ~islogical(indexTrue) || ~isequal(size(data), size(indexTrue))
+        throw( ...
+            exception.Base('Series:IfElseTest', 'error') ...
+        );
     end
-    data(indexTrue) = ifTrue;
-end
 
-if ~isempty(ifFalse)
-    if isequal(ifFalse, @missing) || isequal(ifFalse, @MissingValue)
-        ifFalse = this.MissingValue;
+    if isempty(valueIfTrue) && isempty(valueIfFalse)
+        return
     end
-    data(~indexTrue) = ifFalse;
-end
 
-this.Data = data;
-this = trim(this);
+    if ~isempty(valueIfTrue)
+        if isequal(valueIfTrue, @missing) || isequal(valueIfTrue, @MissingValue)
+            valueIfTrue = this.MissingValue;
+        end
+        data(indexTrue) = valueIfTrue;
+    end
+
+    if ~isempty(valueIfFalse)
+        if isequal(valueIfFalse, @missing) || isequal(valueIfFalse, @MissingValue)
+            valueIfFalse = this.MissingValue;
+        end
+        data(~indexTrue) = valueIfFalse;
+    end
+
+    this.Data = data;
+    this = trim(this);
 
 end%
 

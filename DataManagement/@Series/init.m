@@ -134,7 +134,7 @@ end%
 
 function this = locallyCreateEmptySeries(this, sizeData)
     sizeData(1) = 0;
-    this.Start = TimeSubscriptable.StartDateWhenEmpty;
+    this.Start = Series.StartDateWhenEmpty;
     this.Data = repmat(this.MissingValue, sizeData);
 end%
 

@@ -49,7 +49,7 @@ end
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tilting/quantile');
-    inputParser.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
+    inputParser.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'Series'));
     inputParser.addRequired('Weights', @isnumeric);
     inputParser.addRequired('Tau', @(x) isnumeric(x) && all(x(:)>0 & x(:)<1));
     inputParser.addOptional('Dim', 2, @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=1);
@@ -57,7 +57,7 @@ end
 inputParser.parse(x, w, tau, varargin{:});
 dim = inputParser.Results.Dim;
 
-if isa(x, 'TimeSubscriptable')
+if isa(x, 'Series')
     [q, dim] = applyFunctionAlongDim(x, @tilting.quantile, w, tau, dim);
     return
 end

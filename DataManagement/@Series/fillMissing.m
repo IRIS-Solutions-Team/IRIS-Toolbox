@@ -4,7 +4,7 @@
 function [this, datesMissing] = fillMissing(this, range, method)
 
 arguments
-    this TimeSubscriptable
+    this Series
     range { validate.mustBeRange(range) }
 end
 
@@ -49,7 +49,7 @@ if nargout>=2
     end
 end
 
-while ~isempty(method) && nnz(inxMissing)>0 && isa(method{1}, 'TimeSubscriptable')
+while ~isempty(method) && nnz(inxMissing)>0 && isa(method{1}, 'Series')
     data = locallyReplaceData(data, startDate, endDate, inxMissing, method{1});
     inxMissing = this.MissingTest(data) & inxRange;
     method(1) = [];

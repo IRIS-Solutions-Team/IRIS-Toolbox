@@ -19,8 +19,8 @@ end
 %( Input parser
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('TimeSubscriptable.convert');
-    addRequired(pp, 'InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    pp = extend.InputParser('Series.convert');
+    addRequired(pp, 'InputSeries', @(x) isa(x, 'Series'));
     addRequired(pp, 'NewFreq', @Frequency.validateProperFrequency);
 
     addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @iris.Configuration.validateConversionMonth);
@@ -351,7 +351,7 @@ function [newData, newStart] = local_interpolateQuadraticMatch(this, oldStart, o
     %(
     numWithin = newFreq/oldFreq;
     if numWithin~=round(numWithin)
-        utils.error('TimeSubscriptable:convert', ...
+        utils.error('Series:convert', ...
             ['Source and target frequencies are incompatible ', ...
             'in ''%s'' interpolation.'], ...
             opt.Method);

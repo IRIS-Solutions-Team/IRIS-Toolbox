@@ -56,7 +56,7 @@ function positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, posi
         if isequal(positionWithinPeriod, @auto)
             positionWithinPeriod = axesPositionWithinPeriod;
         elseif ~isequal(axesPositionWithinPeriod, positionWithinPeriod)
-            warning( 'TimeSubscriptable:DifferentPositionWithinPeriod', ...
+            warning( 'Series:DifferentPositionWithinPeriod', ...
                      'Option PositionWithinPeriod= differs from the value set in the current Axes.' );
         end
     end

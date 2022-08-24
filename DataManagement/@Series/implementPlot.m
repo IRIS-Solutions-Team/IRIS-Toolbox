@@ -5,7 +5,7 @@
 
 function varargout = implementPlot(plotFunc, varargin)
 
-[axesHandle, dates, this, plotSpec, varargin] = TimeSubscriptable.preparePlot(varargin{:});
+[axesHandle, dates, this, plotSpec, varargin] = Series.preparePlot(varargin{:});
 
 persistent ip
 if isempty(ip)
@@ -49,7 +49,7 @@ if ndims(yData)>2 %#ok<ISMAT>
 end
 
 [xData, positionWithinPeriod, dateFormat] ...
-    = TimeSubscriptable.createDateAxisData(axesHandle, dates, opt.PositionWithinPeriod, opt.DateFormat);
+    = Series.createDateAxisData(axesHandle, dates, opt.PositionWithinPeriod, opt.DateFormat);
 
 
 plotHandle = gobjects(0);

@@ -110,7 +110,7 @@ for i = find(inxFound)
         field__ = retrieve(inputDb, name__);
     end
 
-    if isa(field__, 'TimeSubscriptable')
+    if isa(field__, 'Series')
         freq__ = getFrequencyAsNumeric(field__);
         checkFrequency(i) = isnan(freq__) || freq__==requiredFreq;
         inxNamesAvailable(i) = true;

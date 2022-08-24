@@ -80,7 +80,7 @@ for k = keys
         success = false;
     end
 
-    if isa(field1, 'TimeSubscriptable') && isa(field2, 'TimeSubscriptable')
+    if isa(field1, 'Series') && isa(field2, 'Series')
         if ~dater.eq(field1.Start, field2.Start)
             info.SeriesStartDatesNotEqual(end+1) = k;
             success = false;

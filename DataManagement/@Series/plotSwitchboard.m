@@ -65,7 +65,7 @@ return
     function plotHandle = implementBands( )
         persistent parser
         if isempty(parser)
-            parser = extend.InputParser('TimeSubscriptable.plotSwitchboard.implementBands');
+            parser = extend.InputParser('Series.plotSwitchboard.implementBands');
             parser.KeepUnmatched = true;
             parser.addParameter('BaseColor', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1)));
             parser.addParameter('Whitening', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && all(x>=0) && all(x<=1)));

@@ -118,7 +118,7 @@ end
 % Input data.
 x1 = varargin{1};
 varargin(1) = [ ];
-if ~isempty(varargin) && isa(varargin{1}, 'TimeSubscriptable')
+if ~isempty(varargin) && isa(varargin{1}, 'Series')
     % Syntax with two separate time series, plotpred(X, Y)
     x2 = varargin{1};
     varargin(1) = [ ];

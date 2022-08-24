@@ -14,19 +14,19 @@
 %
 % __Input Arguments__
 %
-% * `x` [ TimeSubscriptable ] - Time series
+% * `x` [ Series ] - Time series
 %
 % * `newComment` [ string ] - Comment(s) that will be assigned
 % to each column of the input time series, `x`.
 %
-% * `y` [ TimeSubscriptable ] - Another time series whose column comment(s) will be
+% * `y` [ Series ] - Another time series whose column comment(s) will be
 % assigned to the input time series, `x`.
 %
 %
 % Output arguments
 % =================
 %
-% * `x` [ TimeSubscriptable ] - Output time series with new comments
+% * `x` [ Series ] - Output time series with new comments
 % assigned.
 %
 % * `newComment` [ cellstr ] - Comments from the input time series, `x`.
@@ -85,7 +85,7 @@
 function varargout = comment(this, newComment)
 
 arguments
-    this TimeSubscriptable
+    this Series
 
     newComment {local_validateNewComment} = @get
 end
@@ -114,7 +114,7 @@ else
 
     % __Set comments__
 
-    if isa(newComment, 'TimeSubscriptable')
+    if isa(newComment, 'Series')
         newComment = newComment.Comment;
     end
     sizeData = size(this.Data);
@@ -132,7 +132,7 @@ end%
 
 function local_validateNewComment(value)
     %(
-    if isequal(value, @get) || validate.text(value) || isa(value, 'TimeSubscriptable')
+    if isequal(value, @get) || validate.text(value) || isa(value, 'Series')
         return
     end
     error("Input argument must be a string, another time series, or @get.");

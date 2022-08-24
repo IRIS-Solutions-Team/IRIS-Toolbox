@@ -134,7 +134,7 @@ inxSerialized = false(size(namesToSave));
 for i = 1 : numNamesToSave
     x = inputDb.(namesToSave{i});
     
-    if isa(x, 'TimeSubscriptable')
+    if isa(x, 'Series')
         freq__ = x.FrequencyAsNumeric;
         if opt.MatchFreq && any(userFreq~=freq__)
             continue

@@ -10,7 +10,7 @@ function [this, meanX, stdX] = stdize(this, varargin)
 %
 % ## Input Arguments ##
 %
-% __`x` [ TimeSubscriptable ] -
+% __`x` [ Series ] -
 % Input time series whose data will be normalized.
 %
 % __`~normalize` [ `0` | `1` ] -
@@ -20,7 +20,7 @@ function [this, meanX, stdX] = stdize(this, varargin)
 %
 % ## Output Arguments ##
 %
-% __`x` [ TimeSubscriptable ] -
+% __`x` [ Series ] -
 % Output time series with standardized data.
 %
 % __`meanX` [ numeric ] -
@@ -41,18 +41,17 @@ function [this, meanX, stdX] = stdize(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('TimeSubscriptable.stdize');
-    parser.addRequired('inputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addOptional('normalize', 0, @(x) isequal(x, 0) || isequal(x, 1));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    ip.addRequired('inputSeries', @(x) isa(x, 'Series'));
+    ip.addOptional('normalize', 0, @(x) isequal(x, 0) || isequal(x, 1));
 end
-parser.parse(this, varargin{:});
-normalize = parser.Results.normalize;
+ip.parse(this, varargin{:});
+normalize = ip.Results.normalize;
 
-%--------------------------------------------------------------------------
 
-[this.Data, meanX, stdX] = series.stdize(this.Data, normalize);
+    [this.Data, meanX, stdX] = series.stdize(this.Data, normalize);
 
 end%
 

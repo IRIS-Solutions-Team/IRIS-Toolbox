@@ -9,7 +9,7 @@
 %
 % ## Input Arguments ##
 %
-% ## `x`__ [ TimeSubscriptable ] -
+% ## `x`__ [ Series ] -
 % Input time series.
 %
 % ## `~shift`__ [ numeric ] - 
@@ -20,7 +20,7 @@
 %
 % ## Output Arguments ##
 %
-% ## `x`__ [ TimeSubscriptable ] -
+% ## `x`__ [ Series ] -
 % First difference of the log of the input time series.
 %
 %

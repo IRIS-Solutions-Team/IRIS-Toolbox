@@ -32,7 +32,7 @@ dMse = [ ];
 if validate.databank(data) && isfield(data, 'mean') && validate.databank(data.mean)
     % Databank with `.mean` and possibly also `.mse`
         dMean = data.mean;
-        if isfield(data, 'mse') && isa(data.mse, 'TimeSubscriptable')
+        if isfield(data, 'mse') && isa(data.mse, 'Series')
             dMse = data.mse;
         end
 elseif validate.databank(data)

@@ -48,7 +48,7 @@
 function [y, range, freq, per] = fft(this, opt)
 
 arguments
-    this TimeSubscriptable
+    this Series
 
     opt.Range {validate.mustBeRange} = Inf
     opt.Full (1, 1) logical = false

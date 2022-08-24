@@ -219,7 +219,7 @@ for i = 1 : nList
             addData( );
         else
             field = d.(name);
-            if isa(field, 'TimeSubscriptable')
+            if isa(field, 'Series')
                 ithX = [ ];
                 getSeriesData( );
                 addData( );

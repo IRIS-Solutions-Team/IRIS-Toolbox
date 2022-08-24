@@ -33,7 +33,7 @@ for i = 1 : numOfFields
     else
         reference{dimension} = pos;
     end
-    if isa(this.(ithName), 'TimeSubscriptable')
+    if isa(this.(ithName), 'Series')
         try %#ok<TRYNC>
             this.(ithName) = this.(ithName){reference{:}};
             inxOfSuccess(i) = true;

@@ -4,7 +4,7 @@
 function this = replaceData(this, pairs)
 
 arguments
-    this TimeSubscriptable
+    this Series
 end
 
 arguments (Repeating)

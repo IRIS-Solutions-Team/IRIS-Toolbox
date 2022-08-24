@@ -8,8 +8,8 @@
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, legacyDates, opt)
 
 arguments
-    lhs TimeSubscriptable
-    rhs TimeSubscriptable
+    lhs Series
+    rhs Series
 
     % Legacy positional argument
     legacyDates double = [] 
@@ -102,7 +102,7 @@ end%
 
 function local_validateWeights(x)
     %(
-    if isempty(x) || isa(x, 'TimeSubscriptable')
+    if isempty(x) || isa(x, 'Series')
         return
     end
     error("Input value must be empty or a time series.");

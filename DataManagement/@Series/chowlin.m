@@ -78,9 +78,9 @@ end
 isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('TimeSubscriptable/chowlin');
-    parser.addRequired('Y1', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('X2', @(x) isa(x, 'TimeSubscriptable'));
+    parser = extend.InputParser('Series/chowlin');
+    parser.addRequired('Y1', @(x) isa(x, 'Series'));
+    parser.addRequired('X2', @(x) isa(x, 'Series'));
     parser.addRequired('Range', @validate.range);
     parser.addParameter('Constant', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
@@ -102,7 +102,7 @@ else
 end
 
 if f2<=f1
-    THIS_ERROR = { 'TimeSubscriptable:ChowLinInconsistentFrequency'
+    THIS_ERROR = { 'Series:ChowLinInconsistentFrequency'
                    'RHS variables must have higher frequency than the LHS variable' };
     throw( exception.Base(THIS_ERROR, 'error') );
 end
@@ -111,7 +111,7 @@ end
 % an integer.
 g = f2 / f1;
 if g~=round(g)
-    THIS_ERROR = { 'TimeSubscriptable:ChowLinInconsistentFrequency'
+    THIS_ERROR = { 'Series:ChowLinInconsistentFrequency'
                    'High frequency must be a multiple of low frequency' };
     throw( exception.Base(THIS_ERROR, 'error') );
 end
@@ -167,7 +167,7 @@ if ~isempty(X2)
 end
 
 if isempty(M1)
-    THIS_ERROR = { 'TimeSubscriptable:ChowLinLHSRegressorMissing'
+    THIS_ERROR = { 'Series:ChowLinLHSRegressorMissing'
                    'No left-hand-side regressor specified' };
     throw( exception.Base(THIS_ERROR, 'error') );
 end

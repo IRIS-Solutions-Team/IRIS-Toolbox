@@ -33,7 +33,7 @@ inxToKeep = true(1, numSeries);
 for i = 1 : numel(listSeries)
     name__ = listSeries{i};
     if ~isfield(inputDatabank, name__) ...
-        || ~isa(inputDatabank.(name__), 'TimeSubscriptable')
+        || ~isa(inputDatabank.(name__), 'Series')
         inxToKeep(i) = false;
     end
 end
