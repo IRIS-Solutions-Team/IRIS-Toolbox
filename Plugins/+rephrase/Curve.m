@@ -4,7 +4,7 @@ classdef Curve ...
     & rephrase.PlotMixin
 
     properties % (Constant)
-        Type = rephrase.Type.CURVE
+        Type = string(rephrase.Type.CURVE)
     end
 
 

@@ -3,7 +3,7 @@ classdef Marker ...
     & rephrase.DataMixin
 
     properties % (Constant)
-        Type = rephrase.Type.MARKER
+        Type = string(rephrase.Type.MARKER)
     end
 
 

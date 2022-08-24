@@ -4,7 +4,7 @@ classdef Highlight ...
     & rephrase.ColorMixin
 
     properties
-        Type = rephrase.Type.HIGHLIGHT
+        Type = string(rephrase.Type.HIGHLIGHT)
     end
 
 

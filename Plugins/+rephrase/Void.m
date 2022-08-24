@@ -2,7 +2,7 @@ classdef Void ...
     < rephrase.Terminal 
 
     properties % (Constant)
-        Type = rephrase.Type.VOID
+        Type = string(rephrase.Type.VOID)
     end
 
 end

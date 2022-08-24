@@ -3,7 +3,7 @@ classdef DiffSeries ...
     & rephrase.DataMixin
 
     properties % (Constant)
-        Type = rephrase.Type.DIFFSERIES
+        Type = string(rephrase.Type.DIFFSERIES)
     end
 
 

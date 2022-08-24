@@ -2,7 +2,7 @@ classdef Pagebreak ...
     < rephrase.Terminal
 
     properties % (Constant)
-        Type = rephrase.Type.PAGEBREAK
+        Type = string(rephrase.Type.PAGEBREAK)
     end
 
 

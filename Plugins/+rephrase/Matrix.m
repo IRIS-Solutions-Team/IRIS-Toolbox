@@ -3,7 +3,7 @@ classdef Matrix ...
     & rephrase.DataMixin
 
     properties % (Constant)
-        Type = rephrase.Type.MATRIX
+        Type = string(rephrase.Type.MATRIX)
     end
 
 

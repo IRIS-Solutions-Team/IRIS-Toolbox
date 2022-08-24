@@ -9,7 +9,7 @@ classdef (Abstract) Container ...
     methods
         function this = add(this, children)
             for child = reshape(children, 1, [])
-                if ~ismember(child.Type, this.PossibleChildren)
+                if ~ismember(string(child.Type), string(this.PossibleChildren))
                     exception.error([
                         "Rephrase"
                         "Rephrase element of type %s cannot be added as a child to %s"

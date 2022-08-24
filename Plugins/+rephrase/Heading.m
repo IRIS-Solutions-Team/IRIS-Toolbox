@@ -3,7 +3,7 @@ classdef Heading ...
     < rephrase.Terminal ...
 
     properties % (Constant)
-        Type = rephrase.Type.HEADING
+        Type = string(rephrase.Type.HEADING)
     end
 
 

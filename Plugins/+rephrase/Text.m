@@ -2,7 +2,7 @@ classdef Text ...
     < rephrase.Terminal
 
     properties % (Constant)
-        Type = rephrase.Type.TEXT
+        Type = string(rephrase.Type.TEXT)
     end
 
 
