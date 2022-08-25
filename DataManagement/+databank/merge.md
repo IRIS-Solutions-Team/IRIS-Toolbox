@@ -17,11 +17,13 @@ title: databank.merge
 
 ## Input arguments
 
+
 __`method`__ [ `"horzcat"` | `"vertcat"` | `"replace"` | `"warning"` | `"discard"` | `"error"` ] 
 > 
 > Action to perform when two or more of the input mergeWith contain a
 > field of the same name; see Description.
 > 
+
 
 __`primaryDb`__ [ struct | Dictionary ] 
 > 
@@ -29,13 +31,16 @@ __`primaryDb`__ [ struct | Dictionary ]
 > mergeWith, `d1`, etc.  using the `method`.
 > 
 
+
 __`otherDb`__ [ struct | Dictionary ] 
 > 
 > One or more mergeWith which will be merged with the primaryinput databank
 > `primaryDb` to create the `outputDb`.
 > 
 
+
 ## Output arguments
+
 
 __`outputDb`__ [ struct | Dictionary ] 
 > 
@@ -43,13 +48,23 @@ __`outputDb`__ [ struct | Dictionary ]
 > method specified by the `method`.
 > 
 
+
 ## Options
 
 __`MissingField=@rmfield`__ [ `@rmfield` | `NaN` | `[ ]` | * ] 
 > 
-> Action to perform when a field is missing from one or more of the
+> Action to take when a field is missing from one or more of the
 > input mergeWith when the `method` is `"horzcat"`.
 > 
+
+
+__`WhenFailed="warning"`__ [ `"warning"` | `"silent"` | `"error"` ]
+>
+> Action to take when the `method` fails to merge a field across some of
+> the input databanks. `WhenFailed="warning"` or `WhenFailed="silent"`
+> results in the failed fields being excluded from the `outputDb`.
+>
+
 
 ## Description
 
