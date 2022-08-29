@@ -15,6 +15,7 @@ arguments
     opt.MissingField = @remove
     opt.Names { local_validateNames(opt.Names) } = @all
     opt.MetaNames = []
+    opt.WhenFailed (1, 1) string = "warning"
 end
 %}
 % >=R2019b
@@ -49,6 +50,7 @@ if isempty(ip)
     addParameter(ip, "MissingField", @remove);
     addParameter(ip, "Names", @all);
     addParameter(ip, "MetaNames", []);
+    addParameter(ip, "WhenFailed", "warning");
 end
 parse(ip, varargin{:});
 opt = ip.Results;
@@ -90,8 +92,17 @@ else
     fieldsToMerge = reshape(cellstr(opt.Names), [], 1);
 end
 
+fieldsFailed = string.empty(1, 0);
 for i = 1 : numMergeWith
-    [mainDb, fieldsToMerge] = mergeNext(mainDb, mergeWith{i}, fieldsToMerge, opt);
+    [mainDb, fieldsToMerge, fieldsFailed__] = mergeNext(mainDb, mergeWith{i}, fieldsToMerge, opt);
+    fieldsFailed = [fieldsFailed, fieldsFailed__];
+end
+
+if ~isempty(fieldsFailed) && opt.WhenFailed~="silent"
+    exception.(char(opt.WhenFailed))([
+        "Databank"
+        "This field failed to merge across input databanks: %s"
+    ], fieldsFailed);
 end
 
 info = struct();
@@ -109,9 +120,10 @@ end%
 % Local Functions
 %
 
-function [mainDb, fieldsToMerge] = concatenateNext(func, mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge, fieldsFailed] = concatenateNext(func, mainDb, mergeWith, fieldsToMerge, opt)
     %(
     fieldsToRemove = string.empty(1, 0);
+    fieldsFailed = string.empty(1, 0);
     for n = reshape(string(fieldsToMerge), 1, [])
         if isequal(opt.MissingField, @remove) || isequal(opt.MissingField, @rmfield)
             if ~isfield(mergeWith, n)
@@ -131,8 +143,13 @@ function [mainDb, fieldsToMerge] = concatenateNext(func, mainDb, mergeWith, fiel
         else
             mergeWithField = opt.MissingField;
         end
-        mainDatabankField = func(mainDatabankField, mergeWithField);
-        mainDb.(n) = mainDatabankField;
+        try
+            mainDatabankField = func(mainDatabankField, mergeWithField);
+            mainDb.(n) = mainDatabankField;
+        catch
+            fieldsToRemove(end+1) = n;
+            fieldsFailed(end+1) = n;
+        end
     end
     if ~isempty(fieldsToRemove)
         for n = textual.stringify(fieldsToRemove)
@@ -146,8 +163,9 @@ function [mainDb, fieldsToMerge] = concatenateNext(func, mainDb, mergeWith, fiel
 end%
 
 
-function [mainDb, fieldsToMerge] = replaceNext(needsWarn, mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge, fieldsFailed] = replaceNext(needsWarn, mainDb, mergeWith, fieldsToMerge, opt)
     %(
+    fieldsFailed = string.empty(1, 0);
     overwrites = string.empty(1, 0);
     for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
@@ -170,8 +188,9 @@ function [mainDb, fieldsToMerge] = replaceNext(needsWarn, mainDb, mergeWith, fie
 end%
 
 
-function [mainDb, fieldsToMerge] = discardNext(mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge, fieldsFailed] = discardNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
+    fieldsFailed = string.empty(1, 0);
     for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
             continue
@@ -184,8 +203,9 @@ function [mainDb, fieldsToMerge] = discardNext(mainDb, mergeWith, fieldsToMerge,
 end%
 
 
-function [mainDb, fieldsToMerge] = errorNext(mainDb, mergeWith, fieldsToMerge, opt)
+function [mainDb, fieldsToMerge, fieldsFailed] = errorNext(mainDb, mergeWith, fieldsToMerge, opt)
     %(
+    fieldsFailed = string.empty(1, 0);
     errorFields = string.empty(1, 0);
     for n = reshape(string(fieldsToMerge), 1, [])
         if ~isfield(mergeWith, n)
