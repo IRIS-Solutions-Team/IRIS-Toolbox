@@ -60,10 +60,18 @@ classdef Report ...
             fileNameBase = here_resolveFileNameBase(fileName);
 
             %
+            % Finalize report elements
+            % * Finalize data
+            % * Assign IDs
+            %
+            counter = rephrase.Counter();
+            finalize(this, counter);
+
+
+            %
             % Create report json
             %
 
-            finalize(this);
             reportJson = string(jsonencode(this));
             reportJson = local_substituteParameters(reportJson, opt.Context);
 

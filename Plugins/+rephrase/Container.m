@@ -1,6 +1,11 @@
 classdef (Abstract) Container ...
     < rephrase.Element
 
+    properties
+        Id (1, 1) string = ""
+    end
+
+
     properties (Abstract, Hidden, Constant)
         PossibleChildren
     end
@@ -42,13 +47,19 @@ classdef (Abstract) Container ...
         end%
 
 
-        function finalize(this)
+        function finalize(this, counter)
+            assignId(this, counter);
             assignParentSettings(this);
             populateSettingsStruct(this);
             for i = 1 : numel(this.Content)
-                finalize(this.Content{i});
+                finalize(this.Content{i}, counter);
                 this.DataRequests = union(this.DataRequests, this.Content{i}.DataRequests, 'stable');
             end
+        end%
+
+
+        function assignId(this, counter)
+            this.Id = generateId(counter);
         end%
     end
 end
