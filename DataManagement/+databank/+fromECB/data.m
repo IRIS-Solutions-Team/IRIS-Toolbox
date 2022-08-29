@@ -84,7 +84,7 @@ function [db, namesCreated] = local_outputFromResponse(db, response, opt)
     end
 
     refDates = reshape(string({response.structure.dimensions.observation.values.id}), [], 1);;
-    refDates = dater.fromSdmxString([], refDates);
+    refDates = dater.fromSdmxString(refDates);
     if opt.Attributes
         refAttribs = response.structure.attributes.series;
     end
