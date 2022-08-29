@@ -35,8 +35,8 @@ classdef Table ...
         end%
 
 
-        function finalize(this)
-            finalize@rephrase.Container(this);
+        function finalize(this, varargin)
+            finalize@rephrase.Container(this, varargin{:});
             if isempty(this.Settings_ShowUnits)
                 showUnits = false;
                 for i = 1 : numel(this.Content)

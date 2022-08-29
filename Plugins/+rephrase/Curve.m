@@ -15,7 +15,7 @@ classdef Curve ...
         end%
 
 
-        function finalize(this)
+        function finalize(this, varargin)
             finalize@rephrase.Terminal(this);
             finalizeCurveData(this);
         end%
