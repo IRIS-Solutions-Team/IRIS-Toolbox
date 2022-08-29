@@ -152,25 +152,31 @@ and $v_t$ is a transition error with constant variance. The
 transformation $\hat x_t$ is given by:
 
 * $ \hat x_t = x_t $ if no indicator is specified;
+
 * $ \hat x_t = x_t - q_t $ if an indicator $ q_t $ is entered through
 `Indicator.Level=` and `Indicator.Model="Difference"`;
+
 * $ \hat x_t = x_t / q_t $ if an indicator $ q_t $ is entered through
 `Indicator.Level=` and `Indicator.Model="Ratio"`;
+
 $ L $ is the lag operator, $ k $ is the order of differencing
 specified by `order`.
 
 ### Measurement equation ###
 
 $$ y_t = Z x_t $$
+
 where 
 
 * $ y_t $ is a measurement variables containing the lower-frequency data
 placed in the last (fourth) quarter of every year; in other words, only
 every fourth observation is available, and the three in between are
 missing
+
 * $ x_t $ is a state vector consisting of $N$ elements, where $N$
 is the number of high-frequency periods within one low-frequency period:
 the unobserved high-frequency lags $t-N, \dots, t-1, t$.
+
 * $ Z $ is a time-invariant aggregation matrix depending on
 `aggregation`: 
     * $ Z=[1, 1, 1, 1] $ for `aggregation="Sum"`, 
@@ -178,6 +184,7 @@ the unobserved high-frequency lags $t-N, \dots, t-1, t$.
     * $ Z=[0, 0, 0, 1] $ for `aggregation="Last"`, 
     * $ Z=[1, 0, 0, 0] $ for `aggregation="First"`, 
     * or a user supplied 1-by-$ N $ vector
+
 * $ w_t $ is a vector of measurement errors associated with soft
 conditions.
 

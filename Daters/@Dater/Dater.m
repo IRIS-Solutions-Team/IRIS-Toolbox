@@ -111,6 +111,11 @@ classdef Dater ...
         function t = fromSdmxString(varargin)
             t = Dater(dater.fromSdmxString(varargin{:}));
         end%
+
+
+        function t = fromString(varargin)
+            t = Dater(dater.fromString(varargin{:}));
+        end%
     end
 end
 

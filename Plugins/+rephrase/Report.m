@@ -47,7 +47,7 @@ classdef Report ...
             if isempty(ip)
                 ip = inputParser();
                 addParameter(ip, 'SaveJson', false, @validate.logicalScalar);
-                addParameter(ip, 'Source', "Local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["Local", "Bundle", "Web"]))));
+                addParameter(ip, 'Source', "local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["local", "bundle", "web"]))));
                 addParameter(ip, 'Template', []);
                 addParameter(ip, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
                 addParameter(ip, 'Context', struct());
@@ -119,6 +119,11 @@ classdef Report ...
                         case "bundle"
                             templateFileName = fullfile(templateFolder, "report-template.bundle.html");
                             template = local_readTextFile(templateFileName);
+                        case "local"
+                            templateFileName = fullfile(templateFolder, "report-template.html");
+                            template = local_readTextFile(templateFileName);
+                            template = replace(template, """lib/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "lib/"));
+                            template = replace(template, """img/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "img/"));
                         case "local"
                             templateFileName = fullfile(templateFolder, "report-template.html");
                             template = local_readTextFile(templateFileName);

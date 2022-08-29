@@ -8,7 +8,7 @@ function outputDate = convert(inputDate, toFreq, varargin)
 %( Input parser
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('dater.convert');
+    pp = extend.InputParser();
     pp.KeepDefaultOptions = true;
     addRequired(pp, 'inputDate', @isnumeric);
     addRequired(pp, 'newFreq', @(x) isa(Frequency(x), 'Frequency'));
