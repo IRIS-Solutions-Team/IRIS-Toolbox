@@ -10,6 +10,7 @@ numF = s.NumF;
 numB = s.NumB;
 numE = s.NumE;
 numExtdPeriods = s.NumExtdPeriods;
+anyExcludeFromObjFunc = isfield(opt, 'ExcludeFromObjFunc') && any(opt.ExcludeFromObjFunc);
 
 numOutlik = s.NumOutlik; % Number of dtrend params concentrated out of lik function
 numEstimInit = s.NumEstimInit; % Number of init conditions estimated as fixed unknowns
@@ -23,8 +24,11 @@ needsTransform = ~isempty(s.U);
 
 K0 = zeros(numB, 0);
 K1 = zeros(numB, 0);
-pe = zeros(0, 1);
 ZP = zeros(0, numB);
+
+% Prediction error for measurement variables actually observed at the
+% respective time
+pej = zeros(0, 1);
 
 % Objective function or its contributions
 obj = NaN;
@@ -39,7 +43,7 @@ logdetF = zeros(1, numExtdPeriods);
 % Effect of outofliks and fixed init states on a(t)
 Q1 = zeros(numB, numOutlik);
 Q2 = eye(numB, numEstimInit);
-% Effect of outofliks and fixed init states on pe(t)
+% Effect of outofliks and fixed init states on pej(t)
 M1 = zeros(0, numOutlik);
 M2 = zeros(0, numEstimInit);
 
@@ -71,7 +75,7 @@ end
 % Initialize matrices that are to be stored.
 if ~s.IsObjOnly
 
-    % `pe` is allocated as an numY-by-1-by-numExtdPeriods array because we re-use the same
+    % `s.pe` is allocated as an numY-by-1-by-numExtdPeriods array because we re-use the same
     % algorithm for both regular runs of the filter and the contributions.
     s.pe = nan(numY, 1, numExtdPeriods);
 
@@ -170,13 +174,13 @@ for t = 2 : numExtdPeriods
         % `a(t|t-1) = Ta(t<-t-1)*a(t-1|t-2) + K0(t<-t-1)*pe(t-1)`
         % where `K0(t<-t-1) = Ta(t<-t-1)*K1(t-1)`
         %
-        a = Ta*a + K0*pe;
+        a = Ta*a + K0*pej;
         if ~isempty(ka)
             a = a + ka(:, min(t, end));
         end
     else
         % Run non-linear simulation to produce the mean prediction.
-        init = a + K1*pe;
+        init = a + K1*pej;
         [a, f0, simulatedY] = here_simulatePredict(init);
         s.f0(:, 1, t) = f0;
     end
@@ -237,7 +241,7 @@ for t = 2 : numExtdPeriods
 
     % Prediction errors for the observables available, `pe(t)`; the number
     % of rows in `pe(t)` changes over time
-    pe = y1(jy, t) - y0;
+    pej = y1(jy, t) - y0;
 
     if opt.CheckFmse
         % Only evaluate the cond number if the test is requested by the user
@@ -284,34 +288,35 @@ for t = 2 : numExtdPeriods
 
 
     %
-    % Objective Function Components
-    %-------------------------------
+    % Objective function components
     %
     if s.InxObjFunc(t)
-        % The following variables may change in `doCond`, but we need to store the
-        % original values in `doStorePed`.
-        pex = pe;
-        Fx = Fj;
-        xy = jy;
         if isEst
-            Mx = M(xy, :);
-        end
-
-        if isEst
+            Mj = M(jy, :);
             if opt.ObjFunc==1
-                MtFi = Mx' / Fx;
+                MtFi = Mj' / Fj;
             elseif opt.ObjFunc==2
-                W = opt.Weighting(xy, xy);
-                MtFi = Mx'*W;
+                W = opt.Weighting(jy, jy);
+                MtFi = Mj'*W;
             else
                 MtFi = 0;
             end
-            MtFipe(:, t) = MtFi*pex;
-            MtFiM(:, :, t) = MtFi*Mx;
+            MtFipe(:, t) = MtFi*pej;
+            MtFiM(:, :, t) = MtFi*Mj;
         end
 
         % Compute components of the objective function if this period is included
         % in the user specified objective range
+        if anyExcludeFromObjFunc
+            xy = jy & ~opt.ExcludeFromObjFunc;
+            inxRetrieve = ~opt.ExcludeFromObjFunc(jy);
+            pex = pej(inxRetrieve);
+            Fx = Fj(inxRetrieve, inxRetrieve);
+        else
+            xy = jy;
+            pex = pej;
+            Fx = Fj;
+        end
         numObs(1, t) = nnz(xy);
         if opt.ObjFunc==1
             % Likelihood function
@@ -369,7 +374,7 @@ return
     function here_storePed( )
         % here_storePed  Store predicition error decomposition
         s.F(jy, jy, t) = Fj;
-        s.pe(jy, 1, t) = pe;
+        s.pe(jy, 1, t) = pej;
         if isEst
             s.M(:, :, t) = M;
         end
