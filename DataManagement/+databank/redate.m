@@ -12,7 +12,7 @@ function d = redate(d, oldDate, newDate)
     end
 
     % Call recusively redate(~) on nested databases
-    for i = reshape(find(inxStruct), 1, [])
+    for i = reshape(find(inxStructs), 1, [])
        d.(list{i}) = databank.redate(d.(list{i}), oldDate, newDate);
     end
 

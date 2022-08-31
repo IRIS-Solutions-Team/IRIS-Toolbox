@@ -5,7 +5,7 @@
 %
 
 % >=R2019b
-%{
+%(
 function opt = prepareKalmanOptions2(this, range, opt)
 
 arguments
@@ -41,6 +41,8 @@ arguments
     opt.ReturnObjFuncContribs (1, 1) logical = false
         opt.ObjDecomp__ReturnObjFuncContribs = []
 
+    opt.ExcludeFromObjFunc (1, :) string = string.empty(1, 0)
+
     opt.ObjFuncRange {local_validateObjFuncRange} = @all
 
     opt.Progress (1, 1) logical = false
@@ -69,12 +71,12 @@ arguments
     opt.CheckSteady (1, :) cell = {"run", false}
     opt.Solve (1, :) cell = {"run", true}
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function opt = prepareKalmanOptions2(this, range, varargin)
 
 persistent ip
@@ -140,7 +142,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -289,6 +291,25 @@ else
     lastColumn = min(numPeriods, round(objFuncRange(end) - range(1) + 1));
     opt.ObjFuncRange = false(1, numPeriods);
     opt.ObjFuncRange(firstColumn : lastColumn) = true;
+end
+
+
+%
+% Measurement variables excluded from objective function
+%
+if ~isempty(opt.ExcludeFromObjFunc)
+    measurementNames = textual.stringify(getNamesByType(this.Quantity, 1));
+    opt.ExcludeFromObjFunc = textual.stringify(opt.ExcludeFromObjFunc);
+    inx = ismember(opt.ExcludeFromObjFunc, measurementNames);
+    if any(~inx)
+        exception.error([ ...
+            "Model"
+            "This is not a valid measurement variable name to exclude from objective function: %s "
+        ], opt.ExcludeFromObjFunc(~inx));
+    end
+    opt.ExcludeFromObjFunc = reshape(ismember(measurementNames, opt.ExcludeFromObjFunc), [], 1);
+else
+    opt.ExcludeFromObjFunc = false(ny, 1);
 end
 
 
