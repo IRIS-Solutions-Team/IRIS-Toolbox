@@ -44,7 +44,7 @@ classdef SeriesChart ...
             this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
 
-            this.Settings_StartDate = dater.toIsoString(double(startDate), "mid");
+            this.Settings_StartDate = dater.toIsoString(double(startDate-1), "mid");
             this.Settings_EndDate = dater.toIsoString(double(endDate), "mid");
         end%
 

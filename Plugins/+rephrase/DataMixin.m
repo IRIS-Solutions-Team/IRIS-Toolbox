@@ -25,7 +25,7 @@ classdef (Abstract) DataMixin ...
                     endDate = dater.fromIsoString(freq, parent.Settings_EndDate);
                     values = getDataFromTo(input, startDate, endDate);
                     dates = dater.colon(startDate, endDate);
-                    dates = dater.toIsoString(dates, "mid");
+                    dates = dater.toIsoString(dates, "start");
                 else
                     dates = dater.fromIsoString(freq, parent.Settings_Dates);
                     values = getData(input, dates);
