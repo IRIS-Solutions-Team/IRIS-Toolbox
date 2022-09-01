@@ -7,68 +7,68 @@ function ...
     [stacked, Y, Xi0, transition, indicator] ...
     = setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0)
 
-persistent STACKED_LINEAR_SYSTEM
-if ~isa(STACKED_LINEAR_SYSTEM, 'StackedLinearSystem')
-    STACKED_LINEAR_SYSTEM = StackedLinearSystem();
-end
+    persistent STACKED_LINEAR_SYSTEM
+    if ~isa(STACKED_LINEAR_SYSTEM, 'StackedLinearSystem')
+        STACKED_LINEAR_SYSTEM = StackedLinearSystem();
+    end
 
-here_normalizeIndicator( );
-here_createFlippedTimeSeries( );
+    here_normalizeIndicator( );
+    here_createFlippedTimeSeries( );
 
-numInit = transition.NumInit;
-numWithin = size(aggregation.Model, 2);
+    numInit = transition.NumInit;
+    numWithin = size(aggregation.Model, 2);
 
-numLowPeriods = size(lowLevel, 1);
-numHighPeriods = numWithin*numLowPeriods;
+    numLowPeriods = size(lowLevel, 1);
+    numHighPeriods = numWithin*numLowPeriods;
 
-if isequal(transition.Order, 0)
-    R = eye(numHighPeriods);
-    T = zeros(numHighPeriods, numInit);
-elseif isequal(transition.Order, 1)
-    R = triu(toeplitz(ones(1, numHighPeriods)));
-    T = [ones(numHighPeriods, 1), zeros(numHighPeriods, 1)];
-elseif isequal(transition.Order, 2)
-    R = triu(toeplitz(1:numHighPeriods));
-    T = [ (numHighPeriods+1:-1:2)', -(numHighPeriods:-1:1)' ];
-end
-if isscalar(transition.Std)
-    transition.Std = repmat(transition.Std, numHighPeriods, 1);
-end
-stdV = reshape(transition.Std, [ ], 1);
-R = [R; zeros(numInit, numHighPeriods)];
-T = [T; eye(numInit)];
+    if isequal(transition.Order, 0)
+        R = eye(numHighPeriods);
+        T = zeros(numHighPeriods, numInit);
+    elseif isequal(transition.Order, 1)
+        R = triu(toeplitz(ones(1, numHighPeriods)));
+        T = [ones(numHighPeriods, 1), zeros(numHighPeriods, 1)];
+    elseif isequal(transition.Order, 2)
+        R = triu(toeplitz(1:numHighPeriods));
+        T = [ (numHighPeriods+1:-1:2)', -(numHighPeriods:-1:1)' ];
+    end
+    if isscalar(transition.Std)
+        transition.Std = repmat(transition.Std, numHighPeriods, 1);
+    end
+    stdV = reshape(transition.Std, [ ], 1);
+    R = [R; zeros(numInit, numHighPeriods)];
+    T = [T; eye(numInit)];
 
-Y = zeros(0, 1);
-Z = zeros(0, numHighPeriods+numInit);
-H = zeros(0);
-d = 0;
-stdW = zeros(0, 1);
-
-
-%
-% Add aggregation to measurement
-%
-here_addAggregation( );
+    Y = zeros(0, 1);
+    Z = zeros(0, numHighPeriods+numInit);
+    H = zeros(0);
+    d = 0;
+    stdW = zeros(0, 1);
 
 
-%
-% Add hard conditions to measurement
-%
-here_addHardLevel( );
-here_addHardDiff( );
-here_addHardRate( );
+    %
+    % Add aggregation to measurement
+    %
+    here_addAggregation( );
 
 
-%
-% Adjust measurement matrix and intercept for indicator
-%
-here_adjustForIndicator();
+    %
+    % Add hard conditions to measurement
+    %
+    here_addHardLevel( );
+    here_addHardDiff( );
+    here_addHardRate( );
 
-K = here_setupTransitionIntercept();
 
-stacked = STACKED_LINEAR_SYSTEM;
-stacked.SystemMatrices = {T, R, K, Z, H, d, [ ], [ ]};
-stacked.StdVectors = {stdV, stdW};
+    %
+    % Adjust measurement matrix and intercept for indicator
+    %
+    here_adjustForIndicator();
+
+    K = here_setupTransitionIntercept();
+
+    stacked = STACKED_LINEAR_SYSTEM;
+    stacked.SystemMatrices = {T, R, K, Z, H, d, [ ], [ ]};
+    stacked.StdVectors = {stdV, stdW};
 
 return
     

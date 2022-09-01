@@ -1,4 +1,4 @@
-% LinearSystem  Barebones Time-Varying Linear System Object
+% LinearSystem  Barebones time-varying linear state-space system object
 %
 %      xi = T*xib(-1) + k + R*v
 %       y = Z*xib + d + H*w
@@ -11,7 +11,7 @@ classdef LinearSystem ...
 
     properties
         % Tolerance  Tolerance level object
-        Tolerance = iris.mixin.Tolerance( )
+        Tolerance = iris.mixin.Tolerance()
     end
 
 
@@ -28,7 +28,7 @@ classdef LinearSystem ...
         % CovarianceMatrices  Covariance matrices for transition and measurement shocks {OmegaV, OmegaW}
         CovarianceMatrices (1, 2) cell = cell(1, 2)
 
-        % StdVectors  Vectors of std deviations for transition and measurement shocks
+        % StdVectors  Vectors of std deviations for transition and measurement shocks {StdV, StdW}
         StdVectors (1, 2) cell = cell(1, 2)
 
         % NumUnitRoots  Number of unit roots in transition matrix T
@@ -54,8 +54,8 @@ classdef LinearSystem ...
     end
 
 
-    methods % Public interface 
-        %( 
+    methods % Public interface
+        %(
         function this = LinearSystem(varargin)
             if nargin==1 && isa(varargin{1}, 'LinearSystem')
                 this = varargin{1};
@@ -69,7 +69,7 @@ classdef LinearSystem ...
             this = setup(this);
         end%
 
-        
+
         function this = steadySystem(this, varargin)
             if numel(varargin)==1 && strcmpi(varargin{1}, 'NotNeeded')
                 this = assign(this, 0, 0, 0);
@@ -93,6 +93,7 @@ classdef LinearSystem ...
         varargout = getCovarianceMatrix(varargin)
         varargout = filter(varargin)
         varargout = kalmanFilter(varargin)
+        varargout = rescaleStd(varargin)
         % varargout = triangularize(this)
         %)
     end
@@ -103,6 +104,9 @@ classdef LinearSystem ...
 
 
     methods (Hidden)
+        varargout = postprocessKalmanOutput(varargin)
+
+
         function value = hasLogVariables(this)
             value = false;
         end%

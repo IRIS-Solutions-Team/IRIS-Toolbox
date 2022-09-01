@@ -4,7 +4,7 @@ function ...
 
 if isempty(lowInput)
     output = lowInput;
-    info = struct( );
+    info = struct();
     return
 end
 
@@ -50,13 +50,13 @@ if ~skip
 end
 
 
-transition = struct( );
+transition = struct();
 transition = local_resolveTransitionModel(transition, transitionOrder);
 
 %
 % Resolve source frequency and the conversion factor
 %
-[fromFreq, numWithin] = here_resolveFrequencyConversion( );
+[fromFreq, numWithin] = here_resolveFrequencyConversion();
 
 
 %
@@ -105,12 +105,12 @@ else
     %
     % Resolve conflicts between observed low frequency levels and conditioning
     %
-    here_resolveConflictsInMeasurement( );
+    here_resolveConflictsInMeasurement();
 
     [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
         local_clipRange(lowLevel, hard, indicator, transition, aggregation);
 
-    here_checkIndicatorForNaNs( );
+    here_checkIndicatorForNaNs();
 
     Xi0 = series.genip.prepareInitialCondition( ...
         transition, hard, [highStart, highEnd], inxInit, opt ...
@@ -119,6 +119,9 @@ else
     [stacked, Y, Xi0, transition, indicator] = ...
         series.genip.setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0);
 
+    %
+    % Run stacked-time Kalman smoother
+    %
     [Xi, Xi0] = stackedSmoother(stacked, Y, Xi0);
 
     if isequal(transition.Intercept, @auto)
@@ -130,7 +133,7 @@ else
     % Compose output data from Xi0, HardLevel and adjust for
     % IndicatorLevel if needed.
     %
-    outputData = here_composeOutputData( );
+    outputData = here_composeOutputData();
 end
 
 
@@ -144,7 +147,7 @@ output = Series(highExtStart, outputData);
 %
 % Create output information struct if requested
 %
-info = struct( );
+info = struct();
 if nargout>=2
     wholeRange = opt.Range(1) : opt.Range(end);
     info.Initials = Xi0(end:-1:1);
@@ -161,7 +164,7 @@ end
 
 return
 
-    function [fromFreq, numWithin] = here_resolveFrequencyConversion( )
+    function [fromFreq, numWithin] = here_resolveFrequencyConversion()
         %(
         fromFreq = lowInput.Frequency;
         if double(highFreq)<=double(fromFreq)
@@ -176,7 +179,7 @@ return
         if numWithin~=round(numWithin)
             thisError = [ 
                 "Series:CannotInterpolateToLowerFreq"
-                "Function genip( ) can only be used to interpolate between "
+                "Function genip() can only be used to interpolate between "
                 "YEARLY, HALFYEARLY, QUARTERLY and MONTHLY frequencies. "
                 "You are attempting to interpolate from %s to %s." 
             ];
@@ -186,7 +189,7 @@ return
     end%
 
 
-    function here_resolveConflictsInMeasurement( )
+    function here_resolveConflictsInMeasurement()
         %(
         if ~opt.ResolveConflicts
             return
@@ -207,7 +210,7 @@ return
     end%
 
 
-    function here_checkIndicatorForNaNs( )
+    function here_checkIndicatorForNaNs()
         %(
         if ~isempty(indicator.Level) && ~all(isfinite(indicator.Level))
             thisError = [
@@ -222,7 +225,7 @@ return
     end%
 
 
-    function outputData = here_composeOutputData( )
+    function outputData = here_composeOutputData()
         %(
         outputData = Xi(end:-1:1);
         if ~isempty(indicator.Level)

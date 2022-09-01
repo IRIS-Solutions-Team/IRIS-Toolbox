@@ -265,6 +265,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
 
+        varargout = rescaleStd(varargin)
         varargout = stdscale(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)

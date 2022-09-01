@@ -1,52 +1,52 @@
 function [Xi, Xi0] = stackedSmoother(this, Y, Xi0)
 
-[T, R, k, Z, H, d] = this.SystemMatrices{1:6};
-[OmegaV, OmegaW] = this.CovarianceMatrices{:};
-[stdV, stdW] = this.StdVectors{:};
-numInit = size(T, 2);
+    [T, R, k, Z, H, d] = this.SystemMatrices{1:6};
+    [OmegaV, OmegaW] = this.CovarianceMatrices{:};
+    [stdV, stdW] = this.StdVectors{:};
+    numInit = size(T, 2);
 
-if ~isempty(stdV)
-    Rs = R .* reshape(stdV, 1, [ ]);
-    SigmaV = Rs * Rs';
-else
-    SigmaV = R*OmegaV*R';
-end
-P = SigmaV;
+    if ~isempty(stdV)
+        Rs = R .* reshape(stdV, 1, [ ]);
+        SigmaV = Rs * Rs';
+    else
+        SigmaV = R*OmegaV*R';
+    end
+    P = SigmaV;
 
-if ~isempty(stdW)
-    Hs = H .* reshape(stdW, 1, [ ]);
-    SigmaW = Hs * Hs';
-elseif ~isempty(OmegaW) && ~isempty(H)
-    SigmaW = H*OmegaW*H';
-else
-    SigmaW = [ ];
-end
+    if ~isempty(stdW)
+        Hs = H .* reshape(stdW, 1, [ ]);
+        SigmaW = Hs * Hs';
+    elseif ~isempty(OmegaW) && ~isempty(H)
+        SigmaW = H*OmegaW*H';
+    else
+        SigmaW = [ ];
+    end
 
-F = Z * P * Z';
-if ~isempty(SigmaW)
-    F = F + SigmaW;
-end
-FiZ = F \ Z;
+    F = Z * P * Z';
+    if ~isempty(SigmaW)
+        F = F + SigmaW;
+    end
+    FiZ = F \ Z;
 
-%
-% Estimate initial condition if needed
-%
-Xi0 = here_estimateInitialCondition(Xi0);
-TXi0 = T * Xi0;
-
-
-%
-% Estimate mean of state vector
-%
-Xi = TXi0 + k;
-U = Y - (Z*Xi + d);
-Xi = Xi + P*(FiZ'*U);
+    %
+    % Estimate initial condition if needed
+    %
+    Xi0 = here_estimateInitialCondition(Xi0);
+    TXi0 = T * Xi0;
 
 
-%
-% Make correction step for exact measurement equations
-%
-Xi = here_makeCorrectionForExactMeasurement(Xi);
+    %
+    % Estimate mean of state vector
+    %
+    Xi = TXi0 + k;
+    U = Y - (Z*Xi + d);
+    Xi = Xi + P*(FiZ'*U);
+
+
+    %
+    % Make correction step for exact measurement equations
+    %
+    Xi = here_makeCorrectionForExactMeasurement(Xi);
 
 return
 

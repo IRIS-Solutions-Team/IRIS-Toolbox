@@ -1,4 +1,3 @@
-function [Stat,Crit] = portest(This,Inp,H,varargin)
 % portest  Portmanteau test for autocorrelation in VAR residuals.
 %
 % Syntax
@@ -42,20 +41,16 @@ function [Stat,Crit] = portest(This,Inp,H,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-isnumericscalar = @(x) isnumeric(x) && isscalar(x);
-pp = inputParser( );
-pp.addRequired('Inp',@(x) myisvalidinpdata(This,x));
-pp.addRequired('H',isnumericscalar);
-pp.parse(Inp,H);
 
+function [Stat,Crit] = portest(This,Inp,H,varargin)
 
-defaults = {
-    'level', 0.05, @(x) isnumericscalar(x) && x > 0 && x < 1
-};
-
-opt = passvalopt(defaults, varargin{:});
-
-%--------------------------------------------------------------------------
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addParameter(ip, 'Level', 0.05, @(x) isnumeric(x) && isscalar(x) && x > 0 && x < 1);
+end
+parse(ip, varargin{:});
+opt = ip.Results;
 
 ny = size(This.A,1);
 p = size(This.A,2) / max(ny,1);

@@ -16,6 +16,7 @@ classdef Highlight ...
 
     properties (Hidden)
         Settings_Shape (1, 1) struct = struct()
+        Settings_Line (1, 1) struct = struct()
     end
 
 
@@ -38,7 +39,7 @@ classdef Highlight ...
                 this.StartDate = string(value);
                 return
             end
-            this.StartDate = dater.toIsoString(value);
+            this.StartDate = dater.toIsoString(value-1, "mid");
         end%
 
 
@@ -51,7 +52,7 @@ classdef Highlight ...
                 this.EndDate = string(value);
                 return
             end
-            this.EndDate = dater.toIsoString(value);
+            this.EndDate = dater.toIsoString(value, "mid");
         end%
 
 
