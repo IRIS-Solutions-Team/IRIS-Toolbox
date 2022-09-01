@@ -1,4 +1,6 @@
+
 classdef Tolerance
+
     properties
         Solve = iris.mixin.Tolerance.DEFAULT_SOLVE
         Steady = iris.mixin.Tolerance.DEFAULT_STEADY
@@ -9,27 +11,21 @@ classdef Tolerance
     end
 
 
-
-
     properties (Constant, Hidden)
-        DEFAULT_SOLVE = eps( )^(5/9)
+        DEFAULT_SOLVE = eps()^(5/9)
         DEFAULT_STEADY = 1e-12
-        DEFAULT_EIGEN = eps( )^(5/9)
-        DEFAULT_SEVN2PATCH = eps( )^(5/9)
-        DEFAULT_MSE = eps( )^(7/9)
+        DEFAULT_EIGEN = eps()^(5/9)
+        DEFAULT_SEVN2PATCH = eps()^(5/9)
+        DEFAULT_MSE = eps()^(7/9)
         DEFAULT_DIFF_STEP = eps^(1/3)
     end
 
 
-
-
     methods
         function this = reset(this)
-            this = iris.mixin.Tolerance( );
+            this = iris.mixin.Tolerance();
         end%
     end
-
-
 
 
     methods (Access=protected)
@@ -44,7 +40,7 @@ classdef Tolerance
 
 
         function value = verifySet(this, prop, value)
-            if validate.numericScalar(value, eps( ), Inf)
+            if validate.numericScalar(value, eps(), Inf)
                 return
             end
             if isequal(value, @auto)
@@ -58,7 +54,6 @@ classdef Tolerance
             throw(exception.Base(thisError, 'error'), prop);
         end%
     end
-
 
 
     methods % Set methods
@@ -93,4 +88,6 @@ classdef Tolerance
         end%
     %)
     end
+
 end
+

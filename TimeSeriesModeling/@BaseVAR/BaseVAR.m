@@ -13,7 +13,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
     properties
         % Tolerance  Tolerance level object
-        Tolerance (1, 1) iris.mixin.Tolerance = iris.mixin.Tolerance( )
+        Tolerance (1, 1) iris.mixin.Tolerance = iris.mixin.Tolerance()
 
         % EndogenousNames  Names of endogenous variables
         EndogenousNames (1, :) string = string.empty(1, 0)

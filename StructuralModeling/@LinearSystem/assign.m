@@ -1,24 +1,30 @@
+
 function this = assign(this, time, systemMatrices, covarianceMatrices)
 
-if ~isempty(systemMatrices) && ~isa(systemMatrices, 'missing')
-    this.SystemMatrices = hereAssign( time, this.SystemMatrices, systemMatrices, ...
-                                      this.NAMES_SYSTEM_MATRICES );
-end
+    if ~isempty(systemMatrices) && ~isa(systemMatrices, 'missing')
+        this.SystemMatrices = local_assign( ...
+            time, this.SystemMatrices, systemMatrices ...
+            , this.NAMES_SYSTEM_MATRICES ...
+        );
+    end
 
-if ~isempty(covarianceMatrices) && ~isa(covarianceMatrices, 'missing')
-    this.CovarianceMatrices = hereAssign( time, this.CovarianceMatrices, covarianceMatrices, ...
-                                          this.NAMES_COVARIANCE_MATRICES );
-end
+    if ~isempty(covarianceMatrices) && ~isa(covarianceMatrices, 'missing')
+        this.CovarianceMatrices = local_assign( ...
+            time, this.CovarianceMatrices, covarianceMatrices ...
+            , this.NAMES_COVARIANCE_MATRICES ...
+        );
+    end
 
 end%
 
 
 %
-% Local Functions
+% Local functions
 %
 
 
-function inObject = hereAssign(time, inObject, user, names)
+function inObject = local_assign(time, inObject, user, names)
+    %(
     numTimes = numel(time);
     inxValidDim = true(size(inObject));
     notNeeded = isequal(user, 0);
@@ -56,5 +62,6 @@ function inObject = hereAssign(time, inObject, user, names)
         ];
         throw(exception.Base(thisError, 'error'), names(~inxValidDim));
     end
+    %)
 end%
 

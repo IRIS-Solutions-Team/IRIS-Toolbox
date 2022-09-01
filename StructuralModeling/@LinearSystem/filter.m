@@ -29,9 +29,9 @@ kalmanOpt = prepareKalmanOptions(this, range, varargin{:});
 %=========================================================================
 argin = struct( ...
     'InputData', inputArray, ...
-    'OutputData', hereCreateOutputDataRequest(this, numExtPeriods, kalmanOpt), ...
-    'InternalAssignFunc', @hereAssignOutputData, ...
-    'Options', kalmanOpt ...
+    'OutputData', here_createOutputDataRequest(this, numExtPeriods, kalmanOpt), ...
+    'InternalAssignFunc', @here_assignOutputData, ...
+    'Options', kalmanOpt, ...
     'FilterRange', range ...
 );
 
@@ -43,7 +43,7 @@ argin = struct( ...
 %
 % Finalize output data
 %
-outputData = hereFinalizeOutputData(this, outputData, extRange);
+outputData = here_finalizeOutputData(this, outputData, extRange);
 
 end%
 
@@ -53,7 +53,7 @@ end%
 %
 
 
-function outputData = hereCreateOutputDataRequest(this, numExtPeriods, opt)
+function outputData = here_createOutputDataRequest(this, numExtPeriods, opt)
     ny = this.NumY;
     nxi = this.NumXi;
     nv = this.NumV;
@@ -74,7 +74,7 @@ end%
 
 
 
-function field = hereAssignOutputData(field, position, newData)
+function field = here_assignOutputData(field, position, newData)
     field.Y(:, :, position)  = newData{1};
     field.Xi(:, :, position) = newData{2};
     field.E(:, :, position)  = newData{3};
@@ -83,7 +83,7 @@ end%
 
 
 
-function outputData = hereFinalizeOutputData(this, outputData, extRange)
+function outputData = here_finalizeOutputData(this, outputData, extRange)
     nv = this.NumV;
     template = Series(extRange(1), 0);
     list = {{'M0', 'PredictMean'}, {'M1', 'FilterMean'}, {'M2', 'SmoothMean'}};

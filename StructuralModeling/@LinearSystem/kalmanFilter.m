@@ -1,40 +1,41 @@
-% kalmanFilter  Run Kalman filter
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function [outputData, regOutput] = kalmanFilter(this, inputData, range, varargin)
+function [outputData, this, info] = kalmanFilter(this, inputData, range, varargin)
 
-range = double(range);
-startRange = range(1);
-endRange = range(end);
-range = dater.colon(startRange, endRange);
-extRange = [dater.plus(startRange, -1), range];
-numPeriods = round(endRange - startRange + 1);
-numExtPeriods = numPeriods + 1;
+    range = double(range);
+    startRange = range(1);
+    endRange = range(end);
+    range = dater.colon(startRange, endRange);
+    extRange = [dater.plus(startRange, -1), range];
+    numPeriods = round(endRange - startRange + 1);
+    numExtPeriods = numPeriods + 1;
 
-opt = prepareKalmanOptions2(this, range, varargin{:});
-inputArray = prepareKalmanData(this, inputData, range, opt.WhenMissing);
+    opt = prepareKalmanOptions2(this, range, varargin{:});
+    inputArray = prepareKalmanData(this, inputData, range, opt.WhenMissing);
 
 
-%=========================================================================
-argin = struct( ...
-    'InputData', inputArray, ...
-    'OutputData', local_createOutputDataRequest(this, numExtPeriods, opt), ...
-    'InternalAssignFunc', @local_assignOutputData, ...
-    'Options', opt, ...
-    'FilterRange', range ...
-);
+    %=========================================================================
+    argin = struct();
+    argin.InputData = inputArray;
+    argin.OutputData = local_createOutputDataRequest(this, numExtPeriods, opt);
+    argin.InternalAssignFunc = @local_assignOutputData;
+    argin.Options = opt;
+    argin.FilterRange = range;
 
-[~, regOutput, outputData] = implementKalmanFilter(this, argin);
-%=========================================================================
-
+    [minusLogLik, regOutput, outputData] = implementKalmanFilter(this, argin);
+    %=========================================================================
 
 
-%
-% Finalize output data
-%
-outputData = local_finalizeOutputData(this, outputData, extRange);
+    %
+    % Postprocess regular (non-hdata) output arguments; update the std
+    % parameters in the model object if `Relative=' true`
+    %
+    [info, this] = postprocessKalmanOutput(this, minusLogLik, regOutput, extRange, opt);
+
+
+    %
+    % Finalize output data
+    %
+    outputData = local_finalizeOutputData(this, outputData, extRange);
 
 end%
 

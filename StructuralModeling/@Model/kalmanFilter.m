@@ -59,15 +59,14 @@ end
 
 
     %=========================================================================
-    kalmanInputs = struct( ...
-        'FilterRange', baseRange, ...
-        'InputData', inputArray, ...
-        'OutputData', outputData, ...
-        'InternalAssignFunc', @hdataassign, ...
-        'Options', opt ...
-    );
+    argin = struct();
+    argin.FilterRange = baseRange;
+    argin.InputData = inputArray;
+    argin.OutputData = outputData;
+    argin.InternalAssignFunc = @hdataassign;
+    argin.Options = opt;
 
-    [minusLogLik, regOutp, outputData] = implementKalmanFilter(this, kalmanInputs); %#ok<ASGLU>
+    [minusLogLik, regOutp, outputData] = implementKalmanFilter(this, argin); %#ok<ASGLU>
     %=========================================================================
 
 
@@ -82,8 +81,7 @@ end
     % Postprocess regular (non-hdata) output arguments; update the std
     % parameters in the model object if `Relative=' true`
     %
-    [info, this] = postprocessKalmanOutput(this, regOutp, extRange, opt);
-    info.MinusLogLik = minusLogLik;
+    [info, this] = postprocessKalmanOutput(this, minusLogLik, regOutp, extRange, opt);
 
 
     %

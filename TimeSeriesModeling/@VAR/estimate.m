@@ -144,53 +144,52 @@
 
 function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range, varargin)
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('VAR.estimate');
-    addRequired(pp, 'varModel', @(x) isa(x, 'VAR'));
-    addRequired(pp, 'inputData', @(x) myisvalidinpdata(this, x));
-    addRequired(pp, 'range', @validate.properRange);
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    addRequired(ip, 'varModel', @(x) isa(x, 'VAR'));
+    addRequired(ip, 'inputData', @validate.databank);
+    addRequired(ip, 'range', @validate.properRange);
 
-    addParameter(pp, 'Diff', false, @validate.logicalScalar);
-    addParameter(pp, 'Order', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, 0, intmax( )));
-    addParameter(pp, 'Cointeg', [ ], @isnumeric);
-    addParameter(pp, 'Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
-    addParameter(pp, {'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
-    addParameter(pp, {'Intercept', 'Constant', 'Const', 'Constants'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
-    addParameter(pp, {'CovParameters', 'CovParameter', 'CovParam'}, false, @validate.logicalScalar);
-    addParameter(pp, 'EqtnByEqtn', false, @validate.logicalScalar);
-    addParameter(pp, 'Progress', false, @validate.logicalScalar);
-    addParameter(pp, 'Schur', true, @validate.logicalScalar);
-    addParameter(pp, {'StartDate', 'Start'}, 'Presample', @(x) validate.anyString(x, 'Presample', 'Fit', 'Fitted'));
-    addParameter(pp, 'TimeWeights', [ ], @(x) isempty(x) || isa(x, 'Series | update'));
-    addParameter(pp, 'Warning', true, @validate.logicalScalar);
-    addParameter(pp, 'SmallSampleCorrection', false, @validate.logicalScalar);
+    addParameter(ip, 'Diff', false, @validate.logicalScalar);
+    addParameter(ip, 'Order', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, 0, intmax( )));
+    addParameter(ip, 'Cointeg', [ ], @isnumeric);
+    addParameter(ip, 'Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
+    addParameter(ip, {'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
+    addParameter(ip, {'Intercept', 'Constant', 'Const', 'Constants'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(ip, {'CovParameters', 'CovParameter', 'CovParam'}, false, @validate.logicalScalar);
+    addParameter(ip, 'EqtnByEqtn', false, @validate.logicalScalar);
+    addParameter(ip, 'Progress', false, @validate.logicalScalar);
+    addParameter(ip, 'Schur', true, @validate.logicalScalar);
+    addParameter(ip, {'StartDate', 'Start'}, 'Presample', @(x) validate.anyString(x, 'Presample', 'Fit', 'Fitted'));
+    addParameter(ip, 'TimeWeights', [ ], @(x) isempty(x) || isa(x, 'Series | update'));
+    addParameter(ip, 'Warning', true, @validate.logicalScalar);
+    addParameter(ip, 'SmallSampleCorrection', false, @validate.logicalScalar);
 
-    addParameter(pp, 'A', [ ], @isnumeric);
-    addParameter(pp, 'C', [ ], @isnumeric);
-    addParameter(pp, 'G', [ ], @isnumeric);
-    addParameter(pp, 'J', [ ], @isnumeric);
-    addParameter(pp, 'Mean', [ ], @(x) isempty(x) || isnumeric(x));
-    addParameter(pp, 'MaxIter', 1, @(x) validate.roundScalar(x, 0, Inf));
-    addParameter(pp, 'Tolerance', 1e-5, @(x) validate.numericScalar(x, eps( ), Inf));
+    addParameter(ip, 'A', [ ], @isnumeric);
+    addParameter(ip, 'C', [ ], @isnumeric);
+    addParameter(ip, 'G', [ ], @isnumeric);
+    addParameter(ip, 'J', [ ], @isnumeric);
+    addParameter(ip, 'Mean', [ ], @(x) isempty(x) || isnumeric(x));
+    addParameter(ip, 'MaxIter', 1, @(x) validate.roundScalar(x, 0, Inf));
+    addParameter(ip, 'Tolerance', 1e-5, @(x) validate.numericScalar(x, eps( ), Inf));
 
-    addParameter(pp, 'Dummy', {}, @(x) iscell(x) || isa(x, 'dummy.Base'));
-    addParameter(pp, {'LegacyDummy', 'PriorDummies', 'BVAR'}, [], @(x) isempty(x) || isa(x, 'BVAR.DummyWrapper'));
+    addParameter(ip, 'Dummy', {}, @(x) iscell(x) || isa(x, 'dummy.Base'));
+    addParameter(ip, {'LegacyDummy', 'PriorDummies', 'BVAR'}, [], @(x) isempty(x) || isa(x, 'BVAR.DummyWrapper'));
 
-    addParameter(pp, {'Standardize', 'Stdize'}, false, @validate.logicalScalar);
+    addParameter(ip, {'Standardize', 'Stdize'}, false, @validate.logicalScalar);
 
-    addParameter(pp, {'FixedEff', 'FixedEffect'}, true, @validate.logicalScalar);
-    addParameter(pp, 'GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
-    addParameter(pp, 'GroupSpec', false, @(x) validate.logicalScalar(x) || isstring(x) || iscellstr(x) || ischar(x));
+    addParameter(ip, {'FixedEff', 'FixedEffect'}, true, @validate.logicalScalar);
+    addParameter(ip, 'GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
+    addParameter(ip, 'GroupSpec', false, @(x) validate.logicalScalar(x) || isstring(x) || iscellstr(x) || ischar(x));
 end
-parse(pp, this, inputData, range, varargin{:});
-opt = pp.Options;
+parse(ip, this, inputData, range, varargin{:});
+opt = ip.Results;
+
 
 if isempty(this.EndogenousNames)
     throw( exception.Base('VAR:CANNOT_ESTIMATE_EMPTY_VAR', 'error') );
 end
-
-%--------------------------------------------------------------------------
 
 p = here_resolveOrder( );
 this.Order = p;
@@ -201,7 +200,7 @@ this.Intercept = isIntercept;
 opt.Intercept = isIntercept;
 
 kx = this.NumExogenous;
-inxGroupSpec = resolveGroupSpec( );
+inxGroupSpec = resolveGroupSpec();
 
 if ~isempty(opt.A) && p>1 && size(opt.A, 3)==1
     opt.A = repmat(opt.A, 1, 1, p);
