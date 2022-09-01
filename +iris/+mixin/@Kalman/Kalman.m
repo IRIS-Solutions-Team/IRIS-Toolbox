@@ -12,6 +12,10 @@ classdef (Abstract) Kalman
         MSE_OUTPUT = "MSE"
     end
 
+    methods (Abstract)
+        varargout = rescaleStd(varargin)
+    end
+
 
     methods (Abstract, Hidden)
         varargout = evalTrendEquations(varargin)
@@ -19,6 +23,9 @@ classdef (Abstract) Kalman
         varargout = getIthKalmanSystem(varargin)
         varargout = getIthStdcorr(varargin)
         varargout = getIthOmega(varargin)
+        varargout = hasLogVariables(varargin)
+        varargout = countVariants(varargin)
+        varargout = getKalmanDataNames(varargin)
     end
 
 
@@ -27,13 +34,7 @@ classdef (Abstract) Kalman
         varargout = prepareKalmanOptions(varargin)
         varargout = prepareKalmanOptions2(varargin)
         varargout = prepareKalmanData(varargin)
-    end
-
-
-    methods (Abstract, Hidden)
-        varargout = hasLogVariables(varargin)
-        varargout = countVariants(varargin)
-        varargout = getKalmanDataNames(varargin)
+        varargout = postprocessKalmanOutput(varargin)
     end
 
 
@@ -47,5 +48,7 @@ classdef (Abstract) Kalman
         varargout = PbFromPa(varargin)
         varargout = predictErrorDecomposition(varargin)
         varargout = smootherForVAR(varargin)
+        varargout = schur(varargin)
+        varargout = triangularize(varargin)
     end
 end

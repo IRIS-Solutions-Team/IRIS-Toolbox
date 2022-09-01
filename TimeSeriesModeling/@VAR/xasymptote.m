@@ -1,4 +1,3 @@
-function varargout = xasymptote(This,X0)
 % xasymptote  Set or get asymptotic assumptions for exogenous inputs.
 %
 % Syntax
@@ -48,38 +47,40 @@ function varargout = xasymptote(This,X0)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
+function varargout = xasymptote(this, X0)
+
 try
     X0; %#ok<VUNUS>
 catch
-    varargout{1} = This.X0;
+    varargout{1} = this.X0;
     return
 end
 
-%--------------------------------------------------------------------------
 
-nx = length(This.ExogenousNames);
-numGroups = max(1, this.NumGroups);
-nAlt = size(This.A,3);
+    nx = length(this.ExogenousNames);
+    numGroups = max(1, this.NumGroups);
+    nAlt = size(this.A,3);
 
-if size(X0,1) == 1 && nx > 1
-    X0 = X0(ones(1,nx),:,:);
-end
+    if size(X0,1) == 1 && nx > 1
+        X0 = X0(ones(1,nx),:,:);
+    end
 
-if size(X0,2) == 1 && numGroups > 1
-    X0 = X0(:,ones(1,numGroups),:);
-end
+    if size(X0,2) == 1 && numGroups > 1
+        X0 = X0(:,ones(1,numGroups),:);
+    end
 
-if size(X0,3) == 1 && nAlt > 1
-    X0 = X0(:,:,ones(1,nAlt));
-end
+    if size(X0,3) == 1 && nAlt > 1
+        X0 = X0(:,:,ones(1,nAlt));
+    end
 
-if size(X0,1) ~= nx || size(X0,2) ~= numGroups || size(X0,3) ~= nAlt
-    utils.error('VAR:mean', ...
-        ['Invalid size of vector/matrix of asymptotic assumptions for ', ...
-        'exogenous inputs.']);
-end
+    if size(X0,1) ~= nx || size(X0,2) ~= numGroups || size(X0,3) ~= nAlt
+        utils.error('VAR:mean', ...
+            ['Invalid size of vector/matrix of asymptotic assumptions for ', ...
+            'exogenous inputs.']);
+    end
 
-This.X0 = X0;
-varargout{1} = This;
+    this.X0 = X0;
+    varargout{1} = this;
 
-end
+end%
+

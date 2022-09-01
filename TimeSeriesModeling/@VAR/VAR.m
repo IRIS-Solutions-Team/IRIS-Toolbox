@@ -220,7 +220,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = assignEst(varargin)
         varargout = getEstimationData(varargin)
         varargout = prepareLsqWeights(varargin)
-        varargout = myisvalidinpdata(varargin)
         varargout = preallocate(varargin)
         varargout = myrngcmp(varargin);
         varargout = subsalt(varargin)

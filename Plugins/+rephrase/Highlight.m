@@ -16,6 +16,7 @@ classdef Highlight ...
 
     properties (Hidden)
         Settings_Shape (1, 1) struct = struct()
+        Settings_Line (1, 1) struct = struct()
     end
 
 
