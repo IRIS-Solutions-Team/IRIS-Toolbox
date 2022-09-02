@@ -11,7 +11,6 @@ classdef SeriesChart ...
         Settings_StartDate (1, 1) string
         Settings_EndDate (1, 1) string
         Settings_DateFormat (1, 1) string = "YYYY-MM-DD"
-        Settings_ShowLegend (1, 1) logical = true
         Settings_Highlight = cell.empty(1, 0)
         Settings_BarMode (1, 1) string = "group"
     end

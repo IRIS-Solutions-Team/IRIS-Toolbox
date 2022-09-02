@@ -18,6 +18,7 @@ classdef (Abstract) SettingsMixin ...
     properties (Hidden)
         Settings_Class (1, 1) string = ""
         Settings_Pass (1, :) cell = cell.empty(1, 0)
+        Settings_ShowTitle (1, 1) logical = true
     end
 
 
