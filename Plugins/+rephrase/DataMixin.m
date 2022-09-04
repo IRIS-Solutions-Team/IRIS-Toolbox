@@ -3,6 +3,7 @@ classdef (Abstract) DataMixin ...
 
     properties (Hidden)
         Settings_Conditional 
+        Settings_Round (1, 1) double = Inf
     end
 
 
@@ -35,6 +36,9 @@ classdef (Abstract) DataMixin ...
                 values = values(:, 1);
                 output = struct();
                 output.Dates = dates;
+                if this.Settings_Round<Inf
+                    values = round(values, round(this.Settings_Round));
+                end
                 output.Values = reshape(values, 1, []);
                 return
             end
