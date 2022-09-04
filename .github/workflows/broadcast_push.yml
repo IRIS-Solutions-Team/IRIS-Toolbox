@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Broadcast push to bleeding
 
 on:
@@ -15,7 +13,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           repository: IRIS-Solutions-Team/iris-reference
-          token: ${{ secrets.PAT_ALL_SCOPES }}
+          token: ${{ secrets.IRIS_REFERENCE_TOKEN }}
           event-type: iris-toolbox-push-bleeding
           client-payload: '{"ref": "${{ github.ref }}"}'
 
