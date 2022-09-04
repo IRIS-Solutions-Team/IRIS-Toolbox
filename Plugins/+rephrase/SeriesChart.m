@@ -8,11 +8,11 @@ classdef SeriesChart ...
 
 
     properties (Hidden)
-        Settings_StartDate (1, 1) string
-        Settings_EndDate (1, 1) string
+        Settings_StartDate (1, 1) 
+        Settings_EndDate (1, 1)
         Settings_DateFormat (1, 1) string = "YYYY-MM-DD"
-        Settings_Highlight = cell.empty(1, 0)
         Settings_BarMode (1, 1) string = "group"
+        Settings_Frequency (1, 1) double = NaN
     end
 
 
@@ -38,21 +38,19 @@ classdef SeriesChart ...
 %)
 % >=R2019b
 
-            [startDate, endDate, varargin] = local_parseInputDates(dates, varargin);
-
+            [freq, startDate, endDate, varargin] = local_parseInputDates(dates, varargin);
             this = this@rephrase.Container(title, varargin{:});
             this.Content = cell.empty(1, 0);
-
-            this.Settings_StartDate = dater.toIsoString(double(startDate-1), "mid");
-            this.Settings_EndDate = dater.toIsoString(double(endDate), "mid");
+            this.Settings_Frequency = freq;
+            this.Settings_StartDate = startDate;
+            this.Settings_EndDate = endDate;
         end%
 
 
-        function this = set.Settings_Highlight(this, x)
-            if isscalar(x) && ~iscell(x)
-                x = {x};
-            end
-            this.Settings_Highlight = x;
+        function finalize(this, counter)
+            finalize@rephrase.Container(this, counter);
+            this.Settings.StartDate = this.resolveStartDate(this.Settings_StartDate);
+            this.Settings.EndDate = this.resolveEndDate(this.Settings_EndDate);
         end%
     end
 
@@ -65,6 +63,24 @@ classdef SeriesChart ...
                 add(this, series);
             end
         end%
+
+
+        function date = resolveStartDate(date)
+            if dater.getFrequency(date)>0
+                date = dater.toIsoString(double(date-1), "mid");
+            else
+                date = double(date) - 0.5;
+            end
+        end%
+
+
+        function date = resolveEndDate(date)
+            if dater.getFrequency(date)>0
+                date = dater.toIsoString(double(date), "mid");
+            else
+                date = double(date) + 0.5;
+            end
+        end%
     end
 end 
 
@@ -73,7 +89,7 @@ end
 %
 
 
-function [startDate, endDate, repeating] = local_parseInputDates(dates, repeating)
+function [freq, startDate, endDate, repeating] = local_parseInputDates(dates, repeating)
     %(
     dates = double(dates);
     if isempty(repeating) || ~isnumeric(repeating{1}) || isempty(repeating{1})
@@ -85,6 +101,7 @@ function [startDate, endDate, repeating] = local_parseInputDates(dates, repeatin
         endDate = endDate(end);
         repeating(1) = [];
     end
+    freq = dater.getFrequency(startDate);
     %)
 end%
 

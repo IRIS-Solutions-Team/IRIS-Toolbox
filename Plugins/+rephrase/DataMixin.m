@@ -22,13 +22,15 @@ classdef (Abstract) DataMixin ...
                 parent = this.Parent;
                 freq = input.Frequency;
                 if ismember(string(parent.Type), [string(rephrase.Type.CHART), string(rephrase.Type.SERIESCHART), string(rephrase.Type.CURVECHART)])
-                    startDate = dater.fromIsoString(freq, parent.Settings_StartDate);
-                    endDate = dater.fromIsoString(freq, parent.Settings_EndDate);
+                    startDate = parent.Settings_StartDate;
+                    endDate = parent.Settings_EndDate;
                     values = getDataFromTo(input, startDate, endDate);
                     dates = dater.colon(startDate, endDate);
-                    dates = dater.toIsoString(dates, "start");
+                    if freq>0
+                        dates = dater.toIsoString(dates, "start");
+                    end
                 else
-                    dates = dater.fromIsoString(freq, parent.Settings_Dates);
+                    dates = parent.Settings_Dates;
                     values = getData(input, dates);
                     dates = NaN;
                 end
