@@ -49,14 +49,10 @@ classdef Table ...
                 end
                 this.Settings.ShowUnits = showUnits;
             end
-        end%
-
-
-        function this = set.Settings_Dates(this, x)
-            if isnumeric(x)
-                x = dater.toIsoString(reshape(double(x), 1, []), "mid");
+            if isnumeric(this.Settings_Dates)
+                this.Settings.Dates = dater.toIsoString(this.Settings_Dates, "mid");
             end
-            this.Settings_Dates = textual.stringify(x);
+            this.Settings.Dates = textual.stringify(this.Settings.Dates);
         end%
     end
 end 
