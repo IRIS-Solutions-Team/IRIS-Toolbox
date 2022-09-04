@@ -112,6 +112,8 @@ if isempty(ip)
     addParameter(ip, "ReturnObjFuncContribs", false);
         addParameter(ip, "ObjDecomp__ReturnObjFuncContribs", []);
 
+    addParameter(ip, "ExcludeFromObjFunc", string.empty(1, 0));
+
     addParameter(ip, "ObjFuncRange", @all);
 
     addParameter(ip, "Progress", false);
