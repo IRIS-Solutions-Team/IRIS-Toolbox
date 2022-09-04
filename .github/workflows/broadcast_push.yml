@@ -1,0 +1,20 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Broadcast push to bleeding
+
+on:
+  push:
+    branches: [ "bleeding" ]
+  workflow_dispatch:
+
+jobs:
+  broadcast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_ALL_SCOPES }}
+          event-type: iris-toolbox-push-bleeding
+          client-payload: '{"ref": "${{ github.ref }}"}'
+
