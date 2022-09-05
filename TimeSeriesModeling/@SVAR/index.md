@@ -1,2 +1,3 @@
-# Overview of structural VAR models: `@SVAR` objects
+
+# Overview of structural VAR model objects
  

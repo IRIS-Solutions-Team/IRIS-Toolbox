@@ -1,15 +1,17 @@
-function [equations, descriptions, aliases] = findEquation(this, filter, varargin)
 
-numEquations = numel(this.Input);
-inx = true(1, numEquations);
-input = textual.stringify(this.Input);
+function [equations, descriptions, aliases] = findEquation(this, varargin)
 
-for i = 1 : numel(varargin)
-    inx = inx & filter(input, varargin{i});
-end
+    numEquations = numel(this.Input);
+    inx = true(1, numEquations);
+    input = textual.stringify(this.Input);
 
-equations = input(inx);
-descriptions = textual.stringify(this.Label(inx));
-aliases = textual.stringify(this.Alias(inx));
+    for i = 1 : numel(varargin)
+        inx = inx & varargin{i}(input);
+    end
+
+    equations = input(inx);
+    descriptions = textual.stringify(this.Label(inx));
+    aliases = textual.stringify(this.Alias(inx));
 
 end%
+

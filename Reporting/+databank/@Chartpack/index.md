@@ -1,4 +1,5 @@
-# Overview of databank.Chartpack objects
+
+# Overview of quick databank charpack package
 
 ## Categorical list of functions
 

@@ -1,3 +1,4 @@
+
 function flag = isLog(this, names)
 
     names = string(names);

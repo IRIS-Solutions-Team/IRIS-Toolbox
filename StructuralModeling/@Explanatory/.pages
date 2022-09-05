@@ -1,0 +1,9 @@
+title: Explanatory equation objects
+
+nav:
+    - "index.md"
+    - "fromFile.md"
+    - "fromModel.md"
+    - "fromString.md"
+    - ...
+

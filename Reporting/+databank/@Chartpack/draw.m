@@ -1,5 +1,4 @@
 
-
 function info = draw(this, inputDb)
 
 % >=R2019b

@@ -1,3 +1,4 @@
-# Overview of dynamic factor models: `@Dynafit` objects
+
+# Overview of dynamic factor model objects
  
 

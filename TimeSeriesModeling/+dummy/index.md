@@ -1,3 +1,3 @@
-# Overview of prior dummy observations: `+dummy` package
 
+# Overview of prior dummy observations for VAR model estimation
 

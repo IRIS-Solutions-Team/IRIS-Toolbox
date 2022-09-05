@@ -1,2 +1,3 @@
-# Overview of the `rephrase.js` reporting package
+
+# Overview of the HTML reporting package
  

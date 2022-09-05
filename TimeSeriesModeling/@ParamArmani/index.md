@@ -1,2 +1,3 @@
-# Overview of parameterized ARMA models: `@ParamArmani` objects
+
+# Overview of parameterized finite ARMA process objects
 
