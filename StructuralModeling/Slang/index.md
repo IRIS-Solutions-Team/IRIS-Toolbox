@@ -1,6 +1,6 @@
-# Overview of model source code language
+# Overview of model source language
 
-The IrisT model source code language (Slang) is a system of keywords that define the structure of
+The IrisT model source language (Slang) is a system of keywords that define the structure of
 model source files. The model source files are plain text files (saved
 under any file name with any extension) that describe the model: its
 equations, variables, parameters, etc. The model files do not describe what

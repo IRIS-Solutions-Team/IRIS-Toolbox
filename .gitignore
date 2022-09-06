@@ -6,3 +6,5 @@ _header
 .temp
 *.asv
 test.sh
+.template.md
+

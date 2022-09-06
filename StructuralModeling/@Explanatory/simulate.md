@@ -48,3 +48,4 @@ title: islinear
     islinear(m)
     ans =
          1
+

@@ -1,6 +1,8 @@
 title: Simulation plan objects
+
 nav:
     - forModel.md
     - forExplanatory.md
+    - forSVAR.md
     - ...
 

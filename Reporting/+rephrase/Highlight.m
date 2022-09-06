@@ -5,10 +5,6 @@ classdef Highlight ...
 
     properties
         Type = string(rephrase.Type.HIGHLIGHT)
-    end
-
-
-    properties
         StartDate (1, 1) 
         EndDate (1, 1)
     end

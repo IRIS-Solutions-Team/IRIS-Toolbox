@@ -271,9 +271,9 @@ classdef Model ...
         varargout = kalmanFilter(varargin)
         varargout = equationStartsWith(varargin)
         varargout = isLinear(varargin)
+        varargout = isLog(varargin)
         varargout = print(varargin)
         varargout = replaceNames(varargin)
-        varargout = rescaleStd(varargin)
         varargout = resetBounds(varargin)
         varargout = setBounds(varargin)
         varargout = simulate(varargin)
@@ -281,6 +281,14 @@ classdef Model ...
         varargout = systemMatrices(varargin)
         varargout = table(varargin)
         varargout = quickAssign(varargin)
+
+        function varargout = islinear(varargin)
+            [varargout{1:nargout}] = isLinear(varargin{:});
+        end%
+
+        function varargout = islog(varargin)
+            [varargout{1:nargout}] = isLog(varargin{:});
+        end%
         %)
     end % methods
 

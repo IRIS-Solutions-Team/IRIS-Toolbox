@@ -1,2 +1,3 @@
-# Overview of VAR models
+
+# Overview of VAR objects
 

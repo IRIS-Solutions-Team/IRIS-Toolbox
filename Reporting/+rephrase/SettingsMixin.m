@@ -45,14 +45,12 @@ classdef (Abstract) SettingsMixin ...
             inxAssigned = false(size(this.SettingNames));
             for i = 1 : 2 : numel(varargin)
                 [flag, shortName] = isSetting(this, varargin{i});
-                if ~flag
-                    exception.error([
-                        "Rephrase"
-                        "Invalid options name in +rephrase.%s: %s"
-                    ], string(class(this)), varargin{i});
+                if flag
+                    this.SettingsAssigned(1, end+1) = shortName;
+                    this.(this.SETTINGS_PREFIX+shortName) = varargin{i+1};
+                else
+                    this.(varargin(i)) = varargin{i+1};
                 end
-                this.SettingsAssigned(1, end+1) = shortName;
-                this.(this.SETTINGS_PREFIX+shortName) = varargin{i+1};
             end
             this.SettingsAssigned = sort(unique(this.SettingsAssigned));
         end%

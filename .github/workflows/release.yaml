@@ -6,32 +6,32 @@ on:
   push:
     tags:
       - 'Ready-*'
-  
+
   workflow_dispatch:
-  
-  
+
+
 jobs:
   build:
     name: Package IrisT Release
-    # if: github.event.base_ref == 'refs/heads/master'    
+    # if: github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
-    
+
       - name: Checkout master
         uses: actions/checkout@master
         with:
           fetch-depth: 0
           ref: master
           path: iris-toolbox
-          
+
 
       - name: Collect release notes from commit messages and create ./release-notes
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
-          
+
           # Match only those release numbers that start with "20" to make sure we do not capture Release-11111111
           latest_release=$(git log --tags --no-walk --pretty="%d" | grep -oP "Release-20\w+" -m 1)
-          
+
           log=$(git log "$latest_release"..HEAD)
           echo "" > $GITHUB_WORKSPACE/release-notes
           echo "### Bug fixes" >> $GITHUB_WORKSPACE/release-notes
@@ -42,20 +42,20 @@ jobs:
           echo "" >> $GITHUB_WORKSPACE/release-notes
           echo "$log"| grep ">>" | sed "s/^ *>\{2,5\} \?//" >> $GITHUB_WORKSPACE/release-notes
           cat $GITHUB_WORKSPACE/release-notes
-          
-          
+
+
       - name: Name the release after the Ready-XXXXXXXX tag that triggered the action
         if: ${{ success() }}
         id: name
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
-          
+
           # ref that triggered the action: either tag "Release-XXXXXXXX" or "refs/heads/branch_name"
-          trigger_ref="${{ github.ref }}" 
+          trigger_ref="${{ github.ref }}"
           echo "Triggering ref: $trigger_ref"
-          
+
           # If github.ref == "refs/heads/branch_name" (instead of the tag), this means the action was triggered manually
-          # Assign the release number "11111111" 
+          # Assign the release number "11111111"
           if [[ "_$trigger_ref" == "_refs/heads/"* ]]; then
             release_number="11111111"
           else
@@ -64,44 +64,44 @@ jobs:
             release_number="${release_number#'Ready-'}"
           fi
           echo "Release number: $release_number"
-          
+
           # Save the release number and release name to outputs of this step
           echo "::set-output name=release_number::$release_number"
           echo "::set-output name=release_name::Release-$release_number"
-          
-          
+
+
       - name: Remove old IrisT id files & create new id file & update Contents.m
         if: ${{ success() }}
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
-          
+
           # Remove all existing id files iristbx*
           find . -name iristbx* -type f -maxdepth 1 -exec git rm {} +
-          
+
           # Create new id file iristbxXXXXXXXX, date-time stamped to force nonempty commit no matter what
           id_file_name="iristbx${{ steps.name.outputs.release_number }}"
           date_time_stamp=$(date "+%Y-%m-%dT%H:%M:%S")
           echo $date_time_stamp > $id_file_name
           cat $id_file_name
-          
-          # Update Contents.m, include date/time stamp to force 
+
+          # Update Contents.m, include date/time stamp to force
           find . -name Contents.m -type f -maxdepth 1 -exec rm {} +
           echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
           echo "% Version ${{ steps.name.outputs.release_name }} $date_time_stamp" >> Contents.m
           cat Contents.m
-          
-          
+
+
       - name: Commit & clean up & tag the new release
         if: ${{ success() }}
         run: |
           cd $GITHUB_WORKSPACE/iris-toolbox
-          
+
           git config --global user.email "jaromir.benes@gmail.com"
           git config --global user.name "Jaromir Benes"
           git switch master
           git add .
           git commit -m "${{ steps.name.outputs.release_name }}"
-          
+
           # Delete the Ready-XXXXXXXX tag if it exists
           # if [[ $(git tag --list "Ready-${{ steps.name.outputs.release_number }}") ]]; then
           #   git tag -d "Ready-${{ steps.name.outputs.release_number }}"
@@ -112,19 +112,19 @@ jobs:
           if [[ $(git tag --list "Release-11111111") ]]; then
             git tag -d "Release-11111111"
             git push origin --delete "Release-11111111"
-          fi            
-          
+          fi
+
           # First, make sure to delete the Release-XXXXXXXX tag if it already exists
           # if [[ $(git tag --list "Release-${{ steps.name.outputs.release_number }}") ]]; then
           #   git tag -d "${{ steps.name.outputs.release_name }}"
           #   git push origin --delete "${{ steps.name.outputs.release_name }}"
-          # fi          
-          
+          # fi
+
           git tag "${{ steps.name.outputs.release_name }}"
-          
+
           git push origin master --tags
-          
-          
+
+
       - name: Draft a new release; needs to be manually published
         if: ${{ success() }}
         # if: ${{ false }}
@@ -138,4 +138,4 @@ jobs:
           draft: true
           prerelease: false
 
-      
+

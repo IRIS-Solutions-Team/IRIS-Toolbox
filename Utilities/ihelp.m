@@ -1,6 +1,6 @@
 function ihelp(name, maxLines)
 
-    DIVIDER = string(newline()) + string(repmat('=', 1, 80)) + string(newline());
+    DIVIDER = string(repmat('=', 1, 80));
     CUT = "%---8<---";
     WHICH = @(name) regexprep(string(which(name)), "\s+%.*", "");
 
@@ -8,12 +8,10 @@ function ihelp(name, maxLines)
         catch, maxLines = Inf; end
 
     resolved = WHICH(name);
-    if ismissing(resolved) || strlength(resolved)==0
-        [path, title, ~] = fileparts(name);
-        resolved = WHICH(path);
-        [path, ~, ~] = fileparts(resolved);
-        resolved = fullfile(string(path), string(title)+".m");
-    end
+    [path, title, ~] = fileparts(name);
+    resolved = WHICH(path);
+    [path, ~, ~] = fileparts(resolved);
+    resolved = fullfile(string(path), string(title)+".md");
 
     try
         mdContent = string(fileread(resolved));
@@ -24,28 +22,21 @@ function ihelp(name, maxLines)
         ], name);
     end
 
-    if ~contains(mdContent, CUT)
-        exception.error([
-            "Help"
-            "No markdown help exists in IrisT for this file: %s"
-        ], name);
-    end
-
-    mdContent = extractBefore(mdContent, CUT);
-    mdContent = regexp(mdContent, "%\{(.*)%\}", "tokens", "once");
-    if ismissing(mdContent) || isempty(mdContent) ...
-        || ismissing(mdContent(1)) || strlength(mdContent)==0
-        exception.error([
-            "Help"
-            "No markdown help exists in IrisT for this file: %s"
-        ], name);
-    end
-    mdContent = mdContent(1);
+%     if ~contains(mdContent, CUT)
+%         exception.error([
+%             "Help"
+%             "No markdown help exists in IrisT for this file: %s"
+%         ], name);
+%     end
+%     mdContent = extractBefore(mdContent, CUT);
 
     mdContent = regexprep(mdContent, "\r", "");
     mdContent = regexprep(mdContent, "\n{4,}", "\n\n\n");
+    title = regexp(mdContent, "---\ntitle: ([^\n\s]+)", "tokens", "once");
+    title = title(1);
     mdContent = regexprep(mdContent, "^\s*---.*?---", "");
     mdContent = regexprep(mdContent, "^\s+", "\n");
+    mdContent = sprintf("\n# `%s`\n", title) + mdContent;
 
     mdContent = regexprep(mdContent, "^# `?([^`\n]+)`?", "<a href="""">$1</a>", "lineAnchors");
     mdContent = regexprep(mdContent, "^## ([^\n]+)", "<a href="""">$1</a>", "lineAnchors");

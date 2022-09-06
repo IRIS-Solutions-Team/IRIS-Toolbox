@@ -13,15 +13,16 @@ classdef (Abstract) ...
     methods
         function this = set.Settings_Highlight(this, h)
             if ~iscell(h)
-                hh = cell(1, numel(h));
-                for i = 1 : numel(h)
-                    hh{i} = h(i);
+                h__ = h;
+                h = cell(1, numel(h__));
+                for i = 1 : numel(h__)
+                    h{i} = h__(i);
                 end
             end
-            for i = 1 : numel(hh)
-                hh{i} = resolveHighlightDates(hh{i}, this);
+            for i = 1 : numel(h)
+                h{i} = resolveHighlightDates(h{i}, this);
             end
-            this.Settings_Highlight = hh;
+            this.Settings_Highlight = h;
         end%
     end
 
