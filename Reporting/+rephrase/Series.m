@@ -11,6 +11,7 @@ classdef Series ...
 
     properties (Hidden)
         Settings_Units (1, 1) string = ""
+        Settings_Bands = {}
     end
 
 
@@ -22,6 +23,17 @@ classdef Series ...
 
 
         function this = finalize(this, varargin)
+            if ~isempty(this.Settings_Bands) && rephrase.Type.isChart(this.Parent.Type)
+                center = this.Content;
+                startDate = this.Parent.Settings_StartDate;
+                endDate = this.Parent.Settings_EndDate;
+                if ~iscell(this.Settings_Bands)
+                    this.Settings_Bands = {this.Settings_Bands};
+                end
+                for i = 1 : numel(this.Settings_Bands)
+                    this.Settings_Bands{i} = finalize(this.Settings_Bands{i}, center, startDate, endDate);
+                end
+            end
             finalize@rephrase.Terminal(this);
             this.Content = finalizeSeriesData(this, this.Content);
         end%
@@ -46,3 +58,4 @@ classdef Series ...
         end%
     end
 end 
+

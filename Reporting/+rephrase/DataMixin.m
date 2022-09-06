@@ -3,7 +3,7 @@ classdef (Abstract) DataMixin ...
 
     properties (Hidden)
         Settings_Conditional 
-        Settings_Round (1, 1) double = Inf
+        Round (1, 1) double = Inf
     end
 
 
@@ -20,27 +20,15 @@ classdef (Abstract) DataMixin ...
             % Convert input time series to Dates/Values
             if isa(input, 'Series')
                 parent = this.Parent;
-                freq = input.Frequency;
-                if ismember(string(parent.Type), [string(rephrase.Type.CHART), string(rephrase.Type.SERIESCHART), string(rephrase.Type.CURVECHART)])
-                    startDate = parent.Settings_StartDate;
-                    endDate = parent.Settings_EndDate;
-                    values = getDataFromTo(input, startDate, endDate);
-                    dates = dater.colon(startDate, endDate);
-                    if freq>0
-                        dates = dater.toIsoString(dates, "start");
-                    end
+                if rephrase.Type.isChart(parent.Type)
+                    [dates, values] = this.finalizeForChart(input, parent.Settings_StartDate, parent.Settings_EndDate);
                 else
-                    dates = parent.Settings_Dates;
-                    values = getData(input, dates);
-                    dates = NaN;
+                    [dates, values] = this.finalizeForTable(input, parent.Settings_Dates);
                 end
-
                 values = values(:, 1);
+                values = round(this, values);
                 output = struct();
                 output.Dates = dates;
-                if this.Settings_Round<Inf
-                    values = round(values, round(this.Settings_Round));
-                end
                 output.Values = reshape(values, 1, []);
                 return
             end
@@ -51,6 +39,32 @@ classdef (Abstract) DataMixin ...
                 return
             end
             %)
+        end%
+
+
+        function values = round(this, values)
+            %(
+            if this.Round<Inf
+                values = round(values, round(this.Round));
+            end
+            %)
+        end%
+    end
+
+
+    methods (Static)
+        function [dates, values] = finalizeForChart(inputSeries, startDate, endDate)
+            freq = getFrequency(inputSeries);
+            [values, ~, ~, dates] = getDataFromTo(inputSeries, startDate, endDate);
+            if freq>0
+                dates = dater.toIsoString(dates, "start");
+            end
+        end%
+
+
+        function [dates, values] = finalizeForTable(inputSeries, dates)
+            values = getData(inputSeries, dates);
+            dates = NaN;
         end%
     end
 end

@@ -122,7 +122,7 @@ classdef Report ...
 
                 function template = here_readTemplate(source)
                     %(
-                    templateFolder = fullfile(iris.root( ), "Plugins", ".rephrase");
+                    templateFolder = fullfile(iris.root(), "Reporting", ".rephrase");
                     switch source
                         case "bundle"
                             templateFileName = fullfile(templateFolder, "report-template.bundle.html");
@@ -130,13 +130,8 @@ classdef Report ...
                         case "local"
                             templateFileName = fullfile(templateFolder, "report-template.html");
                             template = local_readTextFile(templateFileName);
-                            template = replace(template, """lib/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "lib/"));
-                            template = replace(template, """img/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "img/"));
-                        case "local"
-                            templateFileName = fullfile(templateFolder, "report-template.html");
-                            template = local_readTextFile(templateFileName);
-                            template = replace(template, """lib/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "lib/"));
-                            template = replace(template, """img/", """" + fullfile(iris.root( ), "Plugins", ".rephrase", "img/"));
+                            template = replace(template, """lib/", """" + fullfile(iris.root(), "Reporting", ".rephrase", "lib/"));
+                            template = replace(template, """img/", """" + fullfile(iris.root(), "Reporting", ".rephrase", "img/"));
                         case "web"
                             templateFileName = fullfile(templateFolder, "report-template-web-source.html");
                             template = local_readTextFile(templateFileName);
