@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My report name</title>
+
+  <!-- load vendor styles -->
+  <link rel="stylesheet" inline href="lib/vendor.min.css">
+
+  <!-- load default report styles -->
+  <link rel="stylesheet" inline href="lib/report.min.css">
+
+  <!-- user-defined styles -->
+  <style>/* user-defined-css-here */</style>
+</head>
+
+<body>
+  <!-- report template -->
+  <div class="report-content grid-y grid-frame">
+    <!-- sticky header  -->
+    <div class="report-header cell shrink">
+      <div class="grid-x grid-padding-x align-middle">
+        <div class="left-logo cell shrink"></div>
+        <div class="header-text cell auto">
+          <h1 class="title"></h1>
+          <h2><small class="subtitle"></small></h2>
+        </div>
+        <div class="right-logo cell shrink"></div>
+      </div>
+      <button type="button" class="hollow button small float-center report-toc-button" data-toggle="offCanvasToc">Table
+        of Contents</button>
+    </div>
+
+    <!-- ToC menu -->
+    <div class="off-canvas-wrapper report-toc-menu-wrapper">
+      <div class="off-canvas position-right report-toc-menu" id="offCanvasToc" data-off-canvas>
+      </div>
+    </div>
+
+    <!-- report body -->
+    <div class="report-body cell auto"></div>
+
+    <!-- sticky footer  -->
+    <div class="report-footer cell shrink">
+      <p class="footer-text text-center"></p>
+    </div>
+  </div>
+
+  <!-- link to default report logo (hidden) -->
+  <img inline class="report-default-logo" src="img/iris-logo.png">
+
+  <!-- Warn if JS is disabled in the browser -->
+  <noscript>
+    <h1>You must enable JavaScript to view this page.</h1>
+  </noscript>
+
+  <!-- external dependencies -->
+  <script inline src="lib/vendor.min.js"></script>
+
+  <!-- report data -->
+  <script>// report-data-script-here</script>
+
+  <!-- rendering scripts -->
+  <script inline src="lib/render.min.js"></script>
+</body>
+
+</html>
