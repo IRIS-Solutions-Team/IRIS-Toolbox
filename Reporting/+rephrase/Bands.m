@@ -18,7 +18,7 @@ classdef Bands ...
         Settings_Whitening (1, 1) double = 0
         Settings_Alpha (1, 1) double = 0.5
         Settings_LineWidth (1, 1) double = 0
-        Settings_Fill = "toself"
+        Settings_Fill = "tozerox"
     end
 
 
