@@ -51,7 +51,7 @@ __`Contributions=false`__ [ `true` | `false` ]
 > and stored in the 5th dimension of the `C` and `R` matrices.
 > 
 
-__`Filter=''`__ [ char ]
+__`Filter=""`__ [ string ]
 > 
 > Linear filter that is applied to variables specified by the option
 >`ApplyTo=`.
@@ -60,7 +60,7 @@ __`Filter=''`__ [ char ]
 __`NFreq=256`__ [ numeric ]
 > 
 > Number of equally spaced frequencies over which the filter in the option
->`Filter=` is numerically integrated.
+> `filter=` is numerically integrated.
 > 
 
 
@@ -69,14 +69,14 @@ __`Order=0`__ [ numeric ]
 > Order up to which ACF will be computed.
 > 
 
-__`MatrixFormat='NamedMatrix'`__ [ `'NamedMatrix'` | `'plain'` ] 
+__`MatrixFormat="NamedMatrix"`__ [ `"NamedMatrix"` | `"plain"` ] 
 > 
 > Return matrices `C` and `R` as either
->[`NamedMatrix`](../../data-management/namedmatrix-objects/README.md) objects
->(matrices with named rows and columns) or plain numeric arrays.
+> [NamedMatrix](../../DataManagement/@NamedMatrix/index.md) objects
+> (matrices with named rows and columns) or plain numeric arrays.
 > 
 
-__`Select=@all`__ [ `@all` | char | cellstr ] 
+__`Select=@all`__ [ `@all` | string ]
 > 
 > Return ACF for selected variables only; `@all` means all variables.
 > 
@@ -94,7 +94,7 @@ n-by-n-by-(p+1)-by-k-by-v, where k is the number of all shocks
 (measurement and transition) in the model.
 
 
-## Linear Filters
+## Linear filters
 
 
 You can use the option `Filter=` to get the ACF for variables as though
@@ -117,7 +117,9 @@ can use the following references:
 A first-difference filter (i.e. computes the ACF for the first
 differences of the respective variables):
 
-    [C, R] = acf(m, 'Filter', '1-L')
+```
+[C, R] = acf(m, 'Filter', '1-L')
+```
 
 
 ## Example
@@ -131,7 +133,10 @@ $$
 w(L) = \frac{\lambda}{\lambda + \frac{1}{ | (1-L)(1-L) | ^2}}
 $$
 
-    [C, R] = acf(m, 'filter', '1600/(1600 + 1/abs((1-L)^2)^2)')
+
+```
+[C, R] = acf(m, 'filter', '1600/(1600 + 1/abs((1-L)^2)^2)')
+```
 
 
 ## Example
@@ -143,6 +148,8 @@ the latter is usually more convenient. The following is a filter which
 retains periodicities between 4 and 40 periods (this would be between 1
 and 10 years in a quarterly model), 
 
-    [C, R] = acf(m, 'filter', 'per>=4 & per<=40')
+```matlab
+[C, R] = acf(m, 'filter', 'per>=4 & per<=40')
+```
 
 

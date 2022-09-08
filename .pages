@@ -6,3 +6,6 @@ nav:
     - "TimeSeriesModeling"
     - "DataManagement"
     - "Reporting" 
+    - "ShrinkageEstimation"
+    - "Utilities"
+

@@ -6,7 +6,7 @@ under any file name with any extension) that describe the model: its
 equations, variables, parameters, etc. The model files do not describe what
 tasks to do with the model. To run the tasks you want to perform with the
 model, you need first to load the model file into Matlab using the
-[`Model.fromFile`](../Model/fromFile.md) function. This function creates a
+[`Model.fromFile`](../@Model/fromFile.md) function. This function creates a
 model object. Then you write your own m-files using Matlab and IrisT
 functions to perform the desired tasks with the model object.
 
@@ -16,7 +16,7 @@ base and minimize repetitive model code writing tasks.
 
 You can get the model source files syntax highlighted in the Matlab editor
 to improve the readability of the files, and helps navigate the model more
-quickly; see the [setup instructions](../../Install/index.md).
+quickly; see the [setup instructions](../../+iris/install.md).
 
 
 ## Guidelines

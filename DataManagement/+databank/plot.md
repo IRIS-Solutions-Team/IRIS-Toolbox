@@ -25,19 +25,19 @@ __`list`__ [ string ]
 
 ## Output arguments
 
-__`ch`__ [ databank.Chartpack ]
+__`ch`__ [ Chartpack ]
 > 
-> A databank.Chartpack object created within the function.
+> A new Chartpack object created within the function.
 > 
 
 __`info`__ [ struct ]
 > 
-> An info struct returned from the `databank.Chartpack/draw` function.
+> An info struct returned from the `Chartpack/draw` function.
 > 
 
 ## Options
 
-Any `databank.Chartpack` property can be assigned as an option in
+Any `Chartpack` property can be assigned as an option in
 `databank.plot`.
 
 

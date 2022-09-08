@@ -1,7 +1,3 @@
-% iris.reset  Reset IrisT configuration opt to their default values
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
 %(

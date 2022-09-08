@@ -170,8 +170,7 @@ outputDb = simulate( ...
 );
 ```
 
-See [Numerical solver settings](../../numerical-utilities/solver/index.md)
-for the description of all settings.
+See [Numerical solver settings](../Solver/index.md) for the description of all settings.
 
 
 ## Example 

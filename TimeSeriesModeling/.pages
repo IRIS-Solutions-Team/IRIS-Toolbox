@@ -6,7 +6,6 @@ nav:
     - "@VAR"
     - "@SVAR"
     - "PanelVAR"
-    - "+dummy"
     - "@Dynafit"
     - "@Armani"
     - "@ParamArmani"
