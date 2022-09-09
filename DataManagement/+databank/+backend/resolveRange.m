@@ -1,11 +1,3 @@
-% resolveRange  Resolve start and end dates from databank time series
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [from, to] = resolveRange(inputDb, names, from, to)
 
 if nargin<2
