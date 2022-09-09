@@ -1,8 +1,3 @@
-% getData  Get data on specified range from time series
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [data, dates, this] = getData(this, timeRef, varargin)
 
 testColon = @(x) (ischar(x) || isstring(x)) && all(strcmpi(x, ':'));
@@ -134,4 +129,3 @@ function output = locallyDetermineCase(start, timeRef)
     output = [start, '_', ref];
     %)
 end%
-

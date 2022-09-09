@@ -1,8 +1,3 @@
-% implementFilter  Implement n-th order high-pass filters
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 % >=R2019b
 %(
 function varargout = implementFilter(order, inputSeries, legacyRange, opt)

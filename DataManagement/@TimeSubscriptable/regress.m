@@ -1,8 +1,3 @@
-% Type `web Series/regress.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 % >=R2019b
 %(
 function [b, stdB, e, stdE, fit, dates, covB] = regress(lhs, rhs, legacyDates, opt)

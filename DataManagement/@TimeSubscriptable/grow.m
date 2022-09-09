@@ -1,7 +1,3 @@
-% Type `web Series/grow.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 % >=R2019b
 %(

@@ -1,7 +1,3 @@
-% project  Project time series using a function of its own observations and exogenous inputs
-%{
-%}
-
 function this = project(this, func, dates, varargin)
 
 if isempty(this) || isempty(dates)

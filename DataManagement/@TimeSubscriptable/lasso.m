@@ -1,65 +1,3 @@
-% lasso  Least absolute shrinkage and selection operator
-%
-% __Syntax__
-%
-% Input arguments marked with a `~` sign may be omitted.
-%
-%     [B, BStd, Residuals, EStd, Fitted, Range, BCov] = lasso(Y, X, ~Range, ...)
-%
-%
-% __Input arguments__
-%
-% * `Y` [ TimeSubscriptable ] - Time series of left-hand-side (dependent)
-% observations.
-%
-% * `X` [ TimeSubscriptable ] - Time series of right-hand-side
-% (independent) observations. 
-%
-% * `~Range` [ numeric ] - Date range on which the lasso will be run;
-% if omitted, the entire range available will be used.
-%
-%
-% __Output arguments__
-%
-% * `B` [ numeric ] - Vector of estimated lasso coefficients.
-%
-% * `BStd` [ numeric ] - Vector of std errors of the estimates.
-%
-% * `Residuals` [ TimeSubscriptable ] - Time series with the lasso residuals.
-%
-% * `EStd` [ numeric ] - Estimate of the std deviation of the lasso
-% residuals.
-%
-% * `Fitted` [ TimeSubscriptable ] - Time series with fitted LHS
-% observations.
-%
-% * `Range` [ numeric ] - The actually used date range.
-%
-% * `bBCov` [ numeric ] - Covariance matrix of the coefficient estimates.
-%
-%
-% __Options__
-%
-% * `Intercept=false` [ `true` | `false` ] - Include an intercept in the
-% lasso; if `true` the constant will be placed last in the matrix of
-% lassoors.
-%
-% * `Weighting=[ ]` [ TimeSubscriptable | numeric | empty ] - Time series with weights on
-% observations in individual periods, or a discount factor for weighting
-% the observations from the most recent to the most distant.
-%
-%
-% __Description__
-%
-% This function calls the built-in `lscov` function.
-%
-%
-% __Example__
-%
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [B, BStd, residuals, EStd, fitted, range, BCov] = lasso(Y, X, varargin)
 
 persistent pp
@@ -127,4 +65,3 @@ if nargout>2
 end
 
 end%
-

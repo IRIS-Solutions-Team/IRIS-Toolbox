@@ -1,11 +1,4 @@
 function implementDisp(this, name, disp2dFunc)
-% implementDisp  Implement disp method for numeric time series
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 config = iris.get( );
 
@@ -289,4 +282,3 @@ function x = disp2dYearly(start, data, tab, separator, toCharFunc)
     tab = repmat(tab, size(dates, 1), 1);
     x = [tab, dates, tab, dataChar];
 end%
-

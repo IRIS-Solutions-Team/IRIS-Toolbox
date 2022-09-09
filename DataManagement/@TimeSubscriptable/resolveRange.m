@@ -1,8 +1,3 @@
-% resolveRange  Resolve start and end dates of series specific range
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [from, to, range] = resolveRange(this, varargin)
 
 if nargin==1
@@ -43,4 +38,3 @@ if nargout>=3
 end
 
 end%
-

@@ -1,8 +1,3 @@
-% linearTrend  Create time series with linear trend
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 function this = linearTrend(constructor, range, varargin)
 
 persistent inputParser
@@ -31,4 +26,3 @@ end
 this = constructor(startDate, data);
 
 end%
-

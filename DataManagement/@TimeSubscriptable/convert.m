@@ -1,8 +1,3 @@
-% Type `web Series/convert.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function this = convert(this, newFreq, varargin)
 
 if isempty(this)

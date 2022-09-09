@@ -1,41 +1,4 @@
 function data = yearly(this, varargin)
-% yearly  Return array with time series data organized as one year per row
-%{
-% ## Syntax ##
-%
-% Input arguments marked with a `~` sign may be omitted
-%
-%     data = yearly(series, ~yearlyDates)
-%
-%
-% ## Input Arguments ##
-%
-% __`series`__ [ Series ] -
-% Input time series.
-%
-% __`~yearlyDates`__ [ Dater ] -
-% Years (dates of yearly frequency) for which the time series data will be
-% returned; one year per row; if omitted, the data will be returned from
-% the first year to the last year of the input `series`.
-%
-%
-% ## Output Arguments ##
-%
-% __`data`__ [ numeric | logical ] -
-% Array with the `series` data organized as one year per row; if the input
-% `series` is a multivariate series, the 2nd and higher dimension will be
-% shifted to 3rd and higher dimensions.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
 persistent pp
 if isempty(pp)
@@ -84,4 +47,3 @@ function flag = hereValidateDates(input)
     end
     flag = false;
 end%
-

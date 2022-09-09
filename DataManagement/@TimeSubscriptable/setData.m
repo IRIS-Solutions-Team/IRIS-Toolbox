@@ -1,8 +1,3 @@
-% setData  Assign data to TimeSubscriptable object
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
 function this = setData(this, s, y)
 
 ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
@@ -229,4 +224,3 @@ function [this, s, dates, freqTest] = locallyExpand(this, s)
     end
     %)
 end%
-

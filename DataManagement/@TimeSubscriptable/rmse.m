@@ -1,8 +1,3 @@
-% Type `web Series/rmse.md` for help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 % >=R2019b
 %(
 function [rmse, error] = rmse(actual, prediction, opt)
@@ -78,4 +73,3 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 ##### SOURCE END #####
 %}
-

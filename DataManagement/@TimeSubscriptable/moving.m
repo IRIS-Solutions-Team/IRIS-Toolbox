@@ -1,6 +1,3 @@
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 % >=R2019b
 %(
 function this = moving(this, legacyRange, opt)
@@ -82,4 +79,3 @@ function locallyValidateWindow(input)
     error("Validation:Failed", "Input value must be an array of integers or a complex integer scalar");
     %)
 end%
-

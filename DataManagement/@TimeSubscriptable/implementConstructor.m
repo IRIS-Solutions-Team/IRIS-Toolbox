@@ -84,4 +84,3 @@ function local_validateComment(x)
     error("Input value must empty or a string.");
     %)
 end%
-

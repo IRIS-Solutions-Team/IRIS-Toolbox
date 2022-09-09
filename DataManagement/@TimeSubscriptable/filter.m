@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function this = filter(this, armani, range, opt)
@@ -55,4 +54,3 @@ function data = local_fillMissing(data, option)
     end
     %)
 end%
-

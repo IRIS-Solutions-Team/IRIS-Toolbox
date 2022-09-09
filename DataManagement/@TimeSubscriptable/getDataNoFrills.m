@@ -1,8 +1,3 @@
-% getDataNoFrills  Get time series data for specified dates with no checks
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [data, inxWithinRange, posTimes, this] = getDataNoFrills(this, timeRef, varargin)
 
 timeRef = reshape(double(timeRef), 1, []);

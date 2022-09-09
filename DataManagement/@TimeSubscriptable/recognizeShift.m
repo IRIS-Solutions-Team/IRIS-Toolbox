@@ -1,8 +1,3 @@
-% recognizeShift  Recognize lag or lead in subscripted reference, and shift
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [this, subs, sh] = recognizeShift(this, subs)
 
 if numel(subs)>=1 ...

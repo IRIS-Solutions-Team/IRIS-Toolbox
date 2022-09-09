@@ -1,8 +1,3 @@
-% preparePlot  Preprocess common input arguments into TimeSubscriptable plot functions
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [axesHandle, dates, inputSeries, plotSpec, unmatched] = preparePlot(varargin)
 
 persistent ip
@@ -108,4 +103,3 @@ function flag = local_validatePlotSpec(x)
     flag = true;
     %)
 end%
-

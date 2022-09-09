@@ -1,8 +1,3 @@
-% getDataFromTo  Retrieve time series data from date to date
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [x, actualFrom, actualTo, actualRange] = getDataFromTo(this, from, to)
 
 % No frequency check can be performed here; this is a responsibility of the
@@ -126,4 +121,3 @@ if nargout>=4
 end
 
 end%
-

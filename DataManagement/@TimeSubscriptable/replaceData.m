@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function this = replaceData(this, pairs)
@@ -34,4 +33,3 @@ end
 this = trim(this);
 
 end%
-

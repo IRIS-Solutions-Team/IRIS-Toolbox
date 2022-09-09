@@ -1,8 +1,3 @@
-% plotSwitchboard  Choose plot function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function ...
     [plotHandle, isTimeAxis] ...
     = plotSwitchboard(plotFunc, axesHandle, xData, yData, plotSpec, smooth, varargin)
@@ -173,4 +168,3 @@ function plotHandle = local_implementNoTimeAxis(axesHandle, plotFunc, yData, plo
         set(plotHandle, settings{:});
     end
 end%
-

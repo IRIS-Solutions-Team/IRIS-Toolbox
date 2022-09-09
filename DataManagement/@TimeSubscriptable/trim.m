@@ -1,8 +1,3 @@
-% trim  Remove leading and trailing missing values from time series data
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function this = trim(this, inxAllMissing)
 
 newData = this.Data;
@@ -45,4 +40,3 @@ this.Data = newData;
 this.Start = newStart;
 
 end%
-

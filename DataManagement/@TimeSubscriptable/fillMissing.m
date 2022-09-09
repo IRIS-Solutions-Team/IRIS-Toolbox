@@ -1,4 +1,3 @@
-
 % >=R2019b
 %(
 function [this, datesMissing] = fillMissing(this, range, method)
@@ -110,4 +109,3 @@ function data = locallyReplaceData(data, startDate, endDate, inxMissing, method)
     end
     data(inxMissing) = replaceWith(inxMissing);
 end%
-

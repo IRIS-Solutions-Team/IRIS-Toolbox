@@ -1,9 +1,3 @@
-% Type `web Series/rebase.md` to get help on this function
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
-
 % >=R2019b
 %(
 function [this, priorValue, reciprocal] = rebase(this, basePeriods, baseValue, opt)

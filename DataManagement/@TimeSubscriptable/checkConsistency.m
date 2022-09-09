@@ -1,13 +1,4 @@
 function flag = checkConsistency(this)
-% checkConsistency  Check internal consistency of TimeSubscriptable properties
-%
-% Backend IRIS function
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
 
 flag = checkConsistency@iris.mixin.GetterSetter(this) ...
     && checkConsistency@iris.mixin.UserDataContainer(this) ...
@@ -23,4 +14,3 @@ return
         flag = numelStart==1 && sizeComment(1)==1 && isequal(sizeData(2:end), sizeComment(2:end));
     end%
 end%
-

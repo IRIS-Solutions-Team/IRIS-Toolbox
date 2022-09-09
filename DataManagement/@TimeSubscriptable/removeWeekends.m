@@ -5,4 +5,3 @@ this.Data(inxWeekends, :) = this.MissingValue;
 this = trim(this);
 
 end%
-

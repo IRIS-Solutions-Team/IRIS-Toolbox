@@ -1,11 +1,3 @@
-% unop  Unary operators and functions on tseries objects
-%
-% Backend [IrisToolbox] method
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-
 function [this, varargout] = unop(func, this, dim, varargin)
 
 if dim==0
@@ -38,4 +30,3 @@ else
 end
 
 end%
-

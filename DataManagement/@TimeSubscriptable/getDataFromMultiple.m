@@ -164,4 +164,3 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 ##### SOURCE END #####
 %}
-

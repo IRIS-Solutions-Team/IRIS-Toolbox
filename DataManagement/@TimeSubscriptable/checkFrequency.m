@@ -13,4 +13,3 @@ if any(~validateFrequencyOrInf(this, dates))
 end
 
 end%
-
