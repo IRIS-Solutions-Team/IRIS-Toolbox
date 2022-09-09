@@ -1,15 +1,15 @@
 ---
-title: CurveChart
+title: rephrase.CurveChart
 ---
 
-# `CurveChart`
+# `rephrase.CurveChart`
 
-{== H1 tag line ==}
+{== Create a CurveChart object for rephrase reports ==}
 
 
 ## Syntax 
 
-    chart = rephrase.CurveChart(title, ticks, varargin)
+    output = rephrase.CurveChart(title, ticks, varargin)
 
 
 ## Input arguments 
@@ -27,7 +27,7 @@ __`ticks`__ [ numeric ]
 
 ## Output arguments 
 
-__`chart`__ [ CurveChart ]
+__`output`__ [ CurveChart ]
 > 
 > CurveChart type object with the assigned arguements to be
 > passed into the rephrase objects.

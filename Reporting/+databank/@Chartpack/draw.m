@@ -1,4 +1,3 @@
-
 function info = draw(this, inputDb)
 
 % >=R2019b
@@ -96,4 +95,3 @@ if ~isempty(info.FigureHandles) && ~isnan(this.ShowFigure)
 end
 
 end%
-

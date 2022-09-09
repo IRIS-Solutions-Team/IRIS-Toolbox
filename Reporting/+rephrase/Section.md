@@ -1,15 +1,15 @@
 ---
-title: Section
+title: rephrase.Section
 ---
 
-# `Section`
+# `rephrase.Section`
 
-{== Creates Section object for rephrase reports ==}
+{== Create a Section object for rephrase reports ==}
 
 
 ## Syntax 
 
-    section = rephrase.Section(title, varargin)
+    output = rephrase.Section(title, varargin)
 
 
 ## Input arguments 
@@ -21,7 +21,7 @@ __`title`__ [ string ]
 
 ## Output arguments 
 
-__`section`__ [ Section ]
+__`output`__ [ Section ]
 > 
 > Section type object with the assigned arguements to be
 > passed into the rephrase objects.

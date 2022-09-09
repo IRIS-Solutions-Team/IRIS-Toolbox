@@ -1,15 +1,15 @@
 ---
-title: Bands
+title: rephrase.Bands
 ---
 
-# `Bands`
+# `rephrase.Bands`
 
-{== Creates Bands object for rephrase reports ==}
+{== Create a Bands object for rephrase reports ==}
 
 
 ## Syntax 
 
-    band = rephrase.Bands(title, lower, upper, relation, varargin)
+    output = rephrase.Bands(title, lower, upper, relation, varargin)
 
 
 ## Input arguments 
@@ -48,7 +48,7 @@ __`Relation`__ [ string `relative` | `absolute` ]
 
 ## Output arguments 
 
-__`band`__ [ Bands ]
+__`output`__ [ Bands ]
 > 
 > Bands type object with the assigned arguements to be passed
 > into the rephrase objects.

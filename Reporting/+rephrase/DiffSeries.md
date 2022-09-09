@@ -1,15 +1,15 @@
 ---
-title: DiffSeries
+title: rephrase.DiffSeries
 ---
 
-# `DiffSeries`
+# `rephrase.DiffSeries`
 
-{== Creates DiffSeries object for rephrase reports ==}
+{== Create a DiffSeries object for rephrase reports ==}
 
 
 ## Syntax 
 
-    diffs = rephrase.DiffSeries(title, baseline, alternative, varargin)
+    output = rephrase.DiffSeries(title, baseline, alternative, varargin)
 
 
 ## Input arguments 
@@ -31,7 +31,7 @@ __`alternative`__ [ Series ]
 
 ## Output arguments 
 
-__`diffs`__ [ DiffSeries ]
+__`output`__ [ DiffSeries ]
 > 
 > DiffSeries type object with the assigned arguements to be
 > passed into the rephrase objects.

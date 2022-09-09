@@ -1,20 +1,20 @@
 ---
-title: Pager
+title: rephrase.Pager
 ---
 
-# `Pager`
+# `rephrase.Pager`
 
-{== Creates Text object for rephrase reports ==}
+{== Create a Text object for rephrase reports ==}
 
 
 ## Syntax 
 
-    pager = rephrase.Pager(title, varargin)
+    output = rephrase.Pager(title, varargin)
 
 
 ## Input arguments 
 
-__`title=`__ [ string ]
+__`title`__ [ string ]
 > 
 > Title text for the pager.
 > 
@@ -22,7 +22,7 @@ __`title=`__ [ string ]
 
 ## Output arguments 
 
-__`pager`__ [ Table ]
+__`output`__ [ Pager ]
 > 
 > Pager type object with the assigned arguements to be passed
 > into the rephrase objects.

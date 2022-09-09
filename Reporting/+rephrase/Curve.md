@@ -1,15 +1,15 @@
 ---
-title: Curve
+title: rephrase.Curve
 ---
 
-# `Curve`
+# `rephrase.Curve`
 
-{== Creates Curve object for rephrase reports ==}
+{== Create a Curve object for rephrase reports ==}
 
 
 ## Syntax 
 
-    curve = rephrase.Curve(title, input, varargin)
+    output = rephrase.Curve(title, input, varargin)
 
 
 ## Input arguments 
@@ -26,7 +26,7 @@ __`input`__ [ Series ]
 
 ## Output arguments 
 
-__`curve`__ [ Curve ]
+__`output`__ [ Curve ]
 > 
 > Curve type object with the assigned arguements to be
 > passed into the rephrase objects.

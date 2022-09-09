@@ -1,15 +1,15 @@
 ---
-title: Grid
+title: rephrase.Grid
 ---
 
-# `Grid`
+# `rephrase.Grid`
 
-{== Creates Grids object for rephrase reports ==}
+{== Create a Grids object for rephrase reports ==}
 
 
 ## Syntax 
 
-    grid = rephrase.Grid(title, numRows, numColumns, varargin)
+    output = rephrase.Grid(title, numRows, numColumns, varargin)
 
 ## Input arguments 
 
@@ -20,7 +20,7 @@ __`title`__ [ string ]
 
 ## Output arguments 
 
-__`grid`__ [ Grid ]
+__`output`__ [ Grid ]
 > 
 > Grid type object with the assigned arguements to be passed
 > into the rephrase objects. It can be used to create a grid

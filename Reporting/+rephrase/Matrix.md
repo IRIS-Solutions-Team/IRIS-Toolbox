@@ -1,20 +1,20 @@
 ---
-title: Matrix
+title: rephrase.Matrix
 ---
 
-# `Matrix`
+# `rephrase.Matrix`
 
-{== Creates Matrix object for rephrase reports ==}
+{== Create a Matrix object for rephrase reports ==}
 
 
 ## Syntax 
 
-    matrix = rephrase.Matrix(title, input, varargin)
+    output = rephrase.Matrix(title, input, varargin)
 
 
 ## Input arguments 
 
-__`title=`__ [ string ]
+__`title`__ [ string ]
 > 
 > Title text for the matrix.
 > 
@@ -26,7 +26,7 @@ __`input`__ [ array ]
 
 ## Output arguments 
 
-__`matrix`__ [ Matrix ]
+__`output`__ [ Matrix ]
 > 
 > Matrix type object with the assigned arguements to be
 > passed into the rephrase objects.

@@ -1,15 +1,15 @@
 ---
-title: Marker
+title: rephrase.Marker
 ---
 
-# `Marker`
+# `rephrase.Marker`
 
-{== Creates Marker object for rephrase reports ==}
+{== Create a Marker object for rephrase reports ==}
 
 
 ## Syntax 
 
-    marker = rephrase.Marker(title, x, y, varargin)
+    output = rephrase.Marker(title, x, y, varargin)
 
 ## Input arguments 
 
@@ -30,7 +30,7 @@ __`y`__ [ numeric ]
 
 ## Output arguments 
 
-__`marker`__ [ Marker ]
+__`output`__ [ Marker ]
 > 
 > Marker type object with the assigned arguements to be passed
 > into the rephrase objects.

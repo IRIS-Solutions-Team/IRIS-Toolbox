@@ -1,15 +1,15 @@
 ---
-title: Series
+title: rephrase.Series
 ---
 
-# `Series`
+# `rephrase.Series`
 
-{== Creates Series object for rephrase reports ==}
+{== Create a Series object for rephrase reports ==}
 
 
 ## Syntax 
 
-    series = rephrase.Series(title, input, varargin)
+    output = rephrase.Series(title, input, varargin)
 
 
 ## Input arguments 
@@ -26,7 +26,7 @@ __`input`__ [ Series ]
 
 ## Output arguments 
 
-__`series`__ [ Series ]
+__`output`__ [ Series ]
 > 
 > Series type object with the assigned arguements to be
 > passed into the rephrase objects.

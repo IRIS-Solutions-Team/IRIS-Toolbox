@@ -1,37 +1,37 @@
 ---
-title: Text
+title: rephrase.Text
 ---
 
-# `Text`
+# `rephrase.Text`
 
-{== Creates Text object for rephrase reports ==}
+{== Create a Text object for rephrase reports ==}
 
 
 ## Syntax 
 
-    txt = rephrase.Text.fromFile(title, fileName, varargin)
-    txt = rephrase.Text.fromString(title, text, varargin)
+    output = rephrase.Text.fromFile(title, fileName, varargin)
+    output = rephrase.Text.fromString(title, text, varargin)
 
 ## Input arguments 
 
-__`title=`__ [ string ]
+__`title`__ [ string ]
 > 
 > Title text for the text.
 > 
 
-__`fileName=`__ [ string ]
+__`fileName`__ [ string ]
 > 
 > File name with specified location.
 > 
 
-__`text=`__ [ string ]
+__`text`__ [ string ]
 > 
 > Text string to be inserted into the object.
 > 
 
 ## Output arguments 
 
-__`txt`__ [ Table ]
+__`output`__ [ Table ]
 > 
 > Text type object with the assigned arguements to be passed
 > into the rephrase objects.

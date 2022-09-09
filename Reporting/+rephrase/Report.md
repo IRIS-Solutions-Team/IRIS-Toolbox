@@ -1,15 +1,15 @@
 ---
-title: Report
+title: rephrase.Report
 ---
 
-# `Report`
+# `rephrase.Report`
 
-{== Creates Report object for rephrase reports ==}
+{== Create a Report object for rephrase reports ==}
 
 
 ## Syntax 
 
-    report = rephrase.Report(title, varargin)
+    output = rephrase.Report(title, varargin)
 
 
 ## Input arguments 
@@ -21,7 +21,7 @@ __`title`__ [ string ]
 
 ## Output arguments 
 
-__`report`__ [ Report ]
+__`output`__ [ Report ]
 > 
 > Report type object with the assigned arguements to be
 > passed into the rephrase objects.

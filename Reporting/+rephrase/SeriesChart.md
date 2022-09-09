@@ -1,15 +1,15 @@
 ---
-title: SeriesChart
+title: rephrase.SeriesChart
 ---
 
-# `SeriesChart`
+# `rephrase.SeriesChart`
 
-{== Creates SeriesChart object for rephrase reports ==}
+{== Create a SeriesChart object for rephrase reports ==}
 
 
 ## Syntax 
 
-    chart = rephrase.SeriesChart(title, dates, varargin)
+    output = rephrase.SeriesChart(title, dates, varargin)
 
 
 ## Input arguments 
@@ -27,7 +27,7 @@ __`dates`__ [ numeric ]
 
 ## Output arguments 
 
-__`chart`__ [ SeriesChart ]
+__`output`__ [ SeriesChart ]
 > 
 > SeriesChart type object with the assigned arguements to be
 > passed into the rephrase objects.

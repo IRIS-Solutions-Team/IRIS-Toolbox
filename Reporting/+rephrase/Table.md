@@ -1,15 +1,15 @@
 ---
-title: Table
+title: rephrase.Table
 ---
 
-# `Table`
+# `rephrase.Table`
 
-{== Creates Table object for rephrase reports ==}
+{== Create a Table object for rephrase reports ==}
 
 
 ## Syntax 
 
-    table = rephrase.Table(title, dates, varargin)
+    output = rephrase.Table(title, dates, varargin)
 
 
 ## Input arguments 
@@ -27,7 +27,7 @@ __`dates`__ [ numeric ]
 
 ## Output arguments 
 
-__`table`__ [ Table ]
+__`output`__ [ Table ]
 > 
 > Table type object with the assigned arguements to be passed
 > into the rephrase objects.
@@ -84,7 +84,7 @@ The function `+rephrase/Table` returns the Table object based on the input argum
 
 ```matlab
 
-table = rephrase.Table( ...
+table1 = rephrase.Table( ...
     "Table Name", range ...
     , "DateFormat", "YYYY:QQ" ...
     , "NumDecimals", 2 ...

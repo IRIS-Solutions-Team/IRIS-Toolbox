@@ -1,31 +1,31 @@
 ---
-title: Highlight
+title: rephrase.Highlight
 ---
 
-# `Highlight`
+# `rephrase.Highlight`
 
-{== Creates Highlight object for rephrase reports ==}
+{== Create a Highlight object for rephrase reports ==}
 
 
 ## Syntax 
 
-    hl = rephrase.Highlight(startDate, endDate, varargin)
+    output = rephrase.Highlight(startDate, endDate, varargin)
 
 ## Input arguments 
 
-__`StartDate=`__ [ numeric ]
+__`StartDate`__ [ numeric ]
 > 
 > Start date of the data to be displayed.
 > 
 
-__`EndDate=`__ [ numeric ]
+__`EndDate`__ [ numeric ]
 > 
 > End date of the data to be displayed.
 > 
 
 ## Output arguments 
 
-__`hl`__ [ Highlight ]
+__`output`__ [ Highlight ]
 > 
 > Highlight type object with the assigned arguements to be
 > passed into the rephrase objects.
