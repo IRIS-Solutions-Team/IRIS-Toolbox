@@ -79,7 +79,35 @@ __`frameDb`__ [ cell ]
 > 
 
 
-## Options 
+## General options 
+
+__`anticipate=true`__ [ `true` | `false` ]
+> 
+> Default anticipation status for shocks placed at future times; the
+> anticipation status can be modified individually for each shock by using
+> real/imaginary values in the `inputDb`, or by specifying anticipation
+> status in the simulation plan in the `plan=` option.
+> 
+
+
+__`appendInput=false`__ [ `true` | `false` ]
+> 
+> If `true`, the data from `inputDb` succeeding the simulation range
+> will be included in the output time series returned in `outputDb`.
+> 
+
+
+__`contributions=false`__ [ `true` | `false`]
+> 
+> Break the simulation down into the contributions of individual types of
+> shocks.
+> 
+
+__`ignoreShocks=false`__ [ `true` | `false` ]
+> 
+> Reset all shocks in the input databank to zero. 
+> 
+
 
 __`method="firstOrder"`__ [ "firstOrder" | "stacked" | "period" ]
 > 
@@ -99,6 +127,13 @@ __`method="firstOrder"`__ [ "firstOrder" | "stacked" | "period" ]
 > specify the settings for the nonlinear solver.
 > 
 
+
+__`plan=[]`__ [ empty | Plan ]
+> 
+> Specify a [simulation plan](../@Plan/index.md) with anticipation, inversion and conditioning
+> information.
+> 
+
 __`deviation=false`__ [ `true` | `false` ]
 > 
 > If true, both the input data and the output data are (and are expected
@@ -111,17 +146,35 @@ __`deviation=false`__ [ `true` | `false` ]
 > steady state are calculated as a ratio: $x_t / \bar x_t$.
 > 
 
+__`includeLog=false`__ [ `true` | `false` ]
+> 
+> Include the paths for the logarithm of those variables that are declared
+> as `!log-variables` in the model; these will be reported under the names
+> prepended with the prefix `log_`.
+> 
+
+
 __`prependInput=false`__ [ `true` | `false` ]
 > 
 > If `true`, the data from `inputDb` preceding the simulation range
 > will be included in the output time series returned in `outputDb`.
 > 
 
-__`appendInput=false`__ [ `true` | `false` ]
+
+
+## Options for nonlinear simulation methods
+
+The following options take effect when `method="stacked"` or
+`method="period"`.
+
+
+__`blocks=false`__ [ `true` | `false` ]
 > 
-> If `true`, the data from `inputDb` succeeding the simulation range
-> will be included in the output time series returned in `outputDb`.
+> In simulations with no model inversion or conditioning: Apply
+> sequential block decomposition of the dynamic equations, and calculate
+> the simulation block by block.
 > 
+
 
 __`solver=@auto`__ [ `@auto` | string | cell ] 
 >  
@@ -129,6 +182,35 @@ __`solver=@auto`__ [ `@auto` | string | cell ]
 > (`method="stacked"` or `method="period"`), optionally also with solver
 > settings; see Description.
 > 
+
+
+__`successOnly=false`__ [ `true` | `false` ]
+> 
+> Stop the simulation when a variant/block fails to converge, and do not
+> proceed. If `successOnly=false`, the simulation proceeds to the next
+> variant/block, and the failure is reported in `outputInfo`.
+> 
+
+__`startIterationsFrom="firstOrder"`__ [ `"firstOrder"` | `"data"` ]
+> 
+> Method to determine the starting paths for variables:
+> 
+> * `"firstOrder"` - use first order solution to simulate the entire paths;
+> 
+> * `"data"` - use the paths from the `inputDb`.
+> 
+
+__`terminal="firstOrder"`__ [ `"firstOrder"` | `"data"` ]
+> 
+> Method to determine terminal condition in nonlinear simulations of
+> forward-looking models:
+> 
+> * `"firstOrder"` - use the first order solution to simulate terminal
+>   condition beyond the last nonlinear point;
+> 
+> * `"data"` - use fixed terminal condition supplied in the `inputDb`.
+> 
+
 
 ## Description 
 
