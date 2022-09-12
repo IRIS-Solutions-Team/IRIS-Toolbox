@@ -1,8 +1,9 @@
 
 # Setting up IrisT
 
-This section describes how to start and quit an IrisT session, and how to
-customise some of the IrisT configuration options.
+This section describes how to [install IrisT](install.md), start and quit
+an IrisT session, and how to customise some of the IrisT configuration
+options.
 
 The most common way of starting an IrisT session (after you have installed
 the IrisT files on your disk) is to run the following line in the

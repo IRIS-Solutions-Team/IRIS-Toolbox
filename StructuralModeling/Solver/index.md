@@ -1,7 +1,6 @@
 
 # Nonlinear equations solver
 
-
 ## General settings
 
 __`display="iter"`__ [ `"iter"` | `"final"` | `"none"` | numeric ]
