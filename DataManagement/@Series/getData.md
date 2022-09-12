@@ -1,10 +1,10 @@
 ---
-title: mynanstd
+title: getData
 ---
 
-# `mynanstd`
 
-{== Std deviation implemented for data with in-sample NaNs ==}
+
+{== Get data on specified range from time series ==}
 
 
 ## Syntax 

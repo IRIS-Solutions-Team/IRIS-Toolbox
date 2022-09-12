@@ -2,7 +2,7 @@
 title: windex
 ---
 
-# `windex`
+
 
 {== Plain weighted or Divisia index ==}
 

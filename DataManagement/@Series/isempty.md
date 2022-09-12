@@ -2,7 +2,7 @@
 title: isempty
 ---
 
-# `isempty`
+
 
 {== True if tseries object data matrix is empty. ==}
 

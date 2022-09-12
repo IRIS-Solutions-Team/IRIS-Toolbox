@@ -2,8 +2,6 @@
 title: apply
 ---
 
-# `apply`
-
 {== Apply function to time series period by period ==}
 
 

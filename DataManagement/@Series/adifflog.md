@@ -2,8 +2,6 @@
 title: adifflog
 ---
 
-# `adifflog`
-
 {== Annnualized first difference of logs ==}
 
 

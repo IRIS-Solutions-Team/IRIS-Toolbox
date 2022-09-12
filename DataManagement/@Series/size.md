@@ -1,10 +1,10 @@
 ---
-title: binop
+title: size
 ---
 
-# `binop`
 
-{== Binary operators and functions on Series objects ==}
+
+{== H1 tag line ==}
 
 
 ## Syntax 

@@ -2,7 +2,7 @@
 title: clip
 ---
 
-# `clip`
+
 
 {== Clip time series range ==}
 

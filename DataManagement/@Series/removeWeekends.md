@@ -1,10 +1,10 @@
 ---
-title: bwf
+title: removeWeekends
 ---
 
-# `bwf`
 
-{== Swap output arguments of the Butterworth filter with tunes ==}
+
+{== H1 tag line ==}
 
 
 ## Syntax 
@@ -38,7 +38,7 @@ __`zzz=default`__ [ zzz | ___ ]
 
 ## Description 
 
-See help on [`tseries/bwf`](tseries/bwf).
+
 
 ## Examples
 

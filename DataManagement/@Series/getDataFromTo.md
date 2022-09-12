@@ -1,10 +1,10 @@
 ---
-title: loadobj
+title: getDataFromTo
 ---
 
-# `loadobj`
 
-{== Prepare tseries object for loading from disk ==}
+
+{== Retrieve time series data from date to date ==}
 
 
 ## Syntax 

@@ -2,7 +2,7 @@
 title: fft
 ---
 
-{== Discrete Fourier transform of tseries object ==}
+{== Discrete Fourier transform of time series data ==}
 
 
 ## Syntax 
@@ -13,9 +13,9 @@ title: fft
 
 ## Input arguments 
 
-__`x`__ [ tseries ]
+__`x`__ [ Series ]
 > 
-> Input tseries object that will be transformed.
+> Input time series object whose data will be transformed.
 > 
 
 __`range`__ [ numeric | Inf ] 

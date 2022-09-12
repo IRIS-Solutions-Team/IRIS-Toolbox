@@ -1,10 +1,10 @@
 ---
-title: mybarcon
+title: setData
 ---
 
-# `mybarconname`
 
-{== Contribution bar graph ==}
+
+{== Assign data to TimeSubscriptable object ==}
 
 
 ## Syntax 
@@ -44,4 +44,3 @@ __`zzz=default`__ [ zzz | ___ ]
 
 ```matlab
 ```
-

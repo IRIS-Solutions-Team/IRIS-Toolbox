@@ -2,7 +2,7 @@
 title: subsasgn
 ---
 
-# `subsasgn`
+
 
 {== Subscripted assignment to numeric time series ==}
 

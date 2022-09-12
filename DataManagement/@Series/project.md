@@ -1,10 +1,10 @@
 ---
-title: mynanvar
+title: project
 ---
 
-# `mynanvar`
 
-{== Variance implemeted for data with in-sample NaNs ==}
+
+{== Project time series using a function of its own observations and exogenous inputs ==}
 
 
 ## Syntax 
