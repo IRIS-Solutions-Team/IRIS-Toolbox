@@ -23,9 +23,9 @@ quickly; see the [setup instructions](../../+iris/install.md).
 
 Reference | Description
 ---|---
-[`Creating model files`](model-files.md)                              | Guideline for writing and structuring model source files
-[`Declaring model names`](names.md)                                          | Declare model names: Variables, shocks, parameters
-[`Writing model equations`](equations.md)                                  | Write model equations
+[Writing source code](model-files.md)                              | Guideline for writing and structuring model source files
+[Declaring model names](names.md)                                          | Declare model names: Variables, shocks, parameters
+[Writing model equations](equations.md)                                  | Write model equations
 
 
 ## Categorical list of keywords
