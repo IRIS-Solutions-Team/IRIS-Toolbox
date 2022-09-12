@@ -1,8 +1,8 @@
 ---
-title: Heading
+title: rephrase.Heading
 ---
 
-# `Heading`
+# `rephrase.Heading`
 
 {== Creates Heading object for rephrase reports ==}
 
