@@ -1,6 +1,12 @@
 
 # Overview of structural modeling tools
 
+#### [Slang: model source language](Slang/index.md)
+
+Structural models are built from model source codes, written in model
+source language (Slang). Slang describes the individual elements of each
+model: variables, parameters, shocks, equations, etc.
+
 #### [Structural models](@Model/index.md)
 
 Structural models are systems of dynamic simultaneous (interdependent)
