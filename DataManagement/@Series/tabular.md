@@ -2,7 +2,7 @@
 title: tabular
 ---
 
-
+# `tabular`
 
 {== Display time series in tabular view ==}
 

@@ -2,7 +2,7 @@
 title: acf
 ---
 
-
+# `acf`
 
 {== Sample autocovariance and autocorrelation functions ==}
 

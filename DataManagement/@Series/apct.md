@@ -2,6 +2,8 @@
 title: apct
 ---
 
+# `apct`
+
 {== Annualized percent rate of change ==}
 
 

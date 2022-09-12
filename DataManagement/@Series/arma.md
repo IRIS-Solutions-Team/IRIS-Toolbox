@@ -2,6 +2,8 @@
 title: arma
 ---
 
+# `arma`
+
 {== Apply ARMA model to input series ==}
 
 

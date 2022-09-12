@@ -2,6 +2,8 @@
 title: chainlink
 ---
 
+# `chainlink`
+
 {== Calculate chain linked aggregate level series from level components and weights ==}
 
 

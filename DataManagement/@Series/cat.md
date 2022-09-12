@@ -2,6 +2,8 @@
 title: cat
 ---
 
+# `cat`
+
 {== Concatenation time series data in n-th dimension ==}
 
 

@@ -2,7 +2,7 @@
 title: genip
 ---
 
-
+# `genip`
 
 {== Generalized indicator based interpolation ==}
 

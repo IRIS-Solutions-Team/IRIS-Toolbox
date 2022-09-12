@@ -2,7 +2,7 @@
 title: removeWeekends
 ---
 
-
+# `removeWeekends`
 
 {== H1 tag line ==}
 

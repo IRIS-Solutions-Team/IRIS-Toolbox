@@ -2,7 +2,7 @@
 title: sort
 ---
 
-
+# `sort`
 
 {== Sort tseries columns by specified criterion. ==}
 

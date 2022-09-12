@@ -2,7 +2,7 @@
 title: aroc
 ---
 
-
+# `aroc`
 
 {== Annualized gross rate of change ==}
 

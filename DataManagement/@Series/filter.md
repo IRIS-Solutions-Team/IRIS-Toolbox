@@ -2,7 +2,7 @@
 title: filter
 ---
 
-
+# `filter`
 
 {== Apply rational transfer function (ARMA filter) to time series ==}
 

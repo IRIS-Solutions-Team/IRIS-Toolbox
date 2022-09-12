@@ -1,6 +1,8 @@
 ---
-title: Series.linearTrend  
+title: Series.linearTrend
 ---
+
+# `Series.linearTrend`
 
 {== Create time series with linear trend ==}
 

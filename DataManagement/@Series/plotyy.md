@@ -2,7 +2,7 @@
 title: plotyy
 ---
 
-
+# `plotyy`
 
 {== Line plot function with LHS and RHS axes for time series ==}
 

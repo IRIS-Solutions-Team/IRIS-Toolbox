@@ -2,6 +2,8 @@
 title: adiff
 ---
 
+# `adiff`
+
 {== Annnualized first difference ==}
 
 

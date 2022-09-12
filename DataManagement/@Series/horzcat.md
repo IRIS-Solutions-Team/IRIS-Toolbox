@@ -2,7 +2,7 @@
 title: horzcat
 ---
 
-
+# `horzcat`
 
 {== Horizontal concatenation of tseries objects. ==}
 

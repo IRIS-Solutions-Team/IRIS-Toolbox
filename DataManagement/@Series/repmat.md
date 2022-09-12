@@ -2,7 +2,7 @@
 title: repmat
 ---
 
-
+# `repmat`
 
 {== Repeat copies of time series data. ==}
 
