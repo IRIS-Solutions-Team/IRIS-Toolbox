@@ -9,10 +9,8 @@ title: plotpred
 
 ## Syntax 
 
-[Hx, Hy, Hm] = plotpred(~Ax, ~Range, X, Y, ...)
-> 
-> Input arguments marked with a `~` sign may be omitted.
-> 
+[Hx, Hy, Hm] = plotpred(~Range, X, Y, ...)
+
 
 ## Input arguments 
 
@@ -28,13 +26,7 @@ __`Y`__ [ tseries ]
 > below.
 > 
 
-__`~Ax`__ [ numeric ] 
-> 
-> Handle to axes object in which the data will be
-> plotted.
-> 
-
-__`~Range`__ [ numeric | Inf ] 
+__`Range=Inf`__ [ numeric | Inf ] 
 > 
 > Date range on which the input data will be
 > plotted.

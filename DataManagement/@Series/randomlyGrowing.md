@@ -2,6 +2,8 @@
 title: Series.randomlyGrowing
 ---
 
+# `Series.randomlyGrowing`
+
 {== Create randomly growing time series ==}
 
 

@@ -2,6 +2,8 @@
 title: rebase
 ---
 
+# `rebase`
+
 {== Rebase times series data to specified period ==}
 
 

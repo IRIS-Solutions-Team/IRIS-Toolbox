@@ -1,6 +1,8 @@
 ---
-title: arf  
+title: arf
 ---
+
+# `arf`
 
 {== Create autoregressive time series from input data ==}
 

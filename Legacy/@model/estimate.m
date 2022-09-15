@@ -11,7 +11,7 @@ persistent ip
 if isempty(ip)
     ip = inputParser();
     ip.KeepUnmatched = true;
-    addOptional(ip, 'SystemPriors', []);
+    addOptional(ip, 'SystemPriors', [], @(x) isempty(x) || isa(x, "SystemPriorWrapper"));
     addParameter(ip, 'CheckSteady', true, @model.validateChksstate); 
     addParameter(ip, 'Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
     addParameter(ip, 'Filter', cell.empty(1, 0), @validate.nestedOptions);

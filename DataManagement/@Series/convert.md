@@ -2,6 +2,8 @@
 title: convert
 ---
 
+# `convert`
+
 {== Convert time series to another frequency ==}
 
     

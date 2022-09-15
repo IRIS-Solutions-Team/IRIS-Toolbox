@@ -2,12 +2,7 @@
 %{
 % ## Syntax ##
 %
-%     [obj, info] = loglik(model, inputDb, range, domain, ___)
-%
-%
-% ## Syntax for Fast One-Off Likelihood Evaluation ##
-%
-%     obj = loglik(model, inputDb, range, domain, ...)
+%     minusLogLik = loglik(model, inputDb, range, domain, ___)
 %
 %
 % ## Syntax for Repeated Fast Likelihood Evaluations ##
@@ -44,8 +39,7 @@
 %
 % ## Output Arguments ##
 %
-% * `obj` [ numeric ] - Value of minus the log-likelihood function (or
-% other objective function if specified in options).
+% * `minusLogLik` [ numeric ] - Value of minus the log-likelihood function.
 %
 % * `V` [ numeric ] - Estimated variance scale factor if the `'relative='`
 % options is true; otherwise `V` is 1.
@@ -69,7 +63,7 @@
 % * `'objDecomp='` [ `true` | *`false`* ] - Decompose the objective
 % function into the contributions of individual time periods (in time
 % domain) or individual frequencies (in frequency domain); the
-% contributions are added as extra rows in the output argument `obj`.
+% contributions are added as extra rows in the output argument `minusLogLik`.
 %
 % * `Persist=false` [ `true` | `false` ] -- Pre-process and store the overhead
 % (data and options) for subsequent fast calls.
@@ -124,78 +118,69 @@
 % These variables are cleared at the end of the file unless the user
 % specifies `persist=true`.
 
-function [obj, info] = loglik(this, inputData, range, varargin)
+function minusLogLik = loglik(this, inputData, range, varargin)
 
-persistent DATA RANGE DOMAIN EXTENDED_RANGE OPT
+    persistent DATA RANGE DOMAIN EXTENDED_RANGE OPT
 
-% If loglik(m) is called without any further input arguments, the last ones
-% passed in will be used if `'persistent='` was set to `true`.
-if nargin==1
-    if isempty(OPT)
-        exception.error([
-            "Model"
-            "The loglik() function has not been initialized for repeated evaluation."
-        ]);
-    end
-else
-    RANGE = reshape(double(range), 1, [ ]);
-    EXTENDED_RANGE = [dater.plus(RANGE(1), -1), RANGE];
+    % If loglik(m) is called without any further input arguments, the last ones
+    % passed in will be used if `'persistent='` was set to `true`.
+    if nargin==1
+        if isempty(OPT)
+            exception.error([
+                "Model"
+                "The loglik() function has not been initialized for repeated evaluation."
+            ]);
+        end
+    else
+        RANGE = reshape(double(range), 1, [ ]);
+        EXTENDED_RANGE = [dater.plus(RANGE(1), -1), RANGE];
 
 
-    DOMAIN = "time";
-    if ~isempty(varargin)
-        if strcmpi(varargin{1}, ["t", "time"])
-            DOMAIN = "time";
-            varargin(1) = [];
-        elseif strcmpi(varargin{1}, ["f", "freq", "frequency"])
-            DOMAIN = "frequency";
-            varargin(1) = [];
+        DOMAIN = "time";
+        if ~isempty(varargin)
+            if strcmpi(varargin{1}, ["t", "time"])
+                DOMAIN = "time";
+                varargin(1) = [];
+            elseif strcmpi(varargin{1}, ["f", "freq", "frequency"])
+                DOMAIN = "frequency";
+                varargin(1) = [];
+            end
+        end
+
+
+        if DOMAIN=="time"
+            OPT = prepareKalmanOptions2(this, RANGE, varargin{:});
+            DATA = datarequest('tyg*', this, inputData, RANGE, ':');
+        else
+            OPT = prepareFreckleOptions2(this, RANGE, varargin{:});
+            DATA = datarequest('fyg*', this, inputData, RANGE, ':');
         end
     end
 
 
+    %=========================================================================
+    argin = struct( ...
+        'InputData', DATA, ...
+        'OutputData', [ ], ...
+        'InternalAssignFunc', [ ], ...
+        'Options', OPT ...
+    );
+
     if DOMAIN=="time"
-        OPT = prepareKalmanOptions2(this, RANGE, varargin{:});
-        DATA = datarequest('tyg*', this, inputData, RANGE, ':');
+        minusLogLik = implementKalmanFilter(this, argin);
     else
-        OPT = prepareFreckleOptions2(this, RANGE, varargin{:});
-        DATA = datarequest('fyg*', this, inputData, RANGE, ':');
+        minusLogLik = implementFreckle(this. argin);
     end
-end
+    %=========================================================================
 
 
-%=========================================================================
-argin = struct( ...
-    'InputData', DATA, ...
-    'OutputData', [ ], ...
-    'InternalAssignFunc', [ ], ...
-    'Options', OPT ...
-);
-if nargout==1
-    if DOMAIN=="time"
-        obj = implementKalmanFilter(this, argin);
-    else
-        obj = implementFreckle(this. argin);
+    if ~OPT.Persist
+        DATA   = [];
+        DOMAIN = [];
+        RANGE = [];
+        EXTENDED_RANGE  = [];
+        opt = [];
     end
-else
-    if DOMAIN=="time"
-        [obj, regOutp] = implementKalmanFilter(this, argin);
-        info = postprocessKalmanOutput(this, regOutp, EXTENDED_RANGE, OPT);
-    else
-        [obj, regOutp] = implementFreckle(this, argin);
-        info = postprocessFreckleOutput(this, regOutp, EXTENDED_RANGE, OPT);
-    end
-end
-%=========================================================================
-
-
-if ~OPT.Persist
-    DATA   = [];
-    DOMAIN = [];
-    RANGE = [];
-    EXTENDED_RANGE  = [];
-    OPT = [];
-end
 
 end%
 

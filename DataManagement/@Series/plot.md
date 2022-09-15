@@ -2,6 +2,8 @@
 title: plot
 ---
 
+# `plot`
+
 {== Line chart for Series objects ==}
 
 ## Syntax 

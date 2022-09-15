@@ -1,6 +1,7 @@
+title: Utilities
+
 nav:
     - index.md
-    - "Data grouping": "@Grouping"
     - "Visualization utilities": +visual
     - "Text utilities": +textual
 

@@ -1,11 +1,12 @@
+
 % >=R2019b
-%{
+%(
 function varargout = band(mid, lower, upper, opt)
 
 arguments
     mid Series
-    lower {locallyValidateBounds} = []
-    upper {locallyValidateBounds} = []
+    lower {local_validateBounds} = []
+    upper {local_validateBounds} = []
 
     opt.Range {validate.mustBeDate} = [-Inf, Inf]
     opt.AxesHandle (1, 1) = @gca
@@ -17,19 +18,19 @@ arguments
     opt.Relative (1, 1) logical = true
     opt.ExcludeFromLegend (1, 1) logical = true
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [plotHandle, info] = band(mid, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "lower", []);
-    addOptional(ip, "upper", []);
+    addOptional(ip, "lower", [], @local_validateBounds);
+    addOptional(ip, "upper", [], @local_validateBounds);
 
     addParameter(ip, "Range", [-Inf, Inf]);
     addParameter(ip, "AxesHandle", @gca);
@@ -45,7 +46,7 @@ parse(ip, varargin{:});
 lower = ip.Results.lower;
 upper = ip.Results.upper;
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -100,7 +101,7 @@ end%
 % Local validators
 %
 
-function locallyValidateBounds(x)
+function local_validateBounds(x)
     %(
     if isa(x, 'Series') || isequal(x, [])
         return

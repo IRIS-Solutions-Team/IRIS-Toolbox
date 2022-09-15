@@ -1,8 +1,9 @@
 
 # Setting up IrisT
 
-This section describes how to start and quit an IrisT session, and how to
-customise some of the IrisT configuration options.
+This section describes how to [install IrisT](install.md), start and quit
+an IrisT session, and how to customise some of the IrisT configuration
+options.
 
 The most common way of starting an IrisT session (after you have installed
 the IrisT files on your disk) is to run the following line in the
@@ -35,17 +36,16 @@ Function | Description
 
 Function | Description 
 ---|---
-[`iris.get`](get.md) | Query current IrisT config options.
-[`iris.man`](man.md) | Open IrisT Reference Manual PDF.
+[`iris.get`](get.md) | Get the current value of an IrisT config setting.
 [`iris.root`](root.md) | Current IrisT root folder.
-[`iris.required`](required.md) | Throw error if the installed version of IrisT fails to comply with the required minimum.
-[`iris.version`](version.md) | Current IrisT version.
+[`iris.required`](required.md) | Throw error if the installed release of IrisT fails to comply with the required minimum.
+[`iris.release`](release.md) | Current IrisT release number.
 
 
 ### Changes in configuration
 
 Function | Description 
 ---|---
-[`iris.set`](set.md) | Change configurable IrisT options
-[`iris.reset`](reset.md) | Reset IrisT configuration options to start-up values
+[`iris.set`](set.md) | Change the value of an IrisT config setting.
+[`iris.reset`](reset.md) | Reset the values of all IrisT config settings.
 

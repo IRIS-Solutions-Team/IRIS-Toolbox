@@ -53,15 +53,15 @@ function d = addToDatabank(what, this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('VAR/addToDatabank');
-    INPUT_PARSER.addRequired('What', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    INPUT_PARSER.addRequired('VAR', @(x) isa(x, 'VAR'));
-    INPUT_PARSER.addOptional('Databank', struct( ), @isstruct);
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addRequired(ip, 'What', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(ip, 'VAR', @(x) isa(x, 'VAR'));
+    addOptional(ip, 'Databank', struct(), @isstruct);
 end
-INPUT_PARSER.parse(what, this, varargin{:});
-d = INPUT_PARSER.Results.Databank;
+parse(ip, what, this, varargin{:});
+d = ip.Results.Databank;
 
 %--------------------------------------------------------------------------
 

@@ -7,4 +7,5 @@ nav:
     - "@Plan"
     - "@Explanatory"
     - "@LinearSystem"
+    - "Solver"
 

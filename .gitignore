@@ -8,3 +8,5 @@ _header
 test.sh
 .template.md
 
+.*.md
+*.*~

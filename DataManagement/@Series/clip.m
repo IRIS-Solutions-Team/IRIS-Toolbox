@@ -20,7 +20,7 @@ function [this, newStart, newEnd] = clip(this, newStart, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    addOptional(ip, "newEnd", []);
+    addOptional(ip, "newEnd", [], @(x) isempty(x) || isnumeric(x));
 end
 parse(ip, varargin{:});
 newEnd = ip.Results.newEnd;

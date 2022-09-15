@@ -1,0 +1,10 @@
+title: Shrinkage estimation
+
+nav:
+    - "@SystemPriorWrapper"
+    - "@SystemPrior"
+    - "@SystemProperty"
+    - "@Posterior"
+    - "+dummy"
+    - "+distribution"
+

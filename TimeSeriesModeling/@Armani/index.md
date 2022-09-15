@@ -1,3 +1,3 @@
 
-# Overview of finite ARMA process objects
+# Overview of ARMA process objects
 

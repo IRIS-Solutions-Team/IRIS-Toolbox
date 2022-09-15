@@ -5,8 +5,8 @@ function [outputArray, names, dates, headers, comments] = toArray(inputDb, names
 arguments
     inputDb (1, 1) {validate.databank}
 
-    names {locallyValidateNames} = @all
-    dates {locallyValidateDates} = Inf
+    names {local_validateNames} = @all
+    dates {local_validateDates} = Inf
 
 
     % column  Vector of flat columns in 2nd and higher dimensions to
@@ -26,10 +26,10 @@ function [outputArray, names, dates, headers, comments] = toArray(inputDb, varar
 
 persistent ip
 if isempty(ip)
-ip = inputParser();
-    addOptional(ip, "names", @all);
-    addOptional(ip, "dates", @all);
-    addOptional(ip, "column", 1);
+    ip = inputParser();
+    addOptional(ip, "names", @all, @local_validateNames);
+    addOptional(ip, "dates", @all, @local_validateDates);
+    addOptional(ip, "column", 1, @isnumeric);
 end
 parse(ip, varargin{:});
 names = ip.Results.names;
@@ -97,7 +97,7 @@ end%
 % Local Validators
 %
 
-function flag = locallyValidateNames(x)
+function flag = local_validateNames(x)
     %(
     flag = true;
     if isa(x, 'function_handle') || isstring(string(x))
@@ -108,7 +108,7 @@ function flag = locallyValidateNames(x)
 end%
 
 
-function flag = locallyValidateDates(x)
+function flag = local_validateDates(x)
     %(
     flag = true;
     if isnumeric(x)
