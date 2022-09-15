@@ -21,9 +21,9 @@ function [outputSeries, names, dates] = toSeries(inputDb, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addOptional(ip, "names", @all);
-    addOptional(ip, "dates", @all);
-    addOptional(ip, "columns", 1);
+    addOptional(ip, "names", @all, @local_validateNames);
+    addOptional(ip, "dates", @all, @local_validateDates);
+    addOptional(ip, "columns", 1, @isnumeric);
 end
 parse(ip, varargin{:});
 names = ip.Results.names;

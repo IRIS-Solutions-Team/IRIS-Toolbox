@@ -22,10 +22,15 @@ classdef ColorMixin ...
 
     methods (Static)
         function x = ensureRgbaArray(x)
+            if (isstring(x) || ischar(x)) && ismember(string(x), ["transparent", "half-transparent"])
+                return
+            end
+
             if isnumeric(x)
                 x = here_fromArray(x);
                 return
             end
+
             if (ischar(x) || isstring(x))
                 x = lower(string(x));
                 if startsWith(x, "rgba(", "ignoreCase", true)
@@ -42,9 +47,10 @@ classdef ColorMixin ...
                     return
                 end
             end
+
             exception.error([
                 "Rephrase"
-                "Invalid color specification; must be rgb, rgba, hex, or rgba array"
+                "Invalid color specification; must be RGB, RGBA, HEX, RGBA array, ""transparent"", or ""half-transparent"" "
             ]);
 
             function x = here_fromArray(x)

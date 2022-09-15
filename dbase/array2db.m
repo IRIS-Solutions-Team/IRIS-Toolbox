@@ -48,7 +48,7 @@ if isempty(ip)
     ip.addRequired('InputArray', @isnumeric);
     ip.addRequired('Dates', @isnumeric);
     ip.addRequired('List', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    ip.addOptional('IndexLog', [ ], @(x) isempty(x) || islogical(x) || isstruct(x));
+    ip.addOptional('IndexLog', [], @(x) isempty(x) || islogical(x) || isstruct(x));
     ip.addOptional('Databank', struct( ), @isstruct);
 
     ip.addParameter('Comments', cell.empty(1, 0), @iscellstr);

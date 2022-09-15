@@ -45,7 +45,7 @@ if isempty(ip)
     ip.addRequired('timeSeries', @(x) isa(x, 'Series'));
     ip.addRequired('test', @(x) isa(x, 'function_handle'));
     ip.addRequired('valueIfTrue');
-    ip.addOptional('valueIfFalse', [ ]);
+    ip.addOptional('valueIfFalse', []);
 end
 ip.parse(this, test, valueIfTrue, varargin{:});
 valueIfFalse = ip.Results.IfFalse;

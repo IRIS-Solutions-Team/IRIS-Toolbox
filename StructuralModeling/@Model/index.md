@@ -19,29 +19,29 @@ Function | Description
 Function | Description 
 ---|---
 [`access`](access.md) | Access properties of Model objects
-[`beenSolved`](beenSolved.md) | 
+[`beenSolved`](beenSolved.md) | True if first-order solution has been successfully calculated
 [`table`](table.md) | Create table based on selected indicators from Model object
 [`solutionMatrices`](solutionMatrices.md) | Access first-order state-space (solution) matrices
-[`byAttributes`](byAttributes.md) | 
-[`findEquation`](findEquation.md) | 
-[`getBounds`](getBounds.md) | 
-[`isLinkActive`](isLinkActive.md) |
-[`isLinear`](isLinear.md) |
-[`isLog`](isLog.md) |
-[`print`](print.md) |
-[`table`](table.md) |
+[`byAttributes`](byAttributes.md) | Look up model quantities and equation by attributes
+[`findEquation`](findEquation.md) | Find equations whose input strings pass one or more tests
+[`getBounds`](getBounds.md) | Get lower and upper bounds imposed on model quantities
+[`isLinkActive`](isLinkActive.md) | True if dynamic link is active
+[`isLinear`](isLinear.md) | True if the model has been declared as linear
+[`isLog`](isLog.md) | True for empty model object
+[`print`](print.md) | Print model object
+[`table`](table.md) | Create table based on selected indicators from Model object
 
 
 ### Assigning values within models
 
 Function | Description 
 ---|---
-[`assign`](assign.md) | 
-[`assignFromModel`](assignFromModel.md) | 
+[`assign`](assign.md) | Assign parameters, steady states, std deviations or cross-correlations
+[`assignFromModel`](assignFromModel.md) | Assign model quantities from another model
 [`replaceNames`](replaceNames.md) | Replace model names with some other names
 [`reset`](reset.md) | Reset specific values within model object
-[`resetBounds`](resetBounds.md) | 
-[`setBounds`](setBounds.md) | 
+[`resetBounds`](resetBounds.md) | Reset lower and upper bounds imposed on model quantities
+[`setBounds`](setBounds.md) | Set bounds for model quantities
 [`rescaleStd`](rescaleStd.md) | Rescale all std deviations by the same factor
 
 
@@ -49,10 +49,10 @@ Function | Description
 
 Function | Description 
 ---|---
-[`analyticGradients`](analyticGradients.md) |
-[`blazer`](blazer.md) |
-[`eig`](eig.md) |
-[`systemMatrices`](systemMatrices.md) |
+[`analyticGradients`](analyticGradients.md) | Evaluate analytic/symbolic derivatives of model equations
+[`blazer`](blazer.md) | Analyze sequential block structure of steady equations
+[`eig`](eig.md) | Eigenvalues of model transition matrix
+[`systemMatrices`](systemMatrices.md) | First-order system matrices describing the unsolved model
 
 
 
@@ -60,11 +60,11 @@ Function | Description
 
 Function | Description 
 ---|---
-[`acf`](acf.md) |
-[`bn`](bn.md) |
-[`fevd`](fevd.md) |
-[`ffrf`](ffrf.md) |
-[`fmse`](fmse.md) |
+[`acf`](acf.md) | Autocovariance and autocorrelation function for model variables
+[`bn`](bn.md) | Beveridge-Nelson trends
+[`fevd`](fevd.md) | Forecast error variance decomposition for model variables
+[`ffrf`](ffrf.md) | Filter frequency response function of transition variables to measurement variables
+[`fmse`](fmse.md) | Forecast mean square error matrices
 
 
 ### Solving and simulating models 
@@ -72,13 +72,13 @@ Function | Description
 Function | Description 
 ---|---
 [`checkSteady`](checkSteady.md) | Check if equations hold for currently assigned steady-state values
-[`checkInitials`](checkInitials.md) |
-[`expand`](expand.md) |
+[`checkInitials`](checkInitials.md) | Check if databank contains all initial conditions for simulation
+[`expand`](expand.md) | Compute forward expansion of model solution for anticipated shocks
 [`simulate`](simulate.md) | Run a model simulation
 [`solve`](solve.md) | Calculate first-order solution matrices
 [`steady`](steady.md) | Compute steady state or balance-growth path of the model
 [`system`](system.md) | System matrices for the unsolved model
-[`lhsmrhs`](lhsmrhs.md) |
+[`lhsmrhs`](lhsmrhs.md) | Discrepancy between the LHS and RHS of each model equation for given data
 
 
 ### Estimating and filtering model quantities
@@ -93,10 +93,11 @@ Function | Description
 
 Function | Description 
 ---|---
-[`activeLink`](activateLink.md) |
-[`deactiveLink`](deactivateLink.md) |
-[`alter`](alter.md) |
-[`changeGrowthStatus`](changeGrowthStatus.md) |
-[`changeLinearStatus`](changeLinearStatus.md) |
-[`changeLogStatus`](changeLogStatus.md) |
+[`activeLink`](activateLink.md) | Activate dynamic links for selected LHS names
+[`deactiveLink`](deactivateLink.md) | Deactivate dynamic links for selected LHS names
+[`alter`](alter.md) | Expand or reduce number of parameter variants in model object
+[`changeGrowthStatus`](changeGrowthStatus.md) | Change growth status for selected variables
+[`changeLinearStatus`](changeLinearStatus.md) | Change linear status of model
+[`changeLogStatus`](changeLogStatus.md) | Change log status of model variables
+
 

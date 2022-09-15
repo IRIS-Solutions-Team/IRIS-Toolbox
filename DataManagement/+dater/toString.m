@@ -26,7 +26,7 @@ function outputString = toString(inputDate, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    addOptional(ip, "dateFormat", "");
+    addOptional(ip, "dateFormat", "", @(x) isstring(x) || ischar(x));
     addParameter(ip, "Open", "");
     addParameter(ip, "Close", "");
 end

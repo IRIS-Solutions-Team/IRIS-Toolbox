@@ -3,9 +3,10 @@
 
 #### [Slang: model source language](Slang/index.md)
 
-Structural models are built from model source codes, written in model
-source language (Slang). Slang describes the individual elements of each
-model: variables, parameters, shocks, equations, etc.
+The model source language is used to describe all the elements of
+a model in human-readable form: variables, parameters, shocks,
+equations, etc. The model source is then translated to a
+structural model object.
 
 #### [Structural models](@Model/index.md)
 
@@ -15,11 +16,10 @@ nonstationary (balanced growth path) structural models.
 
 #### [Simulation plans](@Plan/index.md)
 
-Simulation plans are objects used to define more complex simulation
-assumptions for various types of model (structural models, explanatory
-equations, vector autoregressions). They allow the user to define the
-anticipation status, inversion pairs (exogenize/endogenize) and
-conditioning information.
+Simulation plans define more complex simulation assumptions for various
+types of models (structural models, explanatory equations, vector
+autoregressions): anticipation status, inversion pairs
+(exogenize/endogenize) and conditioning information.
 
 #### [Explanatory equations](@Explanatory/index.md)
 

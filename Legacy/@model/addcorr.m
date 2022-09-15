@@ -1,21 +1,21 @@
+
 function d = addcorr(this, varargin)
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/addcorr');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addOptional('Databank', struct( ), @isstruct);
-    INPUT_PARSER.addParameter('AddZeroCorr', false, @(x) isequal(x, true) || isequal(x, false));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addOptional(ip, 'databank', struct(), @validate.databank);
+    addParameter(ip, 'AddZeroCorr', false, @(x) isequal(x, true) || isequal(x, false));
 end
-INPUT_PARSER.parse(this, varargin{:});
-d = INPUT_PARSER.Results.Databank;
+parse(ip, varargin{:});
+d = ip.Results.databank;
 
-%--------------------------------------------------------------------------
 
-if INPUT_PARSER.Results.AddZeroCorr
-    d = addToDatabank('Corr', this, d);
-else
-    d = addToDatabank('ZeroCorr', this, d);
-end
+    if ip.Results.AddZeroCorr
+        d = addToDatabank('Corr', this, d);
+    else
+        d = addToDatabank('ZeroCorr', this, d);
+    end
 
-end
+end%
+
