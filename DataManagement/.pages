@@ -1,6 +1,12 @@
+title: Data management
+
 nav:
-    - index.md
-    - "Time series": Series
-    - "Databank package": databank
-    - "Dates": Dater
+    - "index.md"
+    - "@Series"
+    - "+databank"
+    - "@Dater"
+    - "@Termer"
+    - "@NamedMatrix"
+    - "@Grouping"
+    - "@ExcelSheet"
 

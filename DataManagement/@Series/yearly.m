@@ -37,41 +37,37 @@ function data = yearly(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('Series.yearly');
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'Series'));
-    addOptional(pp, 'yearlyDates', Inf, @hereValidateDates);
+persistent ip
+if isempty(ip)
+    ip = inputParser(); 
+    addOptional(ip, 'yearlyDates', Inf, @local_validateDates);
 end
-parse(pp, this, varargin{:});
-range = pp.Results.yearlyDates;
+parse(ip, varargin{:});
+range = ip.Results.yearlyDates;
 
-%--------------------------------------------------------------------------
 
-range = double(range);
-if isequal(range, Inf)
-    startYear = dater.convert(this.StartAsNumeric, Frequency.YEARLY);
-    endYear = dater.convert(this.EndAsNumeric, Frequency.YEARLY);
-    range = dater.colon(startYear, endYear);
-end
-range = reshape(range, [ ], 1);
+    range = double(range);
+    if isequal(range, Inf)
+        startYear = dater.convert(this.StartAsNumeric, Frequency.YEARLY);
+        endYear = dater.convert(this.EndAsNumeric, Frequency.YEARLY);
+        range = dater.colon(startYear, endYear);
+    end
+    range = reshape(range, [ ], 1);
 
-freq = this.FrequencyAsNumeric;
-func = @(year) dater.datecode(freq, year, 1:freq);
-dates = arrayfun(func, dat2ypf(range), 'UniformOutput', false);
-data = getData(this, [dates{:}]);
-sizeData = size(data);
-newSizeData = [freq, sizeData(1)/freq, sizeData(2:end)];
-data = reshape(data, newSizeData);
-data = permute(data, [2, 1, 3:ndims(data)]);
+    freq = this.FrequencyAsNumeric;
+    func = @(year) dater.datecode(freq, year, 1:freq);
+    dates = arrayfun(func, dat2ypf(range), 'UniformOutput', false);
+    data = getData(this, [dates{:}]);
+    sizeData = size(data);
+    newSizeData = [freq, sizeData(1)/freq, sizeData(2:end)];
+    data = reshape(data, newSizeData);
+    data = permute(data, [2, 1, 3:ndims(data)]);
 
-end
+end%
 
-%
-% Local Functions
-%
 
-function flag = hereValidateDates(input)
+function flag = local_validateDates(input)
+    %(
     input = double(input);
     if isequal(input, Inf)
         flag = true;
@@ -83,5 +79,6 @@ function flag = hereValidateDates(input)
         return
     end
     flag = false;
+    %)
 end%
 

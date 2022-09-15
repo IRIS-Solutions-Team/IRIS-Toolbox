@@ -2,6 +2,8 @@
 title: band
 ---
 
+# `band`
+
 {== Draw time series with uncerainty bands ==}
 
 ## Syntax

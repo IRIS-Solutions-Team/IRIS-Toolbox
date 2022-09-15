@@ -1,2 +1,3 @@
-# Overview of ARMA processes: `@Armani` objects
+
+# Overview of ARMA process objects
 

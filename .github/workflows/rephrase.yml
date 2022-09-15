@@ -7,7 +7,7 @@ on:
     #branches: [master]
   repository_dispatch:
     types: [rephrase-release-event]
-    
+
   workflow_dispatch:
 
 jobs:
@@ -23,28 +23,28 @@ jobs:
         path: rephrase
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
-        
+
     - name: Get short hash of latest rephrase commit
       id: rephrase_commit
       run: |
         cd $GITHUB_WORKSPACE/rephrase
-        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"      
-                
+        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
     - name: Clone iris-toolbox master
       uses: actions/checkout@v3
       with:
         path: iris
         fetch-depth: 0
         ref: bleeding
-        
+
     - name: Update subtree, push new commit
       run: |
         cd $GITHUB_WORKSPACE/iris
         git config --global user.email "jaromir.benes@gmail.com"
         git config --global user.name "Jaromir Benes"
         git switch bleeding
-        git subtree pull -P Plugins/.rephrase ../rephrase dist -m "Updated rephrase" --squash
+        git subtree pull -P Reporting/.rephrase ../rephrase dist -m "Updated rephrase from disst ${{ steps.rephrase_commit.outputs.sha_short }}" --squash
         #git add .
         #git commit -m "Update rephrase subtree from dist ${{ steps.rephrase_commit.outputs.sha_short }}"
         git push
-        
+

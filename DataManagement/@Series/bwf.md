@@ -4,15 +4,13 @@ title: bwf
 
 # `bwf`
 
-{== Butterworth filter with tunes. ==}
+{== Conditonal Butterworth filter ==}
 
 
 ## Syntax 
 
 [T, C, CutOff, Lambda] = bwf(X, Order, ~Range, ...)
-> 
-> Input arguments marked with a `~` sign may be omitted.
-> 
+
 
 ## Syntax with output arguments swapped
 

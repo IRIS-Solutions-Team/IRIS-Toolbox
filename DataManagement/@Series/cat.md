@@ -4,7 +4,7 @@ title: cat
 
 # `cat`
 
-{== Concatenation of Series objects in n-th dimension ==}
+{== Concatenation time series data in n-th dimension ==}
 
 
 ## Syntax 

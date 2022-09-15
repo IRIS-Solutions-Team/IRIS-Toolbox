@@ -1,4 +1,11 @@
+
 nav:
     - Home: index.md
     - "+iris"
     - "StructuralModeling"
+    - "TimeSeriesModeling"
+    - "DataManagement"
+    - "Reporting" 
+    - "ShrinkageEstimation"
+    - "Utilities"
+

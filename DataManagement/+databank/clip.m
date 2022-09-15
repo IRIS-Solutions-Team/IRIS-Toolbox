@@ -22,7 +22,7 @@ function outputDb = clip(inputDb, newStart, varargin)
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    addOptional(ip, "newEnd", []);
+    addOptional(ip, "newEnd", [], @(x) isempty(x) || isnumeric(x));
 
     addParameter(ip, "SourceNames", @all);
     addParameter(ip, "TargetDb", @auto);

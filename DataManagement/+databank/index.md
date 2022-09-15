@@ -1,4 +1,5 @@
-# Overview of databank functions 
+
+# Overview of databank package functions
 
 IrisT uses the standard Matlab structures (struct objects) as databanks
 that can store any types of data.  The `+databank` package provides several

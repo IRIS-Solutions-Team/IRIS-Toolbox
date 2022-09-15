@@ -2,6 +2,8 @@
 title: errorbar
 ---
 
+# `errorbar`
+
 {== Line plot with error bars ==}
 
 

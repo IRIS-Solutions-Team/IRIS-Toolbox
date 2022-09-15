@@ -1,28 +1,28 @@
 ---
-title: islinear
+title: isLinear
 ---
 
-# `islinear`
+# `isLinear`
 
-{== True for models declared as linear.==}
+{== True if the model has been declared as linear ==}
 
 
 ## Syntax 
 
-    Flag = islinear(M)
+    flag = isLinear(m)
 
 
 ## Input arguments 
 
-`m` [ model ]
+`m` [ Model ]
 > 
-> Queried model object.
+> Model object whose linear status will be returned.
 > 
 
 
 ## Output arguments 
 
-`Flag` [ `true` | `false` ]
+`flag` [ `true` | `false` ]
 > 
 > True if the model has been declared linear
 > 
@@ -34,17 +34,26 @@ title: islinear
 
 ## Description 
 
->
-> The value returned dependes on whether the model has been declared as
-> linear by the user when constructing the model object by calling the
-> [`model/model`](model/model) function. In other words, no check is
-> performed whether or not the model is actually linear.
->
+The value returned dependes on whether the model has been declared as
+linear by the user when constructing the model object. The status returned
+by `isLinear` has nothing to do with whether or not the model is actually linear.
 
 
 ## Examples
 
-    m = model('mymodel.file', 'linear=', true);
-    islinear(m)
-    ans =
-         1
+Read the same model file twice, with a different option `linear=` assigned.
+
+```matlab
+>> m = Model.fromFile('some.model');
+>> isLinear(m)
+
+ans =
+     0
+
+>> m = Model.fromFile('some.model', linear=true);
+>> isLinear(m)
+
+ans =
+     1
+```
+

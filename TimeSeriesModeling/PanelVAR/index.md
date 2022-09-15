@@ -1,3 +1,3 @@
-# Panel VAR models: Extension to `@VAR` and `@SVAR` objects
 
- 
+# Overview of panel extension to VAR models
+

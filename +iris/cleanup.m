@@ -1,25 +1,6 @@
-% iriscleanup  Remove IRIS from Matlab and clean up
-%
-% __Syntax__
-%
-%     iris.cleanup
-%
-%
-% __Description__
-%
-% This script removes IRIS folders, including the root folder, from both
-% the Matlab search path, and clears persistent variables in some of the
-% backend functions. A short message is displayed with the list of folders
-% removed from the path.
-%
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
 
 % Clean up appdata(0) and persistent workspaces
-iris.cleanupPersistent( )
+iris.cleanupPersistent();
 
 % Remove IRIS from the permanent Matlab search path
 [reportRootsRemoved, thisRoot] = iris.pathManager('cleanup');

@@ -2,7 +2,7 @@
 title: Interpolate missing observations
 ---
 
-# `Interpolate missing observations`
+
 
 {== Interpolate missing observations ==}
 

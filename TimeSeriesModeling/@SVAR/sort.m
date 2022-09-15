@@ -79,16 +79,16 @@ function [This, Data, Inx, Crit] = sort(This, Data, SortBy, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-persistent pp
-if isempty(pp)
-    pp = inputParser();
-    pp.addRequired('A', @(x) isa(x, 'SVAR'));
-    pp.addRequired('Data', @(x) isempty(x) || isstruct(x));
-    pp.addRequired('SortBy', @ischar);
-    pp.addOptional('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+persistent ip
+if isempty(ip)
+    ip = inputParser();
+    addRequired(ip, 'A', @(x) isa(x, 'SVAR'));
+    addRequired(ip, 'Data', @(x) isempty(x) || isstruct(x));
+    addRequired(ip, 'SortBy', @ischar);
+    addOptional(ip, 'Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end
-parse(pp, This, Data, SortBy, varargin{:});
-opt = pp.Results;
+parse(ip, This, Data, SortBy, varargin{:});
+opt = ip.Results;
 
 isData = nargout>1 && ~isempty(Data);
 

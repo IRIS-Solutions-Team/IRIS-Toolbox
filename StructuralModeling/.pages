@@ -1,6 +1,11 @@
 title: Structural modeling
+
 nav:
     - "index.md"
+    - "Slang"
     - "@Model"
     - "@Plan"
+    - "@Explanatory"
+    - "@LinearSystem"
+    - "Solver"
 

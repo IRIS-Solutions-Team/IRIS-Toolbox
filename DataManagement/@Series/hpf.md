@@ -1,6 +1,8 @@
 ---
-title: hpf  
+title: hpf
 ---
+
+# `hpf`
 
 {== Hodrick-Prescott filter with conditioning information ==}
 
