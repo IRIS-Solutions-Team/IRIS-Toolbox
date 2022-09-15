@@ -2,7 +2,7 @@
 title: diffsrf
 ---
 
-# `diffsrf`
+# `diffsrf` ^^(Model)^^
 
 {== Differentiate shock response functions w.r.t. specified parameters ==}
 

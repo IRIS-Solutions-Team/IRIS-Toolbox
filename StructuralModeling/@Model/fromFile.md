@@ -2,6 +2,8 @@
 title: Model.fromFile
 ---
 
+# `Model.fromFile` ^^(Model)^^
+
 {== Create new Model object from model source file(s) ==}
 
 

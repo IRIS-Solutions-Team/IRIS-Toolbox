@@ -2,6 +2,8 @@
 title: autoswap
 ---
 
+# `autoswap`
+
 {== Exogenize variables and endogenize shocks autoswap pairs ==}
 
 

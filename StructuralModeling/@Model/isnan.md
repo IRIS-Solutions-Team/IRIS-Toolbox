@@ -2,7 +2,7 @@
 title: isnan
 ---
 
-# `isnan`
+# `isnan` ^^(Model)^^
 
 {== Check for NaNs in model object. ==}
 

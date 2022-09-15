@@ -2,6 +2,8 @@
 title: kalmanFilter
 ---
 
+# `kalmanFilter` ^^(Model)^^
+
 {== Kalman smoother and estimator of out-of-likelihood parameters ==}
 
 

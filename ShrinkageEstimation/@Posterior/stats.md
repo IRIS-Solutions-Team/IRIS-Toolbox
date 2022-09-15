@@ -1,6 +1,8 @@
 ---
-title: stats  
+title: stats
 ---
+
+# `stats`
 
 {== Evaluate selected statistics of ARWM chain ==}
 

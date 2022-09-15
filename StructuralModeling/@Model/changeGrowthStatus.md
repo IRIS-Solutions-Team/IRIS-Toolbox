@@ -2,6 +2,8 @@
 title: changeGrowthStatus
 ---
 
+# `changeGrowthStatus` ^^(Model)^^
+
 {== Change growth status for selected variables ==}
 
 

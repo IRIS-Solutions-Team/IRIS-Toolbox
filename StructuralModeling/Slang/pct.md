@@ -2,6 +2,8 @@
 title: pct
 ---
 
+# `pct`
+
 {== Percent change ==}
 
 

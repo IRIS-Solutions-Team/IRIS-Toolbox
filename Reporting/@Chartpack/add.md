@@ -2,7 +2,7 @@
 title: add
 ---
 
-# add
+# `add`
 
 {== Add a new chart to a Chartpack object ==}
 

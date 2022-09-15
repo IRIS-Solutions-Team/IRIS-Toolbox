@@ -2,6 +2,8 @@
 title: steady
 ---
 
+# `steady` ^^(Model)^^
+
 {== Compute steady state or balance-growth path of the model ==}
 
 ## Syntax

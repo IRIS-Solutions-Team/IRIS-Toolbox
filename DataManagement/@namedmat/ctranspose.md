@@ -2,6 +2,8 @@
 title: ctranspose
 ---
 
+# `ctranspose`
+
 {== Conjugate-transpose each page of matrix with names rows and columns ==}
 
 

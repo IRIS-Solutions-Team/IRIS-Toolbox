@@ -2,6 +2,8 @@
 title: isempty
 ---
 
+# `isempty`
+
 {== True for empty Grouping object ==}
 
 

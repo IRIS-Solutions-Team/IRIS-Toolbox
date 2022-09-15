@@ -2,7 +2,7 @@
 title: isstationary
 ---
 
-# `isstationary`
+# `isstationary` ^^(Model)^^
 
 {== True if model or specified combination of variables is stationary. ==}
 

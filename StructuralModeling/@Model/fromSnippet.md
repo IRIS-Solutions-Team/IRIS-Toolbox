@@ -2,6 +2,8 @@
 title: Model.fromSnippet
 ---
 
+# `Model.fromSnippet` ^^(Model)^^
+
 {== Create new Model object from snippet of code within m-file ==}
 
 

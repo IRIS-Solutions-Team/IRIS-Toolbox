@@ -2,6 +2,8 @@
 title: databank.redate
 ---
 
+# `databank.redate`
+
 {== Redate all time series objects in a database ==}
 
 

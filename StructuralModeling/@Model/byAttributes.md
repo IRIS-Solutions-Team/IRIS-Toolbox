@@ -2,6 +2,8 @@
 title: byAttributes
 ---
 
+# `byAttributes` ^^(Model)^^
+
 {== Look up model quantities and equation by attributes ==}
 
 

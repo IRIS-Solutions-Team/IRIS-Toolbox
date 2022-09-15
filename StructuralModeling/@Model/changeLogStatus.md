@@ -2,6 +2,7 @@
 title: changeLogStatus
 ---
 
+# `changeLogStatus` ^^(Model)^^
 
 {==  Change log status of model variables ==}
 

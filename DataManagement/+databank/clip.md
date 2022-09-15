@@ -2,6 +2,8 @@
 title: databank.clip
 ---
 
+# `databank.clip`
+
 {== Clip all time series in databank to a new range ==}
 
 
@@ -10,7 +12,7 @@ title: databank.clip
     outputDatabank = databank.clip(inputDatabank, newStart, newEnd)
 
 
-## Input Arguments
+#### Input Arguments
 
 __`inputDatabank`__ [ struct | Dictionary ]
 > 

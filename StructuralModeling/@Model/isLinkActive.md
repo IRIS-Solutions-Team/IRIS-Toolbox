@@ -2,7 +2,7 @@
 title: isLinkActive
 ---
 
-# `isLinkActive`
+# `isLinkActive` ^^(Model)^^
 
 {== True if dynamic link is active==}
 

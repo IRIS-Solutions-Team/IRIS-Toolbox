@@ -2,6 +2,8 @@
 title: checkInitials
 ---
 
+# `checkInitials` ^^(Model)^^
+
 {== Check if databank contains all initial conditions for simulation ==}
 
 

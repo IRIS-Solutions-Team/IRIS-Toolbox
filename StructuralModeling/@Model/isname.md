@@ -2,7 +2,7 @@
 title: isname
 ---
 
-# `isname`
+# `isname` ^^(Model)^^
 
 {== True for valid names of variables, parameters, or shocks in model object. ==}
 

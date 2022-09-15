@@ -2,6 +2,8 @@
 title: alter
 ---
 
+# `alter` ^^(Model)^^
+
 {== Expand or reduce number of parameter variants in model object ==}
 
 

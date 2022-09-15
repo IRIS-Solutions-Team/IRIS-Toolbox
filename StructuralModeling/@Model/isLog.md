@@ -2,7 +2,7 @@
 title: islog
 ---
 
-# `islog`
+# `islog` ^^(Model)^^
 
 {== True for empty model object==}
 

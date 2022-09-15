@@ -2,7 +2,7 @@
 title: isLinear
 ---
 
-# `isLinear`
+# `isLinear` ^^(Model)^^
 
 {== True if the model has been declared as linear ==}
 

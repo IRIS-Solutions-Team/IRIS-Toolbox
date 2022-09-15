@@ -2,6 +2,8 @@
 title: detail
 ---
 
+# `detail`
+
 {== Display details of Grouping object ==}
 
 

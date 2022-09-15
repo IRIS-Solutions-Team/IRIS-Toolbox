@@ -1,6 +1,8 @@
 ---
-title: add  
+title: add
 ---
+
+# `add`
 
 {== Add measurement variable group or shock group to Grouping object ==}
 

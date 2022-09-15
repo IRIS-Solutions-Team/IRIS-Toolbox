@@ -2,6 +2,8 @@
 title: clear
 ---
 
+# `clear`
+
 {== Clear all charts from the chartpack but preserve all settings ==}
 
 

@@ -2,6 +2,8 @@
 title: rescaleStd
 ---
 
+# `rescaleStd` ^^(Model)^^
+
 {== Rescale all std deviations by the same factor ==}
 
 

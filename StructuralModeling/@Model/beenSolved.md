@@ -2,6 +2,8 @@
 title: beenSolved
 ---
 
+# `beenSolved` ^^(Model)^^
+
 {== True if first-order solution has been successfully calculated ==}
 
 

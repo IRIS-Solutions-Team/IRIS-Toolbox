@@ -2,6 +2,8 @@
 title: select
 ---
 
+# `select`
+
 {== Select submatrix by referring to row names and column names ==}
 
 

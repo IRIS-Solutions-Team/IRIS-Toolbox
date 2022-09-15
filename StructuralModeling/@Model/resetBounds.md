@@ -2,6 +2,8 @@
 title: resetBounds
 ---
 
+# `resetBounds` ^^(Model)^^
+
 {== Reset lower and upper bounds imposed on model quantities ==}
 
 

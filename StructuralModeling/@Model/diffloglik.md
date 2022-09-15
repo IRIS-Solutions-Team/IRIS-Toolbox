@@ -2,6 +2,8 @@
 title: diffloglik
 ---
 
+# `diffloglik` ^^(Model)^^
+
 {== Approximate gradient and hessian of log-likelihood function ==}
 
 

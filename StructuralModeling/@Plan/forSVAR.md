@@ -1,6 +1,8 @@
 ---
-title: Plan.forSVAR 
+title: Plan.forSVAR
 ---
+
+# `Plan.forSVAR`
 
 {== Create simulation Plan for SVAR object ==}
 

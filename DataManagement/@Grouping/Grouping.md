@@ -2,6 +2,8 @@
 title: Grouping
 ---
 
+# `Grouping`
+
 {== Create a new data grouping object ==}
 
 

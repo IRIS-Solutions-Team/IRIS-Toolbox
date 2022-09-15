@@ -1,6 +1,8 @@
 ---
-title: Plan.forExplanatory 
+title: Plan.forExplanatory
 ---
+
+# `Plan.forExplanatory`
 
 {== Create simulation Plan for Explanatory object ==}
 

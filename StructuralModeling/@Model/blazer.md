@@ -2,6 +2,8 @@
 title: blazer
 ---
 
+# `blazer` ^^(Model)^^
+
 {== Analyze sequential block structure of steady equations ==}
 
 

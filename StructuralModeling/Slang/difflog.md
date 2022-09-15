@@ -2,6 +2,8 @@
 title: difflog
 ---
 
+# `difflog`
+
 {== First log-difference pseudofunction ==}
 
 ## Syntax

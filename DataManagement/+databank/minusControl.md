@@ -1,6 +1,8 @@
 ---
-title: databank.minusControl 
+title: databank.minusControl
 ---
+
+# `databank.minusControl`
 
 {== Create simulation-minus-control database ==}
 

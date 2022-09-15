@@ -2,6 +2,8 @@
 title: textual.write
 ---
 
+# `textual.write`
+
 {== Write character string to text file ==}
 
 ## Syntax

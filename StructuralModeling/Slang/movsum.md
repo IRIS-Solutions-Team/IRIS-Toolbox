@@ -2,6 +2,8 @@
 title: movsum
 ---
 
+# `movsum`
+
 {== Moving sum pseudofunction ==}
 
 ## Syntax

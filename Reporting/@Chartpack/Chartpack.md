@@ -2,6 +2,8 @@
 title: Chartpack
 ---
 
+# `Chartpack`
+
 {== Create a new Chartpack object for plotting databank fields ==}
 
 

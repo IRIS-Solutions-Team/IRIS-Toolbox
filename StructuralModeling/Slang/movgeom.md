@@ -2,6 +2,8 @@
 title: movavg
 ---
 
+# `movavg`
+
 {== Moving geometric average pseudofunction ==}
 
 ## Syntax

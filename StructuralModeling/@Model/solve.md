@@ -1,6 +1,8 @@
 ---
-title: solve 
+title: solve
 ---
+
+# `solve` ^^(Model)^^
 
 {== Calculate first-order solution matrices ==}
 

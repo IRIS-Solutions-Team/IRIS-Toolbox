@@ -2,6 +2,8 @@
 title: movprod
 ---
 
+# `movprod`
+
 {== Moving product pseudofunction ==}
 
 ## Syntax

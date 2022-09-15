@@ -2,7 +2,7 @@
 title: fmse
 ---
 
-# `fmse`
+# `fmse` ^^(Model)^^
 
 {== Forecast mean square error matrices. ==}
 

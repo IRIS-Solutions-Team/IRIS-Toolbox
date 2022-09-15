@@ -2,6 +2,8 @@
 title: getBounds
 ---
 
+# `getBounds` ^^(Model)^^
+
 {== Get lower and upper bounds imposed on model quantities ==}
 
 

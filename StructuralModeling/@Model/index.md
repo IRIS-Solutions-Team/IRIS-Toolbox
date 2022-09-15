@@ -1,3 +1,6 @@
+---
+search: Model
+---
 
 # Overview of structural model objects
 

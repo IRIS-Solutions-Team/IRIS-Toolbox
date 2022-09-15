@@ -1,6 +1,8 @@
 ---
-title: eval  
+title: eval
 ---
+
+# `eval`
 
 {== Evaluate contributions in input database using Grouping object ==}
 

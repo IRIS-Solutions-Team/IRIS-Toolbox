@@ -2,6 +2,8 @@
 title: toString
 ---
 
+# `toString`
+
 {== Print date as formatted string ==}
 
 

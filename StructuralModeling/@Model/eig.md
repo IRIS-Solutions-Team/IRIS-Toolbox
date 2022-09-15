@@ -2,7 +2,7 @@
 title: eig
 ---
 
-# `eig`
+# `eig` ^^(Model)^^
 
 {== Eigenvalues of model transition matrix ==}
 

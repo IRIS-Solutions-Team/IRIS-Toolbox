@@ -2,7 +2,7 @@
 title: findname
 ---
 
-# `findname`
+# `findname` ^^(Model)^^
 
 {== Find names of variables, shocks, or parameters by their labels.==}
 

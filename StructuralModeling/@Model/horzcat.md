@@ -2,7 +2,7 @@
 title: horzcat
 ---
 
-# `functionsFromEquations`
+# `functionsFromEquations` ^^(Model)^^
 
 {== Merge two or more compatible model objects into multiple parameterizations ==}
 

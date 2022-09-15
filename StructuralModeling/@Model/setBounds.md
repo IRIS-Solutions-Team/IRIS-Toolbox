@@ -2,6 +2,8 @@
 title: setBounds
 ---
 
+# `setBounds` ^^(Model)^^
+
 {== Set bounds for model quantities ==}
 
 

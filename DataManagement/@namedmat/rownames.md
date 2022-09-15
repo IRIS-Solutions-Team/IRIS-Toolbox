@@ -2,6 +2,8 @@
 title: rownames
 ---
 
+# `rownames`
+
 {== Names of rows in namedmat object ==}
 
 

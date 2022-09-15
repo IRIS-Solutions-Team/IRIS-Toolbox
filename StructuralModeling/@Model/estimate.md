@@ -2,6 +2,8 @@
 title: estimate
 ---
 
+# `estimate` ^^(Model)^^
+
 {== Estimate model parameters by optimizing selected objective function ==}
 
 

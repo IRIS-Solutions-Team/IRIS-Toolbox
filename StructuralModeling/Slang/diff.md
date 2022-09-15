@@ -2,6 +2,8 @@
 title: diff
 ---
 
+# `diff`
+
 {== First difference pseudofunction ==}
 
 ## Syntax

@@ -2,6 +2,8 @@
 title: ExcelSheet.fromFile
 ---
 
+# `ExcelSheet.fromFile`
+
 {== Construct a new ExcelSheet object from an XLS file ==}
 
 

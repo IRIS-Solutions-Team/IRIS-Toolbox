@@ -1,6 +1,8 @@
 ---
-title: split  
+title: split
 ---
+
+# `split`
 
 {== Split group into its components in Grouping object ==}
 

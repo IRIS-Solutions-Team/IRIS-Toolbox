@@ -1,6 +1,8 @@
 ---
-title: collectLhsNames  
+title: collectLhsNames
 ---
+
+# `collectLhsNames`
 
 {== Collect names of LHS variables ==}
 
