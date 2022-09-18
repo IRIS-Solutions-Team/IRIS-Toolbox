@@ -2,6 +2,8 @@
 title: solutionMatrices
 ---
 
+# `solutionMatrices` ^^(Model)^^
+
 {== Access first-order state-space (solution) matrices ==}
 
 

@@ -2,6 +2,8 @@
 title: refresh
 ---
 
+# `refresh`
+
 {== Refresh dynamic links ==}
 
 

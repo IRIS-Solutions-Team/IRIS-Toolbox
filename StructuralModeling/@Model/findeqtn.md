@@ -2,7 +2,7 @@
 title: findeqtn
 ---
 
-# `findeqtn`
+# `findeqtn` ^^(Model)^^
 
 {== Find equations by their labels. ==}
 

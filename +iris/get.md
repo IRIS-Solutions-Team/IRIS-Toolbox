@@ -2,6 +2,8 @@
 title: iris.get
 ---
 
+# `iris.get`
+
 {== Get values of IrisT configuration settings ==}
 
 

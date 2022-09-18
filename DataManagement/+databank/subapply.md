@@ -2,6 +2,8 @@
 title: databank.subapply
 ---
 
+# `databank.subapply`
+
 {== Apply function to a crosslist of nested fields ==}
 
 

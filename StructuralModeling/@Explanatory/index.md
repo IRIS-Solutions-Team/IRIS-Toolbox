@@ -1,4 +1,12 @@
+
 # Overview of explanatory equation objects
+
+{==
+Explanatory equations are systems of sequential (non-simultaneous)
+equations that can be estimated and executed (simulated) one after another.
+The advantage over the structural models is faster evaluation, especially
+for nonlinear equations.
+==}
 
 
 ## Categorical list of functions 

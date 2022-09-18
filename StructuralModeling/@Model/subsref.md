@@ -2,6 +2,8 @@
 title: subsref
 ---
 
+# `subsref` ^^(Model)^^
+
 {== Subscripted reference for model objects ==}
 
 

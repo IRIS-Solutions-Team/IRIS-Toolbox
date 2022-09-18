@@ -1,6 +1,8 @@
 ---
-title: filter  
+title: filter
 ---
+
+# `filter`
 
 {== Re-estimate factors by Kalman filtering data taking Dynamo coefficients as given ==}
 

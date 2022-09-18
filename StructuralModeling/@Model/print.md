@@ -2,6 +2,8 @@
 title: print
 ---
 
+# `print` ^^(Model)^^
+
 {== Print model object ==}
 
 

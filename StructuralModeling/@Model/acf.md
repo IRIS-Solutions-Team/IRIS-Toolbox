@@ -2,6 +2,8 @@
 title: acf
 ---
 
+# `acf` ^^(Model)^^
+
 {== Autocovariance and autocorrelation function for model variables ==}
 
 

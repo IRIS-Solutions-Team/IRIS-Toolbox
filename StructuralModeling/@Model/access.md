@@ -2,6 +2,8 @@
 title: access
 ---
 
+# `access` ^^(Model)^^
+
 {== Access properties of Model objects ==}
 
 

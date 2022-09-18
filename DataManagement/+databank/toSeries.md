@@ -2,6 +2,8 @@
 title: databank.toSeries
 ---
 
+# `databank.toSeries`
+
 {== Consolidate multiple time series into one time series object ==}
 
 

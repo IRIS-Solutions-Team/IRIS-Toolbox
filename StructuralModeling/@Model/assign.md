@@ -2,6 +2,8 @@
 title: assign
 ---
 
+# `assign` ^^(Model)^^
+
 {== Assign parameters, steady states, std deviations or cross-correlations ==}
 
 

@@ -2,6 +2,8 @@
 title: analyticGradients
 ---
 
+# `analyticGradients` ^^(Model)^^
+
 {== Evaluate analytic/symbolic derivatives of model equations ==}
 
 

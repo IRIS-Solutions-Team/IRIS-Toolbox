@@ -2,6 +2,8 @@
 title: Dater.dd
 ---
 
+# `Dater.dd`
+
 {== Create daily dates ==}
 
 

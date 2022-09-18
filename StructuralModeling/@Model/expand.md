@@ -2,7 +2,7 @@
 title: expand
 ---
 
-# `expand`
+# `expand` ^^(Model)^^
 
 {== Compute forward expansion of model solution for anticipated shocks ==}
 

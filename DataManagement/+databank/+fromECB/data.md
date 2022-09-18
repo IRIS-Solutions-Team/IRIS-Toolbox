@@ -2,6 +2,8 @@
 title: databank.fromECB.data
 ---
 
+# `databank.fromECB.data`
+
 {== Download databank of time series from ECB Statistical Data Warehouse ==}
 
 

@@ -2,7 +2,7 @@
 title: ffrf
 ---
 
-# `ffrf`
+# `ffrf` ^^(Model)^^
 
 {== Filter frequency response function of transition variables to measurement variables==}
 

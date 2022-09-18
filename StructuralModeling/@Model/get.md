@@ -2,7 +2,7 @@
 title: get
 ---
 
-# `get`
+# `get` ^^(Model)^^
 
 {== Query model object properties.==}
 

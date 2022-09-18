@@ -2,6 +2,8 @@
 title: iris.cleanup
 ---
 
+# `iris.cleanup`
+
 {== Remove IRIS from Matlab and clean up ==}
 
 

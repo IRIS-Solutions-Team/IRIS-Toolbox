@@ -2,7 +2,7 @@
 title: ismissing
 ---
 
-# `ismissing`
+# `ismissing` ^^(Model)^^
 
 {== True if some initical conditions are missing from input database.==}
 

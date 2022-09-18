@@ -1,6 +1,6 @@
 # <...>
 
-{== Interpolation.==}
+{== Interpolate Matlab expression ==}
 
 ## Syntax
 

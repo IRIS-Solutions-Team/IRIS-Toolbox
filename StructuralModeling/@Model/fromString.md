@@ -2,6 +2,8 @@
 title: Model.fromString
 ---
 
+# `Model.fromString` ^^(Model)^^
+
 {== Create new Model object from string array ==}
 
 

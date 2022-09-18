@@ -2,6 +2,8 @@
 title: transpose
 ---
 
+# `transpose`
+
 {== Transpose each page of matrix with names rows and columns ==}
 
 

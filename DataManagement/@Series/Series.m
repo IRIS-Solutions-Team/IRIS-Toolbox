@@ -518,6 +518,8 @@ classdef ( ...
 
 
     methods % Plotting
+        varargout = chartyy(varargin)
+
         varargout = band(varargin)
         varargout = plot(varargin)
 

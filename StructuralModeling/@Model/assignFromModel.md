@@ -2,6 +2,8 @@
 title: assignFromModel
 ---
 
+# `assignFromModel` ^^(Model)^^
+
 {== Assign model quantities from another model ==}
 
 

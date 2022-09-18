@@ -1,6 +1,8 @@
 ---
-title: iris.required  
+title: iris.required
 ---
+
+# `iris.required`
 
 {== Throw error if the IrisT release currently running fails to comply with the required minimum ==}
 

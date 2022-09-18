@@ -2,7 +2,7 @@
 title: isempty
 ---
 
-# `isempty`
+# `isempty` ^^(Model)^^
 
 {== True for empty model object==}
 

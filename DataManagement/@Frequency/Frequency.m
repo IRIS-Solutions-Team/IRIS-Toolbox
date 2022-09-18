@@ -32,6 +32,7 @@ classdef Frequency ...
         Daily             (frequency.DAILY)
         D                 (frequency.DAILY)
 
+        NAN               (frequency.NaN)
         NaN               (frequency.NaN)
         NaF               (frequency.NaF)
         N                 (frequency.NaF)

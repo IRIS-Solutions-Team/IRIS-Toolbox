@@ -2,6 +2,8 @@
 title: retrieveSeries
 ---
 
+# `retrieveSeries`
+
 {== Retrieve time series from ExcelSheet ==}
 
 

@@ -2,6 +2,8 @@
 title: bn
 ---
 
+# `bn` ^^(Model)^^
+
 {== Beveridge-Nelson trends ==}
 
 

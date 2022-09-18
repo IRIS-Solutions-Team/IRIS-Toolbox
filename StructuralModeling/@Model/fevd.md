@@ -2,7 +2,7 @@
 title: fevd
 ---
 
-# `fevd`
+# `fevd` ^^(Model)^^
 
 {== Forecast error variance decomposition for model variables.==}
 

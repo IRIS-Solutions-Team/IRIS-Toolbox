@@ -2,6 +2,8 @@
 title: simulate
 ---
 
+# `simulate` ^^(Model)^^
+
 {== Run a model simulation ==}
 
 

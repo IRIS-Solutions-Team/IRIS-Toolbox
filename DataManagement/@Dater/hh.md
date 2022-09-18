@@ -2,6 +2,8 @@
 title: Dater.hh
 ---
 
+# `Dater.hh`
+
 {== Create half-yearly dates ==}
 
 

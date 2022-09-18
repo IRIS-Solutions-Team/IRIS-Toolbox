@@ -2,6 +2,8 @@
 title: deactivateLink
 ---
 
+# `deactivateLink` ^^(Model)^^
+
 {== Deactivate dynamic links for selected LHS names ==}
 
 

@@ -2,6 +2,8 @@
 title: iris.set
 ---
 
+# `iris.set`
+
 {== Change the value of an IrisT config setting ==}
 
 

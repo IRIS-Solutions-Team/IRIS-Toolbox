@@ -2,6 +2,8 @@
 title: activateLink
 ---
 
+# `activateLink` ^^(Model)^^
+
 {== Activate dynamic links for selected LHS names ==}
 
 

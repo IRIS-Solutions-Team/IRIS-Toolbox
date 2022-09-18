@@ -2,6 +2,8 @@
 title: databank.merge
 ---
 
+# `databank.merge`
+
 {== Merge two or more databanks ==}
 
 

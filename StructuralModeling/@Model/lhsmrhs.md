@@ -2,7 +2,7 @@
 title: lhsmrhs
 ---
 
-# `lhsmrhs`
+# `lhsmrhs` ^^(Model)^^
 
 {== Discrepancy between the LHS and RHS of each model equation for given data ==}
 

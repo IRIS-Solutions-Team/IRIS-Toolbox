@@ -106,14 +106,20 @@ classdef (CaseInsensitiveProperties=true) Chartpack ...
 
     methods (Access=protected)
         function tiles = resolveTiles(this, chartObjects)
-            if isnumeric(this.Tiles)
+            maxNumCharts = getMaxNumCharts(chartObjects);
+            if isnumeric(this.Tiles) && ~any(isinf(this.Tiles))
                 tiles = this.Tiles;
                 if isscalar(tiles)
                     tiles = [tiles, tiles];
                 end
                 return
             end
-            maxNumCharts = getMaxNumCharts(chartObjects);
+            if isnumeric(this.Tiles) && numel(this.Tiles)==2 && isinf(this.Tiles(1))
+                numColumns = this.Tiles(2);
+                numRows = ceil(maxNumCharts/numColumns);
+                tiles = [numRows, numColumns];
+                return
+            end
             [numRows, numColumns] = visual.backend.optimizeSubplot(min(maxNumCharts, this.MaxTilesPerWindow));
             tiles = [numRows, numColumns];
         end%

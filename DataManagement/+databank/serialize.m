@@ -1,3 +1,4 @@
+
 function [c, listSerialized] = serialize(inputDb, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];

@@ -2,6 +2,8 @@
 title: iris.startup
 ---
 
+# `iris.startup`
+
 {== Start an IrisT session ==}
 
 ## Syntax

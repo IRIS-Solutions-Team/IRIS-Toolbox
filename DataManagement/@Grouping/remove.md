@@ -1,6 +1,8 @@
 ---
-title: remove  
+title: remove
 ---
+
+# `remove`
 
 {== Remove group from Grouping object ==}
 

@@ -2,6 +2,8 @@
 title: iris.finish
 ---
 
+# `iris.finish`
+
 {== End the current IrisT session ==}
 
 

@@ -2,6 +2,8 @@
 title: databank.batch
 ---
 
+# `databank.batch`
+
 {== Execute batch job within databank ==}
 
 

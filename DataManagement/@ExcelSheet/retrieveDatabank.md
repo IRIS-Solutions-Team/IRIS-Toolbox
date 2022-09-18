@@ -2,6 +2,8 @@
 title: retrieveDatabank
 ---
 
+# `retrieveDatabank`
+
 {== Retrieve batch of time series from ExcelSheet into databank ==}
 
 

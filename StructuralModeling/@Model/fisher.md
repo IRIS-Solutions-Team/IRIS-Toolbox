@@ -2,7 +2,7 @@
 title: `fisher`
 ---
 
-# `fisher`
+# `fisher` ^^(Model)^^
 
 {== Approximate Fisher information matrix in frequency domain ==}
 

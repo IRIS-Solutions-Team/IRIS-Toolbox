@@ -2,6 +2,8 @@
 title: changeLinearStatus
 ---
 
+# `changeLinearStatus` ^^(Model)^^
+
 {== Change linear status of model ==}
 
 

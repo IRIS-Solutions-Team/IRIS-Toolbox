@@ -2,7 +2,7 @@
 title: emptydb
 ---
 
-# `emptydb`
+# `emptydb` ^^(Model)^^
 
 {== Create model database with empty time series for each variable and shock==}
 

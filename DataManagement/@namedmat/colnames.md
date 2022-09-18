@@ -2,6 +2,8 @@
 title: colnames
 ---
 
+# `colnames`
+
 {== Names of columns in namedmat object ==}
 
 

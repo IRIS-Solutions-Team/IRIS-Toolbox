@@ -2,7 +2,7 @@
 title: failed
 ---
 
-# `failed`
+# `failed` ^^(Model)^^
 
 {== Give access to the last failed model object.==}
 

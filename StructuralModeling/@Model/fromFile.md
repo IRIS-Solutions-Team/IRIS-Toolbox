@@ -2,6 +2,8 @@
 title: Model.fromFile
 ---
 
+# `Model.fromFile` ^^(Model)^^
+
 {== Create new Model object from model source file(s) ==}
 
 
@@ -192,7 +194,7 @@ unless some of the parameters passed in to the `Model.fromFile` constructor
 are needed to evaluate Matlab expressions inside the model source files,
 such as conditions in the [`!if`](../Slang/!if.md) or
 [`!switch`](../Slang/!switch.md) expressions, or angle bracket expressions
-[`<...>`](../Slang/interp.md).
+[`<...>`](../Slang/evaluate.md).
 
 
 

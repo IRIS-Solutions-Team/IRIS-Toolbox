@@ -2,7 +2,7 @@
 title: ifrf
 ---
 
-# `ifrf`
+# `ifrf` ^^(Model)^^
 
 {== Frequency response function to shocks. ==}
 

@@ -1,4 +1,8 @@
-# !autoswaps-steady
+---
+title: "!autoswaps-steady"
+---
+
+# `!autoswaps-steady` ^^(Slang)^^
 
 {== Definitions of variable-parameter pairs to be autoexogenized in steady-state calculations ==}
 
