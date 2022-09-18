@@ -116,6 +116,11 @@ classdef Dater ...
         function t = fromString(varargin)
             t = Dater(dater.fromString(varargin{:}));
         end%
+
+
+        function t = fromDefaultString(varargin)
+            t = Dater(dater.fromDefaultString(varargin{:}));
+        end%
     end
 end
 

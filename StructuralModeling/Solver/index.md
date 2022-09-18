@@ -1,5 +1,11 @@
 
-# Nonlinear equations solver
+# Overview of nonlinear equations solver settings
+
+{==
+IrisT features its own nonlinear equations solver used in calculating the
+steady state and dynamic simulations of structural models.
+==}
+
 
 ## General settings
 

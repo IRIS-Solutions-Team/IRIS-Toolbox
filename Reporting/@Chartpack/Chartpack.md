@@ -89,11 +89,16 @@ __`ShowTransform=false`__ [ `true` | `false` ]
 
 __`Tiles=@auto`__ [ numeric | `@auto` ]
 >
-> Number of rows and columns of tiles within one figure window.
-> `Tiles=@auto` means the layout will be determined automatically based on
-> the total number of charts, respecting also the option
-> `MaxTilesPerWindow`.
+> Number of rows and columns of tiles within one figure window. Two special
+> cases are allowed for this setting:
+> 
+> * `Tiles=@auto` - the layout will be determined optimally based on the
+>   total number of charts (respecting the option `MaxTilesPerWindow`).
 >
+> * `Tiles=[Inf, numColumns]` - the layout will be determined automatically
+>   based on the total number of charts within a figure (respecting
+>   `MaxTilesPerWindow`) with the number of columns being `numColumns`.
+> 
 
 __`MaxTilesPerWindow=40`__ [ numeric ]
 >

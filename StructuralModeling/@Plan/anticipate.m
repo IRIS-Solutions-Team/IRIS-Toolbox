@@ -1,44 +1,4 @@
 % anticipate  Set anticipation status individually 
-%{
-% ## Syntax ##
-%
-%     plan = anticipate(plan, anticipationStatus, names)
-%     plan = anticipate(plan, anticipationStatus, name, name, etc...)
-%
-%
-% ## Input Arguments ##
-%
-% __`plan`__ [ Plan ] - 
-% Simulation plan.
-%
-% __`anticipationStatus`__ [ true | false ] -
-% New anticipation status for the quantities listed in `names`.
-%
-% __`names`__ [ char | string | cellstr ] -
-% List of quantities whose anticipation status will be set to
-% `anticipationStatus`.
-%
-% __`name`__ [ char | string ] -
-% Name of quantity whose anticipation status will be set to
-% `anticipationStatus`.
-%
-%
-% ## Output Arguments ##
-%
-% * p [ Plan ] -
-% Simulation plan with a new anticipation status for the specified
-% quantities.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function this = anticipate(this, anticipationStatus, varargin)
 

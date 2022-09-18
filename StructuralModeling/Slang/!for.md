@@ -54,7 +54,7 @@ replaced with the currently processed token converted to upper case;
 this option is NOT available with the abbreviated syntax;
 
 The list of tokens can be based on Matlab expressions [Matlab
-expressions](matlab.md): Enclose an expression in a pair of angle braces,
+expressions](evaluate.md) that evaluates to a list of strings: Enclose an expression in a pair of angle braces,
 `<...>`. The expression must evaluate to either a numeric vector, a char
 vector, a string vetor, or a cell array of numerics and/or strings; the
 value will be then converted to a comma-separted list of strings.
@@ -189,7 +189,7 @@ can be simplified as follow:
 ```
 
 or generalized with the use of Matlab variable name supplied through the
-option `assign=` when [reading the model source file](../model/fromFile.md).
+option `assign=` when [reading the model source file](../@Model/fromFile.md).
 
 ```iris
 !for <1 : N> !do

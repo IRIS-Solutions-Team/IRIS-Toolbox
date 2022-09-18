@@ -25,7 +25,7 @@ classdef ModelSource ...
             "!measurement-shocks", "!measurementshocks"
             "!measurement-equations", "!measurementequations"
         ];
-        NAME_PATTERN = '(?<![!\?])\<[A-Za-z]\w*\>(?!\()'
+        NAME_PATTERN = '(?<![!\?:])\<[A-Za-z]\w*\>(?!\()'
         CODE_SEPARATOR = string(repmat(char(newline()), 1, 2))
         FILE_NAME_WHEN_INPUT_STRING = "[input-string]"
     end

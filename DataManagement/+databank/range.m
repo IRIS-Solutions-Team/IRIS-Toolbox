@@ -43,8 +43,8 @@ opt = ip.Results;
 opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
-listNames = here_filterNames( );
-listFreq = here_filterFreq( );
+listNames = here_filterNames();
+listFreq = here_filterFreq();
 
 numFreq = numel(listFreq);
 startDates = cell(1, numFreq);
@@ -133,12 +133,12 @@ return
     end%
 
 
-    function listFreq = here_filterFreq( )
+    function listFreq = here_filterFreq()
         %(
         if isequal(opt.Frequency, @any) || isequal(opt.Frequency, @all)
             listFreq = frequency.ALL_FREQUENCIES;
         else
-            listFreq = unique(reshape(double(opt.Frequency), 1, [ ]), 'stable');
+            listFreq = unique(reshape(double(opt.Frequency), 1, []), 'stable');
         end
         %)
     end%

@@ -1,9 +1,14 @@
 ---
-search: Model
+topic: Model
 ---
 
 # Overview of structural model objects
 
+{==
+Structural models are systems of dynamic simultaneous (interdependent)
+equations with lags and leads (expectations). IrisT supports nonlinear
+nonstationary (balanced growth path) structural models.
+==}
 
 ## Categorical list of functions 
 

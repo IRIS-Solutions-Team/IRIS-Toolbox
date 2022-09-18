@@ -12,7 +12,7 @@ function defaultString = toDefaultString(dates, letterFromFreq)
 
     inx = isnan(dates);
     if nnz(inx)>0
-        defaultString(inx) = "NaD";
+        defaultString(inx) = "NaN";
     end
 
     inx = isinf(dates) & dates<0;
