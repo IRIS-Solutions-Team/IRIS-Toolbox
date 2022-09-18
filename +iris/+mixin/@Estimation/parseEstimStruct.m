@@ -132,14 +132,12 @@ return
 
     function reportPenaltyFunc( )
         if any(ixPenaltyFunction)
-            paramPenaltyList = pri.LsParam(ixPenaltyFunction);
-            utils.warning('obsolete', ...
-                ['This parameter prior is specified ', ...
-                'as a penalty function: ''%s''. \n', ...
-                'Penalty functions are obsolete and will be removed from ', ...
-                'a future version of IRIS. ', ...
-                'Replace them with normal prior distributions.'], ...
-                paramPenaltyList{:});
+            exception.warning([
+                "Deprecated"
+                "Some parameter priors are specified as penalty functions;" 
+                "penalty functions are deprecated and will be removed from a future version of IRIS;"
+                "replace them with normal prior distributions."
+            ]);
         end
     end
 end

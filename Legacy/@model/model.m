@@ -526,7 +526,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             end
 
             exception.warning([
-                "IrisT:Deprecated"
+                "Deprecated"
                 "Deprecated: The 'model' object is deprecated and wil removed in the future. "
                 "Use the 'Model' object instead. "
             ]);

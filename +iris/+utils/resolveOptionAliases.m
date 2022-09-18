@@ -24,7 +24,7 @@ for n = allNames(inx)
         || (isstring(issueWarning) && ismember(aliasName, issueWarning)) ...
         || (isa(issueWarning, 'Except') && ~ismember(aliasName, issueWarning.List))
         exception.warning([
-            "Legacy:Option"
+            "Deprecated"
             "Option '%s' is obsolete and will be removed in the future. "
             "Use '%s' instead. "
         ], aliasName, primaryName)

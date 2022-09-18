@@ -48,9 +48,9 @@ classdef (Abstract) Container ...
 
 
         function finalize(this, counter)
-            assignId(t, counter);
-            assignParentSettings(t);
-            populateSettingsStruct(t);
+            assignId(this, counter);
+            assignParentSettings(this);
+            populateSettingsStruct(this);
             for i = 1 : numel(this.Content)
                 finalize(this.Content{i}, counter);
                 this.DataRequests = union(this.DataRequests, this.Content{i}.DataRequests, 'stable');

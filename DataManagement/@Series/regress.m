@@ -50,9 +50,9 @@ opt = iris.utils.resolveOptionAliases(opt, [], true);
 %( Legacy input arguments
 if ~isempty(legacyDates) && isnumeric(legacyDates)
     exception.warning([
-        "Obsolete:DateInput"
+        "Deprecated"
         "Specifying the regression dates as a third positional input argument "
-        "is obsolete, and will be disallowed in a future release. "
+        "is deprecated, and will be disallowed in a future release. "
         "Use the option Dates= instead."
     ]);
     opt.Dates = double(legacyDates);

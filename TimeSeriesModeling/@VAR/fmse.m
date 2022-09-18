@@ -87,20 +87,11 @@ if nargout > 1
     for i = 1 : ny
         x(:, i, :) = sqrt(permute(X(i, i, :, :), [3, 1, 4, 2]));
     end
-    % ##### Nov 2013 OBSOLETE and scheduled for removal.
-    % All VAR output data will be returned as dbase (struct).
-    D = struct( );
+    D = struct();
     for i = 1 : ny
         name = this.EndogenousNames(i);
         data = x(:, i, :);
         D.(name) = replace(TEMPLATE_SERIES, data(:, :), range(1));
-    end
-    if nargout > 2
-        % ##### Nov 2013 OBSOLETE and scheduled for removal.
-        D1 = D;
-        utils.warning('obsolete', ...
-            ['Syntax with more than 2 output arguments is obsolete, ', ...
-            'and will be removed from IRIS in the future.']);
     end
 end
 
