@@ -35,10 +35,12 @@ pp = inputParser( );
 pp.addRequired('Mu',isnumericscalar);
 pp.parse(Mu);
 
-if ~isempty(varargin) && nargout == 1
-    utils.warning('BVAR:sumofcoeff', ...
-        ['This is an obsolete syntax to call BVAR.litterman( ). ', ...
-        'See documentation for valid syntax.']);
+if ~isempty(varargin) && nargout==1
+    exception.warning([
+        "Deprecated"
+        "This is an obsolete syntax to call BVAR.sumofcoeff;"
+        "Use dummy.SumCoeff instead."
+    ]);
 end
 
 %--------------------------------------------------------------------------

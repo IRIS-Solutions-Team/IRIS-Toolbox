@@ -1,7 +1,7 @@
 function [indexOfAllFound, varargout] = find(this, caller, varargin)
 
 if any(strcmpi(varargin, '-rexp'))
-    throw( exception.Base('Obsolete:RexpFlag', 'error') ); 
+    throw( exception.Base('Deprecated', 'error') ); 
 end
 
 isTranspose = false;

@@ -1,9 +1,9 @@
 function [outputDb, status, info] = fromFred(fredSeriesId, varargin)
 
 exception.warning([
-    "Obsolete"
-    "Function databank.fromFred(...) is obsolete and will be removed from IrisT in the future. "
-    "Use databank.fromFred.data(...) and databank.fromFred.vintages(...)."
+    "Deprecated"
+    "Function databank.fromFred is obsolete and will be removed from IrisT in the future. "
+    "Use databank.fromFred.data and databank.fromFred.vintages."
 ]);
 
 FRED_API_KEY = databank.fromFred.Config.Key;

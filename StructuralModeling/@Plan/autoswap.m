@@ -1,16 +1,21 @@
 
 function this = autoswap(this, dates, namesToAutoswap, varargin)
 
+%(
 persistent ip
 if isempty(ip)
     ip = inputParser();
     addRequired(ip, 'plan', @(x) isa(x, 'Plan'));
     addRequired(ip, 'datesToSwap', @validate.date);
     addRequired(ip, 'namesToAutoswap', @(x) ischar(x) || iscellstr(x) || isstring(x) || isequal(x, @all));
-    addParameter(ip, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(ip, 'AnticipationStatus', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+        addParameter(ip, 'Anticipate__AnticipationStatus', []);
 end
 parse(ip, this, dates, namesToAutoswap, varargin{:});
-opt = ip.Options;
+opt = ip.Results;
+
+opt = iris.utils.resolveOptionAliases(opt, [], true);
+%)
 
 
     inxToAutoswap = false(size(this.AutoswapPairs, 1), 1); 

@@ -43,7 +43,7 @@ opt = ip.Results;
 if isequal(opt.Range, Inf) && ~isequal(legacyRange, Inf)
     opt.Range = legacyRange;
     exception.warning([
-        "Legacy"
+        "Deprecated"
         "Date range as a second input argument is obsolete, and will be"
         "disabled in a future version. Use the option Range= instead."
     ]);

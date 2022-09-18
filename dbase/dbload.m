@@ -167,8 +167,8 @@ function d = dbload(varargin)
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
 thisWarning = [ 
-    "Obsolete:Dbload"
-    "Function dbload( ) is deprecated and will be removed from "
+    "Deprecated"
+    "Function dbload() is deprecated and will be removed from "
     "[IrisToolbox] in a future release; use databank.fromCSV( ) instead."
 ];
 throw(exception.Base(thisWarning, 'warning'));
@@ -186,7 +186,7 @@ varargin(1) = [ ];
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('dbase.dbload');
+    parser = extend.InputParser();
     parser.addRequired('InputDatabank', @isstruct);
     parser.addRequired('FileName', @(x) ischar(x) || iscellstr(x));
 end

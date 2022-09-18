@@ -47,10 +47,6 @@ classdef bandobj < report.seriesobj
         function this = setoptions(this,varargin)
             this = setoptions@report.seriesobj(this,varargin{:});
             if ischar(this.options.bandformat)
-                utils.warning('report', ...
-                    ['The option ''bandformat'' in report/band is obsolete ', ...
-                    'and will be removed from future IRIS versions. ', ...
-                    'Use ''bandtypeface'' instead.']);
                 this.options.bandtypeface = this.options.bandformat;
             end
         end

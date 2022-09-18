@@ -129,9 +129,9 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
 thisWarning = [ 
-    "Obsolete:Dbsave"
-    "Function dbsave( ) is deprecated and will be removed from "
-    "[IrisToolbox] in a future release; use databank.toCSV( ) instead."
+    "Deprecated"
+    "Function dbsave() is deprecated and will be removed from "
+    "[IrisToolbox] in a future release; use databank.toCSV() instead."
 ];
 throw(exception.Base(thisWarning, 'warning'));
 

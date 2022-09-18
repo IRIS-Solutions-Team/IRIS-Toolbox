@@ -31,6 +31,7 @@ end
 %)
 opt = pp.parse(this, dates, pairsToSwap, varargin{:});
 
+
 if isscalar(varargin) && isstruct(varargin{1})
     inputStruct = varargin{1};
     namesToExogenize = keys(inputStruct);

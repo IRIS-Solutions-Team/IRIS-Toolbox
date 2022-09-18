@@ -239,7 +239,7 @@ classdef Model ...
 
             if ischar(varargin{1}) || isstring(varargin{1}) || iscellstr(varargin{1})
                 exception.warning([
-                    "IrisT:Deprecated"
+                    "Deprecated"
                     "Deprecated: When creating a Model object from a source file, "
                     "use the Model.fromFile(___) constructor function instead."
                 ]);

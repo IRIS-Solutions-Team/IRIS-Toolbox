@@ -42,9 +42,11 @@ pp.addRequired('Mu',isnumericscalar);
 pp.parse(YBar,Mu);
 
 if ~isempty(varargin) && nargout == 1
-    utils.warning('BVAR', ...
-        ['This is an obsolete syntax to call BVAR.litterman( ). ', ...
-        'See documentation for valid syntax.']);
+    exception.warning([
+        "Deprecated"
+        "This is an obsolete syntax to call BVAR.litterman;"
+        "Use dummy.Litterman instead."
+    ]);
 end
 
 %--------------------------------------------------------------------------

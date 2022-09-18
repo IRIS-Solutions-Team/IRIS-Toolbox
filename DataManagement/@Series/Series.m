@@ -540,7 +540,7 @@ classdef ( ...
 
         function varargout = barcon(varargin)
             exception.warning([
-                "Legacy"
+                "Deprecated"
                 "Function Series/barcon is deprecated, and will be remove in the near future"
                 "Use the standard bar(___, ""stacked"") instead."
             ]);
