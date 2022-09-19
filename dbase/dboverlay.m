@@ -71,7 +71,7 @@ for j = 1 : numel(combList)
     x = d.(combList{j});
     y = s.(combList{j});
     if isa(x, 'Series') && isa(y, 'Series')
-        if freq(x)==freq(y)
+        if x.Frequency==y.Frequency
             % Two non-empty time series with the same frequency.
             d.(combList{j}) = vertcat(x, y);
         elseif isempty(x.data)
