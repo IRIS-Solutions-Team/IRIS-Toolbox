@@ -248,7 +248,7 @@ classdef ModelSource ...
             % Workaround for Matlab bug in older versions
             % ModelSource.PROTECTED_KEYWORD(:,1) does not work properly
             protectedKeywords = ModelSource.PROTECTED_KEYWORDS;
-            code = replace(code, protectKeywords(:, 2), protectedKeywords(:, 1));
+            code = replace(code, protectedKeywords(:, 2), protectedKeywords(:, 1));
         end%
 
 
