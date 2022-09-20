@@ -9,7 +9,7 @@ IrisT provides tools to support the typical workflows in the theoretical develop
 and practical operation of macroeconomic models and model-based production frameworks. 
 In a seamless command line oriented interface, the toolbox integrates the following four broad areas:
 
-#### [:octicons-package-24: Structural modeling tools](StructuralModeling/index.md)
+#### [Structural modeling tools](StructuralModeling/index.md)
 > 
 > Tools for development, implementation, diagnosis, and operation of advanced macro
 > models, including nonlinear nonstationary models with forward-looking
@@ -17,21 +17,21 @@ In a seamless command line oriented interface, the toolbox integrates the follow
 > empirical equations.
 > 
 
-#### [:octicons-graph-24: Time series modeling](TimeSeriesModeling/index.md)
+#### [Time series modeling](TimeSeriesModeling/index.md)
 > 
 > Tools for estimation, diagnosis and operation of empirical univariate and
 > multivariate time series models with focus on dimension reduction, such
 > as VAR, bayesian VAR or dynamic factor models.
 > 
 
-#### [:octicons-database-24: Data management](DataManagement/index.md)
+#### [Data management](DataManagement/index.md)
 > 
 > Data management and time series processing functions optimized for use in
 > practical macroeconomic models.
 > 
 
 
-#### [:octicons-project-24: Reporting](Reporting/index.md)
+#### [Reporting](Reporting/index.md)
 > 
 > Frameworks for the on-screen and HTML visualization of results.
 > 
@@ -42,7 +42,7 @@ Furthermore, IrisT offers a number of utility functions to make
 macroeconomic modeling more convenient in Matlab:
 
 
-#### [:octicons-north-star-24: Shrinkage estimation](ShrinkageEstimation/index.md)
+#### [Shrinkage estimation](ShrinkageEstimation/index.md)
 >
 > Shrinkage estimation tools include bayesian techniques with individual
 > and system priors for structural models, and prior dummy observations for vector autoregression
@@ -50,7 +50,7 @@ macroeconomic modeling more convenient in Matlab:
 > 
 
 
-#### [:octicons-tools-24: Utilities](Utilities/index.md)
+#### [Utilities](Utilities/index.md)
 > 
 > Utilities to support data visualization and text processing.
 > 
