@@ -245,7 +245,10 @@ classdef ModelSource ...
 
 
         function code = restoreKeywords(code)
-            code = replace(code, ModelSource.PROTECTED_KEYWORDS(:, 2), ModelSource.PROTECTED_KEYWORDS(:, 1));
+            % Workaround for Matlab bug in older versions
+            % ModelSource.PROTECTED_KEYWORD(:,1) does not work properly
+            protectedKeywords = ModelSource.PROTECTED_KEYWORDS;
+            code = replace(code, protectKeywords(:, 2), protectedKeywords(:, 1));
         end%
 
 
