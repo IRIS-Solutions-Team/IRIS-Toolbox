@@ -1,198 +1,104 @@
-function [This, Data, Inx, Crit] = sort(This, Data, SortBy, varargin)
-% sort  Sort SVAR parameterisations by squared distance of shock reponses to median.
-%
-% Syntax
-% =======
-%
-%     [B, ~, Inx, Crit] = sort(A, [ ], SortBy, ...)
-%     [B, Data, Inx, Crit] = sort(A, Data, SortBy, ...)
-%
-% Input arguments
-% ================
-%
-% * `A` [ SVAR ] - SVAR object with multiple parameterisations that will
-% be sorted.
-%
-% * `Data` [ struct | empty ] - SVAR database; if non-empty, the structural
-% shocks will be re-ordered according to the SVAR parameterisations.
-%
-% * `SortBy` [ char ] - Text string that will be evaluated to compute the
-% criterion by which the parameterisations will be sorted; see Description
-% for how to write `SortBy`.
-%
-% Output arguments
-% =================
-%
-% * `B` [ SVAR ] - SVAR object with parameterisations sorted by the
-% specified criterion.
-%
-% * `Data` [ tseries | struct | empty ] - SVAR data with the structural
-% shocks re-ordered to correspond to the order of parameterisations.
-%
-% * `Inx` [ numeric ] - Vector of indices so that `B = A(Inx)`.
-%
-% * `Crit` [ numeric ] - The value of the criterion based on the string
-% `SortBy` for each parameterisation.
-%
-% Options
-% ========
-%
-% * `'progress='` [ `true` | *`false`* ] - Display progress bar in the
-% command window.
-%
-% Description
-% ============
-%
-% The individual parameterisations within the SVAR object `A` are sorted by
-% the sum of squared distances of selected shock responses to the
-% respective median reponses. Formally, the following criterion is
-% evaluated for each parameterisation
-%
-% $$ \sum_{i\in I, j\in J, k\in K} \left[ S_{i, j}(k) - M_{i, j}(k) \right]^2 $$
-%
-% where $S_{i, j}(k)$ denotes the response of the i-th variable to the j-th
-% shock in period k, and $M_{i, j}(k)$ is the median responses. The sets of
-% variables, shocks and periods, i.e. `I`, `J`, `K`, respectively, over
-% which the summation runs are determined by the user in the `SortBy`
-% string.
-%
-% How do you select the shock responses that enter the criterion in
-% `SortBy`? The input argument `SortBy` is a text string that refers to
-% array `S`, whose element `S(i, j, k)` is the response of the i-th
-% variable to the j-th shock in period k.
-%
-% Note that when you pass in SVAR data and request them to be sorted the
-% same way as the SVAR parameterisations (the second line in Syntax), the
-% number of parameterisations in `A` must match the number of data sets in
-% `Data`.
-%
-% Example
-% ========
-%
-% Sort the parameterisations by squared distance to median of shock
-% responses of all variables to the first shock in the first four periods.
-% The parameterisation that is closest to the median responses
-%
-%     S2 = sort(S1, [ ], 'S(:, 1, 1:4)')
-%
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
+function [this, outputDb, pos, sortKey] = sort(this, inputDb, sortBy, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    addRequired(ip, 'A', @(x) isa(x, 'SVAR'));
-    addRequired(ip, 'Data', @(x) isempty(x) || isstruct(x));
-    addRequired(ip, 'SortBy', @ischar);
+    addRequired(ip, 'a', @(x) isa(x, 'SVAR'));
+    addRequired(ip, 'inputDb', @(x) isempty(x) || validate.databank(x));
+    addRequired(ip, 'sortBy', @(x) ischar(x) || isstring(x));
     addOptional(ip, 'Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end
-parse(ip, This, Data, SortBy, varargin{:});
+parse(ip, this, inputDb, sortBy, varargin{:});
 opt = ip.Results;
 
-isData = nargout>1 && ~isempty(Data);
+isData = nargout>1 && ~isempty(inputDb);
 
-%--------------------------------------------------------------------------
+ny = size(this.A, 1);
+numAlt = size(this.A, 3);
 
-ny = size(This.A, 1);
-nAlt = size(This.A, 3);
-
-% Handle residuals.
 if isData
-    % Get data.
-    req = datarequest('e', This, Data, Inf);
+    req = datarequest('e', this, inputDb, Inf);
     rng = req.Range;
     e = req.E;
-    nData = size(e, 3);
-    if nData ~= nAlt
+    numData = size(e, 3);
+    if numData ~= numAlt
         utils.error('SVAR:sort', ...
             ['The number of data sets (%g) must match ', ...
             'the number of parameterisations (%g).'], ...
-            nData, nAlt);
+            numData, numAlt);
     end
 end
 
 % Look for the simulation horizon and the presence of asymptotic responses
-% in the `SortBy` string.
-[h, isY] = myparsetest(This, SortBy);
+% in the `sortBy` string.
+[h, isY] = myparsetest(this, sortBy);
 
-if opt.progress
-    progress = ProgressBar('[IrisToolbox] @SVAR/sort Progress');
+if opt.Progress
+    progress = ProgressBar("[IrisToolbox] SVAR/sort")
 end
 
-XX = [ ];
-for iAlt = 1 : nAlt
-    [S, Y] = doSimulate( ); %#ok<ASGLU>
-    doEvalSort( );
-    if opt.progress
-        update(progress, iAlt/nAlt);
+XX = [];
+for iAlt = 1 : numAlt
+    [S, Y] = here_simulate(); %#ok<ASGLU>
+    XX = here_evalSortKey(XX);
+    if opt.Progress
+        update(progress, iAlt/numAlt);
     end
 end
 
-Inx = doSort( );
-This = subsalt(This, Inx);
+pos = here_sort();
+this = subsalt(this, pos);
 
+outputDb = inputDb;
 if isData
-    e = e(:, :, Inx);
-    Data = myoutpdata(This, rng, e, [ ], This.ResidualNames, Data);
+    e = e(:, :, pos);
+    outputDb = myoutpdata(this, rng, e, [ ], this.ResidualNames, inputDb);
 end
 
+return
 
-% Nested functions...
-
-
-%**************************************************************************
-    
-    
-    function [S, Y] = doSimulate( )
+    function [S, Y] = here_simulate()
         % Simulate the test statistics.
         S = zeros(ny, ny, 0);
         Y = nan(ny, ny, 1);
         % Impulse responses.
         if h > 0
-            S = timedom.var2vma(This.A(:, :, iAlt), This.B(:, :, iAlt), h);
+            S = timedom.var2vma(this.A(:, :, iAlt), this.B(:, :, iAlt), h);
         end
         % Asymptotic impulse responses.
         if isY
-            A = polyn.var2polyn(This.A(:, :, iAlt));
+            A = polyn.var2polyn(this.A(:, :, iAlt));
             C = sum(A, 3);
-            Y = C\This.B(:, :, iAlt);
+            Y = C\this.B(:, :, iAlt);
         end
-    end % doSimulate( )
+    end%
 
 
-%**************************************************************************
-    
-    
-    function doEvalSort( )
+    function XX = here_evalSortKey(XX)
         % Evalutate the sort criterion.
         try
-            X = eval(SortBy);
+            X = eval(sortBy);
             XX = [XX, X(:)];
         catch err
             utils.error('SVAR:sort', ...
                 ['Error evaluating the sort string ''%s''.\n', ...
                 '\tUncle says: %s'], ...
-                SortBy, err.message);
+                sortBy, err.message);
         end
-    end % doEvalSort( )
+    end%
 
 
-%**************************************************************************
-    
-    
-    function Inx = doSort( )
+    function pos = here_sort( )
         % Sort by the distance from median.
         n = size(XX, 2);
         if n > 0
             MM = median(XX, 2);
-            Crit = nan(1, n);
+            sortKey = nan(1, n);
             for ii = 1 : n
-                Crit(ii) = sum((XX(:, ii) - MM).^2 / n);
+                sortKey(ii) = sum((XX(:, ii) - MM).^2 / n);
             end
-            [Crit, Inx] = sort(Crit, 'ascend');
+            [sortKey, pos] = sort(sortKey, 'ascend');
         end
-    end % doSort( )
-
-
-end
+    end%
+end%

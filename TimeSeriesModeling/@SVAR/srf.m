@@ -46,12 +46,10 @@ function varargout = srf(this, time, varargin)
 islogicalscalar = @(x) islogical(x) && isscalar(x);
 defaults = {
     'presample', false, islogicalscalar
-    'select', Inf, @(x) isequal(x, Inf) || islogical(x) || isnumeric(x) || ischar(x) || iscellstr(x)
+    'select', Inf, @(x) isequal(x, Inf) || islogical(x) || isnumeric(x) || ischar(x) || iscellstr(x) || isstring(x)
 };
 
 opt = passvalopt(defaults, varargin{:});
-
-%--------------------------------------------------------------------------
 
 [indexSelected, namesInvalid] = myselect(this, 'e', opt.select);
 if ~isempty(namesInvalid)
@@ -64,4 +62,5 @@ end
 
 [varargout{1:nargout}] = myresponse(this, time, this.B, indexSelected, opt);
 
-end
+end%
+
