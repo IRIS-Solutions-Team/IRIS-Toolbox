@@ -48,6 +48,7 @@ end
 % Extract data as a cell array of numeric arrays
 %
 [data, names, dates] = databank.backend.extractSeriesData(inputDb, names, dates);
+comments = databank.backend.extractSeriesComments(inputDb, names);
 
 %
 % Extract requested column
@@ -56,7 +57,7 @@ numData = numel(data);
 if isequal(column, Inf)
     numColumns = [];
     for i = 1 : numel(data)
-        sizeData = size(x{i});
+        sizeData = size(data{i});
         numColumns(end+1) = prod(sizeData(2:end));
     end
     maxColumns = max(numColumns);
@@ -71,18 +72,22 @@ if isequal(column, Inf)
     if maxColumns>1 && any(numColumns==1)
         for i = find(numColumns==1)
             data{i} = repmat(data{i}, 1, maxColumns);
+            comments{i} = repmat(comments{i}, 1, maxColumns);
         end
         for i = 1 : numData
             data{i} = reshape(data{i}, size(data{i}, 1), 1, []);
+            comments{i} = reshape(comments{i}, 1, 1, []);
         end
     end
 else
     for i = 1 : numData
         data{i} = data{i}(:, column);
+        comments{i} = comments{i}(:, column);
     end
 end
 
 outputArray = [data{:}];
+comments = [comments{:}];
 
 headers = [];
 for i = 1 : numel(data)
