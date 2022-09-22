@@ -8,7 +8,7 @@ arguments
 
     names {local_validateNames(names)} = @all
     dates {local_validateDates(dates)} = @all
-    columns (1, :) {mustBeInteger, mustBePositive} = 1
+    columns (1, :) {mustBePositive} = 1
 end
 %)
 % >=R2019b
@@ -65,8 +65,8 @@ if isequal(dates, @all) || isequal(dates, Inf)
     end
 end
 
-[outputArray, ~, ~, headers] = databank.toArray(inputDb, names, dates, columns);
-outputSeries = Series(dates, outputArray);
+[outputArray, ~, ~, headers, comments] = databank.toArray(inputDb, names, dates, columns);
+outputSeries = Series(dates, outputArray, comments);
 outputSeries.Headers = headers;
 
 end%

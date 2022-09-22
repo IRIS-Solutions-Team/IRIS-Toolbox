@@ -1,4 +1,4 @@
-function [data, names, dates, dateTransform] = extractSeriesData(inputDb, names, dates) 
+function [data, names, dates, dateTransform, comments] = extractSeriesData(inputDb, names, dates) 
 
 if isa(names, 'function_handle')
     names = databank.filterFields(inputDb, 'name', names, 'class', 'Series');
@@ -20,6 +20,7 @@ hereCheckTimeSeries();
 
 [dates, dateTransform] = locallyResolveDates(dates);
 data = cell(size(allSeries));
+comments = cell(size(allSeries));
 context = '';
 [dates, data{:}] = getDataFromMultiple(dates, context, allSeries{:});
 dates = reshape(double(dates), 1, []);
