@@ -76,8 +76,8 @@ classdef ( ...
 
 
     methods
-
         varargout = arma(varargin)
+        varargout = ascii(varargin)
         varargout = bpass(varargin)
         varargout = bsxfun(varargin)
         varargout = chainlink(varargin)
@@ -187,6 +187,11 @@ classdef ( ...
 
         function value = get.StartAsDate(this)
             value = getStart(this);
+        end%
+
+
+        function x = getComments(this)
+            x = textual.stringify(this.Comment);
         end%
 
 
