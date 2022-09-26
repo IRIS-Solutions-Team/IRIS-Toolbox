@@ -22,29 +22,23 @@ function ihelp(name, maxLines)
         ], name);
     end
 
-%     if ~contains(mdContent, CUT)
-%         exception.error([
-%             "Help"
-%             "No markdown help exists in IrisT for this file: %s"
-%         ], name);
-%     end
-%     mdContent = extractBefore(mdContent, CUT);
-
     mdContent = regexprep(mdContent, "\r", "");
     mdContent = regexprep(mdContent, "\n{4,}", "\n\n\n");
     title = regexp(mdContent, "---\ntitle: ([^\n\s]+)", "tokens", "once");
     title = title(1);
     mdContent = regexprep(mdContent, "^\s*---.*?---", "");
     mdContent = regexprep(mdContent, "^\s+", "\n");
-    mdContent = sprintf("\n# `%s`\n", title) + mdContent;
+    mdContent = replace(mdContent, ["^^(", ")^^"], ["(", ")"]);
 
+    mdContent = regexprep(mdContent, "^>", ": ", "lineAnchors");
     mdContent = regexprep(mdContent, "^# `?([^`\n]+)`?", "<a href="""">$1</a>", "lineAnchors");
     mdContent = regexprep(mdContent, "^## ([^\n]+)", "<a href="""">$1</a>", "lineAnchors");
+    mdContent = regexprep(mdContent, "^### ([^\n]+)", ">> <a href="""">$1</a>", "lineAnchors");
     mdContent = regexprep(mdContent, "\{== (.*?) ==\}", "<strong>$1</strong>");
     mdContent = regexprep(mdContent, "^__`(.*?)`__", "<strong>$1</strong>", "lineAnchors");
-    mdContent = regexprep(mdContent, "^>", ": ", "lineAnchors");
     mdContent = regexprep(mdContent, "^(.)", "  $1", "lineAnchors");
     mdContent = regexprep(mdContent, "```matlab(.*?)```", "${regexprep($1, ""^  "", ""       "", ""lineAnchors"")}", "lineAnchors");
+    mdContent = regexprep(mdContent, "\$\$(.*?)\$\$", "${regexprep($1, ""^  "", ""       "", ""lineAnchors"")}", "lineAnchors");
 
     mdContent = join([
         mdContent

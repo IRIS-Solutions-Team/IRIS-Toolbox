@@ -9,30 +9,29 @@ title: bn
 
 ## Syntax
 
-    Outp = bn(SolvedModel, InputData, Range, ...)
+    outp = bn(m, inputDb, range, ___)
 
 
-## Input Arguments
+## Input arguments
 
-`SolvedModel` [ Model ] 
+__`m`__ [ Model ] 
 > 
 > Solved model object.
 > 
 
-`InputData` [ struct ]
+__`inputDb`__ [ struct ]
 > 
 > Input databank on which the BN trends will be computed.
 > 
 
-`Range` [ numeric | char ] 
+__`range`__ [ Dater ] 
 > 
-> Date range on which the BN trends will be
-> computed.
+> Date range on which the BN trends will be computed.
 > 
 
-## Output Arguments 
+## Output arguments 
 
-`Outp` [ struct ]
+__`outp`__ [ struct ]
 > 
 > Output databank with the BN trends.
 > 
@@ -41,21 +40,14 @@ title: bn
 
 __`Deviation=false`__ [ `true` | `false` ] 
 > 
-> Input and output data are
-> deviations from steady-state paths.
+> Input and output data are deviations from steady-state paths.
 > 
-
-`DTrends=@auto` [ `@auto` | `true` | `false` ] 
-
-Measurement variables
-in input and output data include deterministic trends specified in
-[`!measurement-trends`](irislang/dtrends) equations.
 
 
 ## Description 
 
-The BN decomposition is accurate only if the input data have been
-generated using unanticipated shocks.
+The BN decomposition is accurate only if the input data have been generated
+using unanticipated shocks.
 
 
 ## Examples

@@ -28,10 +28,8 @@ __`flag`__ [ `true` | `false` ]
 > 
 
 
-## Options 
-
-
 ## Description 
+
 
 ### Basic use case
 
@@ -47,7 +45,6 @@ If the input model, `m`, contains multiple parameter variants, the output
 argument, `flag`, is a row vector of logical values of the same length as
 the number of variants, each element of which indicates the existence of
 a valid first-order solution for the respective parameter variant.
-
 
 
 ## Examples

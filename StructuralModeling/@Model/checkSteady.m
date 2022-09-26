@@ -1,3 +1,13 @@
+%{
+% 
+% # `checkSteady` ^^(Model)^^
+% 
+% {== Check if equations hold for currently assigned steady-state values ==}
+% 
+%}
+% --8<--
+
+
 % Type `web Model/checkSteady.md` for help on this function
 %
 % -[IrisToolbox] for Macroeconomic Modeling

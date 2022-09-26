@@ -4,35 +4,32 @@ title: islog
 
 # `islog` ^^(Model)^^
 
-{== True for empty model object==}
+{== True for variables declared as log-variables ==}
 
 
 ## Syntax 
 
-    Flag = islog(M,Name)
+    flag = isLog(m, name)
 
 
 ## Input arguments 
 
-`M` [ model ]
+__`m`__ [ model ]
 > 
 > Model object.
 > 
 
-`Name` [ char | cellstr ] 
+__`name`__ [ string ] 
 >
 > Name or names of model variable(s).
->
+> 
 
 ## Output arguments 
 
-`Flag` [ `true` | `false` ]
+`flag` [ `true` | `false` ]
 > 
-> True for log variables.
+> The output flag is `true` for log variables, `false` otherwise.
 > 
-
-
-## Options 
 
 
 
