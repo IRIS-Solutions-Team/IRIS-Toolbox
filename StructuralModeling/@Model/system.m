@@ -97,7 +97,7 @@
 
 
 % >=R2019b
-%(
+%{
 function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, opt)
 
 
@@ -114,12 +114,12 @@ arguments
 
     opt.Select (1, 1) logical = true 
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [A, B, C, D, F, G, H, J, list, numF, deriv] = system(this, varargin)
 
 persistent ip
@@ -136,7 +136,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 

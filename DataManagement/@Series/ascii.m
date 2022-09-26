@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function ascii(x, opt)
 
 arguments
@@ -9,12 +9,12 @@ arguments
     opt.Range double = Inf
     opt.Type (1, 1) string {mustBeMember(opt.Type, ["scatter", "bar"])} = "bar"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function ascii(x, varargin)
 
 persistent ip
@@ -26,7 +26,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
