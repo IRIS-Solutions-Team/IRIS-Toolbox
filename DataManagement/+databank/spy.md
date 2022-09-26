@@ -4,35 +4,32 @@ title: databank.spy
 
 # `databank.spy`
 
-{== Visualize databank time series based on test condition ==}
+{== Visualize availability of databank time series observations ==}
 
 
 ## Syntax 
 
-    [___] = databank.spy(___)
+    databank.spy(inputDb, names, range)
 
 
 ## Input arguments 
 
-__`xxx`__ [ xxx | ___ ]
+__`inputDb`__ [ struct | Dictionary ]
 > 
-> Description
-> 
-
-
-## Output arguments 
-
-__`yyy`__ [ yyy | ___ ]
-> 
-> Description
+> Input databank.
 > 
 
 
-## Options 
-
-__`zzz=default`__ [ zzz | ___ ]
+__`names`__ [ string | `Inf` ]
 > 
-> Description
+> Names of time series that will be reported; `names=Inf` means all time
+> series in the `inputDb`.
+> 
+
+
+__`range`__ [ Dater ]
+> 
+> Date range on which the availability of observations will be reported.
 > 
 
 

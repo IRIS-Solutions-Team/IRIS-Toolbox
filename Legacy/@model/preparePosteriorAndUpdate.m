@@ -3,18 +3,18 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function [this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt)
+function [this, posterior] = preparePosteriorAndUpdate(this, estimSpecs, opt)
 
 % Remove empty entries from estimation specs
-fields = fieldnames(estimationSpecs).';
+fields = fieldnames(estimSpecs).';
 numFields = numel(fields);
 indexToRemove = false(1, numFields);
 for i = 1 : numFields
-    if isempty(estimationSpecs.(fields{i}))
+    if isempty(estimSpecs.(fields{i}))
         indexToRemove(i) = true;
     end
 end
-estimationSpecs = rmfield(estimationSpecs, fields(indexToRemove));
+estimSpecs = rmfield(estimSpecs, fields(indexToRemove));
 fields(indexToRemove) = [ ];
 
 % Parameters to estimate and their positions; remove names that are not
@@ -83,7 +83,7 @@ return
 
         for ii = 1 : numParameters
             name__ = parameterNames{ii};
-            spec__ = estimationSpecs.(name__);
+            spec__ = estimSpecs.(name__);
             if isnumeric(spec__)
                 spec__ = num2cell(spec__);
             end
@@ -101,13 +101,14 @@ return
             else
                 init__ = NaN;
             end
+
             % If the starting value is NaN at this point, use the currently assigned
             % value from the model object, defaultInitial
             if isequaln(init__, NaN)
                 init__ = defaultInitial(ii);
             end
 
-            % __Lower and Upper Bounds__
+            % __Lower and upper bounds__
             if length(spec__)>1 && isnumeric(spec__{2}) && isscalar(spec__{2})
                 lower__ = spec__{2};
             else

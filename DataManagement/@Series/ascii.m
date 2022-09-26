@@ -1,14 +1,33 @@
 
+% >=R2019b
+%(
+function ascii(x, opt)
+
+arguments
+    x Series
+    opt.Column (1, 1) = 1
+    opt.Range double = Inf
+    opt.Type (1, 1) string {mustBeMember(opt.Type, ["scatter", "bar"])} = "bar"
+end
+%)
+% >=R2019b
+
+
+% <=R2019a
+%{
 function ascii(x, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser(); 
-    addParameter(ip, "Type", "scatter", @(x) ismember(x, ["scatter", "bar"]));
     addParameter(ip, "Column", 1, @(x) isequal(x, "end") || (isnumeric(x) && isscalar(x)));
+    addParameter(ip, "Range", Inf, @validate.range);
+    addParameter(ip, "Type", "bar", @(x) ismember(x, ["scatter", "bar"]));
 end
 parse(ip, varargin{:});
 opt = ip.Results;
+%}
+% <=R2019a
 
 
     LINE = char(hex2dec('02595'));
@@ -19,15 +38,24 @@ opt = ip.Results;
     blankColumn = repmat(' ', numPer, 1);
     lineColumn = repmat(LINE, numPer, 1);
 
-    datesChar = reshape(dater.toDefaultString(getRange(x)), [], 1);
+    if isequal(opt.Range, Inf)
+        range = getRange(x);
+    else
+        range = opt.Range;
+    end
+    range = double(range);
+    range = dater.colon(range(1), range(end));
+
+    datesChar = reshape(dater.toDefaultString(range), [], 1);
     datesChar = [repmat('    ', numPer, 1), strjust(char(datesChar)), repmat(':', numPer, 1)];
 
-    if isnumeric(opt.Column)
+    data = getDataFromTo(x, range);
+    if isnumeric(opt.Column) && ~isinf(opt.Column)
         data = x.Data(:, opt.Column);
     else
         data = x.Data(:, end);
     end
-    dataChar = char(compose("%12g", x.Data(:, 1)));
+    dataChar = char(compose("%12g", data));
     inxEmpty = all(dataChar==' ', 1);
     dataChar(:, inxEmpty) = '';
     dataChar = [blankColumn, dataChar, blankColumn];
@@ -53,9 +81,9 @@ opt = ip.Results;
         end
     end
 
-    disp("");
+    textual.looseLine();
     disp([datesChar, dataChar, plotChar]);
-    disp("");
+    textual.looseLine();
 
 end%
 

@@ -102,9 +102,6 @@ classdef Report ...
                     template = local_readTextFile(opt.Template);
                 end
 
-                % FIXME
-                % template = replace(template, """Lato""", """Open Sans""");
-
                 template = here_embedReportData(template);
                 template = here_embedUserStyle(template);
                 outputFileNames(end+1) = here_writeFinalHtml( ); %#ok<*AGROW>
