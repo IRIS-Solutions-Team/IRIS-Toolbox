@@ -261,10 +261,16 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
             %(
             parent = this.ParentChartpack;            
             if ~isempty(parent.PlotSettings)
-                set(plotHandles, parent.PlotSettings{:});
+                for i = 1 : 2 : numel(parent.PlotSettings)
+                    try
+                        set(plotHandles, parent.PlotSettings{i:i+1});
+                    end
+                end
             end
             for i = 1 : numel(parent.PlotExtras)
-                parent.PlotExtras{i}(plotHandles);
+                try
+                    parent.PlotExtras{i}(plotHandles);
+                end
             end
             %)
         end%

@@ -34,9 +34,6 @@ title: alter
 > 
 
 
-## Options 
-
-
 ## Description 
 
 If the new number of parameter variants, `N`, is greater than the current

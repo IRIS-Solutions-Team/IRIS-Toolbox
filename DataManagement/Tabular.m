@@ -18,6 +18,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
         SourceNames = @all
         TargetNames = []
         Frequencies = @all
+        NumDividers (1, 1) double = 1
         IncludeComments (1, 1) logical = true
         AddToDatabank = struct()
         StartDateOnly (1, 1) logical = false
@@ -191,8 +192,10 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 this.Header = [this.Header, header];
             end
 
-            this.Header(:, end+1) = missingCell;
-            this.Values(:, end+1) = missingCell;
+            if this.NumDividers>1
+                this.Header(:, end+(1:this.NumDividers)) = missingCell;
+                this.Values(:, end+(1:this.NumDividers)) = missingCell;
+            end
         end%
 
 

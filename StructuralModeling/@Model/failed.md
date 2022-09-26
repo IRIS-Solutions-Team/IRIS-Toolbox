@@ -4,28 +4,25 @@ title: failed
 
 # `failed` ^^(Model)^^
 
-{== Give access to the last failed model object.==}
+{== Give access to the last failed model object ==}
 
 
 ## Syntax 
 
-    m = model.failed( )
+    m = Model.failed()
 
-
-## Input arguments 
 
 
 
 ## Output arguments 
-__`m`__ [ numeric ] 
-> 
->  The model object with the parameterisation that
-> failed to converge on steady state or to solve during one of the
-> following functions: [`model/estimate`](model/estimate), 
-> [`model/diffloglik`](model/diffloglik), [`model/fisher`](model/fisher).
-> 
 
-
+__`m`__ [ Model ] 
+> 
+>  The model object with the parameterisation that failed to converge on
+>  steady state or to solve during one of the following functions:
+>  [`estimate`](estimate.md),
+>  and [`fisher`](fisher.md).
+> 
 
 ## Options 
 
@@ -34,3 +31,4 @@ __`m`__ [ numeric ]
 
 
 ## Examples
+

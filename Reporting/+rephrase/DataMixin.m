@@ -3,6 +3,7 @@ classdef (Abstract) DataMixin ...
 
     properties (Hidden)
         Settings_Conditional 
+        Settings_Transform = []
         Round (1, 1) double = Inf
     end
 
@@ -20,12 +21,12 @@ classdef (Abstract) DataMixin ...
             % Convert input time series to Dates/Values
             if isa(input, 'Series')
                 parent = this.Parent;
+                input = transform(this, input);
                 if rephrase.Type.isChart(parent.Type)
                     [dates, values] = this.finalizeForChart(input, parent.Settings_StartDate, parent.Settings_EndDate);
                 else
                     [dates, values] = this.finalizeForTable(input, parent.Settings_Dates);
                 end
-                values = values(:, 1);
                 values = round(this, values);
                 output = struct();
                 output.Dates = dates;
@@ -49,6 +50,14 @@ classdef (Abstract) DataMixin ...
             end
             %)
         end%
+
+
+        function input = transform(this, input)
+            if isa(this.Settings.Transform, 'function_handle')
+                input = this.Settings.Transform(input);
+            end
+            this.Settings.Transform = [];
+        end%
     end
 
 
@@ -56,6 +65,18 @@ classdef (Abstract) DataMixin ...
         function [dates, values] = finalizeForChart(inputSeries, startDate, endDate)
             freq = getFrequency(inputSeries);
             [values, ~, ~, dates] = getDataFromTo(inputSeries, startDate, endDate);
+            dates = reshape(dates, [], 1);
+            values = values(:, 1);
+            inxData = ~isnan(values);
+            posFirst = find(inxData, 1, 'first');
+            posLast = find(inxData, 1, 'last');
+            if ~isempty(posFirst)
+                values = values(posFirst:posLast, :);
+                dates = dates(posFirst:posLast, :);
+            else
+                values = values([], :);
+                dates = dates([], :);
+            end
             if freq>0
                 dates = dater.toIsoString(dates, "start");
             end
@@ -64,6 +85,7 @@ classdef (Abstract) DataMixin ...
 
         function [dates, values] = finalizeForTable(inputSeries, dates)
             values = getData(inputSeries, dates);
+            values = values(:, 1);
             dates = NaN;
         end%
     end

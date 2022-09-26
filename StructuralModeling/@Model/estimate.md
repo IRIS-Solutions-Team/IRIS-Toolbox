@@ -4,150 +4,219 @@ title: estimate
 
 # `estimate` ^^(Model)^^
 
-{== Estimate model parameters by optimizing selected objective function ==}
+{== Estimate model parameters by maximizing posterior-based objective function ==}
 
 
 ## Syntax
 
 Input arguments marked with a `~` sign may be omitted.
 
-    [Summary, Poster, Table, Hess, MEst, V, Delta, PDelta] ...
-        = estimate(M, D, Range, EstimSpec, ~SystemPriors, ...)
+    [summary, poster, proposalCov, hess, mEst] ...
+        = estimate(m, inputDb, range, estimSpecs, ~SystemPriors, ...)
 
 
 ## Input arguments
 
-* `M` [ model ] - Model object with single parameterization.
+__`m`__ [ model ]
+>
+> Model object with single parameterization.
+> 
 
-* `D` [ struct | cell ] - Input database or datapack from which the
-measurement variables will be taken.
 
-* `Range` [ struct | char ] - Date range on which the data likelihood
-will be evaluated.
+__`inputDb`__ [ struct ]
+>
+> Input database from which the measurement variables will be
+> taken.
+> 
 
-* `EstimSpec` [ struct ] - Struct with the list of paremeters that will be
-estimated, and the parameter prior specifications (see below).
 
-* `~SystemPriors` [ systempriors | *empty* ] - System priors object,
-[`systempriors`](systempriors/Contents); may be omitted.
+__`range`__ [ struct ]
+>
+> Date range on which the data likelihood
+> will be evaluated.
+> 
+
+
+__`estimSpecs`__ [ struct ]
+>
+> Struct with the list of paremeters that will be
+> estimated, and the parameter prior specifications (see below).
+> 
+
+
+__`SystemPriors=[]`__ [ SystemPriorWrapper | empty ]
+>
+> System priors, [`SystemPriorWrapper`](systempriors/Contents).
+> 
 
 
 ## Output arguments
 
-* `Summary` [ table ] - Table with summary information.
 
-* `Poster` [ poster ] - Posterior, [`poster`](poster/Contents), object;
-this object also gives you access to the value of the objective function
-at optimum or at any point in the parameter space, see the
-[`poster/eval`](poster/eval) function.
+__`summary`__ [ table ]
+>
+> Table with summary information.
+> 
 
-* `Table` [ numeric ] - Summary table with a starting value, point
-estimate, std error estimate, and lower and upper bounds for each
-parameter. 
 
-* `Hess` [ cell ] - `Hess{1}` is the total hessian of the objective
-function; `Hess{2}` is the contributions of the priors to the hessian.
+__`poster`__ [ Posterior ]
+>
+> Posterior, [`poster`](poster/Contents), object;
+> this object also gives you access to the value of the objective function
+> at optimum or at any point in the parameter space, see the
+> [`Posterior/eval`](../@Posterior/eval) function.
+> 
 
-* `MEst` [ model ] - Model object solved with the estimated parameters
-(including out-of-likelihood parameters and common variance factor).
 
-The remaining three output arguments, `V`, `delta`, `PDelta`, are the
-same as the [`model/loglik`](model/loglik) output arguments of the same
-names.
+__`proposalCov`__ [ numeric ]
+>
+> Proposal covariance matrix based on the final Hessian, and adjusted for
+> lower/upper bound hits.
+> 
+
+
+__`hess`__ [ cell ]
+>
+> `Hess{1}` is the total hessian of the objective
+> function; `Hess{2}` is the contributions of the priors to the hessian.
+> 
+
+
+__`mEst`__ [ Model ]
+>
+> Model object solved with the estimated parameters (including
+> out-of-likelihood parameters and common variance factor).
+> 
 
 
 ## Options
 
-* `CheckSteady=false` [ `true` | `false` | cell ] - Check steady state in
-each iteration; works only in non-linear models.
+__`CheckSteady=false`__ [ `true` | `false` | cell ]
+>
+> Check steady state in each iteration; works only in non-linear models.
+> 
 
-* `EvalLikelihood=true` [ `true` | `false` ] - In each iteration, evaluate
-likelihood (or another data based criterion), and include it to the
-overall objective function to be optimised.
 
-* `EvalParameterPriors=true` [ `true` | `false` ] - In each iteration,
-evaluate parameter prior density, and include it to the overall objective
-function to be optimised.
+__`EvalLikelihood=true`__ [ `true` | `false` ]
+>
+> In each iteration, evaluate likelihood (or another data based criterion),
+> and include it to the overall objective function to be optimised.
+> 
 
-* `EvalSystemPriors=true` [ `true` | `false` ] - In each iteration,
-evaluate system prior density, and include it to the overall objective
-function to be optimised.
 
-* `Filter={ }` [ cell ] - Cell array of options that will be passed on to
-the Kalman filter including the type of objective function; see help on
-[`model/filter`](model/filter) for the options available.
+__`EvalParameterPriors=true`__ [ `true` | `false` ]
+>
+> In each iteration, evaluate parameter prior density, and include it to
+> the overall objective function to be optimised.
+> 
 
-* `InitVal='struct'` [ `'Model'` | `'Struct'` | struct ] - If `Struct`
-use the values in the input struct `est` to start the iteration; if
-`Model` use the currently assigned parameter values in the input model,
-`m`.
 
-* `MaxIter=500` [ numeric ] - Maximum number of iterations allowed.
+__`EvalSystemPriors=true`__ [ `true` | `false` ]
+>
+> In each iteration, evaluate system prior density, and include it to the
+> overall objective function to be optimised.
+> 
 
-* `MaxFunEvals=2000` [ numeric ] - Maximum number of objective function
-calls allowed.
 
-* `NoSolution='Error'` [ `'Error'` | `'Penalty'` | numeric ] - Specifies
-what happens if solution or steady state fails to solve in an iteration:
-`NoSolution='Error'` stops the execution with an error message,
-`NoSolution='Penalty'` returns an extreme value, `1e10`, back to the
-minimization routine; or a user-supplied penalty can be specified as a
-numeric scalar greater than `1e10`.
+__`Filter={}`__ [ cell ]
+>
+> Cell array of options that will be passed on to the Kalman filter
+> including the type of objective function; see help on
+> [`kalmanFilter`](kalmanFilter.md) for the options available.
+>  
 
-* `OptimSet={ }` [ cell ] - Cell array used to create the Optimization
-Toolbox options structure; works only with the option `Solver='Default'`.
+__`StartIterations="struct"`__ [ `"Model"` | `"Struct"` | struct ]
+> 
+> If `InitVal="struct"` use the values in the input struct `est` to start
+> the iteration; if `Model` use the currently assigned parameter values in
+> the input model, `m`.
+>  
 
-* `Summary='Table'` [ `'Table'` | `'Struct'` ] - Format of the `Summary`
-output argument.
 
-* `Solve=true` [ `true` | `false` | cellstr ] - Re-compute solution in
-each iteration; you can specify a cell array with options for the `solve`
-function.
+__`MaxIter=500`__ [ numeric ]
+>
+> Maximum number of iterations allowed.
+> 
 
-* `Solver='Default'` [ `'Default'` | cell | function_handle ] -
-Minimization procedure.
 
-    * `'Default'`: The Optimization Toolbox function `fminunc` or
-    `fmincon` will be called depending on the presence or absence of
-    lower and/or upper bounds.
+__`MaxFunEvals=2000`__ [ numeric ]
+>
+> Maximum number of objective function calls allowed.
+> 
 
-    * function_handle or cell: Enter a function handle to your own
-    optimization procedure, or a cell array with a function handle and
-    additional input arguments (see below).
 
-* `SState=false` [ `true` | `false` | cell | function_handle ] -
-Re-compute steady state in each iteration; you can specify a cell array
-with options for the `sstate( )` function, or a function handle whose
-behaviour is described below.
+__`NoSolution='Error'`__ [ `'Error'` | `'Penalty'` | numeric ]
+>
+> > Specifies
+> what happens if solution or steady state fails to solve in an iteration:
+> `NoSolution='Error'` stops the execution with an error message,
+> `NoSolution='Penalty'` returns an extreme value, `1e10`, back to the
+> minimization routine; or a user-supplied penalty can be specified as a
+> numeric scalar greater than `1e10`.
+> 
 
-* `TolFun=1e-6` [ numeric ] - Termination tolerance on the objective
-function.
 
-* `TolX=1e-6` [ numeric ] - Termination tolerance on the estimated
-parameters.
+__`OptimSet={}`__ [ cell ]
+>
+> Cell array used to create the Optimization
+> Toolbox options structure; works only with the option `Solver='Default'`.
+> 
+
+
+__`Summary='Table'`__ [ `'Table'` | `'Struct'` ]
+>
+> Format of the `Summary` output argument.
+> 
+
+
+__`Solve=true`__ [ `true` | `false` | cellstr ]
+> 
+> Re-compute solution in
+> each iteration; you can specify a cell array with options for the `solve`
+> function.
+> 
+
+__`Steady=false`__ [ `true` | `false` | cell | function_handle ]
+>
+> Re-compute steady state in each iteration; you can specify a cell array
+> with options for the `sstate( )` function, or a function handle whose
+> behaviour is described below.
+> 
+
+__`TolFun=1e-6`__ [ numeric ]
+>
+> Termination tolerance on the objective
+> function.
+> 
+
+__`TolX=1e-6`__ [ numeric ]
+>
+> Termination tolerance on the estimated
+> parameters.
+> 
 
 
 ## Description
 
 The parameters that are to be estimated are specified in the input
-parameter estimation database, `E` in which you can provide the following
+parameter estimation specification struct, `estimSpecs` in which you can provide the following
 specifications for each parameter:
 
-    E.parameter_name = { start, lower, upper, logpriorFunc };
+    estimSpecs.parameterName = { start, lower, upper, prior };
 
 where `start` is the value from which the numerical optimization will
-start, `lower` is the lower bound, `upper` is the upper bound, and
-`logpriorFunc` is a function handle expected to return the log of the
-prior density. You can use the [`logdist`](logdist/Contents) package to
-create function handles for some of the basic prior distributions.
+start, `lower` is the lower bound, `upper` is the upper bound, and `prior`
+is a 
+[distribution function object](../../ShrinkageEstimation/+distribution/index.md)
+specifying the prior density for the parameter.
 
 You can use `NaN` for `start` if you wish to use the value currently
 assigned in the model object. You can use `-Inf` and `Inf` for the
 bounds, or leave the bounds empty or not specify them at all. You can
-leave the prior distribution empty or not specify it at all.
+leave the prior distribution empty.
 
 
-_Estimating Nonlinear Models_
+_Estimating nonlinear models_
 
 By default, only the first-order solution, but not the steady state is
 updated (recomputed) in each iteration before the likelihood is

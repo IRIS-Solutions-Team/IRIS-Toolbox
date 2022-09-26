@@ -86,6 +86,13 @@ __`TargetNames=[]`__ [ empty | function | struct ]
 > 
 
 
+__`NumDividers=1`__ [ numeric ]
+> 
+> Number of empty columns dividing sections with different date
+> frequencies.
+> 
+
+
 ## Description 
 
 The `databank.toSheet` and its reading counterpart `databank.fromSheet`

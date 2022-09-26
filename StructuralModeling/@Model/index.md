@@ -28,16 +28,18 @@ Function | Description
 ---|---
 [`access`](access.md) | Access properties of Model objects
 [`beenSolved`](beenSolved.md) | True if first-order solution has been successfully calculated
-[`table`](table.md) | Create table based on selected indicators from Model object
-[`solutionMatrices`](solutionMatrices.md) | Access first-order state-space (solution) matrices
 [`byAttributes`](byAttributes.md) | Look up model quantities and equation by attributes
 [`findEquation`](findEquation.md) | Find equations whose input strings pass one or more tests
 [`getBounds`](getBounds.md) | Get lower and upper bounds imposed on model quantities
-[`isLinkActive`](isLinkActive.md) | True if dynamic link is active
 [`isLinear`](isLinear.md) | True if the model has been declared as linear
-[`isLog`](isLog.md) | True for empty model object
+[`isLinkActive`](isLinkActive.md) | True if dynamic link is active
+[`isLog`](isLog.md) | True va
 [`print`](print.md) | Print model object
+[`solutionMatrices`](solutionMatrices.md) | Access first-order state-space (solution) matrices
+[`subsref`](subsref.md) | 
 [`table`](table.md) | Create table based on selected indicators from Model object
+[`isnan`](isnan.md) | 
+[`isempty`](isempty.md) | 
 
 
 ### Assigning values within models
@@ -61,7 +63,7 @@ Function | Description
 [`blazer`](blazer.md) | Analyze sequential block structure of steady equations
 [`eig`](eig.md) | Eigenvalues of model transition matrix
 [`systemMatrices`](systemMatrices.md) | First-order system matrices describing the unsolved model
-
+[`isStationary`](isStationary.md) | 
 
 
 ### Stochastic properties of models
@@ -69,9 +71,9 @@ Function | Description
 Function | Description 
 ---|---
 [`acf`](acf.md) | Autocovariance and autocorrelation function for model variables
-[`bn`](bn.md) | Beveridge-Nelson trends
 [`fevd`](fevd.md) | Forecast error variance decomposition for model variables
 [`ffrf`](ffrf.md) | Filter frequency response function of transition variables to measurement variables
+[`fisher`](fisher.md) | 
 [`fmse`](fmse.md) | Forecast mean square error matrices
 
 
@@ -93,6 +95,7 @@ Function | Description
 
 Function | Description 
 ---|---
+[`bn`](bn.md) | Beveridge-Nelson trends
 [`estimate.md`](estimate.md) | Estimate model parameters by optimizing selected objective function
 [`kalmanFilter`](kalmanFilter.md) | Kalman smoother and estimator of out-of-likelihood parameters
 
@@ -107,5 +110,6 @@ Function | Description
 [`changeGrowthStatus`](changeGrowthStatus.md) | Change growth status for selected variables
 [`changeLinearStatus`](changeLinearStatus.md) | Change linear status of model
 [`changeLogStatus`](changeLogStatus.md) | Change log status of model variables
+[`horzcat`](horzcat.md) | 
 
 

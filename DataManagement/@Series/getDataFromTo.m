@@ -9,6 +9,7 @@ function [x, actualFrom, actualTo, actualRange] = getDataFromTo(this, from, to)
     % caller
 
     start = double(this.Start);
+    try, to; catch, to = []; end;
 
     if nargin==1
         x = this.Data;
@@ -20,18 +21,7 @@ function [x, actualFrom, actualTo, actualRange] = getDataFromTo(this, from, to)
         return
     end
 
-    if nargin==2 && (isequal(from, @all) || strcmp(from, ":"))
-        % Legacy range specifications: @all, :
-        from = Inf;
-    end
-
-    from = double(from);
-    if nargin==2
-        to = from;
-    end
-    to = double(to);
-    from = from(1);
-    to = to(end);
+    [from, to] = local_resolveFromTo(from, to);
 
     if isnan(from) || isnan(to)
         ndimsData = ndims(this.Data);
@@ -125,5 +115,22 @@ function [x, actualFrom, actualTo, actualRange] = getDataFromTo(this, from, to)
         actualRange = dater.colon(actualFrom, actualTo);
     end
 
+end%
+
+
+function [from, to] = local_resolveFromTo(from, to)
+    %(
+    if isempty(to) && (isequal(from, @all) || strcmp(from, ":"))
+        % Legacy range specifications: @all, :
+        from = Inf;
+    end
+    from = double(from);
+    to = double(to);
+    if isempty(to)
+        to = from;
+    end
+    from = from(1);
+    to = to(end);
+    %)
 end%
 
