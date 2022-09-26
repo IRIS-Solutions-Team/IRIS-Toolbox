@@ -9,35 +9,31 @@ title: assignFromModel
 
 ## Syntax 
 
-    [___] = assignFromModel(___)
+    m = assignFromModel(m, n)
 
 
 ## Input arguments 
 
-__`xxx`__ [ xxx | ___ ]
+__`m`__ [ Model ]
 > 
-> Description
+> Model object that will be assigned values from `n`.
+> 
+
+__`n`__ [ Model ]
+> 
+> Model object from which values will be assigned to `m`.
 > 
 
 
 ## Output arguments 
 
-__`yyy`__ [ yyy | ___ ]
+__`m`__ [ Model ]
 > 
-> Description
-> 
-
-
-## Options 
-
-__`zzz=default`__ [ zzz | ___ ]
-> 
-> Description
+> Model object with the new values assigned
 > 
 
 
 ## Description 
-
 
 
 ## Examples

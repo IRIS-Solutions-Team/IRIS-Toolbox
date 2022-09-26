@@ -11,7 +11,6 @@ classdef Model ...
 
 
     properties (Constant)
-        
         INTERCEPT_STRING = "[const]"
     end
 
@@ -257,7 +256,53 @@ classdef Model ...
     end % methods
 
 
-    methods % Public Interface
+    methods % Duplicate @model public interface
+        %(
+        varargout = acf(varargin)
+        varargout = activateLink(varargin)
+        varargout = addToDatabank(varargin)
+        varargout = alter(varargin)
+        varargout = assign(varargin)
+        varargout = beenSolved(varargin)
+        varargout = blazer(varargin)
+        varargout = bn(varargin)
+        varargout = checkSteady(varargin)
+        varargout = deactivateLink(varargin)
+        varargout = diffloglik(varargin)
+        varargout = diffsrf(varargin)
+        varargout = eig(varargin)
+        varargout = emptydb(varargin)
+        varargout = estimate(varargin)
+        varargout = expand(varargin)
+        varargout = failed(varargin)
+        varargout = fevd(varargin)
+        varargout = ffrf(varargin)
+        varargout = findeqtn(varargin)
+        varargout = findname(varargin)
+        varargout = fisher(varargin)
+        varargout = fmse(varargin)
+        varargout = get(varargin)
+        varargout = horzcat(varargin)
+        varargout = icrf(varargin)
+        varargout = ifrf(varargin)
+        varargout = isLinkActive(varargin)
+        varargout = isempty(varargin)
+        varargout = ismissing(varargin)
+        varargout = isname(varargin)
+        varargout = isnan(varargin)
+        varargout = isstationary(varargin)
+        varargout = length(varargin)
+        varargout = lhsmrhs(varargin)
+        varargout = rescaleStd(varargin)
+        varargout = reset(varargin)
+        varargout = solve(varargin)
+        varargout = steady(varargin)
+        varargout = system(varargin)
+        %)
+    end
+
+
+    methods % Public interface
         %(
         varargout = access(varargin)
         varargout = analyticGradients(varargin)
