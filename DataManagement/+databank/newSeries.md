@@ -2,7 +2,7 @@
 title: databank.newSeries
 ---
 
-# `databank.newSeries`
+# `databank.newSeries` ^^(+databank)^^
 
 {== Create new empty series in a databank ==}
 

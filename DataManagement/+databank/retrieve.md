@@ -2,7 +2,7 @@
 title: databank.retrieve
 ---
 
-# `databank.retrieve`
+# `databank.retrieve` ^^(+databank)^^
 
 {== Retrieve selected fields from databank ==}
 

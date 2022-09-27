@@ -2,7 +2,7 @@
 title: databank.list
 ---
 
-# `databank.list`
+# `databank.list` ^^(+databank)^^
 
 {== List databank fields adding date range to time series fields ==}
 

@@ -2,7 +2,7 @@
 title: databank.spy
 ---
 
-# `databank.spy`
+# `databank.spy` ^^(+databank)^^
 
 {== Visualize availability of databank time series observations ==}
 

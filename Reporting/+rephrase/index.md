@@ -139,58 +139,58 @@ structured in sections or pages.
 
 Function | Description
 ---|---
-[`rephrase.Report`](Report.md)  |  
+[`rephrase.Report`](Report.md) | Create a Report object for rephrase reports
 
 
 ### Structuring the report
 
 Function | Description
 ---|---
-[`rephrase.Grid`](Grid.md)  |  
-[`rephrase.Pagebreak`](Pagebreak.md)  |  
-[`rephrase.Pager`](Pager.md)  |  
-[`rephrase.Section`](Section.md)  |  
+[`rephrase.Grid`](Grid.md) | Create a Grids object for rephrase reports
+[`rephrase.Pagebreak`](Pagebreak.md) | Create a Pagebreak object for rephrase reports
+[`rephrase.Pager`](Pager.md) | Create a Text object for rephrase reports
+[`rephrase.Section`](Section.md) | Create a Section object for rephrase reports
 
 
 ### Creating time series charts
 
 Function | Description
 ---|---
-[`rephrase.SeriesChart`](SeriesChart.md)  |  
-[`rephrase.Series`](Series.md)  |  
-[`rephrase.Bands`](Bands.md)  |  
-[`rephrase.Highlight`](Highlight.md)  |  
+[`rephrase.SeriesChart`](SeriesChart.md) | Create a SeriesChart object for rephrase reports
+[`rephrase.Series`](Series.md) | Create a Series object for rephrase reports
+[`rephrase.Bands`](Bands.md) | Create a Bands object for rephrase reports
+[`rephrase.Highlight`](Highlight.md) | Create a Highlight object for rephrase reports
 
 
 ### Creating term structure charts
 
 Function | Description
 ---|---
-[`rephrase.CurveChart`](CurveChart.md)  |  
-[`rephrase.Curve`](Curve.md)  |  
-[`rephrase.Highlight`](Highlight.md)  |  
+[`rephrase.CurveChart`](CurveChart.md) | Create a CurveChart object for rephrase reports
+[`rephrase.Curve`](Curve.md) | Create a Curve object for rephrase reports
+[`rephrase.Highlight`](Highlight.md) | Create a Highlight object for rephrase reports
 
 
 ### Creating time series tables
 
 Function | Description
 ---|---
-[`rephrase.Table`](Table.md)  |  
-[`rephrase.Series`](Series.md)  |  
-[`rephrase.DiffSeries`](DiffSeries.md)  |  
+[`rephrase.Table`](Table.md) | Create a Table object for rephrase reports
+[`rephrase.Series`](Series.md) | Create a Series object for rephrase reports
+[`rephrase.DiffSeries`](DiffSeries.md) | Create a DiffSeries object for rephrase reports
 
 
 ### Creating data matrices
 
 Function | Description
 ---|---
-[`rephrase.Matrix`](Matrix.md)  |  
+[`rephrase.Matrix`](Matrix.md) | Create a Matrix object for rephrase reports
 
 
 ### Creating text elements
 
 Function | Description
 ---|---
-[`rephrase.Text`](Text.md)  |  
+[`rephrase.Text`](Text.md) | Create a Text object for rephrase reports
 
 

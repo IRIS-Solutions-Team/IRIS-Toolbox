@@ -2,7 +2,7 @@
 title: databank.range
 ---
 
-# `databank.range`
+# `databank.range` ^^(+databank)^^
 
 {== Find a range that encompasses the ranges of all or selected databank time series ==}
 

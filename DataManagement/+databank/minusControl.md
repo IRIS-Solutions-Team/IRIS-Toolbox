@@ -2,7 +2,7 @@
 title: databank.minusControl
 ---
 
-# `databank.minusControl`
+# `databank.minusControl` ^^(+databank)^^
 
 {== Create simulation-minus-control database ==}
 

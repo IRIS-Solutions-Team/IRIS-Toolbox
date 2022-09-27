@@ -2,7 +2,7 @@
 title: databank.toSheet
 ---
 
-# `databank.toSheet` ^^(databank)^^
+# `databank.toSheet` ^^(+databank)^^
 
 {== Save databank of time series to a XLSX or CSV file ==}
 

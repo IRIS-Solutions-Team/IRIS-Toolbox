@@ -1,3 +1,6 @@
+---
+topic: +databank
+---
 
 # Overview of databank package functions
 

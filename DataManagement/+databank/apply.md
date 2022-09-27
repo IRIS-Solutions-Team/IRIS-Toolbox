@@ -2,7 +2,7 @@
 title: databank.apply
 ---
 
-# `databank.apply`
+# `databank.apply` ^^(+databank)^^
 
 {== Apply function to a selection of databank fields ==}
 

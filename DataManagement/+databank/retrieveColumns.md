@@ -2,7 +2,7 @@
 title: databank.retrieveColumns
 ---
 
-# `databank.retrieveColumns`
+# `databank.retrieveColumns` ^^(+databank)^^
 
 {== Retrieve selected columns from databank fields ==}
 

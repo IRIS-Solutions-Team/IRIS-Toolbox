@@ -2,7 +2,7 @@
 title: databank.fromCSV
 ---
 
-# `databank.fromCSV`
+# `databank.fromCSV` ^^(+databank)^^
 
 {== Create databank by loading CSV file ==}
 
