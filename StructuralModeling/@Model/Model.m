@@ -121,6 +121,10 @@ classdef Model ...
         function varargout = islog(varargin)
             [varargout{1:nargout}] = isLog(varargin{:});
         end%
+
+        function varargout = isStationary(varargin)
+            [varargout{1:nargout}] = isstationary(varargin{:});
+        end%
         %)
     end % methods
 

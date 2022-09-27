@@ -12,7 +12,7 @@ structural model object.
 #### [Structural models](@Model/index.md)
 
 Structural models are systems of dynamic simultaneous (interdependent)
-equations with lags and leads (expectations). IrisT supports nonlinear
+equations with lags and leads (expectations). Iris supports nonlinear
 nonstationary (balanced growth path) structural models.
 
 
@@ -40,7 +40,7 @@ nontrivial Kalman fitering tasks.
 
 #### [Nonlinear equations solver settings](Solver/index.md)
 
-IrisT features its own nonlinear equations solver used in calculating the
+Iris features its own nonlinear equations solver used in calculating the
 steady state and dynamic simulations of structural models.
 
 

@@ -77,9 +77,9 @@ __`Warning=true`__ [ `true` | `false` ]
 
 ## Description 
 
-The IrisT solver uses an ordered QZ (or generalised Schur) decomposition
+The Iris solver uses an ordered QZ (or generalised Schur) decomposition
 to integrate out future expectations. The QZ may (very rarely) fail for
-numerical reasons. IrisT  includes two patches to handle the some of the
+numerical reasons. Iris  includes two patches to handle the some of the
 QZ failures: a SEVN2 patch (Sum-of-EigenValues-Near-Two), and an E2C2S
 patch (Eigenvalues-Too-Close-To-Swap).
 
@@ -87,14 +87,14 @@ patch (Eigenvalues-Too-Close-To-Swap).
 * The SEVN2 patch: The model contains two or more unit roots, and the QZ
 algorithm interprets some of them incorrectly as pairs of eigenvalues
 that sum up accurately to 2, but with one of them significantly below 1
-and the other significantly above 1. IrisT replaces the entries on the
+and the other significantly above 1. Iris replaces the entries on the
 diagonal of one of the QZ factor matrices with numbers that evaluate to
 two unit roots.
 
 
 * The E2C2S patch: The re-ordering of thq QZ matrices fails with a
 warning `"Reordering failed because some eigenvalues are too close to
-swap."` IrisT attempts to re-order the equations until QZ works. The
+swap."` Iris attempts to re-order the equations until QZ works. The
 number of attempts is limited to `N-1` at most where `N` is the total
 number of equations.
 

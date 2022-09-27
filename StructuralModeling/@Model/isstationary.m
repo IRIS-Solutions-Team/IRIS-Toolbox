@@ -1,97 +1,95 @@
 %{
 % 
-% # `isstationary` ^^(Model)^^
+% # `isStationary` ^^(Model)^^
 % 
-% {== True if model or specified combination of variables is stationary. ==}
-% 
-% 
-%  ## Syntax
-% 
-%      [Flag, List] = isnan(M, 'Parameters')
-%      [Flag, List] = isnan(M, 'Steady')
-%      [Flag, List] = isnan(M, 'Derivatives')
-%      [Flag, List] = isnan(M, 'Solution')
+% {== True if the model or a linear combination of its variables is stationary ==}
 % 
 % 
-%  ## Input Arguments ##
+% ## Syntax
 % 
-%  `M` [ model ]
+%      flag = isStationary(m)
+%      flag = isStationary(m, name)
+%      flag = isStationary(m, expression)
+% 
+% 
+% ## Input arguments 
+% 
+% __`m`__ [ model ]
 % > 
 % > Model object.
-% >
+% > 
 % 
-%  `Name` [ char ]
+% __`name`__ [ string ]
 % > 
 % > Transition variable name.
-% >
+% > 
 % 
-%  `LinComb` [ char ] 
+% __`expression`__ [ string ] 
 % > 
 % > Text string defining a linear combination of
 % > transition variables; log variables need to be enclosed in `log(...)`.
-% >
+% > 
 % 
-%  ## Output Arguments ##
+% ## Output arguments 
 % 
-%  `Flag` [ `true` | `false` ]
+% __`flag`__ [ `true` | `false` ]
 % > 
 % > True if the model (if called without a
 % > second input argument) or the specified transition variable or
 % > combination of transition variables (if called with a second input
 % > argument) is stationary.
-% >
+% > 
 % 
-%  ## Description
+% ## Description
 % 
 % 
-%  ## Examples
-% >
-% > In the following examples, `m` is a solved model object with two of its
-% > transition variables named `X` and `Y`; the latter is a log variable:
-% >
-% >     isstationary(m)
-% >     isstationary(m, 'X')
-% >     isstationary(m, 'log(Y)')
-% >     isstationary(m, 'X - 0.5*log(Y)')
-% >%}
+% ## Examples
+% 
+% In the following examples, `m` is a solved model object with two of its
+% transition variables named `x` and `y`, with the latter being declared as
+% a log variable:
+% 
+% ```matlab
+%     isStationary(m)
+%     isStationary(m, 'x')
+%     isStationary(m, 'log(y)')
+%     isStationary(m, 'x - 0.5*log(y)')
+% ```
+% 
+% 
+%}
 % --8<--
 
 
 function [flag, test] = isstationary(this, varargin)
 
-EIGEN_TOLERANCE = this.Tolerance.Eigen;
+    EIGEN_TOLERANCE = this.Tolerance.Eigen;
 
-%--------------------------------------------------------------------------
+    if isempty(this.Variant.FirstOrderSolution{1})
+        flag = NaN;
+        return
+    end
 
-if isempty(this.Variant.FirstOrderSolution{1})
-    flag = NaN;
-    return
-end
-
-if isempty(varargin)
-    %
-    % Called:
-    % flag = isstationary(this)
-    %
-    flag = all(this.Variant.EigenStability~=1, 2);
-    flag = permute(flag, [1, 3, 2]);
-else
-    %
-    % Called:
-    % [flag, test] = isstationary(this, expn)
-    %
-    [flag, test] = locallyCointegrationStatus(this, varargin{1}, EIGEN_TOLERANCE);
-end
+    if isempty(varargin)
+        %
+        % Called:
+        % flag = isstationary(this)
+        %
+        flag = all(this.Variant.EigenStability~=1, 2);
+        flag = permute(flag, [1, 3, 2]);
+    else
+        %
+        % Called:
+        % [flag, test] = isstationary(this, expn)
+        %
+        [flag, test] = local_cointegrationStatus(this, varargin{1}, EIGEN_TOLERANCE);
+    end
 
 end%
 
 
-%
-% Local Functions
-%
-
-
-function [flag, test] = locallyCointegrationStatus(this, expn, EIGEN_TOLERANCE)
+function [flag, test] = local_cointegrationStatus(this, expn, EIGEN_TOLERANCE)
+    %(
     [~, ~, ~, nf] = sizeSolution(this.Vector);
     nv = countVariants(this);
     % Get the vector of coefficients describing the tested linear combination.
@@ -113,5 +111,6 @@ function [flag, test] = locallyCointegrationStatus(this, expn, EIGEN_TOLERANCE)
         test{v} = w*[ T(1:nf, 1:numUnitRoots(v)); U(:, 1:numUnitRoots(v)) ];
         flag(v) = all( abs(test{v})<=EIGEN_TOLERANCE );
     end
+    %)
 end%
 

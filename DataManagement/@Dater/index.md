@@ -1,6 +1,6 @@
-# Overview of IrisT dates and Dater objects
+# Overview of Iris dates and Dater objects
 
-IrisT dates are designed to provide convenience for handling dates spaced
+Iris dates are designed to provide convenience for handling dates spaced
 at regular intervals throughout a calendar year, with native support for
 the following date frequencies:
 
@@ -32,5 +32,5 @@ the following date frequencies:
 
 | Function      | Description       |
 |---            |---                |
-[`toString`](toString.md)                                    | Print IrisT dates as formatted strings
+[`toString`](toString.md)                                    | Print Iris dates as formatted strings
 
