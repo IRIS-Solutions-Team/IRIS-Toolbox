@@ -1,10 +1,10 @@
 
-# Installing IrisT
+# Installing Iris
 
 ## Software dependencies
 
-IrisT runs in [Matlab](https://www.mathworks.com/matlab) R2019b or newer.
-There are also legacy releases of IrisT for Matlab R2018a through R2019a
+Iris runs in [Matlab](https://www.mathworks.com/matlab) R2019b or newer.
+There are also legacy releases of Iris for Matlab R2018a through R2019a
 (under the `pre-r2019b` branch) but we strongly discourage using the legacy
 codebase. Keep also in mind that some features are not availabe in legacy
 releases.
@@ -16,7 +16,7 @@ Optimization Toolbox installed.
 
 ## Getting the toolbox files
 
-You have two options of getting IrisT installed on your computer:
+You have two options of getting Iris installed on your computer:
 
 1. Use [Git](https://git-scm.com) to clone the master branch in a
    `irist/folder/of/your/choice` on your computer:
@@ -34,15 +34,15 @@ time safe to update to.
    into a `irist/folder/of/your/choice/` on your computer.
 
 Of course, replace `irist/folder/of/your/choice/` with a proper path to the
-folder where you wish to have IrisT stored locally on your computer. When
+folder where you wish to have Iris stored locally on your computer. When
 unzipping a zip archive, make sure that no nested folder is created, and
 that `irist/folder/of/your/choice/` contains, for instance, a file names
 `Contents.m`.
 
 
-## Starting up IrisT in Matlab
+## Starting up Iris in Matlab
 
-Every time you want to start using IrisT in Matlab, run the following
+Every time you want to start using Iris in Matlab, run the following
 command in the Matlab command prompt:
 
 ```
@@ -50,11 +50,11 @@ command in the Matlab command prompt:
 ```
 
 where you, of course, need to replace `irist/folder/of/your/choice` with
-the proper path you chose when getting IrisT installed on your computer.
+the proper path you chose when getting Iris installed on your computer.
 
 Although you could use the **Set Path** dialog in Matlab to put
 `irist/folder/of/your/choice` on the Matlab path, we discourage you from
 doing that because it may occasionally result in some unwanted side
 consequences. Simply type up or invoke the above one line every time you
-wish to start up IrisT.
+wish to start up Iris.
 

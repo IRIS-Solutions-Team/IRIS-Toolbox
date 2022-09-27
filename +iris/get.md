@@ -4,7 +4,7 @@ title: iris.get
 
 # `iris.get`
 
-{== Get values of IrisT configuration settings ==}
+{== Get values of Iris configuration settings ==}
 
 
 ## Syntax

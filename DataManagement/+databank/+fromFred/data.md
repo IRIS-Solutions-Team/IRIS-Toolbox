@@ -127,7 +127,7 @@ monthly series (`PCE`):
 
 Do the same, but convert the non-quarterly series to quarterly frequency
 server side. Obviously, it can alternatively also be done ex-post in
-IrisT:
+Iris:
 
     db = databank.fromFred(["GDPC1", "PCE"], "Frequency=", Frequency.QUARTERLY)
 

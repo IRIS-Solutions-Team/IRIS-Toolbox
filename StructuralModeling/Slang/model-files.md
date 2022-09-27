@@ -3,13 +3,13 @@
 
 ## Basic rules
 
-* There can be four types of equations in IrisT models: transition equations
+* There can be four types of equations in Iris models: transition equations
 which are simply the endogenous dynamic equations, measurement equations
 which link the model to observables, deterministic trend equations which
 can be added at the top of measurement equations, and dynamic links which
 can be used to link some parameters or steady-state values to each other.
 
-* There can be two types of variables and two types of shocks in IrisT
+* There can be two types of variables and two types of shocks in Iris
 models: transition variables and shocks, and measurement variables and
 shocks.
 

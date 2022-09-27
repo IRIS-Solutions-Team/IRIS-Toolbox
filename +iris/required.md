@@ -4,7 +4,7 @@ title: iris.required
 
 # `iris.required`
 
-{== Throw error if the IrisT release currently running fails to comply with the required minimum ==}
+{== Throw error if the Iris release currently running fails to comply with the required minimum ==}
 
 
 ## Syntax
@@ -16,13 +16,13 @@ title: iris.required
 
 __`release`__ [ string | numeric ]
 > 
-> Text string describing the oldest acceptable release number of the IrisT.
+> Text string describing the oldest acceptable release number of the Iris.
 > 
 
 
 ## Description
 
-If the IrisT release present on the computer does not comply with the
+If the Iris release present on the computer does not comply with the
 minimum requirement `release`, an error is thrown.
 
 

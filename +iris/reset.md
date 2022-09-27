@@ -4,7 +4,7 @@ title: iris.reset
 
 # `iris.reset`
 
-{== Reset the values of all IrisT config settings ==}
+{== Reset the values of all Iris config settings ==}
 
 ## Syntax
 
