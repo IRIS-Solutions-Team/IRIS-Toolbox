@@ -2,7 +2,7 @@
 title: rephrase.Marker
 ---
 
-# `rephrase.Marker`
+# `rephrase.Marker` ^^(+rephrase)^^
 
 {== Create a Marker object for rephrase reports ==}
 

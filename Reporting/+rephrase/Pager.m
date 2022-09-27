@@ -14,14 +14,15 @@ classdef Pager ...
 
     properties (Constant, Hidden)
         PossibleChildren = [
-            string(rephrase.Type.SECTION)
-            string(rephrase.Type.PAGER)
-            string(rephrase.Type.GRID)
-            string(rephrase.Type.TABLE)
             string(rephrase.Type.CHART)
-            string(rephrase.Type.SERIESCHART)
             string(rephrase.Type.CURVECHART)
+            string(rephrase.Type.GRID)
             string(rephrase.Type.MATRIX)
+            string(rephrase.Type.PAGER)
+            string(rephrase.Type.SECTION)
+            string(rephrase.Type.SERIESCHART)
+            string(rephrase.Type.TABLE)
+            string(rephrase.Type.TEXT)
         ]
     end
 

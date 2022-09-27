@@ -2,7 +2,7 @@
 title: rephrase.SeriesChart
 ---
 
-# `rephrase.SeriesChart`
+# `rephrase.SeriesChart` ^^(+rephrase)^^
 
 {== Create a SeriesChart object for rephrase reports ==}
 

@@ -2,7 +2,7 @@
 title: rephrase.Report
 ---
 
-# `rephrase.Report`
+# `rephrase.Report` ^^(+rephrase)^^
 
 {== Create a Report object for rephrase reports ==}
 

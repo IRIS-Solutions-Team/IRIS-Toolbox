@@ -2,7 +2,7 @@
 title: rephrase.Pagebreak
 ---
 
-# `rephrase.Pagebreak`
+# `rephrase.Pagebreak` ^^(+rephrase)^^
 
 {== Create a Pagebreak object for rephrase reports ==}
 

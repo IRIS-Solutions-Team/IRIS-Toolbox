@@ -2,7 +2,7 @@
 title: rephrase.Section
 ---
 
-# `rephrase.Section`
+# `rephrase.Section` ^^(+rephrase)^^
 
 {== Create a Section object for rephrase reports ==}
 

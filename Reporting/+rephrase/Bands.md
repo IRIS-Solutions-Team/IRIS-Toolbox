@@ -2,7 +2,7 @@
 title: rephrase.Bands
 ---
 
-# `rephrase.Bands`
+# `rephrase.Bands` ^^(+rephrase)^^
 
 {== Create a Bands object for rephrase reports ==}
 

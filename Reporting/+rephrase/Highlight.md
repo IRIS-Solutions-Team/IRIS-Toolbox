@@ -2,7 +2,7 @@
 title: rephrase.Highlight
 ---
 
-# `rephrase.Highlight`
+# `rephrase.Highlight` ^^(+rephrase)^^
 
 {== Create a Highlight object for rephrase reports ==}
 

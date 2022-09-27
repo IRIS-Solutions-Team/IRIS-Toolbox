@@ -2,7 +2,7 @@
 title: rephrase.Matrix
 ---
 
-# `rephrase.Matrix`
+# `rephrase.Matrix` ^^(+rephrase)^^
 
 {== Create a Matrix object for rephrase reports ==}
 
