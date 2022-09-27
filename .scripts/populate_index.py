@@ -27,13 +27,13 @@ def _extract_description(head: str, mfile_name: str) -> str:
 
 def _compose_index_line(head: str, matched):
     line = "[" + matched[1] + "](" + matched[2] + ") | " + _extract_description(head, matched[2])
-    print(line)
+    # print(line)
     return line
 
 
 def _compose_index_parag(head: str, matched):
     parag = "#### [" + matched[1] + "](" + matched[2] + ")\n\n" + _extract_description(head, matched[2]) + "\n\n\n"
-    print(parag)
+    # print(parag)
     return parag
 
 

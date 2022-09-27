@@ -1,7 +1,11 @@
 # Overview of Series objects
 
-Series objects are two- or higher-dimensional arrays whose rows are
-referenced by dates. The arrays can be one of the following types:
+{==
+Time series objects are two- or higher-dimensional arrays whose rows are
+referenced by dates. 
+==}
+
+The arrays can be one of the following types:
 
 * numeric arrays
 * string arrays

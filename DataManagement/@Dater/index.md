@@ -1,8 +1,12 @@
-# Overview of Iris dates and Dater objects
 
-Iris dates are designed to provide convenience for handling dates spaced
-at regular intervals throughout a calendar year, with native support for
-the following date frequencies:
+# Overview of Iris dates
+
+{==
+Iris dates are designed to provide maximum convenience for handling dates spaced
+at regular intervals throughout a calendar year.
+==}
+
+Iris supports the following date frequencies:
 
 * yearly
 * half-yearly
