@@ -4,7 +4,7 @@ title: iris.root
 
 # `iris.root`
 
-{== Current IrisT root folder ==}
+{== Current Iris root folder ==}
 
 
 ## Syntax
@@ -17,7 +17,7 @@ title: iris.root
 
 * `root` [ char | string ] 
 > 
-> Path to the IrisT root folder.
+> Path to the Iris root folder.
 > 
 
 

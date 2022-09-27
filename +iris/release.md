@@ -4,7 +4,7 @@ title: iris.release
 
 # `iris.release`
 
-{== The IrisT release currently running ==}
+{== The Iris release currently running ==}
 
 ## Syntax
 

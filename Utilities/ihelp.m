@@ -1,13 +1,12 @@
 function ihelp(name, maxLines)
 
     DIVIDER = string(repmat('=', 1, 80));
-    CUT = "%---8<---";
+    % CUT = "%---8<---";
     WHICH = @(name) regexprep(string(which(name)), "\s+%.*", "");
 
-    try, maxLines = double(string(maxLines));
+    try, maxLines = double(string(maxLines)); %#ok<*NOCOMMA> 
         catch, maxLines = Inf; end
 
-    resolved = WHICH(name);
     [path, title, ~] = fileparts(name);
     resolved = WHICH(path);
     [path, ~, ~] = fileparts(resolved);
@@ -16,16 +15,12 @@ function ihelp(name, maxLines)
     try
         mdContent = string(fileread(resolved));
     catch
-        exception.error([
-            "Help"
-            "No markdown help exists in IrisT for this file: %s"
-        ], name);
+        help(name);
+        return
     end
 
     mdContent = regexprep(mdContent, "\r", "");
     mdContent = regexprep(mdContent, "\n{4,}", "\n\n\n");
-    title = regexp(mdContent, "---\ntitle: ([^\n\s]+)", "tokens", "once");
-    title = title(1);
     mdContent = regexprep(mdContent, "^\s*---.*?---", "");
     mdContent = regexprep(mdContent, "^\s+", "\n");
     mdContent = replace(mdContent, ["^^(", ")^^"], ["(", ")"]);
@@ -33,12 +28,18 @@ function ihelp(name, maxLines)
     mdContent = regexprep(mdContent, "^>", ": ", "lineAnchors");
     mdContent = regexprep(mdContent, "^# `?([^`\n]+)`?", "<a href="""">$1</a>", "lineAnchors");
     mdContent = regexprep(mdContent, "^## ([^\n]+)", "<a href="""">$1</a>", "lineAnchors");
-    mdContent = regexprep(mdContent, "^### ([^\n]+)", ">> <a href="""">$1</a>", "lineAnchors");
-    mdContent = regexprep(mdContent, "\{== (.*?) ==\}", "<strong>$1</strong>");
+    mdContent = regexprep(mdContent, "^### ([^\n]+)", "~ <a href="""">$1</a>", "lineAnchors");
+    mdContent = regexprep(mdContent, "\{==\s*(.*?)\s*==\}", "<strong>$1</strong>");
     mdContent = regexprep(mdContent, "^__`(.*?)`__", "<strong>$1</strong>", "lineAnchors");
     mdContent = regexprep(mdContent, "^(.)", "  $1", "lineAnchors");
+
+    mdContent = regexprep(mdContent, "\s*Function \| Description\s*", "\n");
+    mdContent = regexprep(mdContent, "^\s*---\|---\s*?$", "", "lineAnchors");
+    mdContent = regexprep(mdContent, "^ *\[`(.*?)`\]\(.*?\)\s*\|\s*", "    * $1 - ", "lineAnchors");
+
     mdContent = regexprep(mdContent, "```matlab(.*?)```", "${regexprep($1, ""^  "", ""       "", ""lineAnchors"")}", "lineAnchors");
     mdContent = regexprep(mdContent, "\$\$(.*?)\$\$", "${regexprep($1, ""^  "", ""       "", ""lineAnchors"")}", "lineAnchors");
+
 
     mdContent = join([
         mdContent

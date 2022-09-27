@@ -26,10 +26,8 @@
 % > 
 % 
 % 
-% ## Options 
-% 
-% 
 % ## Description 
+% 
 % 
 % ### Basic use case
 % 
@@ -45,7 +43,6 @@
 % argument, `flag`, is a row vector of logical values of the same length as
 % the number of variants, each element of which indicates the existence of
 % a valid first-order solution for the respective parameter variant.
-% 
 % 
 % 
 % ## Examples

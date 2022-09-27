@@ -94,7 +94,7 @@
 % (measurement and transition) in the model.
 % 
 % 
-% ## Linear filters
+% ### Linear filters
 % 
 % 
 % You can use the option `Filter=` to get the ACF for variables as though
@@ -117,7 +117,7 @@
 % A first-difference filter (i.e. computes the ACF for the first
 % differences of the respective variables):
 % 
-% ```
+% ```matlab
 % [C, R] = acf(m, 'Filter', '1-L')
 % ```
 % 
@@ -133,8 +133,7 @@
 % w(L) = \frac{\lambda}{\lambda + \frac{1}{ | (1-L)(1-L) | ^2}}
 % $$
 % 
-% 
-% ```
+% ```matlab
 % [C, R] = acf(m, 'filter', '1600/(1600 + 1/abs((1-L)^2)^2)')
 % ```
 % 

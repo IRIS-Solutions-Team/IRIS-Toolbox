@@ -6,7 +6,7 @@ topic: Model
 
 {==
 Structural models are systems of dynamic simultaneous (interdependent)
-equations with lags and leads (expectations). IrisT supports nonlinear
+equations with lags and leads (expectations). Iris supports nonlinear
 nonstationary (balanced growth path) structural models.
 ==}
 
@@ -33,13 +33,13 @@ Function | Description
 [`getBounds`](getBounds.md) | Get lower and upper bounds imposed on model quantities
 [`isLinear`](isLinear.md) | True if the model has been declared as linear
 [`isLinkActive`](isLinkActive.md) | True if dynamic link is active
-[`isLog`](isLog.md) | True va
+[`isLog`](isLog.md) | True for variables declared as log-variables
 [`print`](print.md) | Print model object
 [`solutionMatrices`](solutionMatrices.md) | Access first-order state-space (solution) matrices
-[`subsref`](subsref.md) | 
+[`subsref`](subsref.md) | Subscripted reference for Model objects
 [`table`](table.md) | Create table based on selected indicators from Model object
-[`isnan`](isnan.md) | 
-[`isempty`](isempty.md) | 
+[`isnan`](isnan.md) | Check for NaNs in model object.
+[`isempty`](isempty.md) | True for empty model object
 
 
 ### Assigning values within models
@@ -63,7 +63,7 @@ Function | Description
 [`blazer`](blazer.md) | Analyze sequential block structure of steady equations
 [`eig`](eig.md) | Eigenvalues of model transition matrix
 [`systemMatrices`](systemMatrices.md) | First-order system matrices describing the unsolved model
-[`isStationary`](isStationary.md) | 
+[`isstationary`](isstationary.md) | True if the model or a linear combination of its variables is stationary
 
 
 ### Stochastic properties of models
@@ -71,10 +71,10 @@ Function | Description
 Function | Description 
 ---|---
 [`acf`](acf.md) | Autocovariance and autocorrelation function for model variables
-[`fevd`](fevd.md) | Forecast error variance decomposition for model variables
+[`fevd`](fevd.md) | Forecast error variance decomposition for model variables.
 [`ffrf`](ffrf.md) | Filter frequency response function of transition variables to measurement variables
-[`fisher`](fisher.md) | 
-[`fmse`](fmse.md) | Forecast mean square error matrices
+[`fisher`](fisher.md) | Approximate Fisher information matrix in frequency domain
+[`fmse`](fmse.md) | Forecast mean square error matrices.
 
 
 ### Solving and simulating models 
@@ -96,7 +96,7 @@ Function | Description
 Function | Description 
 ---|---
 [`bn`](bn.md) | Beveridge-Nelson trends
-[`estimate.md`](estimate.md) | Estimate model parameters by optimizing selected objective function
+[`estimate.md`](estimate.md) | Estimate model parameters by maximizing posterior-based objective function
 [`kalmanFilter`](kalmanFilter.md) | Kalman smoother and estimator of out-of-likelihood parameters
 
 
@@ -107,9 +107,9 @@ Function | Description
 [`activeLink`](activateLink.md) | Activate dynamic links for selected LHS names
 [`deactiveLink`](deactivateLink.md) | Deactivate dynamic links for selected LHS names
 [`alter`](alter.md) | Expand or reduce number of parameter variants in model object
-[`changeGrowthStatus`](changeGrowthStatus.md) | Change growth status for selected variables
+[`changeGrowthStatus`](changeGrowthStatus.md) | Change growth status of the model
 [`changeLinearStatus`](changeLinearStatus.md) | Change linear status of model
 [`changeLogStatus`](changeLogStatus.md) | Change log status of model variables
-[`horzcat`](horzcat.md) | 
+[`horzcat`](horzcat.md) | Merge two or more compatible model objects into multiple parameterizations
 
 

@@ -4,7 +4,7 @@ title: iris.startup
 
 # `iris.startup`
 
-{== Start an IrisT session ==}
+{== Start an Iris session ==}
 
 ## Syntax
 
@@ -26,7 +26,7 @@ __`"tseries"`__
 
 __`"noIdCheck"`__
 > 
-> Do not verify the IrisT release check file.
+> Do not verify the Iris release check file.
 > 
 
 __`"noTeX"`__

@@ -29,7 +29,7 @@ In the abbreviated syntax, the control name is simply `?`
 ## Description
 
 Use the `!for` control structure to specify a template and let the
-IrisT preparser automatically create multiple instances of the template by
+Iris preparser automatically create multiple instances of the template by
 iterating over a list of tokens. The preparser cycles over the individual
 strings from the list; in each iteration, the current string is used to
 replace all occurences of the control variable in the template. The name

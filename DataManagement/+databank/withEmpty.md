@@ -14,7 +14,7 @@ title: databank.withEmpty
 
 ## Input Arguments
 
-__`names` [ char | cellstr | string ] 
+__`names`__ [ char | cellstr | string ] 
 > 
 > List of names under which
 > new empty time series will be created.
@@ -22,7 +22,7 @@ __`names` [ char | cellstr | string ]
 
 ## Output Arguments
 
-__`outputDb` [ struct ] 
+__`outputDb`__ [ struct ] 
 > 
 > Databank with the new empty time series
 > created or added.

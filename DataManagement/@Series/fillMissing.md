@@ -37,7 +37,7 @@ __`method`__ [ string | Series ]
 > 
 > The `method` can be any of the methods valid in the built-in
 > `fillmissing()` function (see `help fillmissing`) or one of the
-> regression methods provided by IrisT: `"regressConstant"`,
+> regression methods provided by Iris: `"regressConstant"`,
 > `"regressTrend"` or `"regressLogTrend"` for a regression on a constant, a
 > regression on a constant and a linear time trend, and a log-regression on
 > a constant and a time trend, respectively.

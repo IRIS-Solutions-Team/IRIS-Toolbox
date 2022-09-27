@@ -2,20 +2,20 @@
 % 
 % # `subsref` ^^(Model)^^
 % 
-% {== Subscripted reference for model objects ==}
+% {== Subscripted reference for Model objects ==}
 % 
 % 
-% ## Syntax for Retrieving Object with Subset of Parameter Variants
+% ## Syntax for retrieving object with subset of parameter variants
 % 
 %      m(index)
 % 
 % 
-% ## Syntax for Retrieving Parameters or Steady-State Values
+% ## Syntax for retrieving parameters or steady-state values
 % 
 %      m.name
 % 
 % 
-% ## Syntax to Retrieve Std Deviations or Cross-correlation of Shocks
+% ## Syntax to retrieve std deviations or cross-correlation of shocks
 % 
 %      m.std_shock
 %      m.corr_shock1__shock2
@@ -27,18 +27,27 @@
 % 
 % ## Input Arguments
 % 
-%  __`m`__ [ model ] -
-%  Model object.
+% __`m`__ [ Model ]
+% > 
+% > Model object.
+% >  
 % 
-%  __`index`__ [ numeric | logical ] -
-%  Index (positional or logical) of requested parameterisations.
 % 
-%  __`name`__ -
-%  Name of a variable, shock, or parameter.
+% __`index`__ 
+% > 
+% > Index (positional or logical) of requested parameterisations.
+% > 
 % 
-%  __`shock`, `shock1`, `shock2`__ -
-%  Names of shocks.
 % 
+% __`name`__ 
+% > 
+% > Name of a variable, shock, or parameter.
+% > 
+% 
+% __`shock`, `shock1`, `shock2`__
+% > 
+% > Names of shocks.
+% >  
 % 
 % ## Description
 % 
