@@ -218,10 +218,10 @@ return
 
     function flag = here_transitionEquations()
         flag = true;
-        isHash = any(inxHash);
+        isHash = any(inxHash); % false
 
         if ~isempty(SS)
-            S11 = SS(1:numXib, 1:numXib);
+            S11 = SS(1:numXib, 1:numXib); % numXib
             S12 = SS(1:numXib, numXib+1:end);
             S22 = SS(numXib+1:end, numXib+1:end);
         else
