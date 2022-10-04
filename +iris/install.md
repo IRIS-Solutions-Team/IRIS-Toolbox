@@ -1,5 +1,5 @@
 
-# Installing Iris
+# Installing and using Iris
 
 ## Software dependencies
 
