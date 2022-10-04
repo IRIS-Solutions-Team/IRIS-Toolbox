@@ -40,7 +40,7 @@ git clone https://github.com/IRIS-Solutions-Team/IRIS-Toolbox.git iris/folder/of
 #### Manually downloading and unzippping the release archive 
 
 Unzip 
-[the latest official release](https://github.com/IRIS-Solutions-Team/IRIS-Toolbox/releases/tag/Release-20210802)
+[the latest official release](https://github.com/IRIS-Solutions-Team/IRIS-Toolbox/releases/latest)
 into an `iris/folder/of/your/choice/` on your computer.
 
 
