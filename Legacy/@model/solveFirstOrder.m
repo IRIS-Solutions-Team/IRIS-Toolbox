@@ -128,7 +128,7 @@ for v = variantsRequested
     %
     if doTransition
         restoreWarnings = warning("query");
-        if ~opt.Warning 
+        if ~opt.Warning
             warning("off", join([exception.Base.IRIS_IDENTIFIER, "Model", "QZWarning"], ":"));
         end
 
@@ -238,7 +238,7 @@ return
         Z12 = ZZ(inxXfToKeep, numXib+1:end);
         Z21 = ZZ(numXifWithinSystem+1:end, 1:numXib);
         Z22 = ZZ(numXifWithinSystem+1:end, numXib+1:end);
-        
+
         % Transform the other system matrices by QQ
         if equationOrder(1)==1
             % No equation re-ordering.
@@ -263,7 +263,7 @@ return
                 N = QQ*system.N{2}(equationOrder, :);
             end
         end
-        
+
         C1 = C(1:numXib, 1);
         C2 = C(numXib+1:end, 1);
         D1 = D(1:numXib, :);
@@ -272,11 +272,11 @@ return
             N1 = N(1:numXib, :);
             N2 = N(numXib+1:end, :);
         end
-        
+
         % Rotation matrix for the Quasi-triangular state-space form
-        
+
         U = Z21;
-        
+
 
         % Singularity in the rotation matrix; something's wrong with the model
         % because this is supposed to be regular by construction.
@@ -285,7 +285,7 @@ return
             flag = false;
             return
         end
-        
+
 
         % Steady state for nonlinear models. They are needed in nonlinear
         % models to back out the constant vectors.
@@ -297,24 +297,24 @@ return
                 return
             end
         end
-        
-        
+
+
         % __Unstable block__
-        
-        
+
+
         G = -Z21\Z22;
         if any(isnan(G(:)))
             flag = false;
             return
         end
 
-            
+
         Ru = -T22\D2;
         if any(isnan(Ru(:)))
             flag = false;
             return
         end
-        
+
         if isHash
             Yu = -T22\N2;
             if any(isnan(Yu(:)))
@@ -322,7 +322,7 @@ return
                 return
             end
         end
-        
+
         if this.LinearStatus
             Ku = -(S22+T22)\C2;
         else
@@ -332,10 +332,10 @@ return
             flag = false;
             return
         end
-        
+
         % Transform stable block==transform backward-looking variables:
         % a(t) = s(t) + G u(t+1).
-        
+
         Ta = -S11\T11;
         if any(isnan(Ta(:)))
             flag = false;
@@ -346,13 +346,13 @@ return
             flag = false;
             return
         end
-        
+
         Ra = -Xa0*Ru - S11\D1;
         if any(isnan(Ra(:)))
             flag = false;
             return
         end
-        
+
         if isHash
             Ya = -Xa0*Yu - S11\N1;
             if any(isnan(Ya(:)))
@@ -360,7 +360,7 @@ return
                 return
             end
         end
-        
+
         Xa1 = G + S11\S12;
         if any(isnan(Xa1(:)))
             flag = false;
@@ -375,11 +375,11 @@ return
             flag = false;
             return
         end
-        
-        
+
+
         % __Forward-looking variables__
-        
-        
+
+
         % Duplicit rows have been already deleted from Z11 and Z12.
         Tf = Z11;
         Xf = Z11*G + Z12;
@@ -396,9 +396,9 @@ return
             flag = false;
             return
         end
-        
+
         % State-space form:
-        % [xif(t);a(t)] = T a(t-1) + K + R(L) e(t) + Y(L) addfactor(t), 
+        % [xif(t);a(t)] = T a(t-1) + K + R(L) e(t) + Y(L) addfactor(t),
         % U a(t) = xib(t).
         T = [Tf;Ta];
         R = [Rf;Ra];
@@ -406,7 +406,7 @@ return
         if isHash
             Y = [Yf;Ya];
         end
-        
+
         this.Variant.FirstOrderSolution{1}(:, :, v) = T;
         this.Variant.FirstOrderSolution{2}(:, 1:numE, v) = R;
         this.Variant.FirstOrderSolution{3}(:, :, v) = K;
@@ -414,7 +414,7 @@ return
         if isHash
             this.Variant.FirstOrderSolution{8}(:, 1:numHash, v) = Y;
         end
-        
+
         if isempty(T0)
             % Calculate rectangular transition matrix if not supplied from plain Schur
             T0 = [Tf/U; U*Ta/U];
@@ -431,7 +431,7 @@ return
         Xa = Xa1 + Xa0*J;
         % Highest computed power of J: e(t+k) requires J^k.
         % Jk = eye(size(J));
-        
+
         this.Variant.FirstOrderExpansion{1}(:, :, v) = Xa;
         this.Variant.FirstOrderExpansion{2}(:, :, v) = Xf;
         this.Variant.FirstOrderExpansion{3}(:, :, v) = Ru;
