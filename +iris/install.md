@@ -3,11 +3,9 @@
 
 ## Software dependencies
 
-Iris runs in [Matlab](https://www.mathworks.com/matlab) R2019b or newer.
-There are also legacy releases of Iris for Matlab R2018a through R2019a
-(under the `pre-r2019b` branch) but we strongly discourage using the legacy
-codebase. Keep also in mind that some features are not availabe in legacy
-releases.
+The official releases on the `stable` branch of the Iris Toolbox run in
+[Matlab](https://www.mathworks.com/matlab) R2018a or newer. The `bleeding`
+edge branch runs on Matlab R2019b or later.
 
 If you want to use the estimation functions for structural `@Model` objects
 (not for `@VAR` objects or `@Explanatory` objects) you also need the
@@ -18,16 +16,23 @@ Optimization Toolbox installed.
 
 You have two options of getting Iris installed on your computer:
 
-1. Use [Git](https://git-scm.com) to clone the master branch in a
+1. Use [Git](https://git-scm.com) to clone the `stable` branch in a
    `irist/folder/of/your/choice` on your computer:
 
 ```
-git clone https://github.com/IRIS-Solutions-Team/IRIS-Toolbox.git irist/folder/of/your/choice
+git clone --branch stable https://github.com/IRIS-Solutions-Team/IRIS-Toolbox.git irist/folder/of/your/choice
 ```
 
 Note that although only the official release are properly tested for bugs,
 any pushes to the master branch on this GitHub repository are most of the
 time safe to update to.
+
+Alternatively, you can decide to clone the `bleeding` edge branch:
+
+```
+git clone https://github.com/IRIS-Solutions-Team/IRIS-Toolbox.git irist/folder/of/your/choice
+```
+
 
 2. Manually download and unzip [the latest official
    release](https://github.com/IRIS-Solutions-Team/IRIS-Toolbox/releases/tag/Release-20210802)
@@ -38,6 +43,7 @@ folder where you wish to have Iris stored locally on your computer. When
 unzipping a zip archive, make sure that no nested folder is created, and
 that `irist/folder/of/your/choice/` contains, for instance, a file names
 `Contents.m`.
+
 
 
 ## Starting up Iris in Matlab
