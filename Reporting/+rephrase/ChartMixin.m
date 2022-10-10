@@ -7,6 +7,7 @@ classdef (Abstract) ...
         Settings_HoverFormat (1, 1) string = ""
         Settings_ShowLegend (1, 1) logical = true
         Settings_Highlight = cell.empty(1, 0)
+        Settings_Layout = struct()
     end
 
 

@@ -4,7 +4,7 @@ classdef (Abstract) DataMixin ...
     properties (Hidden)
         Settings_Conditional 
         Settings_Transform = []
-        Round (1, 1) double = Inf
+        Settings_Round (1, 1) double = Inf
     end
 
 
@@ -45,8 +45,8 @@ classdef (Abstract) DataMixin ...
 
         function values = round(this, values)
             %(
-            if this.Round<Inf
-                values = round(values, round(this.Round));
+            if this.Settings_Round<Inf
+                values = round(values, round(this.Settings_Round));
             end
             %)
         end%
@@ -78,7 +78,7 @@ classdef (Abstract) DataMixin ...
                 dates = dates([], :);
             end
             if freq>0
-                dates = dater.toIsoString(dates, "start");
+                dates = textual.stringify(dater.toIsoString(dates, "start"));
             end
         end%
 
@@ -86,7 +86,7 @@ classdef (Abstract) DataMixin ...
         function [dates, values] = finalizeForTable(inputSeries, dates)
             values = getData(inputSeries, dates);
             values = values(:, 1);
-            dates = NaN;
+            dates = [];
         end%
     end
 end
