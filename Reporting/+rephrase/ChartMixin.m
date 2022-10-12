@@ -20,10 +20,13 @@ classdef (Abstract) ...
                     h{i} = h__(i);
                 end
             end
+            hh = cell(size(h));
             for i = 1 : numel(h)
-                h{i} = resolveHighlightDates(h{i}, this);
+                hh{i} = struct();
+                [hh{i}.StartDate, hh{i}.EndDate] = resolveHighlightDates(h{i}, this);
+                hh{i}.Settings = h{i}.Settings;
             end
-            this.Settings_Highlight = h;
+            this.Settings_Highlight = hh;
         end%
     end
 
