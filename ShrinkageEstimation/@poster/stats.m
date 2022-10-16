@@ -201,16 +201,20 @@ return
         avgLogG = sum(logG) / numDraws;
         logG = logG - avgLogG;
 
-        d = [ ];
-        for pr = reshape(opt.mddgrid, 1, [])
-            crit = chi2inv(pr, numParams);
-            inx = crit>=uuu;
-            if any(inx)
-                tmp = sum(exp(-log(pr) + logG(inx))) / numDraws;
-                d(end+1) = log(tmp) + avgLogG; %#ok<AGROW>
+        try
+            d = [];
+            for pr = reshape(opt.mddgrid, 1, [])
+                crit = chi2inv(pr, numParams);
+                inx = crit>=uuu;
+                if any(inx)
+                    tmp = sum(exp(-log(pr) + logG(inx))) / numDraws;
+                    d(end+1) = log(tmp) + avgLogG; %#ok<AGROW>
+                end
             end
+            d = -mean(d);
+        catch
+            d = NaN;
         end
-        d = -mean(d);
     end%
 
 
