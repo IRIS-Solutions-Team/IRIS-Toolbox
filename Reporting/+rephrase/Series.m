@@ -40,12 +40,21 @@ classdef Series ...
             this.Content = finalizeSeriesData(this, this.Input);
         end%
 
-        function this = set.Input(this, in)
+
+        function set.Input(this, in)
             %if ~iscell(in)
             %    in = {in};
             %end
             %this.Input = reshape(in, 1, []);
             this.Input = in;
+        end%
+
+
+        function set.Settings_Bands(this, in)
+            if ~iscell(in)
+                in = {in};
+            end
+            this.Settings_Bands = in;
         end%
     end
 
