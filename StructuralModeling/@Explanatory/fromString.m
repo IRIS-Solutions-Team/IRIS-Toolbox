@@ -81,123 +81,126 @@ if isempty(pp) || isempty(INIT_EXPLANATORY)
     addParameter(pp, 'FittedNamePattern', @auto, @(x) isequal(x, @auto) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'LhsReference', @auto, @(x) isequal(x, @auto) || validate.stringScalar(x));
 
-    INIT_EXPLANATORY = Explanatory( );
+    INIT_EXPLANATORY = Explanatory();
 end
 parse(pp, inputString, varargin{:});
 opt = pp.Options;
 %)
 
-%--------------------------------------------------------------------------
-
-inputString = string(inputString);
-numEquations = numel(inputString);
-array = cell(1, numEquations);
-
-numEmpty = 0;
-inputString = strtrim(inputString);
-
-for j = 1 : numel(inputString)
-    inputString__ = inputString(j);
-    [inputString__, attributes__] = Explanatory.extractAttributes(inputString__);
-    [inputString__, label__] = Explanatory.extractLabel(inputString__);
-
-    inputString__ = regexprep(inputString__, "\s+", "");
-    if inputString__=="" || inputString__==";"
-        numEmpty = numEmpty + 1;
-        continue
-    end
 
 
-    %
-    % Create a new Explanatory object, assign ResidualNamePattern
-    % and FittedNamePattern, and enforce lower or upper case on
-    % ResidualNamePattern and FittedNamePattern if requested
-    %
-    this__ = hereCreateObject( );
+    inputString = string(inputString);
+    numEquations = numel(inputString);
+    array = cell(1, numEquations);
 
-    %
-    % Assign control names
-    %
-    if ~isempty(opt.ControlNames)
-        if ~isempty(opt.EnforceCase)
-            opt.ControlNames = opt.EnforceCase(opt.ControlNames);
+    numEmpty = 0;
+    inputString = strtrim(inputString);
+
+    for j = 1 : numel(inputString)
+        inputString__ = inputString(j);
+        [inputString__, attributes__] = Explanatory.extractAttributes(inputString__);
+        [inputString__, label__] = Explanatory.extractLabel(inputString__);
+        [label__, userDataString__] = Explanatory.extractUserDataString(label__);
+
+        inputString__ = regexprep(inputString__, "\s+", "");
+        if inputString__=="" || inputString__==";"
+            numEmpty = numEmpty + 1;
+            continue
         end
-        this__.ControlNames = opt.ControlNames;
+
+
+        %
+        % Create a new Explanatory object, assign ResidualNamePattern
+        % and FittedNamePattern, and enforce lower or upper case on
+        % ResidualNamePattern and FittedNamePattern if requested
+        %
+        this__ = hereCreateObject( );
+
+        %
+        % Assign control names
+        %
+        if ~isempty(opt.ControlNames)
+            if ~isempty(opt.EnforceCase)
+                opt.ControlNames = opt.EnforceCase(opt.ControlNames);
+            end
+            this__.ControlNames = opt.ControlNames;
+        end
+
+        %
+        % Legacy syntax =# -> ===
+        %
+        inputString__ = replace(inputString__, "=#", "===");
+
+
+        this__.InputString = inputString__;
+
+
+        %
+        % Extract ResidualModel if present; this will remain in the InputString
+        % of the Explanatory object
+        %
+
+        if contains(inputString__, "#")
+            residualModelString__ = "#" + extractAfter(inputString__, "#");
+            inputString__ = extractBefore(inputString__, "#");
+            residualModel = ParamArmani.fromEviewsString(residualModelString__);
+            this__.ResidualModel = residualModel;
+        end
+
+
+        %
+        % Collect all variables names from the input string, enforcing lower or
+        % upper case if requested
+        %
+
+        this__.VariableNames = hereCollectAllVariableNames( );
+
+
+        %
+        % * Split the input equation string into LHS and RHS using the first
+        % equal sign found
+        %
+        % * Permit := as these are allowed in !substitutions in Model source
+        % files
+        %
+        % * There may be more than one equal sign such as == in if( )
+        %
+
+        [split__, sign__] = split(inputString__, ["=#", "===", "=", ":="]);
+        if isempty(sign__)
+            hereThrowInvalidInputString( );
+        end
+        lhsString = split__(1);
+        equalSign = sign__(1);
+        rhsString = join(split__(2:end), "=");
+
+        if lhsString==""
+            hereThrowEmptyLhs( );
+        end
+        if rhsString==""
+            hereThrowEmptyRhs( );
+        end
+
+        this__.IsIdentity = equalSign~="=";
+
+
+        %
+        % Populate the Explanatory object
+        %
+        this__ = defineDependentTerm(this__, lhsString);
+        this__ = parseRightHandSide(this__, rhsString);
+        this__ = seal(this__);
+        this__.Attributes = attributes__;
+        this__.Label = label__;
+        this__ = updateUserDataFromString(this__, userDataString__);
+        array{j} = this__;
     end
 
-    %
-    % Legacy syntax =# -> ===
-    %
-    inputString__ = replace(inputString__, "=#", "===");
-
-
-    this__.InputString = inputString__;
-
-
-    %
-    % Extract ResidualModel if present; this will remain in the InputString
-    % of the Explanatory object
-    %
-
-    if contains(inputString__, "#")
-        residualModelString__ = "#" + extractAfter(inputString__, "#");
-        inputString__ = extractBefore(inputString__, "#");
-        residualModel = ParamArmani.fromEviewsString(residualModelString__);
-        this__.ResidualModel = residualModel;
+    if numEmpty>0
+        hereWarnEmptyEquations( );
     end
 
-
-    %
-    % Collect all variables names from the input string, enforcing lower or
-    % upper case if requested
-    %
-
-    this__.VariableNames = hereCollectAllVariableNames( );
-
-
-    %
-    % * Split the input equation string into LHS and RHS using the first
-    % equal sign found
-    %
-    % * Permit := as these are allowed in !substitutions in Model source
-    % files
-    %
-    % * There may be more than one equal sign such as == in if( )
-    %
-
-    [split__, sign__] = split(inputString__, ["=#", "===", "=", ":="]);
-    if isempty(sign__)
-        hereThrowInvalidInputString( );
-    end
-    lhsString = split__(1);
-    equalSign = sign__(1);
-    rhsString = join(split__(2:end), "=");
-
-    if lhsString==""
-        hereThrowEmptyLhs( );
-    end
-    if rhsString==""
-        hereThrowEmptyRhs( );
-    end
-
-    this__.IsIdentity = equalSign~="=";
-
-    %
-    % Populate the Explanatory object
-    %
-    this__ = defineDependentTerm(this__, lhsString);
-    this__ = parseRightHandSide(this__, rhsString);
-    this__ = seal(this__);
-    this__.Label = label__;
-    this__.Attributes = attributes__;
-    array{j} = this__;
-end
-
-if numEmpty>0
-    hereWarnEmptyEquations( );
-end
-
-this = reshape([array{:}], [ ], 1);
+    this = reshape([array{:}], [ ], 1);
 
 return
 

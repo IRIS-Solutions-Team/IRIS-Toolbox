@@ -130,6 +130,7 @@ classdef Explanatory ...
             'VarResiduals', NaN ...
             , 'CovParameters', double.empty(0, 0, 1) ...
             , 'NumPeriodsFitted', NaN ...
+            , 'PeriodsFitted', {{[]}} ...
             , 'ExitFlag', NaN ...
             , 'OptimOutput', {{[]}} ...
         )
@@ -470,23 +471,39 @@ classdef Explanatory ...
         end%
 
 
-        function this = set.Label(this, value)
-            if contains(value, this.USERDATA_PREFIX)
-                userDataString = this.USERDATA_PREFIX + extractAfter(value, this.USERDATA_PREFIX);
-                value = extractBefore(value, this.USERDATA_PREFIX);
-                if ~endsWith(userDataString, ";")
-                    userDataString = userDataString + ";";
-                end
-                userData__ = struct();
-                userDataString = replace(userDataString, this.USERDATA_PREFIX, "userData__.");
-                eval(userDataString);
-                this.UserData = userData__;
+        function this = updateUserDataFromString(this, userDataString)
+            %(
+            if ~isstruct(this.UserData)
+                this.UserData = struct();
             end
-            this.Label = value;
+
+            userDataString = string(userDataString);
+            if isempty(userDataString)
+                return
+            end
+
+            userDataString = strip(userDataString);
+            if strlength(userDataString)==0
+                return
+            end
+
+            update = struct();
+            for u = reshape(userDataString, 1, [])
+                if ~endsWith(u, ";")
+                    u = u + ";";
+                end
+                u = replace(u, this.USERDATA_PREFIX, "update.");
+                eval(u);
+                for n = textual.fields(update)
+                    this.UserData.(n) = update.(n);
+                end
+            end
+            %)
         end%
 
 
         function this = set.VariableNames(this, value)
+            %(
             if isempty(value)
                 this.VariableNames = string.empty(1, 0);
                 return
@@ -500,6 +517,7 @@ classdef Explanatory ...
             end
             this.VariableNames = string(value);
             checkNames(this);
+            %)
         end%
 
 
@@ -683,6 +701,19 @@ classdef Explanatory ...
 
     methods (Static, Hidden)
         varargout = postparse(varargin)
+
+
+        function [label, userDataString] = extractUserDataString(label)
+            %(
+            USERDATA_PREFIX = Explanatory.USERDATA_PREFIX;
+            if ~contains(label, USERDATA_PREFIX)
+                userDataString = "";
+                return
+            end
+            userDataString = eraseBetween(label, 1, USERDATA_PREFIX);
+            label = extractBefore(label, USERDATA_PREFIX);
+            %)
+        end%
 
 
         function [inputString, label] = extractLabel(inputString)

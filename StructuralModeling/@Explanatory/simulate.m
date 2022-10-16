@@ -215,7 +215,7 @@ for blk = 1 : numBlocks
             %
             % Period by period
             %
-            here_runPeriodByPeriod( );
+            here_runPeriodByPeriod();
         else
             %
             % All periods at once

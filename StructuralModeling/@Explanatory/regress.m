@@ -115,16 +115,19 @@ end
 exitFlagsParameters = nan(numEquations, numPages);
 exitFlagsResidualModels = nan(numEquations, numPages);
 
-if journal.IsActive
-    for q = find(~inxToEstimate)
-        write(journal, "Skipping " + this(q).InputString);
-    end
-end
 
 %==========================================================================
-for q = find(inxToEstimate)
+for q = 1 : numEquations
+
     this__ = this(q);
+
+    if ~inxToEstimate(q)
+        write(journal, "Skipping " + this__.InputString);
+        continue
+    end
+
     indent(journal, "Estimating " + this__.InputString);
+    write(journal, "Attributes " + join(this__.Attributes, " "));
 
     if opt.ResidualsOnly
         fixed = this__.Parameters;
@@ -136,12 +139,18 @@ for q = find(inxToEstimate)
     maxLag = this__.MaxLag;
     isLinear = this__.LinearStatus;
     residualName__ = this__.ResidualName;
-    
+
     %
     % Estimate parameter variants from individual data pages
     %
     [lhs, rhs, subBlock] = createData4Regress(this__, dataBlock, controls);
     res = nan(size(lhs));
+
+    %
+    % Collect indices of missing observations
+    %
+    inxMissingWithinBaseRange__ = [];
+
     for v = 1 : numPages
         fixed__ = fixed(:, :, min(v, end));
         indent(journal, "Variant|Page " + sprintf("%g", v));
@@ -195,7 +204,7 @@ for q = find(inxToEstimate)
             deindent(journal);
         end
 
-        
+
         %
         % Prepare filter matrix from the residual model
         %
@@ -203,6 +212,7 @@ for q = find(inxToEstimate)
         if ~isempty(residualModel) && ~residualModel.IsIdentity
             F = filterMatrix(residualModel, size(lhs__, 2));
         end
+
 
         %
         % Estimate parameters
@@ -216,17 +226,16 @@ for q = find(inxToEstimate)
             write(journal, "Exit flag " + sprintf("%g", exitFlag__));
         end
 
+
         %
         % Report missing within-sample observations
         %
-        inxMissingWithinBaseRange__ = inxBaseRange__ & inxMissing__;
-        if any(inxMissingWithinBaseRange__) ...
-                && startsWith(opt.MissingObservations, ["warning", "error"], "ignoreCase", true)
-            here_reportMissing(inxMissingWithinBaseRange__, q);
-        end
+        inxMissingWithinBaseRange__ = ...
+            cat(3, inxMissingWithinBaseRange__, inxBaseRange__ & inxMissing__);
 
+        periodsFitted__ = extdRange(inxBaseRange__ & ~inxMissing__);
         if journal.IsActive
-            [~, s] = dater.reportConsecutive(extdRange(inxBaseRange__ & ~inxMissingWithinBaseRange__));
+            [~, s] = dater.reportConsecutive(periodsFitted__);
             write(journal, "Dates fitted " + join(s, " "));
         end
 
@@ -234,6 +243,7 @@ for q = find(inxToEstimate)
         lhsTransform(q, :, v) = lhs__;
         this__.Statistics.VarResiduals(:, :, v) = varResiduals__;
         this__.Statistics.CovParameters(:, :, v) = covParameters__;
+        this__.Statistics.PeriodsFitted{v} = Dater(periodsFitted__);
         this__.Statistics.NumPeriodsFitted(1, :, v) = nnz(~inxMissing__);
         this__.Statistics.ExitFlag(1, :, v) = exitFlag__;
         this__.Statistics.OptimOutput{1, :, v} = optimOutput__;
@@ -253,6 +263,7 @@ for q = find(inxToEstimate)
             if any(inxFixed__)
                 temp(inxFixed__) = temp(inxFixed__) + "!";
             end
+            write(journal, "Number of parameter estimated " + nnz(~inxFixed__));
             write(journal, "Parameter values " + join(temp, " "));
             write(journal, "Residuals " + residualName__);
             %)
@@ -267,6 +278,13 @@ for q = find(inxToEstimate)
             deindent(journal);
             %)
         end
+    end
+
+    %
+    % Report missing observations
+    %
+    if any(inxMissingWithinBaseRange__(:))
+        here_reportMissing(inxMissingWithinBaseRange__, q);
     end
 
     %
@@ -363,20 +381,24 @@ return
 
     function here_reportMissing(inxMissing, qq)
         %(
-        if startsWith(opt.MissingObservations, "warning", "ignoreCase", true)
+        if opt.MissingObservations=="warning"
+            func = @exception.warning;
             action = 'adjusted to exclude';
-        else
+        elseif opt.MissingObservations=="error"
+            func = @exception.error;
             action = 'contain';
+        else 
+            return
         end
+
         report = dater.reportMissingPeriodsAndPages( ...
-            extdRange, inxMissing(qq, :, :), this(qq).LhsName ...
+            extdRange, inxMissing(1, :, :), this(qq).LhsName ...
         );
-        message  = [ 
-            "Explanatory:MissingObservationInRegressionRange"
+        func([
+            "Explanatory"
             "Explanatory[""%s""] regression data " + action + " "
             "NaN or Inf observations [Variant|Page:%g]: %s" 
-        ];
-        throw(exception.Base(message, opt.MissingObservations), report);
+        ], report{:});
         %)
     end%
 
@@ -404,10 +426,10 @@ function [fittedRange, missingObservations] = local_resolveRange(this, inputDb, 
     fittedRange = double(fittedRange);
     from = fittedRange(1);
     to = fittedRange(end);
-    defaultMissingObservations = "Warning";
+    defaultMissingObservations = "warning";
     if isinf(from) || isinf(to)
         [from, to] = databank.backend.resolveRange(inputDb, collectAllNames(this), from, to);
-        defaultMissingObservations = "Silent";
+        defaultMissingObservations = "silent";
     end
     if isequal(missingObservations, @auto)
         missingObservations = defaultMissingObservations;
@@ -438,7 +460,6 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         y(:, inxMissing) = 0;
         X(:, inxMissing) = 0;
 
-
         if ~any(inxFixed)
             y1 = y;
             X1 = X;
@@ -461,6 +482,7 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         fitted = parameters*X;
         fitted(:, inxMissing) = NaN;
         numParametersEstimated = nnz(~inxFixed);
+        exitFlag = 1;
 
     else
         %
@@ -651,125 +673,4 @@ function local_reportFailedEstimation(exitFlags, this, context, whenEstimationFa
     %)
 end%
 
-
-
-%
-% Unit Tests 
-%
-%{
-##### SOURCE BEGIN #####
-% saveAs=Explanatory/regressUnitTest.m
-
-testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
-
-% Set up Once
-    m1 = Explanatory.fromString('x = @ + @*x{-1} + @*y');
-    m2 = Explanatory.fromString('a = @ + @*a{-1} + @*x');
-    startDate = qq(2001,1);
-    endDate = qq(2010, 4);
-    baseRange = startDate:endDate;
-    db1 = struct();
-    db1.x = Series(startDate-10:endDate+10, cumsum(randn(60,1)));
-    db1.a = Series(startDate-1:endDate, cumsum(randn(41,1)));
-    db1.y = Series(startDate:endDate, cumsum(randn(40,1)));
-    db2 = struct();
-    db2.x = Series(startDate-1:endDate, cumsum(randn(41,3)));
-    db2.a = Series(startDate-1:endDate, cumsum(randn(41,1)));
-    db2.y = Series(startDate:endDate, cumsum(randn(40,1)));
-    testCase.TestData.Model1 = m1;
-    testCase.TestData.Model2 = m2;
-    testCase.TestData.Databank1 = db1;
-    testCase.TestData.Databank2 = db2;
-    testCase.TestData.BaseRange = baseRange;
-
-
-%% Test ARX
-    m1 = testCase.TestData.Model1;
-    db1 = testCase.TestData.Databank1;
-    baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = regress(m1, db1, baseRange);
-    y = db1.x(baseRange);
-    X = [ones(40, 1), db1.x{-1}(baseRange), db1.y(baseRange)];
-    exp_parameters = transpose(X\y);
-    assertEqual(testCase, est1.Parameters, exp_parameters, 'AbsTol', 1e-12);
-    assertEqual(testCase, isfield(outputDb, m1.ResidualName), true);
-
-
-%% Test Resimulate 
-    m1 = testCase.TestData.Model1;
-    db1 = testCase.TestData.Databank1;
-    baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = regress(m1, db1, baseRange);
-    simDb = simulate(est1, outputDb, baseRange);
-    assertEqual(testCase, db1.x(baseRange), simDb.x(baseRange), 'AbsTol', 1e-12);
-
-
-
-%% Test Resimulate Prepend
-    m1 = testCase.TestData.Model1;
-    db1 = testCase.TestData.Databank1;
-    baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = regress(m1, db1, baseRange);
-    simDb = simulate(est1, outputDb, baseRange, 'prependInput', true);
-    startDate = db1.x.Start;
-    range = db1.x.Start : baseRange(end);
-    assertEqual(testCase, db1.x(range), simDb.x(range), 'AbsTol', 1e-12);
-
-
-%% Test Resimulate Append
-    m1 = testCase.TestData.Model1;
-    db1 = testCase.TestData.Databank1;
-    baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = regress(m1, db1, baseRange);
-    simDb = simulate(est1, outputDb, baseRange, 'appendInput', true);
-    range = baseRange(1)-1 : db1.x.End;
-    assertEqual(testCase, db1.x(range), simDb.x(range), 'AbsTol', 1e-12);
-
-
-%% Test ARX System
-    m1 = testCase.TestData.Model1;
-    m2 = testCase.TestData.Model2;
-    m = [m1, m2];
-    db1 = testCase.TestData.Databank1;
-    baseRange = testCase.TestData.BaseRange;
-    [est, outputDb] = regress(m, db1, baseRange);
-    y = db1.x(baseRange);
-    X = [ones(40, 1), db1.x{-1}(baseRange), db1.y(baseRange)];
-    exp_parameters = transpose(X\y);
-    assertEqual(testCase, est(1).Parameters, exp_parameters, 'AbsTol', 1e-12);
-    y = db1.a(baseRange);
-    X = [ones(40, 1), db1.a{-1}(baseRange), db1.x(baseRange)];
-    exp_parameters = transpose(X\y);
-    assertEqual(testCase, est(2).Parameters, exp_parameters, 'AbsTol', 1e-12);
-    assertEqual(testCase, isfield(outputDb, m1.ResidualName), true);
-    assertEqual(testCase, isfield(outputDb, m2.ResidualName), true);
-
-
-%% Test ARX System Variants
-    m1 = testCase.TestData.Model1;
-    m2 = testCase.TestData.Model2;
-    m = [m1, m2];
-    db2 = testCase.TestData.Databank2;
-    baseRange = testCase.TestData.BaseRange;
-    %
-    [est, outputDb] = regress(m, db2, baseRange);
-    %
-    exp_parameters = nan(1, 3, 3);
-    for i = 1 : 3
-        y = db2.x(baseRange, i);
-        X = [ones(40, 1), db2.x{-1}(baseRange, i), db2.y(baseRange)];
-        exp_parameters(:, :, i) = transpose(X\y);
-    end
-    assertEqual(testCase, est(1).Parameters, exp_parameters, 'AbsTol', 1e-12);
-    %
-    exp_parameters = nan(1, 3, 3);
-    for i = 1 : 3
-        y = db2.a(baseRange);
-        X = [ones(40, 1), db2.a{-1}(baseRange), db2.x(baseRange, i)];
-        exp_parameters(:, :, i) = transpose(X\y);
-    end
-    assertEqual(testCase, est(2).Parameters, exp_parameters, 'AbsTol', 1e-12);
-
-##### SOURCE END #####
-%}
 
