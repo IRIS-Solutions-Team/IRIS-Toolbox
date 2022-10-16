@@ -1,11 +1,13 @@
 
 # Overview of data grouping objects
 
+{==
 Data grouping objects are used for aggregating the contributions of shocks
 in model simulations,
 [`Model/simulate`](../../StructuralModeling/@Model/simulate.md), or
 aggregating the contributions of measurement variables in Kalman filtering,
 [`Model/kalmanFilter`](../../StructuralModeling/@Model/kalmanFilter.md).
+==}
 
 ## Categorical list of functions 
 

@@ -2,7 +2,7 @@
 title: rephrase.DiffSeries
 ---
 
-# `rephrase.DiffSeries`
+# `rephrase.DiffSeries` ^^(+rephrase)^^
 
 {== Create a DiffSeries object for rephrase reports ==}
 

@@ -2,7 +2,7 @@
 title: databank.withEmpty
 ---
 
-# `databank.withEmpty`
+# `databank.withEmpty` ^^(+databank)^^
 
 {== Create databank with empty time series ==}
 

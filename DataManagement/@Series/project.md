@@ -2,7 +2,7 @@
 title: project
 ---
 
-# `project`
+# `project` ^^(Series)^^
 
 {== Project time series using a function of its own observations and exogenous inputs ==}
 

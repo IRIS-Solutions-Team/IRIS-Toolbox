@@ -47,13 +47,13 @@
 
 function this = retrieve(this, varargin)
 
-inx = lookup(this, varargin{:});
+    inx = lookup(this, varargin{:});
 
-if all(inx)
-    return
-end
+    if all(inx)
+        return
+    end
 
-this = this(inx);
+    this = this(inx);
 
 end%
 

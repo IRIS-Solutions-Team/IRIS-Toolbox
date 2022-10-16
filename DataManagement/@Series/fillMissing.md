@@ -2,7 +2,7 @@
 title: fillMissings
 ---
 
-# `fillMissings`
+# `fillMissings` ^^(Series)^^
 
 {== Fill missing time series observations ==}
 

@@ -2,7 +2,7 @@
 title: databank.plot
 ---
 
-# `databank.plot`
+# `databank.plot` ^^(+databank)^^
 
 {== Quickly create a databank chartpack ==}
 

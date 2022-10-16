@@ -2,7 +2,7 @@
 title: rephrase.Series
 ---
 
-# `rephrase.Series`
+# `rephrase.Series` ^^(+rephrase)^^
 
 {== Create a Series object for rephrase reports ==}
 

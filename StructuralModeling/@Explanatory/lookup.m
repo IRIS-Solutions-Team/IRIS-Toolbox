@@ -60,36 +60,36 @@
 
 function [inx, this, lhsNames] = lookup(this, varargin)
 
-operator = @or;
-if ~isempty(varargin) && isa(varargin{1}, 'function_handle')
-    operator = varargin{1};
-    varargin(1) = [];
-end
+    operator = @or;
+    if ~isempty(varargin) && isa(varargin{1}, 'function_handle')
+        operator = varargin{1};
+        varargin(1) = [];
+    end
 
-if isequal(operator, @or)
-    inx = false(size(this));
-elseif isequal(operator, @and)
-    inx = true(size(this));
-end
+    if isequal(operator, @or)
+        inx = false(size(this));
+    elseif isequal(operator, @and)
+        inx = true(size(this));
+    end
 
-lhsNames = reshape([this.LhsName], size(this));
+    lhsNames = reshape([this.LhsName], size(this));
 
-for v = varargin
-    for identifier = reshape(strip(string(v{:})), 1, [])
-        if startsWith(identifier, ":")
-            inx = operator(inx, hasAttribute(this, identifier));
-        else
-            inx = operator(inx, lhsNames==identifier);
+    for v = varargin
+        for identifier = reshape(strip(string(v{:})), 1, [])
+            if startsWith(identifier, ":")
+                inx = operator(inx, hasAttribute(this, identifier));
+            else
+                inx = operator(inx, lhsNames==identifier);
+            end
         end
     end
-end
 
-if nargout>=2
-    this = reshape(this(inx), [], 1);
-    if nargout>=3
-        lhsNames = reshape(lhsNames(inx), 1, []);
+    if nargout>=2
+        this = reshape(this(inx), [], 1);
+        if nargout>=3
+            lhsNames = reshape(lhsNames(inx), 1, []);
+        end
     end
-end
 
 end%
 

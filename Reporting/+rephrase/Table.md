@@ -2,7 +2,7 @@
 title: rephrase.Table
 ---
 
-# `rephrase.Table`
+# `rephrase.Table` ^^(+rephrase)^^
 
 {== Create a Table object for rephrase reports ==}
 

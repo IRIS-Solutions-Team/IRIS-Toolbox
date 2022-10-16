@@ -1,5 +1,6 @@
 ---
 topic: Model
+populate: true
 ---
 
 # Overview of structural model objects

@@ -2,7 +2,7 @@
 title: isscalar
 ---
 
-# `isscalar`
+# `isscalar` ^^(Series)^^
 
 {== True for scalar tseries objects. ==}
 

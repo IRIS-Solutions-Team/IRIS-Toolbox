@@ -2,9 +2,10 @@
 title: plot
 ---
 
-# `plot`
+# `plot` ^^(Series)^^
 
-{== Line chart for Series objects ==}
+{== Line chart for time series objects ==}
+
 
 ## Syntax 
 
@@ -39,9 +40,12 @@ __`AxesHandle=@gca`__ [ handle | function_handle ]
 > handle.
 > 
 
-__`DatePosition='centre'`__ [ `'centre'` | `'end'` | `'start'` ] 
+__`MultiFrequency=false`__ [ `true` | `false` ]
 > 
-> Position of each date point within a given period span.
+> When `MultiFrequency=true`, the values are positioned not at the
+> beginning of their time periods but in the middle; this improves the
+> visuzalization of charts with multiple date frequencies (at the cost of
+> the date ticks seemingly visually not aligned).
 > 
 
 __`DateTick=Inf`__ [ Dater | `Inf` ] 

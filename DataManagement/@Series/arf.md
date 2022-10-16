@@ -2,7 +2,7 @@
 title: arf
 ---
 
-# `arf`
+# `arf` ^^(Series)^^
 
 {== Create autoregressive time series from input data ==}
 

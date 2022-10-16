@@ -2,7 +2,7 @@
 title: rephrase.SeriesChart
 ---
 
-# `rephrase.SeriesChart`
+# `rephrase.SeriesChart` ^^(+rephrase)^^
 
 {== Create a SeriesChart object for rephrase reports ==}
 
@@ -38,6 +38,18 @@ __`output`__ [ SeriesChart ]
 __`StartDate=`__ [ numeric ]
 > 
 > Start date of the data to be displayed.
+> 
+
+__`Layout=struct()`__ [ struct ]
+> 
+> Low-level layout options for charts; implemented are the following
+> elements:
+>
+> * `.xaxis`
+> * `.yaxis`
+> * `.font`
+> * `.legend`
+> * `.margin`
 > 
 
 __`EndDate=`__ [ numeric ]

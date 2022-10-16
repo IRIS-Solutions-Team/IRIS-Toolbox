@@ -2,7 +2,7 @@
 title: setData
 ---
 
-# `setData`
+# `setData` ^^(Series)^^
 
 {== Assign data to TimeSubscriptable object ==}
 

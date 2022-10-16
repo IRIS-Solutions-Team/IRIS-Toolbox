@@ -57,9 +57,9 @@ classdef Highlight ...
         end%
 
 
-        function this = resolveHighlightDates(this, parent)
-            this.StartDate = parent.resolveStartDate(this.StartDate);
-            this.EndDate = parent.resolveEndDate(this.EndDate);
+        function [startDate, endDate] = resolveHighlightDates(this, parent)
+            startDate = parent.resolveStartDate(this.StartDate);
+            endDate = parent.resolveEndDate(this.EndDate);
         end%
     end
 

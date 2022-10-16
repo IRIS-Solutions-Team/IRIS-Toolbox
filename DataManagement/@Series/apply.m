@@ -32,9 +32,6 @@ function this = apply(func, this, dates, varargin)
 
 end%
 
-%
-% Local functions
-%
 
 function [minSh, maxSh] = local_getShifts(func)
     %(

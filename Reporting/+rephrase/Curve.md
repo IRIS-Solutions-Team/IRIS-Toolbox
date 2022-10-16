@@ -2,7 +2,7 @@
 title: rephrase.Curve
 ---
 
-# `rephrase.Curve`
+# `rephrase.Curve` ^^(+rephrase)^^
 
 {== Create a Curve object for rephrase reports ==}
 

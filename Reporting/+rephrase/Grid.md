@@ -2,7 +2,7 @@
 title: rephrase.Grid
 ---
 
-# `rephrase.Grid`
+# `rephrase.Grid` ^^(+rephrase)^^
 
 {== Create a Grids object for rephrase reports ==}
 

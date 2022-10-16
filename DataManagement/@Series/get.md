@@ -2,7 +2,7 @@
 title: get
 ---
 
-# `get`
+# `get` ^^(Series)^^
 
 {== Query tseries object property ==}
 

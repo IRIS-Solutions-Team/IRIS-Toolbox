@@ -1,4 +1,5 @@
 title: Structural model objects
+
 nav:
     - index.md
     - Model.fromFile: fromFile.md

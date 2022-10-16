@@ -2,7 +2,7 @@
 title: comment
 ---
 
-# `comment`
+# `comment` ^^(Series)^^
 
 {== Get or set user comments in time series ==}
 

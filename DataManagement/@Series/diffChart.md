@@ -2,7 +2,7 @@
 title: diffChart
 ---
 
-# `diffChart`
+# `diffChart` ^^(Series)^^
 
 {== Comparison chart for two time series ==}
 

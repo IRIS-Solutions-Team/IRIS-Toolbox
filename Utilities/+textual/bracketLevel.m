@@ -1,100 +1,61 @@
-function [level, allClosed] = bracketLevel(inputString, bracketTypes, varargin)
-% bracketLevel  Return the nested bracket level for each character in a string
-%{
-% ## Syntax ##
-%
-%
-%     [level, allClosed] = textual.bracetLevel(inputString, bracketTypes)
-%
-%
-% ## Input Arguments ##
-%
-%
-% __`inputString`__ [ char | string ]
-% >
-% Input string; for each of the characters in the `inputString`, a number
-% greater than or equal to 0 will be returned indicating the level of
-% nested brackets at the position.
-%
-%
-% __`bracketTypes`__ [ cellstr | string ]
-% >
-% List of bracket types that will be counted; can be any combination of the
-% following four types of brackets: `()`, `[]`, `{}`, `<>`.
-%
-%
-% ## Output Arguments ##
-%
-%
-% __`level`__ [ numeric ]
-% >
-% A vector of numbers greater than or equal to 0 indicating the the level
-% of nested brackets at the respective position in the `inputString`; all
-% opening and closing brackets are counted as inside themselves.
-%
-%
-% __`allClosed`__ [ `true` | `false` ]
-% True if all brackets are closed by the end of the string.
-%
-%
-% ## Description ##
-%
-%
-% ## Example ##
-%
-%}
 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
+function [level, allClosed] = bracketLevel(inputString, bracketTypes, varargin)
 
 %( Input parser
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('+textual/bracketLevel');
-    addRequired(pp, 'inputString', @validate.string);
-    addRequired(pp, 'bracketTypes', @(x) validate.list(x) && all(cellfun(@(y) any(strcmp(y, {'()', '[]', '{}', '<>'})), cellstr(x))));
+persistent ip
+if isempty(ip)
+    ip = extend.InputParser();
+    addRequired(ip, 'inputString', @validate.string);
+    addRequired(ip, 'bracketTypes', @(x) validate.list(x) && all(cellfun(@(y) any(strcmp(y, {'()', '[]', '{}', '<>', '"', ''''})), cellstr(x))));
+end
+[skip, opt] = maybeSkip(ip, varargin{:});
+if ~skip
+    opt = parse(ip, inputString, bracketTypes);
 end
 %)
-[skip, opt] = maybeSkip(pp, varargin{:});
-if ~skip
-    opt = parse(pp, inputString, bracketTypes);
-end
 
-%--------------------------------------------------------------------------
 
-inputString = reshape(char(inputString), 1, [ ]);
-bracketTypes = cellstr(bracketTypes);
+    inputString = reshape(char(inputString), 1, []);
+    bracketTypes = string(bracketTypes);
 
-inputString = [inputString, ' '];
-level = zeros(size(inputString));
+    inputString = [inputString, ' '];
+    level = zeros(size(inputString));
 
-if any(strcmp(bracketTypes, '()'))
-    hereLevel('(', ')');
-end
+    for t = bracketTypes
+        if strlength(t)==2
+            level = local_getLevelForPair(inputString, level, t);
+        elseif strlength(t)==1
+            level = local_getLevelForSingleton(inputString, level, t);
+        end
+    end
 
-if any(strcmp(bracketTypes, '[]'))
-    hereLevel('[', ']');
-end
+    allClosed = level(end)==0;
+    level(end) = [];
 
-if any(strcmp(bracketTypes, '{}'))
-    hereLevel('{', '}');
-end
+end%
 
-if any(strcmp(bracketTypes, '<>'))
-    hereLevel('<', '>');
-end
 
-allClosed = level(end)==0;
-level(end) = [ ];
+function level = local_getLevelForPair(inputString, level, brackets)
+    %(
+    brackets = char(brackets);
+    open = brackets(1);
+    close = brackets(2);
+    updateLevel = zeros(size(inputString));
+    updateLevel(inputString==open) = 1;
+    updateLevel([' ', inputString(1:end-1)]==close) = -1;
+    level = level + cumsum(updateLevel);
+    %)
+end%
 
-return
 
-    function hereLevel(open, close)
-        tempLevel = zeros(size(inputString));
-        tempLevel(inputString==open) = 1;
-        tempLevel([' ', inputString(1:end-1)]==close) = -1;
-        tempLevel = cumsum(tempLevel);
-        level = level + tempLevel;
-    end%
+function level = local_getLevelForSingleton(inputString, level, mark)
+    %(
+    mark = char(mark);
+    updateLevel = zeros(size(inputString));
+    posMark = find(inputString==mark);
+    updateLevel(posMark(1:2:end)) = 1;
+    updateLevel(posMark(2:2:end)) = -1;
+    level = level + cumsum(updateLevel);
+    %)
 end%
 

@@ -2,7 +2,7 @@
 title: Series.linearTrend
 ---
 
-# `Series.linearTrend`
+# `Series.linearTrend` ^^(Series)^^
 
 {== Create time series with linear trend ==}
 

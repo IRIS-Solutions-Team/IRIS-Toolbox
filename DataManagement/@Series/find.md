@@ -2,7 +2,7 @@
 title: find
 ---
 
-# `find`
+# `find` ^^(Series)^^
 
 {== Find dates at which tseries observations are non-zero or true ==}
 

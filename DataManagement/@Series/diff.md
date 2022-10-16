@@ -2,7 +2,7 @@
 title: diff
 ---
 
-# `diff`
+# `diff` ^^(Series)^^
 
 {== First difference ==}
 

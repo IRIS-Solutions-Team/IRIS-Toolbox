@@ -16,7 +16,7 @@ EQUATIONS_KEYWORD = "!equations";
 %
 % Enforce the EQUATIONS_KEYWORD at the beginning of the file
 %
-code = EQUATIONS_KEYWORD + string(newline( )) + string(code);
+code = EQUATIONS_KEYWORD + string(newline()) + string(code);
 
 
 %
@@ -41,23 +41,23 @@ for i = 1 : numBlocks
     keyword = keywords(i);
 
     if keyword==CONTROLS_KEYWORD
-        hereParseControlsBlock( );
+        here_parseControlsBlock( );
     elseif keyword==EQUATIONS_KEYWORD
-        hereParseEquationsBlock( );
+        here_parseEquationsBlock( );
     end
 end
 
 if ~isempty(reportInvalidBlockAttributes)
-    hereReportInvalidBlockAttributes( );
+    here_reportInvalidBlockAttributes( );
 end
 
 controlNames = unique(controlNames, 'stable');
 
 return
 
-    function hereParseEquationsBlock( )
+    function here_parseEquationsBlock( )
         %(
-        [block, attributes__, status] = locallyExtractBlockAttributes(block);
+        [block, attributes__, status] = local_extractBlockAttributes(block);
         if status~=0
             reportInvalidBlockAttributes = [
                 reportInvalidBlockAttributes, ...
@@ -67,32 +67,36 @@ return
 
         %
         % Split the block into individual equations by semicolons; replace
-        % semicolons within double quotes with alternative (full-widht)
+        % semicolons within double quotes with alternative (full-width)
         % unicode semicolons first, return them back afterwards
         %
-        block = locallyReplaceSemicolons(block);
+        block = local_protectSemicolons(block);
         equationStrings__ = strip(split(block, ";"));
-        equationStrings__ = locallyReturnSemicolons(equationStrings__);
+        equationStrings__ = local_unprotectSemicolons(equationStrings__);
 
-        equationStrings__(equationStrings__=="" | equationStrings__==";") = [ ];
+        %
+        % Remove empty equations
+        %
+        equationStrings__(equationStrings__=="" | equationStrings__==";") = [];
+
         numEquations__ = numel(equationStrings__);
         if numEquations__==0
             return
         end
-        equationStrings = [equationStrings; reshape(equationStrings__, [ ], 1)];
+        equationStrings = [equationStrings; reshape(equationStrings__, [], 1)];
         attributes = [attributes; repmat({attributes__}, numEquations__, 1)];
         %)
     end%
 
 
-    function hereParseControlsBlock( )
+    function here_parseControlsBlock( )
         %(
         controlNames = [controlNames, reshape(regexp(block, "\w+", "match"), 1, [ ])];
         %)
     end%
 
 
-    function hereReportInvalidBlockAttributes( )
+    function here_reportInvalidBlockAttributes( )
         %(
         thisError = [ 
             "Explanatorys:InvalidBlockAttributes"
@@ -110,11 +114,11 @@ end%
 
 
 %
-% Local Functions
+% Local functions
 %
 
 
-function [block, attributes, status] = locallyExtractBlockAttributes(block)
+function [block, attributes, status] = local_extractBlockAttributes(block)
     %(
     validateAttribute = @(x) startsWith(x, ":") && isvarname(extractAfter(x, 1));
     status = 0;
@@ -141,27 +145,33 @@ function [block, attributes, status] = locallyExtractBlockAttributes(block)
 end%
 
 
-function block = locallyReplaceSemicolons(block)
+function block = local_protectSemicolons(block)
     %(
-    altSemicolon = char(65307);
+    REGULAR_SEMICOLON = ';';
+    ALT_SEMICOLON = char(65307);
     block = char(block);
-    posQuotes = strfind(block, """");
+
+    posQuotes = find(block=='"');
     level = zeros(1, strlength(block));
     level(posQuotes(1:2:end)) = 1;
     level(posQuotes(2:2:end)) = -1;
     level = cumsum(level);
-    posSemicolons = strfind(block, ";");
-    posSemicolons(level(posSemicolons)==0) = [];
-    block(posSemicolons) = altSemicolon;
+    posSemicolons = find(level>0 & block==REGULAR_SEMICOLON);
+    block(posSemicolons) = ALT_SEMICOLON;
+
+    level = textual.bracketLevel(block, "[]");
+    block(find(level==1 & block==';')) = ALT_SEMICOLON;
+
     block = string(block);
     %)
 end%
 
 
-function equationStrings = locallyReturnSemicolons(equationStrings)
+function equationStrings = local_unprotectSemicolons(equationStrings)
     %(
-    altSemicolon = char(65307);
-    equationStrings = replace(equationStrings, altSemicolon, ";");
+    REGULAR_SEMICOLON = ';';
+    ALT_SEMICOLON = char(65307);
+    equationStrings = replace(equationStrings, ALT_SEMICOLON, REGULAR_SEMICOLON);
     %)
 end%
 

@@ -2,7 +2,7 @@
 title: roc
 ---
 
-# `roc`
+# `roc` ^^(Series)^^
 
 {== Gross rate of change ==}
 

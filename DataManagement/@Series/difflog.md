@@ -2,7 +2,7 @@
 title: difflog
 ---
 
-# `difflog`
+# `difflog` ^^(Series)^^
 
 {== First difference of log ==}
 

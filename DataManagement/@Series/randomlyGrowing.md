@@ -2,7 +2,7 @@
 title: Series.randomlyGrowing
 ---
 
-# `Series.randomlyGrowing`
+# `Series.randomlyGrowing` ^^(Series)^^
 
 {== Create randomly growing time series ==}
 

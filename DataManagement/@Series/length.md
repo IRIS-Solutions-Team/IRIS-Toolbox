@@ -2,7 +2,7 @@
 title: length
 ---
 
-# `length`
+# `length` ^^(Series)^^
 
 {== Length of time series data in time dimension ==}
 

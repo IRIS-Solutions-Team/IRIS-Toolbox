@@ -2,7 +2,7 @@
 title: removeWeekends
 ---
 
-# `removeWeekends`
+# `removeWeekends` ^^(Series)^^
 
 {== H1 tag line ==}
 

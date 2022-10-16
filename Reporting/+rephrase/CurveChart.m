@@ -18,7 +18,6 @@ classdef CurveChart ...
     properties (Constant, Hidden)
         PossibleChildren = [ 
             string(rephrase.Type.CURVE)
-            string(rephrase.Type.MARKER)
         ]
     end
 

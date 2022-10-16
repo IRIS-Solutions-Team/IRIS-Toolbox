@@ -49,10 +49,32 @@ classdef Table ...
                 end
                 this.Settings.ShowUnits = showUnits;
             end
-            if isnumeric(this.Settings_Dates)
-                this.Settings.Dates = dater.toIsoString(this.Settings_Dates, "mid");
-            end
-            this.Settings.Dates = textual.stringify(this.Settings.Dates);
+            this.Settings.Dates = textual.stringify(dater.toIsoString(this.Settings_Dates, "mid"));
+            % this.Settings.Dates = double.empty(1, 0);
+            % for i = 1 : getNumSegments(this)
+                % dates = getSegmentDates(this, i);
+                % if isnumeric(dates)
+                    % this.Settings.Dates = [this.Settings.Dates, textual.stringify(dater.toIsoString(dates, "mid"))];
+                % end
+            % end
+        end%
+
+
+        function this = set.Settings_Dates(this, dates)
+%             if ~iscell(dates)
+%                 dates = {dates};
+%             end
+            this.Settings_Dates = dates;
+        end%
+
+
+        function out = getNumSegments(this)
+            out = numel(this.Settings_Dates);
+        end%
+
+
+        function out = getSegmentDates(this, i)
+            out = this.Settings_Dates{i};
         end%
     end
 end 

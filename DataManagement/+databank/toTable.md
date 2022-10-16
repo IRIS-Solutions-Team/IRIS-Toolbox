@@ -2,7 +2,7 @@
 title: databank.toTable
 ---
 
-# `databank.toTable`
+# `databank.toTable` ^^(+databank)^^
 
 {== Retrieve time series from databank and arrange them in a table ==}
 

@@ -1,3 +1,4 @@
+
 function outputDb = createSourceDb(this, range, varargin)
 
 TIME_SERIES_TEMPLATE = Series();

@@ -2,7 +2,7 @@
 title: plotpred
 ---
 
-# `plotpred`
+# `plotpred` ^^(Series)^^
 
 {== Visualize multi-step-ahead prediction ==}
 

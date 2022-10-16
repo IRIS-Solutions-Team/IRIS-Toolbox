@@ -2,7 +2,7 @@
 title: databank.toSeries
 ---
 
-# `databank.toSeries`
+# `databank.toSeries` ^^(+databank)^^
 
 {== Consolidate multiple time series into one time series object ==}
 

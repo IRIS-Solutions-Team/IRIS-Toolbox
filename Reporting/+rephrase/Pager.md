@@ -2,7 +2,7 @@
 title: rephrase.Pager
 ---
 
-# `rephrase.Pager`
+# `rephrase.Pager` ^^(+rephrase)^^
 
 {== Create a Text object for rephrase reports ==}
 

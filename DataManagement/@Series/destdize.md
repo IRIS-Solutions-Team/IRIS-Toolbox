@@ -2,7 +2,7 @@
 title: destdize
 ---
 
-# `destdize`
+# `destdize` ^^(Series)^^
 
 {== Destandardize time series by multiplying it by std dev and adding mean ==}
 

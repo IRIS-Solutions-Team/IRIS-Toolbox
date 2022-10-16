@@ -2,7 +2,7 @@
 title: moving
 ---
 
-# `moving`
+# `moving` ^^(Series)^^
 
 {== Apply function to moving window of time series observations ==}
 

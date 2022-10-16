@@ -2,7 +2,7 @@
 title: redate
 ---
 
-# `redate`
+# `redate` ^^(Series)^^
 
 {== Change time dimension of time series ==}
 

@@ -2,7 +2,7 @@
 title: databank.redate
 ---
 
-# `databank.redate`
+# `databank.redate` ^^(+databank)^^
 
 {== Redate all time series objects in a database ==}
 

@@ -2,7 +2,7 @@
 title: databank.fromSheet
 ---
 
-# `databank.fromSheet` ^^(databank)^^
+# `databank.fromSheet` ^^(+databank)^^
 
 {== Load databank of time series from a XLSX or CSV file ==}
 

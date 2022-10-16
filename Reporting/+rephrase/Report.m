@@ -18,16 +18,16 @@ classdef Report ...
 
     properties (Constant, Hidden)
         PossibleChildren = [
-            string(rephrase.Type.GRID)
-            string(rephrase.Type.TABLE)
             string(rephrase.Type.CHART)
-            string(rephrase.Type.SERIESCHART)
             string(rephrase.Type.CURVECHART)
-            string(rephrase.Type.TEXT)
-            string(rephrase.Type.PAGEBREAK)
+            string(rephrase.Type.GRID)
             string(rephrase.Type.MATRIX)
+            string(rephrase.Type.PAGEBREAK)
             string(rephrase.Type.PAGER)
             string(rephrase.Type.SECTION)
+            string(rephrase.Type.SERIESCHART)
+            string(rephrase.Type.TABLE)
+            string(rephrase.Type.TEXT)
         ]
         EMBED_REPORT_DATA = "// report-data-script-here"
         EMBED_USER_STYLE = "/* user-defined-css-here */"

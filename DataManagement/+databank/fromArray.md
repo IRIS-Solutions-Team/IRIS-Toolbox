@@ -2,7 +2,7 @@
 title: databank.fromArray
 ---
 
-# `databank.fromArray`
+# `databank.fromArray` ^^(+databank)^^
 
 {== Create a time series databank from a numeric array ==}
 

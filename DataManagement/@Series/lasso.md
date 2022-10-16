@@ -2,7 +2,7 @@
 title: lasso
 ---
 
-# `lasso`
+# `lasso` ^^(Series)^^
 
 {== Least absolute shrinkage and selection operator ==}
 

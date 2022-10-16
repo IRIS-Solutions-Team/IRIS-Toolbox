@@ -2,7 +2,7 @@
 title: databank.serialize
 ---
 
-# `databank.serialize`
+# `databank.serialize` ^^(+databank)^^
 
 {== Serialize databank entries to character vector ==}
 

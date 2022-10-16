@@ -2,7 +2,7 @@
 title: databank.clip
 ---
 
-# `databank.clip`
+# `databank.clip` ^^(+databank)^^
 
 {== Clip all time series in databank to a new range ==}
 
