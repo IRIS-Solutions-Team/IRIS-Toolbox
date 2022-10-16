@@ -1,4 +1,9 @@
 
+function get_dirs_to_populate {
+    ggrep -rFl "populate: true" --inc=index.md $iris | xargs dirname
+}
+
+
 function insert_topic {
     folder=$1
 
@@ -13,11 +18,10 @@ function insert_topic {
 }
 
 
-for f in $(ggrep -rFl "populate: true" --inc=index.md $iris); do
-    folder=$(dirname $f)
+for folder in $(get_dirs_to_populate); do
     echo $folder
     insert_topic $folder
-    python ./.scripts/populate_index.py $f
+    python ./.scripts/populate_index.py $folder/index.md
 done
 
 
