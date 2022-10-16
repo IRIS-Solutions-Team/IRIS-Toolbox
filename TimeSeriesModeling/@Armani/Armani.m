@@ -91,13 +91,18 @@ classdef Armani
         end%
 
 
-        function Omega = cov(this, length)
-            c = Armani.divide(this.MA, this.AR, length);
-            if numel(c)<length
-                c(end+1:length) = 0;
+        function out = cov(this, length)
+            s = sqrtCov(this, length);
+            out = s * s';
+        end%
+
+
+        function out = sqrtCov(this, length)
+            s = Armani.divide(this.MA, this.AR, length);
+            if numel(s)<length
+                s(end+1:length) = 0;
             end
-            c = tril(toeplitz(c));
-            Omega = c * c';
+            out = tril(toeplitz(s));
         end%
 
 
@@ -114,18 +119,21 @@ classdef Armani
         function x = filter(this, x, varargin)
             %(
             if isequal(this.AR, 1) && isequal(this.MA, 1)
-                % Do nothing
-            elseif isnumeric(x)
-                x = filter(this.MA, this.AR, x, varargin{:});
-            elseif isa(x, 'Series')
-                x.Data = filter(this.MA, this.AR, x.Data, varargin{:});
-            else
-                throw(exception.Base([
-                    "Armani:InvalidInputData"
-                    "Input data need to be either columwise oriented numeric vectors "
-                    "or time series. "
-                ], "error"));
+                return
             end
+            if isnumeric(x)
+                x = filter(this.MA, this.AR, x, varargin{:});
+                return
+            end
+            if isa(x, 'Series')
+                x.Data = filter(this.MA, this.AR, x.Data, varargin{:});
+                return
+            end
+            exception.error([
+                "Armani"
+                "Input data need to be either columwise oriented numeric vectors "
+                "or time series. "
+            ]);
             %)
         end%
 
@@ -135,7 +143,7 @@ classdef Armani
                 ma = this.MA;
                 if numel(ma)<length
                     ma(end+1:length) = 0;
-                else numel(ma)>length
+                elseif numel(ma)>length
                     ma = ma(1:length);
                 end
             else

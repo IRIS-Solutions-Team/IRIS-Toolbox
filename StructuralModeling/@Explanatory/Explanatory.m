@@ -183,6 +183,7 @@ classdef Explanatory ...
 
     methods % Constructor
         function this = Explanatory(varargin)
+            this.UserData = struct();
             if nargin==0
                 return
             end
