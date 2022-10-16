@@ -2,7 +2,7 @@
 title: chowlin
 ---
 
-# `chowlin`
+# `chowlin` ^^(Series)^^
 
 {== Chow-Lin distribution of low-frequency observations over higher-frequency periods ==}
 

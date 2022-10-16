@@ -2,7 +2,7 @@
 title: cumsumk
 ---
 
-# `cumsumk`
+# `cumsumk` ^^(Series)^^
 
 {== Cumulative sum with a k-period leap ==}
 

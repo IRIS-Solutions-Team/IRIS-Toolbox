@@ -2,7 +2,7 @@
 title: reshape
 ---
 
-# `reshape`
+# `reshape` ^^(Series)^^
 
 {== Reshape size of time series in 2nd and higher dimensions. ==}
 

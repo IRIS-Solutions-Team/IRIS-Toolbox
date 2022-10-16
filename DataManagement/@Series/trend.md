@@ -2,7 +2,7 @@
 title: trend
 ---
 
-# `trend`
+# `trend` ^^(Series)^^
 
 {== Estimate time trend in time series data. ==}
 

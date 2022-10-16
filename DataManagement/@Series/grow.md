@@ -2,7 +2,7 @@
 title: grow
 ---
 
-# `grow`
+# `grow` ^^(Series)^^
 
 {== Cumulate level time series from differences or rates of growth ==}
 

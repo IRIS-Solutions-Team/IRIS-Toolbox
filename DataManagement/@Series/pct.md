@@ -2,7 +2,7 @@
 title: pct
 ---
 
-# `pct`
+# `pct` ^^(Series)^^
 
 {== Percent rate of change ==}
 

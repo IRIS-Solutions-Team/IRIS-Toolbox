@@ -2,7 +2,7 @@
 title: errorbar
 ---
 
-# `errorbar`
+# `errorbar` ^^(Series)^^
 
 {== Line plot with error bars ==}
 

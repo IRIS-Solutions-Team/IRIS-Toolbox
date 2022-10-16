@@ -2,7 +2,7 @@
 title: bwf
 ---
 
-# `bwf`
+# `bwf` ^^(Series)^^
 
 {== Conditonal Butterworth filter ==}
 

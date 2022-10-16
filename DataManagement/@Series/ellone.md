@@ -2,7 +2,7 @@
 title: ellone
 ---
 
-# `ellone`
+# `ellone` ^^(Series)^^
 
 {== L1 norm trend filtering ==}
 

@@ -2,7 +2,7 @@
 title: llf
 ---
 
-# `llf`
+# `llf` ^^(Series)^^
 
 {== Local level filter (random walk plus white noise) with tunes. ==}
 

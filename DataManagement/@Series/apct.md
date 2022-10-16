@@ -2,7 +2,7 @@
 title: apct
 ---
 
-# `apct`
+# `apct` ^^(Series)^^
 
 {== Annualized percent rate of change ==}
 

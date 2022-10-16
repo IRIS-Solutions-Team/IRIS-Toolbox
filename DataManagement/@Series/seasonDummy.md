@@ -2,7 +2,7 @@
 title: Series.seasonDummy
 ---
 
-# `Series.seasonDummy`
+# `Series.seasonDummy` ^^(Series)^^
 
 {== Create time series with seasonal dummies ==}
 

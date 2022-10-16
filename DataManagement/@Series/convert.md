@@ -2,7 +2,7 @@
 title: convert
 ---
 
-# `convert`
+# `convert` ^^(Series)^^
 
 {== Convert time series to another frequency ==}
 

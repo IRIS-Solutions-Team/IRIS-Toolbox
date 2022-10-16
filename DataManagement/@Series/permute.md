@@ -2,7 +2,7 @@
 title: permute
 ---
 
-# `permute`
+# `permute` ^^(Series)^^
 
 {== Permute dimensions of a tseries object. ==}
 

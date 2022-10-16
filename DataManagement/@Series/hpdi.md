@@ -2,7 +2,7 @@
 title: hpdi
 ---
 
-# `hpdi`
+# `hpdi` ^^(Series)^^
 
 {== Highest probability density interval ==}
 

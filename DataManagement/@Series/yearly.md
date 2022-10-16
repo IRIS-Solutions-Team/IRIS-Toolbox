@@ -2,7 +2,7 @@
 title: yearly
 ---
 
-# `yearly`
+# `yearly` ^^(Series)^^
 
 {== Return array with time series data organized as one year per row ==}
 

@@ -2,9 +2,10 @@
 title: band
 ---
 
-# `band`
+# `band` ^^(Series)^^
 
 {== Draw time series with uncerainty bands ==}
+
 
 ## Syntax
 
@@ -14,34 +15,47 @@ title: band
 
 ## Input arguments
 
+
 __`mid`__ [ Series ]
 > 
 > Time series with the mid point for the band.
 > 
+
 
 __`lower`__ [ Series ]
 > 
 > Time series with the lower band or lower bands.
 > 
 
+
 __`upper`__ [ Series ]
 > 
 > Time series with the upper band or upper bands.
 > 
 
+
 ## Output arguments
 
-__`yyy`__ [ yyy | ___ ]
+
+__`plotHandle`__ [ handle ]
 > 
-> Description
+> Graphics handle to the mid-point line.
 > 
 
 
-## Options 
-
-__`zzz=default`__ [ zzz | ___ ]
+__`info`__ [ struct ]
 > 
-> Description
+> Output information struct with the following fieds:
+> 
+> * `.BandHandles` - graphics handles to the bands (patch objects)
+> 
+> * `.Dates` - dates actually plotted
+> 
+> * `.MidData` - mid-point data actually plotted;
+> 
+> * `.LowerData` - lower bound data actually plotted;
+> 
+> * `.UppderData` - upper bound data actually plotted;
 > 
 
 
@@ -53,4 +67,5 @@ __`zzz=default`__ [ zzz | ___ ]
 
 ```matlab
 ```
+
 

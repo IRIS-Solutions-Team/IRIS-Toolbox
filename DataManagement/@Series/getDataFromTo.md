@@ -2,7 +2,7 @@
 title: getDataFromTo
 ---
 
-# `getDataFromTo`
+# `getDataFromTo` ^^(Series)^^
 
 {== Retrieve time series data from date to date ==}
 

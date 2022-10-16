@@ -2,7 +2,7 @@
 title: hpf
 ---
 
-# `hpf`
+# `hpf` ^^(Series)^^
 
 {== Hodrick-Prescott filter with conditioning information ==}
 

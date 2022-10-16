@@ -2,7 +2,7 @@
 title: getData
 ---
 
-# `getData`
+# `getData` ^^(Series)^^
 
 {== Get data on specified range from time series ==}
 

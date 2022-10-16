@@ -2,7 +2,7 @@
 title: vertcat
 ---
 
-# `vertcat`
+# `vertcat` ^^(Series)^^
 
 {== Vertical concatenation of tseries objects ==}
 

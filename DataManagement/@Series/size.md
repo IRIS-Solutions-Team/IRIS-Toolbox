@@ -2,7 +2,7 @@
 title: size
 ---
 
-# `size`
+# `size` ^^(Series)^^
 
 {== H1 tag line ==}
 

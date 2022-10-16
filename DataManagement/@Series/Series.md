@@ -2,7 +2,7 @@
 title: Series
 ---
 
-# `Series`
+# `Series` ^^(Series)^^
 
 {== Create new time series object ==}
 

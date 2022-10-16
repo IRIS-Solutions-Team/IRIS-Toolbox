@@ -2,7 +2,7 @@
 title: adifflog
 ---
 
-# `adifflog`
+# `adifflog` ^^(Series)^^
 
 {== Annnualized first difference of logs ==}
 

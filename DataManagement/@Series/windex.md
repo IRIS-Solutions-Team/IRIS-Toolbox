@@ -2,7 +2,7 @@
 title: windex
 ---
 
-# `windex`
+# `windex` ^^(Series)^^
 
 {== Plain weighted or Divisia index ==}
 

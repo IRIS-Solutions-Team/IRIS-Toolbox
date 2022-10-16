@@ -2,7 +2,7 @@
 title: subsref
 ---
 
-# `subsref`
+# `subsref` ^^(Series)^^
 
 {== Subscripted reference function for time series ==}
 

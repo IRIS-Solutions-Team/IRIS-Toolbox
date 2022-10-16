@@ -2,7 +2,7 @@
 title: rmse
 ---
 
-# `rmse`
+# `rmse` ^^(Series)^^
 
 {== Calculate RMSE for given observations and predictions ==}
 

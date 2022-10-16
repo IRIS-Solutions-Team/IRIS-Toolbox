@@ -2,7 +2,7 @@
 title: flipud
 ---
 
-# `flipud`
+# `flipud` ^^(Series)^^
 
 {== Flip time series data up to down ==}
 

@@ -2,7 +2,7 @@
 title: bpass
 ---
 
-# `bpass`
+# `bpass` ^^(Series)^^
 
 {== Band-pass filter ==}
 

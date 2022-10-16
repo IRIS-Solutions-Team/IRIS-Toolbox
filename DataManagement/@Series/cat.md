@@ -2,7 +2,7 @@
 title: cat
 ---
 
-# `cat`
+# `cat` ^^(Series)^^
 
 {== Concatenation time series data in n-th dimension ==}
 

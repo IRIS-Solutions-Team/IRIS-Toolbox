@@ -2,7 +2,7 @@
 title: regress
 ---
 
-# `regress`
+# `regress` ^^(Series)^^
 
 {== Ordinary or weighted least-square regression ==}
 

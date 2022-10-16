@@ -2,7 +2,7 @@
 title: stdize
 ---
 
-# `stdize`
+# `stdize` ^^(Series)^^
 
 {== Standardize tseries data by subtracting mean and dividing by std deviation ==}
 

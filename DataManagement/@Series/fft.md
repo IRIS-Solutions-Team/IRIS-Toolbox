@@ -2,7 +2,7 @@
 title: fft
 ---
 
-# `fft`
+# `fft` ^^(Series)^^
 
 {== Discrete Fourier transform of time series data ==}
 

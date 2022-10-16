@@ -2,7 +2,7 @@
 title: wmean
 ---
 
-# `wmean`
+# `wmean` ^^(Series)^^
 
 {== Weighted average of time series observations. ==}
 

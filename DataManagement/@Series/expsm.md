@@ -2,7 +2,7 @@
 title: expsm
 ---
 
-# `expsm`
+# `expsm` ^^(Series)^^
 
 {== Exponential smoothing ==}
 

@@ -2,7 +2,7 @@
 title: rebase
 ---
 
-# `rebase`
+# `rebase` ^^(Series)^^
 
 {== Rebase times series data to specified period ==}
 

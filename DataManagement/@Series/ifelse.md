@@ -2,7 +2,7 @@
 title: ifelse
 ---
 
-# `ifelse`
+# `ifelse` ^^(Series)^^
 
 {== Replace time series values based on a test condition ==}
 

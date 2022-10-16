@@ -2,7 +2,7 @@
 title: Series.empty
 ---
 
-# `Series.empty`
+# `Series.empty` ^^(Series)^^
 
 {== Create empty time series or empty existing time series ==}
 

@@ -2,7 +2,7 @@
 title: detrend
 ---
 
-# `detrend`
+# `detrend` ^^(Series)^^
 
 {== Remove linear time trend from time series data ==}
 
