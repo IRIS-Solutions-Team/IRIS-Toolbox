@@ -747,13 +747,17 @@ classdef ( ...
 
 
 
-
-    methods (Static)
-        varargout = createTable(varargin)
+    methods (Static) % Static constructors
+        varargout = fromData(varargin)
         varargout = linearTrend(varargin)
         varargout = seasonDummy(varargin)
         varargout = randomlyGrowing(varargin)
         varargout = empty(varargin)
+    end
+
+
+    methods (Static)
+        varargout = createTable(varargin)
         varargout = implementPlot(varargin)
 
         function this = template(varargin)
@@ -1014,7 +1018,6 @@ classdef ( ...
 
 
 
-
         %
         % Functions whose behavior differs in different dimensions
         %
@@ -1024,48 +1027,51 @@ classdef ( ...
             end
             x = unop(@any, x, dim, dim);
         end%
+
         function x = all(x, dim)
             if nargin<2
                 dim = 1;
             end
             x = unop(@all, x, dim, dim);
         end%
+
         function x = cumprod(x, dim, varargin)
             if nargin<2
                 dim = 1;
             end
             x = unop(@cumprod, x, 0, dim, varargin{:});
         end%
+
         function x = cumsum(x, dim, varargin)
             if nargin<2
                 dim = 1;
             end
             x = unop(@cumsum, x, 0, dim, varargin{:});
         end%
+
         function a = geomean(x, dim, varargin)
             if nargin<2
                 dim = 1;
             end
             a = unop(@geomean, x, dim, dim, varargin{:});
         end%
+
         function x = mean(x, dim, varargin)
-            if nargin <2
+            if nargin<2
                 dim = 1;
             end
             x = unop(@mean, x, dim, dim, varargin{:});
         end%
 
-
         function x = median(x, dim, varargin)
-            if nargin <2
+            if nargin<2
                 dim = 1;
             end
             x = unop(@median, x, dim, dim, varargin{:});
         end%
 
-
         function x = mode(x, dim, varargin)
-            if nargin <2
+            if nargin<2
                 dim = 1;
             end
             x = unop(@mode, x, dim, dim, varargin{:});

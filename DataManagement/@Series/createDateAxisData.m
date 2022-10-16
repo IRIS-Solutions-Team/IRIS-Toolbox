@@ -1,7 +1,5 @@
-function ...
-    [xData, positionWithinPeriod, dateFormat] = createDateAxisData( ...
-    axesHandle, time, positionWithinPeriod, dateFormat ...
-)
+
+function [xData, positionWithinPeriod, dateFormat] = createDateAxisData(axesHandle, time, positionWithinPeriod, dateFormat)
 
 if nargin<3
     positionWithinPeriod = @auto;
@@ -11,42 +9,39 @@ if nargin<4
     dateFormat = @auto;
 end
 
-%-------------------------------------------------------------------------------
 
-positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, positionWithinPeriod);
+    positionWithinPeriod = local_resolvePositionWithinPeriod(axesHandle, positionWithinPeriod);
 
-if ~isempty(time)
-    timeFrequency = dater.getFrequency(time(1));
-else
-    timeFrequency = NaN;
-end
-
-if isempty(time)
-    xData = datetime.empty(size(time));
-    return
-end
-
-if timeFrequency==Frequency.INTEGER
-    xData = dater.getSerial(time);
-else
-    xData = dater.toMatlab(time, lower(positionWithinPeriod));
-    if isequal(dateFormat, @auto)
-        temp = iris.get('PlotDateTimeFormat');
-        dateFormat = temp.(Frequency.toChar(timeFrequency));
+    if ~isempty(time)
+        timeFrequency = dater.getFrequency(time(1));
+    else
+        timeFrequency = NaN;
     end
-    dateFormat = backwardCompatibilityDateFormat(dateFormat, timeFrequency);
-    try
-        xData.Format = dateFormat;
+
+    if isempty(time)
+        xData = datetime.empty(size(time));
+        return
     end
-end
+
+    if timeFrequency==Frequency.INTEGER
+        xData = dater.getSerial(time);
+    else
+        xData = dater.toMatlab(time, lower(positionWithinPeriod));
+        if isequal(dateFormat, @auto)
+            temp = iris.get('PlotDateTimeFormat');
+            dateFormat = temp.(Frequency.toChar(timeFrequency));
+        end
+        dateFormat = local_backwardCompatibilityDateFormat(dateFormat, timeFrequency);
+        try
+            xData.Format = dateFormat;
+        end
+    end
 
 end%
 
-%
-% Local Functions
-%
 
-function positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, positionWithinPeriod)
+function positionWithinPeriod = local_resolvePositionWithinPeriod(axesHandle, positionWithinPeriod)
+    %(
     axesPositionWithinPeriod = getappdata(axesHandle, 'IRIS_PositionWithinPeriod');
     if isempty(axesPositionWithinPeriod) 
         if isequal(positionWithinPeriod, @auto)
@@ -60,10 +55,12 @@ function positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, posi
                      'Option PositionWithinPeriod= differs from the value set in the current Axes.' );
         end
     end
+    %)
 end%
 
 
-function dateFormat = backwardCompatibilityDateFormat(dateFormat, timeFrequency)
+function dateFormat = local_backwardCompatibilityDateFormat(dateFormat, timeFrequency)
+    %(
     dateFormat = string(dateFormat);
     if contains(dateFormat, "YYYY", "IgnoreCase", true)
         dateFormat = replace(dateFormat, "YYYY", "uuuu");
@@ -111,5 +108,6 @@ function dateFormat = backwardCompatibilityDateFormat(dateFormat, timeFrequency)
             dateFormat = replace(dateFormat, "yy:P", replacement);
         end
     end
+    %)
 end%
 

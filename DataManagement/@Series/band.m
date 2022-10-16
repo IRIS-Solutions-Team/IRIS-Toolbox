@@ -90,6 +90,8 @@ info = struct();
 info.BandHandles = bandHandles;
 info.Dates = dates;
 info.MidData = midData;
+info.LowerData = lowerData;
+info.UpperData = upperData;
 info.XCoor = xCoor;
 
 varargout = {plotHandle, info};

@@ -1,3 +1,4 @@
+
 function varargout = implementPlot(plotFunc, varargin)
 
 [axesHandle, dates, this, plotSpec, varargin] = Series.preparePlot(varargin{:});
@@ -6,13 +7,14 @@ persistent ip
 if isempty(ip)
     ip = extend.InputParser();
     ip.KeepUnmatched = true;
-    ip.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || validate.date(x));
-    ip.addParameter('DateFormat', @auto, @(x) isequal(x, @auto) || isstring(x) || ischar(x) || iscellstr(x));
-    ip.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
-    ip.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    ip.addParameter('Smooth', false, @validate.logicalScalar);
-    ip.addParameter('Highlight', [], @validate.properRange);
-    ip.addParameter('PlotSettings', cell.empty(1, 0), @iscell);
+    addParameter(ip, 'DateTick', @auto, @(x) isequal(x, @auto) || validate.date(x));
+    addParameter(ip, 'DateFormat', @auto, @(x) isequal(x, @auto) || isstring(x) || ischar(x) || iscellstr(x));
+    addParameter(ip, 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) || any(strncmpi(x, {'start', 'middle', 'end'}, 1)) );
+    addParameter(ip, 'Multifrequency', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    addParameter(ip, 'Smooth', false, @validate.logicalScalar);
+    addParameter(ip, 'Highlight', [], @validate.properRange);
+    addParameter(ip, 'PlotSettings', cell.empty(1, 0), @iscell);
 end
 opt = parse(ip, varargin{:});
 unmatchedOptions = ip.UnmatchedInCell;
@@ -41,6 +43,10 @@ end
 
 if ndims(yData)>2 %#ok<ISMAT>
     yData = yData(:, :);
+end
+
+if opt.Multifrequency && isequal(opt.PositionWithinPeriod, @auto)
+    opt.PositionWithinPeriod = "middle";
 end
 
 [xData, positionWithinPeriod, dateFormat] ...
