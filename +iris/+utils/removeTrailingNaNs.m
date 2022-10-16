@@ -2,7 +2,13 @@ function [x, last] = removeTrailingNaNs(x, dim)
 
     sizeX = size(x);
     ndimsX = ndims(x);
-    anyValue = any(~isnan(x), [1:dim-1, dim+1:ndimsX]);
+    try
+        anyValue = any(~isnan(x), [1:dim-1, dim+1:ndimsX]);
+    catch
+        x = permute(x, [dim, 1:dim-1, dim+1:ndimsX]);
+        anyValue = any(~isnan(x(:, :)), 2);
+        anyValue = ipermute(anyValue, [dim, 1:dim-1, dim+1:ndimsX]);
+    end
     last = find(anyValue, 1, 'last');
     if isempty(last)
         sizeX(dim) = 0;
