@@ -5,8 +5,9 @@ function [x, last] = removeTrailingNaNs(x, dim)
     try
         anyValue = any(~isnan(x), [1:dim-1, dim+1:ndimsX]);
     catch
-        x = permute(x, [dim, 1:dim-1, dim+1:ndimsX]);
-        anyValue = any(~isnan(x(:, :)), 2);
+        anyValue = ~isnan(x);
+        anyValue = permute(anyValue, [dim, 1:dim-1, dim+1:ndimsX]);
+        anyValue = any(~isnan(anyValue(:, :)), 2);
         anyValue = ipermute(anyValue, [dim, 1:dim-1, dim+1:ndimsX]);
     end
     last = find(anyValue, 1, 'last');
