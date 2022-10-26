@@ -1,8 +1,5 @@
 % reportConsecutive  Group dates into continuous ranges
 %
-% Backend IRIS function
-% No help provided
-
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
@@ -16,8 +13,8 @@ if isempty(inputDates)
     return
 end
 
-if nargin<2
-    fromToSign = ":";
+try, fromToSign;
+    catch, fromToSign = ":";
 end
 
 %--------------------------------------------------------------------------

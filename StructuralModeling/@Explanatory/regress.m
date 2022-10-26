@@ -88,7 +88,7 @@ numPages = dataBlock.NumPages;
 fitted = nan(numEquations, numExtdPeriods, numPages);
 lhsTransform = nan(numEquations, numExtdPeriods, numPages);
 inxMissingColumns = false(numEquations, numExtdPeriods, numPages);
-reportEmptyData = string.empty(1, 0);
+emptyDataReport = string.empty(1, 0);
 extdRange = double(dataBlock.ExtendedRange);
 
 %
@@ -114,6 +114,8 @@ end
 
 exitFlagsParameters = nan(numEquations, numPages);
 exitFlagsResidualModels = nan(numEquations, numPages);
+missingReport = string.empty(1, 0);
+extdRangeStrings = dater.toDefaultString(extdRange);
 
 
 %==========================================================================
@@ -180,7 +182,7 @@ for q = 1 : numEquations
 
 
         if ~any(inxBaseRange__)
-            reportEmptyData = [reportEmptyData, this__.LhsName];
+            emptyDataReport = [emptyDataReport, this__.LhsName];
             continue
         end
 
@@ -281,10 +283,12 @@ for q = 1 : numEquations
     end
 
     %
-    % Report missing observations
+    % Add report on missing observations
     %
-    if any(inxMissingWithinBaseRange__(:))
-        here_reportMissing(inxMissingWithinBaseRange__, q);
+    if nnz(inxMissingWithinBaseRange__)>0
+        missingReport(end+1) = this(q).LhsName;
+        pos = find(any(inxMissingWithinBaseRange__, 3));
+        missingReport(end+1) = textual.rangify(pos, extdRangeStrings);
     end
 
     %
@@ -306,10 +310,13 @@ end
 %==========================================================================
 
 
-if ~isempty(reportEmptyData)
-    here_reportEmptyData();
+if ~isempty(missingReport)
+    here_reportMissing(missingReport);
 end
 
+if ~isempty(emptyDataReport)
+    here_reportEmptyData();
+end
 
 %
 % Handle failed exit flags
@@ -367,38 +374,31 @@ return
         %)
     end%
 
+
     function here_reportEmptyData()
         %(
-        reportEmptyData = cellstr(reportEmptyData);
-        thisWarning = [ 
-            "Explanatory:EmptyRegressionData"
-            "Explanatory[""%s""] cannot be regressed because "
-            "there is not a single period of observations available." 
-        ];
-        throw(exception.Base(thisWarning, 'warning'), reportEmptyData{:});
+        emptyDataReport = cellstr(emptyDataReport);
+        exceptions.warning([
+            "Explanatory"
+            "Equation for %s cannot be estimated because of missing data."
+        ]);
         %)
     end%
 
-    function here_reportMissing(inxMissing, qq)
+
+    function here_reportMissing(missingReport)
         %(
-        if opt.MissingObservations=="warning"
+        if opt.MissingObservations=="silent"
+            return
+        elseif opt.MissingObservations=="warning"
             func = @exception.warning;
-            action = 'adjusted to exclude';
         elseif opt.MissingObservations=="error"
             func = @exception.error;
-            action = 'contain';
-        else 
-            return
         end
-
-        report = dater.reportMissingPeriodsAndPages( ...
-            extdRange, inxMissing(1, :, :), this(qq).LhsName ...
-        );
         func([
             "Explanatory"
-            "Explanatory[""%s""] regression data " + action + " "
-            "NaN or Inf observations [Variant|Page:%g]: %s" 
-        ], report{:});
+            "Regression data for %s contain NaN/Inf observations: %s" 
+        ], missingReport);
         %)
     end%
 
@@ -417,9 +417,6 @@ return
     end%
 end%
 
-%
-% Local Functions
-%
 
 function [fittedRange, missingObservations] = local_resolveRange(this, inputDb, fittedRange, missingObservations)
     %(

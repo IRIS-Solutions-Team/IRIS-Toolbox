@@ -256,11 +256,11 @@ end
 % Report LHS variables with NaN or Inf values
 %
 pos = textual.locate(lhsNames, outputData.Names);
-reorder = [blocks{:}];
-pos = pos(reorder);
-inxNaNLhs = any(any(~isfinite(outputData.YXEPG(pos, baseRangeColumns, :)), 3), 2);
-if any(inxNaNLhs)
-    here_reportNaNSimulation( );
+% reorder = [blocks{:}];
+% pos = pos(reorder);
+inxNaN = any(~isfinite(outputData.YXEPG(pos, baseRangeColumns, :)), 3);
+if nnz(inxNaN)>0
+    here_reportNaNSimulation();
 end
 
 
@@ -285,8 +285,8 @@ end
 
 return
 
-
     function [anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = here_extractExogenized( )
+        %(
         if isempty(opt.Plan) && ~any(opt.ExogenizeWhenData)
             inxExogenizedAlways = logical.empty(0);
             inxExogenizedWhenData = logical.empty(0);
@@ -320,10 +320,12 @@ return
             inxExogenizedWhenData(~inxIdentity, :, :) = tempWhenData(~inxIdentity, :, :);
             inxExogenizedAlways(~inxIdentity, :, :) = tempAlways(~inxIdentity, :, :);
         end
+        %)
     end%
 
 
     function [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( )
+        %(
         if anyExogenized
             inxExogenizedAlways__ = inxExogenizedAlways(eqn, :);
             inxExogenizedWhenData__ = inxExogenizedWhenData(eqn, :);
@@ -333,9 +335,8 @@ return
             inxExogenizedWhenData__ = logical.empty(0);
             anyExogenized__ = false;
         end
+        %)
     end%
-
-
 
 
     function here_runPeriodByPeriod( )
@@ -402,9 +403,8 @@ return
     end%
 
 
-
-
     function here_runOnce(columnsToRun)
+        %(
         posLhs__ = this__.DependentTerm.Position;
         parameters__ = this__.Parameters;
         if size(parameters__, 3)==1 && numRuns>1
@@ -469,12 +469,12 @@ return
                 deindent(journal);
             end
         end
+        %)
     end%
 
 
-
-
-    function here_expandPagesIfNeeded( )
+    function here_expandPagesIfNeeded()
+        %(
         if numPages==1 && nv>1
             outputData.YXEPG = repmat(outputData.YXEPG, 1, 1, nv);
             return
@@ -488,12 +488,12 @@ return
             ];
             throw(exception.Base(thisError, 'error'));
         end
+        %)
     end%
 
 
-
-
-    function here_reportNaNParameters( )
+    function here_reportNaNParameters()
+        %(
         report = lhsNames(inxNaNParameters);
         thisWarning  = [ 
             "Explanatory:MissingObservationInSimulationRange"
@@ -501,19 +501,23 @@ return
             "for this LHS variables: %s" 
         ];
         throw(exception.Base(thisWarning, opt.NaNParameters), report);
+        %)
     end%
 
 
-
-
-    function here_reportNaNSimulation( )
-        report = outputData.Names(sort(pos(inxNaNLhs)));
-        thisWarning  = [ 
-            "Explanatory:MissingObservationInSimulationRange"
-            "Simulation of an Explanatory object produced "
-            "at least one NaN or Inf value in this LHS variable: %s" 
-        ];
-        throw(exception.Base(thisWarning, opt.NaNSimulation), report);
+    function here_reportNaNSimulation()
+        %(
+        dateStrings = dater.toDefaultString(range);
+        report = string.empty(1, 0);
+        for row = reshape(find(any(inxNaN, 2)), 1, [])
+            report(end+1) = lhsNames(row);
+            report(end+1) = textual.rangify(find(inxNaN(row, :)), dateStrings);
+        end
+        exception.(opt.NaNSimulation)([
+            "Explanatory"
+            "Simulation of %s produced NaN/Inf: %s"
+        ], report);
+        %)
     end%
 end%
 

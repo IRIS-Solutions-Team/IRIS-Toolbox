@@ -18,7 +18,7 @@ cat $id_file_name
 
 # Update Contents.m, include date/time stamp to force 
 find . -name Contents.m -type f -maxdepth 1 -exec rm {} +
-echo "% [IrisToolbox] for Macroeconomic Modeling" > Contents.m
+echo "% [Iris Toolbox for Macroeconomic Modeling]" > Contents.m
 echo "% Version $release_name $date_time_stamp" >> Contents.m
 cat Contents.m
 

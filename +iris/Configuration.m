@@ -463,7 +463,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         function irisRelease = getIrisRelease()
             x = ver();
-            inxIris = startsWith(strip(string({x.Name})), '[IrisToolbox]');
+            inxIris = startsWith(strip(string({x.Name})), '[Iris');
             numIris = nnz(inxIris);
             if numIris==1
                 irisRelease = regexp(x(inxIris).Version, '\d+\-?\w+', 'match', 'once');
