@@ -3,12 +3,13 @@
 
 classdef Explanatory ...
     < iris.mixin.GetterSetter ...
-    & iris.mixin.UserDataContainer ...
     & iris.mixin.CommentContainer ...
+    & iris.mixin.UserDataContainer ...
     & iris.mixin.DatabankPipe ...
     & iris.mixin.Plan
 
-    properties
+
+    properties (Hidden)
 % Fixed  Row vector of parameter values (if the parameter is fixed to that
 % value) or NaNs (if the parameter can be changed or estimated)
 
@@ -68,7 +69,7 @@ classdef Explanatory ...
     end
 
 
-    properties (SetAccess=protected)
+    properties (SetAccess=protected, Hidden)
         VariableNames (1, :) string = string.empty(1, 0)
         ControlNames (1, :) string = string.empty(1, 0)
         Label (1, 1) string = ""
@@ -86,6 +87,10 @@ classdef Explanatory ...
     properties (SetAccess=protected)
         FileName (1, 1) string = ""
         InputString (1, 1) string = ""
+    end
+
+
+    properties (SetAccess=protected, Hidden)
         Export (1, :) iris.mixin.Export = iris.mixin.Export.empty(1, 0)
         Substitutions (1, 1) struct = struct( )
 
@@ -142,7 +147,7 @@ classdef Explanatory ...
 
 
 
-    properties (Constant)
+    properties (Constant, Hidden)
         VARIABLE_WITH_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(\{[^\}]*\})"
         VARIABLE_NO_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(?!\()"
         USERDATA_PREFIX = "#"
@@ -151,14 +156,29 @@ classdef Explanatory ...
 
 
 
-    properties (Dependent)
+    properties (Dependent);
+% LhsName  Databank name for the LHS variable
+        LhsName
+
+% ParameterValues  Currently assigned values of RHS parameters
+        ParameterValues
+
+% ResidualName  Databank name for the residuals
+        ResidualName
+
+% FittedName  Databank name for the fitted values of the LHS variable
+        FittedName
+
+% HasResidualModel  True if a non-identity ARIMA model for residual exists
+        HasResidualModel
+    end
+
+
+    properties (Dependent, Hidden)
         NeedsIterate
         PosLhsName
         RhsContainsLhsName
-        LhsName
-        ResidualName
         InnovationName
-        FittedName
         LhsTransformName
 
 % PlainDataNames  List of plain names in a single Explanatory object
@@ -167,10 +187,6 @@ classdef Explanatory ...
 %>    object complemented with the `ResidualName` (ordered last in the
 %>    list)
         PlainDataNames
-
-
-% HasResidualModel  True if a non-identity ARIMA model for residual exists
-        HasResidualModel
 
 
         NumExplanatoryTerms
@@ -639,6 +655,11 @@ classdef Explanatory ...
                 return
             end
             value = this.VariableNames(posLhsName);
+        end%
+
+
+        function get.ParameterValues(this)
+            value = this.Parameters;
         end%
 
 

@@ -5,17 +5,20 @@
 
 classdef UserDataContainer
     properties
-        % UserData  User data attached to this object
-        UserData = [ ] 
-
-        % Caption  User caption used to title graphs of this object
-        Caption = '' 
-
-        % BaseYear  Base year for time trends created by this object
-        BaseYear = @auto 
+% UserData  User data attached to this object
+        UserData = []
     end
-    
-    
+
+
+    properties (Hidden)
+% Caption  User caption used to title graphs of this object
+        Caption = ''
+
+% BaseYear  Base year for time trends created by this object
+        BaseYear = @auto
+    end
+
+
     methods
         function this = UserDataContainer(varargin)
             if isempty(varargin)
@@ -28,8 +31,8 @@ classdef UserDataContainer
             end
         end%
     end
-    
-    
+
+
     methods
         varargout = accessUserData(varargin)
         varargout = assignUserData(varargin)
@@ -38,16 +41,16 @@ classdef UserDataContainer
         varargout = userdata(varargin)
         varargout = userdatafield(varargin)
     end
-    
-    
+
+
     methods (Hidden)
         varargout = checkConsistency(varargin)
         varargout = implementGet(varargin)
         varargout = implementSet(varargin)
     end
 
-        
-        
+
+
     methods (Access=protected, Hidden)
         function implementDisp(this, varargin)
             dispIndent = iris.get('DispIndent');
@@ -67,7 +70,7 @@ classdef UserDataContainer
             end
 
             return
-            
+
                 function str = catchUnknown(x)
                     sizeX = sprintf('%gx', size(x));
                     sizeX(end) = '';
@@ -75,8 +78,6 @@ classdef UserDataContainer
                 end%
         end%
     end
-
-
 
 
     methods (Static)
