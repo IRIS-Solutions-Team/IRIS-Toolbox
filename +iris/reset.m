@@ -29,7 +29,7 @@ opt = ip.Results;
 % <=R2019a
 
 
-iris.Configuration.clear( );
+iris.Configuration.clear();
 
 irisConfig = iris.Configuration(opt);
 save(irisConfig);
