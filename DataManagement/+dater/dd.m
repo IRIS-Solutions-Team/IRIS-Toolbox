@@ -5,45 +5,42 @@
 
 function dateCode = dd(varargin)
 
-if nargin==1 && validate.text(varargin{1})
-    % From ISO string: dd("yyyy-mm-dd")
-    dateCode = dater.fromIsoString(frequency.DAILY, string(varargin{1}));
-    return
-end
+    if nargin==1 && validate.text(varargin{1})
+        % From ISO string: dd("yyyy-mm-dd")
+        dateCode = dater.fromIsoString(frequency.DAILY, string(varargin{1}));
+        return
+    end
 
-year = varargin{1};
+    year = varargin{1};
 
-if nargin>=2
-    month = varargin{2};
-else
-    month = 1;
-end
+    if nargin>=2
+        month = varargin{2};
+    else
+        month = 1;
+    end
 
-if nargin>=3
-    day = varargin{3};
-else
-    day = 1;
-end
+    if nargin>=3
+        day = varargin{3};
+    else
+        day = 1;
+    end
 
-if validate.text(month)
-    month = dater.monthFromString(month);
-end
+    if validate.text(month)
+        month = dater.monthFromString(month);
+    end
 
-if any(month(:)<1 | month(:)>12)
-    [year, month] = local_fixMonths(year, month);
-end
+    if any(month(:)<1 | month(:)>12)
+        [year, month] = local_fixMonths(year, month);
+    end
 
-if all(strcmpi(day, 'end'))
-    day = eomday(year, month);
-end
+    if all(strcmpi(day, 'end'))
+        day = eomday(year, month);
+    end
 
-dateCode = datenum(year, month, day);
+    dateCode = datenum(year, month, day);
 
 end%
 
-%
-% Local Functions
-%
 
 function [year, month] = local_fixMonths(year, month)
     %(
