@@ -41,10 +41,16 @@ function [inputArray, trendLine] = prepareKalmanData(this, inputData, range, whe
 
     inxMissing = any(all(isnan(inputArray), 2), 3);
     if any(inxMissing(1:numY))
-        raise(exception.Base(["Kalman", "This measurement variable has no observations available: %s"], whenMissing), measurementNames(inxMissing(1:numY)));
+        exception.(whenMissing)([
+            "Kalman"
+            "This measurement variable has no observations available: %s"
+        ], measurementNames(inxMissing(1:numY)));
     end
     if any(inxMissing(numY+1:end))
-        raise(exception.Base(["Kalman", "This exogenous variable has no observations available: %s"], whenMissing), exogenousNames(inxMissing(numY+1:end)));
+        exception.(whenMissing)([
+            "Kalman"
+            "This exogenous variable has no observations available: %s"
+        ], exogenousNames(inxMissing(numY+1:end)));
     end
 
 end%

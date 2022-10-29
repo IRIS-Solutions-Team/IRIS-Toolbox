@@ -5,11 +5,16 @@
 
 function outputDate = mm(varargin)
 
-if nargin>=2 && validate.text(varargin{2})
-    varargin{2} = dater.monthFromString(varargin{2});
-end
+    if nargin==1 && validate.text(varargin{1})
+        outputDate = dater.fromIsoString(Frequency.MONTHLY, string(varargin{1}));
+        return
+    end
 
-outputDate = dater.datecode(Frequency.MONTHLY, varargin{:});
+    if nargin>=2 && validate.text(varargin{2})
+        varargin{2} = dater.monthFromString(varargin{2});
+    end
+
+    outputDate = dater.datecode(Frequency.MONTHLY, varargin{:});
 
 end%
 

@@ -1,11 +1,7 @@
 % prepareKalmanOptions2 Prepare Kalman filter options
-%
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
-%
 
 % >=R2019b
-%{
+%(
 function opt = prepareKalmanOptions2(this, range, opt)
 
 arguments
@@ -30,6 +26,8 @@ arguments
 
     opt.UnitRootInitials {local_validateUnitRootInitials} = "approxDiffuse"
         opt.InitUnitRoot__UnitRootInitials = []
+
+    opt.Preiterate (1, 1) double = 0
 
     opt.LastSmooth (1, 1) double = Inf
     opt.Outlik (1, :) string = string.empty(1, 0)
@@ -71,12 +69,12 @@ arguments
     opt.CheckSteady (1, :) cell = {"run", false}
     opt.Solve (1, :) cell = {"run", true}
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function opt = prepareKalmanOptions2(this, range, varargin)
 
 persistent ip
@@ -101,6 +99,8 @@ if isempty(ip)
 
     addParameter(ip, "UnitRootInitials", "approxDiffuse");
         addParameter(ip, "InitUnitRoot__UnitRootInitials", []);
+
+    addParameter(ip, "Preiterate", 0);
 
     addParameter(ip, "LastSmooth", Inf);
     addParameter(ip, "Outlik", string.empty(1, 0));
@@ -144,7 +144,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -470,7 +470,7 @@ function flag = local_validateUnitRootInitials(x)
     if validate.databank(x)
         return
     end
-    valid = ["fixedUnknown", "approxDiffuse"];
+    valid = ["fixedUnknown", "approxDiffuse", "preiterate"];
     if validate.anyText(x, valid)
         return
     end

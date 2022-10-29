@@ -20,9 +20,9 @@ sumMtFiM = sum(MtFiM, 3);
 sumMtFiPe = sum(MtFiPe, 2);
 isOutlik = ~isempty(sumMtFiM) && ~isempty(sumMtFiPe);
 
-% Estimate user-requested out-of-lik parameters
+% Estimate user-requested out-of-lik parameters and unit-root initials
 if isOutlik
-    L2i = pinv(sumMtFiM);
+    L2i = inv(sumMtFiM);
     Est = L2i * sumMtFiPe;
     PEst = L2i;
     % Correct likelihood for estimated parameters

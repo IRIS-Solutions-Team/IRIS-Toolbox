@@ -5,7 +5,12 @@
 
 function outputDate = yy(varargin)
 
-outputDate = dater.datecode(Frequency.YEARLY, varargin{:});
+    if nargin==1 && validate.text(varargin{1})
+        outputDate = dater.fromIsoString(Frequency.YEARLY, string(varargin{1}));
+        return
+    end
+
+    outputDate = dater.datecode(Frequency.YEARLY, varargin{:});
 
 end%
 
