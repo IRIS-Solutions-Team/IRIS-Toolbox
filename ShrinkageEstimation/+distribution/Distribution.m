@@ -7,7 +7,7 @@ classdef (Abstract) Distribution < matlab.mixin.Copyable
     properties
         % Name  Name of the distribution
         Name
-        
+
         % Doain  Domain of the distribution
         Domain
 
@@ -19,7 +19,7 @@ classdef (Abstract) Distribution < matlab.mixin.Copyable
 
         % Shape  Shape parameter of the distribution
         Shape = NaN
-        
+
         % Mean  Mean (expected value) of the distribution
         Mean = NaN
 
@@ -27,7 +27,7 @@ classdef (Abstract) Distribution < matlab.mixin.Copyable
         Var = NaN
 
         % Mode  Mode of the distribution
-        Mode = NaN 
+        Mode = NaN
 
         % Median  Median of the distribution
         Median = NaN

@@ -3,53 +3,54 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function s = initialize(s, initial, unitRootInitial)
+function s = initialize(s, initial, unitRootInitial, numPreiterate)
 
-numUnitRoots = s.NumUnitRoots;
-numXiB = size(s.Ta, 2);
-numStable = numXiB - numUnitRoots;
+    numUnitRoots = s.NumUnitRoots;
+    numXiB = size(s.Ta, 2);
+    numStable = numXiB - numUnitRoots;
 
-try
-    numE = s.NumE;
-catch
-    numE = s.ne;
-end
+    try
+        numE = s.NumE;
+    catch
+        numE = s.ne;
+    end
 
-inxStable = [false(1, numUnitRoots), true(1, numStable)];
+    inxStable = [false(1, numUnitRoots), true(1, numStable)];
 
-needsTransform = isfield(s, 'U') && ~isempty(s.U);
-U = [];
-if needsTransform
-    U = s.U(:, :, 1);
-end
+    needsTransform = isfield(s, 'U') && ~isempty(s.U);
+    U = [];
+    if needsTransform
+        U = s.U(:, :, 1);
+    end
 
-%
-% Fixed unknown
-%
-if strcmpi(initial, 'FixedUnknown')
-    s.InitMean = zeros(numXiB, 1);
-    s.InitMseReg = zeros(numXiB);
-    s.InitMseInf = [ ];
-    s.NumEstimInit = numXiB;
-    return
-end
+    %
+    % Fixed unknown
+    %
+    if strcmpi(initial, 'FixedUnknown')
+        s.InitMean = zeros(numXiB, 1);
+        s.InitMseReg = zeros(numXiB);
+        s.InitMseInf = [ ];
+        s.NumEstimInit = numXiB;
+        return
+    end
 
-%
-% Initialize mean
-%
-s.InitMean = here_initializeMean();
+    %
+    % Initialize mean
+    %
+    s.InitMean = here_initializeMean();
 
 
-%
-% Intialize MSE
-%
-[s.InitMseReg, s.InitMseInf] = here_initializeMse();
-s.NumEstimInit = here_countEstimInit();
+    %
+    % Intialize MSE
+    %
+    numPreiterate = max(0, round(numPreiterate));
+    [s.InitMseReg, s.InitMseInf] = here_initializeMse();
+    s.NumEstimInit = here_countEstimInit();
 
 return
 
-
     function a0 = here_initializeMean()
+        %(
         inxInit = reshape(s.InxInit, [ ], 1);
 
         a0 = zeros(numXiB, 1);
@@ -111,12 +112,12 @@ return
             end
             a0(1:numUnitRoots) = a00(1:numUnitRoots);
         end
+        %)
     end%
 
 
-
-
     function [PaReg, PaInf] = here_initializeMse()
+        %(
         PaReg = zeros(numXiB);
         PaInf = [];
 
@@ -177,33 +178,69 @@ return
                 if isempty(scale) || scale==0
                     if ~isempty(s.Omg)
                         diagOmg = diag(s.Omg(:, :, 1));
-                        % scale = max(diagOmg(:));
                         scale = mean(diagOmg(:));
                     else
                         scale = 1;
                     end
                 end
+                scale = scale * s.DIFFUSE_SCALE;
                 PaInf = zeros(numXiB);
-                PaInf(~inxStable, ~inxStable) = scale * s.DIFFUSE_SCALE * eye(numUnitRoots);
+                PaInf(~inxStable, ~inxStable) = scale * eye(numUnitRoots);
+                return
+            end
+
+            if strcmpi(unitRootInitial, 'FixedUnknown')
+                PaInf = zeros(numXiB);
+                return
+            end
+
+            if strcmpi(unitRootInitial, 'Preiterate')
+                PaInf = zeros(numXiB);
+                if numPreiterate==0
+                    return
+                end
+
+                Ta11 = s.Ta(~inxStable, ~inxStable, 1);
+                Ta12 = s.Ta(~inxStable, inxStable, 1);
+                Ta22 = s.Ta(inxStable, inxStable, 1);
+
+                Ra1 = s.Ra(~inxStable, 1:numE, 1);
+                Sa11 = Ra1 * Omg * Ra1';
+                Sa11 = (Sa11 + Sa11')/2;
+
+                Pa22 = PaReg(inxStable, inxStable);
+                Pa22 = (Pa22 + Pa22')/2;
+
+                Pa11 = zeros(numUnitRoots);
+
+                for t = 1 : numPreiterate
+                    Pa11 = Ta11*Pa11*Ta11' + Ta12*Pa22*Ta12' + Sa11;
+                end
+                Pa11 = (Pa11 + Pa11')/2;
+
+                PaInf(~inxStable, ~inxStable) = Pa11;
+                return
             end
         end
+        %)
     end%
 
 
-    function n = here_countEstimInit()
+    function numEstimInit = here_countEstimInit()
+        %(
         % Number of initial conditions estimated as fixed unknowns
         if iscell(initial)
             % All initial cond supplied by user
-            n = 0;
+            numEstimInit = 0;
             return
         end
         if strcmpi(unitRootInitial, 'ApproxDiffuse')
             % Initialize unit roots with a large finite MSE matrix
-            n = 0;
+            numEstimInit = 0;
             return
         end
         if strcmpi(initial, 'Fixed')
-            n = 0;
+            numEstimInit = 0;
             return
         end
         % Estimate fixed initial conditions for unit root processes if the
@@ -213,10 +250,12 @@ return
         inxObs = any(s.yindex, 2);
         unitZ = s.Z(inxObs, 1:s.NumUnitRoots, 1);
         if any(any( abs(unitZ)>s.MEASUREMENT_MATRIX_TOLERANCE ))
-            n = s.NumUnitRoots;
+            numEstimInit = s.NumUnitRoots;
         else
-            n = 0;
+            numEstimInit = 0;
         end
+        %)
     end%
+
 end%
 

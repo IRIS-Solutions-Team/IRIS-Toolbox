@@ -31,6 +31,8 @@ arguments
     opt.UnitRootInitials {local_validateUnitRootInitials} = "approxDiffuse"
         opt.InitUnitRoot__UnitRootInitials = []
 
+    opt.Preiterate (1, 1) double = 0
+
     opt.LastSmooth (1, 1) double = Inf
     opt.Outlik (1, :) string = string.empty(1, 0)
         opt.OutOfLik__Outlik = []
@@ -101,6 +103,8 @@ if isempty(ip)
 
     addParameter(ip, "UnitRootInitials", "approxDiffuse");
         addParameter(ip, "InitUnitRoot__UnitRootInitials", []);
+
+    addParameter(ip, "Preiterate", 0);
 
     addParameter(ip, "LastSmooth", Inf);
     addParameter(ip, "Outlik", string.empty(1, 0));
@@ -470,7 +474,7 @@ function flag = local_validateUnitRootInitials(x)
     if validate.databank(x)
         return
     end
-    valid = ["fixedUnknown", "approxDiffuse"];
+    valid = ["fixedUnknown", "approxDiffuse", "preiterate"];
     if validate.anyText(x, valid)
         return
     end

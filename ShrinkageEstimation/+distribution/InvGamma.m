@@ -93,7 +93,7 @@ classdef InvGamma ...
     methods (Access=protected)
         function y =  sampleIris(this, dim)
             % Create auxiliary Gamma(alpha, 1/beta)
-            gamma = distribution.Gamma( );
+            gamma = distribution.Gamma();
             gamma.Alpha = this.Alpha;
             gamma.Beta = 1/this.Beta;
             y = 1 ./ sampleIris(gamma, dim);
@@ -102,7 +102,7 @@ classdef InvGamma ...
 
         function y =  sampleStats(this, dim)
             % Create auxiliary Gamma(alpha, 1/beta)
-            gamma = distribution.Gamma( );
+            gamma = distribution.Gamma();
             gamma.Alpha = this.Alpha;
             gamma.Beta = 1/this.Beta;
             y = 1 ./ sampleStats(gamma, dim);

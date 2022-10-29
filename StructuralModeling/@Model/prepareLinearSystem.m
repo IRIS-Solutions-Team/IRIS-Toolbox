@@ -173,7 +173,7 @@ return
 
         init = 'Steady';
         unitRootInitials = 'ApproxDiffuse';
-        s = iris.mixin.Kalman.initialize(s, init, unitRootInitials);
+        s = iris.mixin.Kalman.initialize(s, init, unitRootInitials, 0);
         initCond = {s.InitMean, s.InitMseReg, s.InitMseInf, s.NumEstimInit};
     end%
 end%

@@ -597,7 +597,7 @@ for i = 1 : nList
         if isstruct(summary)
             x = summary.(ithName);
         else
-            x = summary{ithName, 'Poster_Mode'};
+            x = summary{ithName, 'PosterMode'};
         end
         y = 0.98*max_.(list{i});
         if isnan(y)
