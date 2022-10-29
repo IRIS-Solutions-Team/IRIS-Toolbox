@@ -1,7 +1,7 @@
 % prepareKalmanOptions2 Prepare Kalman filter options
 
 % >=R2019b
-%(
+%{
 function opt = prepareKalmanOptions2(this, range, opt)
 
 arguments
@@ -69,12 +69,12 @@ arguments
     opt.CheckSteady (1, :) cell = {"run", false}
     opt.Solve (1, :) cell = {"run", true}
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function opt = prepareKalmanOptions2(this, range, varargin)
 
 persistent ip
@@ -144,7 +144,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
