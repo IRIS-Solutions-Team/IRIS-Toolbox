@@ -301,7 +301,11 @@ function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
             else
                 initUnit__ = opt.UnitRootInitials;
             end
-            preiterate__ = opt.Preiterate(min(end, run));
+            if isfield(opt.Preiterate)
+                preiterate__ = opt.Preiterate(min(end, run));
+            else
+                preiterate__ = 0;
+            end
             s = iris.mixin.Kalman.initialize(s, init__, initUnit__, preiterate__);
         % end
 
