@@ -301,7 +301,7 @@ function [obj, regOutp, outputData] = implementKalmanFilter(this, argin)
             else
                 initUnit__ = opt.UnitRootInitials;
             end
-            if isfield(opt.Preiterate)
+            if isfield(opt, 'Preiterate')
                 preiterate__ = opt.Preiterate(min(end, run));
             else
                 preiterate__ = 0;
