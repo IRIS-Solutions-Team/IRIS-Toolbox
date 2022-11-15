@@ -32,6 +32,10 @@ newEnd = ip.Results.newEnd;
     newEnd = double(newEnd);
 
     if all(isinf(newStart)) && (isempty(newEnd) || all(isinf(newEnd)))
+        if nargout>=2
+            newStart = getStart(this);
+            newEnd = getEnd(this);
+        end
         return
     end
 

@@ -150,7 +150,7 @@ end
 
 
 %
-% Generate random residuals if requested
+% Generate random shocks if requested
 % 
 if ~isequal(opt.ShockFunc, @zeros)
     outputDb = shockdb( ...

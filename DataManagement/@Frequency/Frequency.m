@@ -13,7 +13,6 @@ classdef Frequency ...
         HALFYEARLY        (frequency.HALFYEARLY)
         HalfYearly        (frequency.HALFYEARLY)
         H                 (frequency.HALFYEARLY)
-        B                 (frequency.HALFYEARLY)
         S                 (frequency.HALFYEARLY)
 
         QUARTERLY         (frequency.QUARTERLY)

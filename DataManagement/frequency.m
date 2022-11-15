@@ -16,6 +16,9 @@ classdef frequency
         WEEKLY = 52
         Weekly = 52
 
+        BUSINESS = 260 
+        Business = 260 
+
         DAILY = 365
         Daily = 365
 
@@ -28,7 +31,7 @@ classdef frequency
         MIN_DAILY_SERIAL = 365244
 
         FREQ_LETTERS = [
-            "Y", "A", "H", "B", "S", "Q", "M", "W", "D", "I"
+            "Y", "A", "H", "S", "Q", "M", "W", "B", "D", "I"
         ]
 
         ALL_FREQUENCIES = [

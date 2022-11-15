@@ -106,12 +106,12 @@ return
         if runTerminal
             simulateStackedNoShocks(this.TerminalSimulator, data);
         end
-        
+
         y = [ ];
         if isEvaluateEquationsRequested
             hereEvaluateEquations( );
         end
-        
+
         if isJacobRequested
             %
             % Evaluate or update the common part of the Jacobian
