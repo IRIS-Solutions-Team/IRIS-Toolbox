@@ -1,3 +1,5 @@
+% >=R2019b
+%(
 function [outputDb, info] = data(dataset, skeys, opt)
 
 arguments
@@ -16,6 +18,8 @@ arguments
 
     opt.NameFunc = {}
 end
+%)
+% >=R2019b
 
 
 % <=R2019a
