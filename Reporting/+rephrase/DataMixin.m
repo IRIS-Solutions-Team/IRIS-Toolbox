@@ -4,6 +4,7 @@ classdef (Abstract) DataMixin ...
     properties (Hidden)
         Settings_Conditional 
         Settings_Transform = []
+        Settings_NaN (1, 1) = string(char(8943))
         Settings_Round (1, 1) double = Inf
     end
 
