@@ -92,16 +92,18 @@ end%
 
 
 function c = local_ensureType(c)
+    %(
     if isnumeric(c)
-        c = arrayfun(@(x) sprintf('%g', x), c, 'UniformOutput', false);
+        c = arrayfun(@(x) sprintf('%g', x), c, 'uniformOutput', false);
         c = string(c);
     else
         try
             c = string(c);
         catch exc
-            error('Inputs to textual.crosslist(~) must be char, cellstr, string or numeric');
+            error('Inputs to textual.xlist(~) must be char, cellstr, string or numeric');
         end
     end
-    c = reshape(c, 1, [ ]);
+    c = reshape(c, 1, []);
+    %)
 end%
 
