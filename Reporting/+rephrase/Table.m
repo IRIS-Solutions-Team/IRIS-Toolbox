@@ -76,6 +76,18 @@ classdef Table ...
         function out = getSegmentDates(this, i)
             out = this.Settings_Dates{i};
         end%
+
+
+        function out = getFinalDates(this)
+            out = this.Settings_Dates;
+        end%
+    end
+
+
+    methods (Static)
+        function [dates, values] = finalizeSeriesData(dates, values)
+            dates = [];
+        end%
     end
 end 
 

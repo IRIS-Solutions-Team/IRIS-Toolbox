@@ -52,6 +52,13 @@ classdef SeriesChart ...
             this.Settings.StartDate = this.resolveStartDate(this.Settings_StartDate);
             this.Settings.EndDate = this.resolveEndDate(this.Settings_EndDate);
         end%
+
+
+        function out = getFinalDates(this)
+            startDate = double(this.Settings_StartDate);
+            endDate = double(this.Settings_EndDate);
+            out = dater.colon(startDate, endDate);
+        end%
     end
 
 
@@ -79,6 +86,28 @@ classdef SeriesChart ...
                 date = dater.toIsoString(double(date), "mid");
             else
                 date = double(date) + 0.5;
+            end
+        end%
+
+
+        function [dates, values] = finalizeSeriesData(dates, values)
+            values = reshape(values, [], 1);
+            dates = reshape(dates, [], 1);
+            inxData = ~isnan(values);
+            posFirst = find(inxData, 1, 'first');
+            posLast = find(inxData, 1, 'last');
+            if ~isempty(posFirst)
+                values = values(posFirst:posLast, :);
+                dates = dates(posFirst:posLast, :);
+            else
+                values = values([], :);
+                dates = dates([], :);
+            end
+            if isnumeric(dates) && ~isempty(dates)
+                freq = dater.getFrequency(dates(1));
+                if freq>0
+                    dates = textual.stringify(dater.toIsoString(dates, "start"));
+                end
             end
         end%
     end

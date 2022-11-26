@@ -12,7 +12,7 @@ classdef Series ...
     properties (Hidden)
         Settings_Units (1, 1) string = ""
         Settings_Bands = {}
-        Input %= {}
+        Input
     end
 
 

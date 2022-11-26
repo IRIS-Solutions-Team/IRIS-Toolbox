@@ -10,35 +10,37 @@ classdef (Abstract) DataMixin ...
 
 
     methods 
-        function output = finalizeSeriesData(this, input)
+        function content = finalizeSeriesData(this, input)
             %(
             % Keep expression string and add to the data requests
-            if isstring(input) || ischar(input)
-                output = textual.stringify(input);
-                this.DataRequests = union(this.DataRequests, output, 'stable');
+            if isstring(input) || ischar(input) || iscellstr(input)
+%                 content = textual.stringify(input);
+%                 this.DataRequests = union(this.DataRequests, content, 'stable');
+                error("Not implemented");
                 return
             end
 
-            % Convert input time series to Dates/Values
+            parent = this.Parent;
+            dates = getFinalDates(parent);
             if isa(input, 'Series')
-                parent = this.Parent;
                 input = transform(this, input);
-                if rephrase.Type.isChart(parent.Type)
-                    [dates, values] = this.finalizeForChart(input, parent.Settings_StartDate, parent.Settings_EndDate);
-                else
-                    [dates, values] = this.finalizeForTable(input, parent.Settings_Dates);
-                end
-                values = round(this, values);
-                output = struct();
-                output.Dates = dates;
-                output.Values = reshape(values, 1, []);
-                return
+                values = getData(input, dates);
+                values = values(:, 1);
+            elseif isa(input, 'struct')
+                values = transform(input.Values);
+                dates = input.Dates;
             end
+            [dates, values] = parent.finalizeSeriesData(dates, values);
+            values = round(this, values);
 
-            % Content already finalized
-            if isstruct(input) && isfield(input, 'Dates') && isfield(input, 'Values')
-                output = input;
-                return
+            content = struct('Dates', [], 'Values', []);
+            content.Dates = dates;
+            content.Values = values;
+            for n = ["Dates", "Values"]
+                content.(n) = reshape(content.(n), 1, []);
+                if isscalar(content.(n)) && ~iscell(content.(n))
+                    content.(n) = {content.(n)};
+                end
             end
             %)
         end%
@@ -53,42 +55,12 @@ classdef (Abstract) DataMixin ...
         end%
 
 
-        function input = transform(this, input)
+        function x = transform(this, x)
             if isa(this.Settings.Transform, 'function_handle')
-                input = this.Settings.Transform(input);
+                x = this.Settings.Transform(x);
             end
-            this.Settings.Transform = [];
         end%
     end
 
-
-    methods (Static)
-        function [dates, values] = finalizeForChart(inputSeries, startDate, endDate)
-            freq = getFrequency(inputSeries);
-            [values, ~, ~, dates] = getDataFromTo(inputSeries, startDate, endDate);
-            dates = reshape(dates, [], 1);
-            values = values(:, 1);
-            inxData = ~isnan(values);
-            posFirst = find(inxData, 1, 'first');
-            posLast = find(inxData, 1, 'last');
-            if ~isempty(posFirst)
-                values = values(posFirst:posLast, :);
-                dates = dates(posFirst:posLast, :);
-            else
-                values = values([], :);
-                dates = dates([], :);
-            end
-            if freq>0
-                dates = textual.stringify(dater.toIsoString(dates, "start"));
-            end
-        end%
-
-
-        function [dates, values] = finalizeForTable(inputSeries, dates)
-            values = getData(inputSeries, dates);
-            values = values(:, 1);
-            dates = [];
-        end%
-    end
 end
 
