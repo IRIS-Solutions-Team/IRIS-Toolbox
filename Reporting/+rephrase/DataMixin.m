@@ -10,6 +10,11 @@ classdef (Abstract) DataMixin ...
 
 
     methods 
+        function finalize(this)
+            this.Settings.Transform = func2str(this.Settings.Transform);
+        end%
+
+
         function content = finalizeSeriesData(this, input)
             %(
             % Keep expression string and add to the data requests
@@ -21,16 +26,15 @@ classdef (Abstract) DataMixin ...
             end
 
             parent = this.Parent;
-            dates = getFinalDates(parent);
             if isa(input, 'Series')
+                dates = getFinalDates(parent);
                 input = transform(this, input);
                 values = getData(input, dates);
                 values = values(:, 1);
             elseif isa(input, 'struct')
-                values = transform(input.Values);
-                dates = input.Dates;
+                dates = double(input.Dates);
+                values = transform(this, input.Values);
             end
-            [dates, values] = parent.finalizeSeriesData(dates, values);
             values = round(this, values);
 
             content = struct('Dates', [], 'Values', []);
@@ -42,6 +46,8 @@ classdef (Abstract) DataMixin ...
                     content.(n) = {content.(n)};
                 end
             end
+
+            content = parent.finalizeSeriesData(content);
             %)
         end%
 

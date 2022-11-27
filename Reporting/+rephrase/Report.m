@@ -8,6 +8,7 @@ classdef Report ...
 
     properties (Hidden)
         Settings_Subtitle (1, 1) string = ""
+        Settings_Stamp (1, 1) string = ""
         Settings_Footer (1, 1) string = ""
         Settings_InteractiveCharts (1, 1) logical = true
         Settings_TableOfContents (1, 1) logical = false
@@ -41,13 +42,18 @@ classdef Report ...
         end%
 
 
-        function outputFileNames = build(this, fileName, reportDb, varargin)
+        function outputFileNames = build(this, fileName, varargin)
             %(
+            if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
+                reportDb = varargin{1};
+                varargin(1) = [];
+            end
+
             persistent ip
             if isempty(ip)
                 ip = inputParser();
                 addParameter(ip, 'SaveJson', false, @validate.logicalScalar);
-                addParameter(ip, 'Source', "local", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["local", "bundle", "web"]))));
+                addParameter(ip, 'Source', "web", @(x) isstring(x) && ~isempty(x) && all(ismember(lower(reshape(x, 1, [ ])), lower(["local", "bundle", "web"]))));
                 addParameter(ip, 'Template', []);
                 addParameter(ip, 'UserStyle', "", @(x) (isstring(x) || ischar(x)) && (isscalar(string(x))));
                 addParameter(ip, 'Context', struct());
