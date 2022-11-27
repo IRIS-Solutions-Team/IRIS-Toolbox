@@ -38,6 +38,7 @@ classdef Series ...
             end
             finalize@rephrase.Terminal(this);
             this.Content = finalizeSeriesData(this, this.Input);
+            finalize@rephrase.DataMixin(this);
         end%
 
 
@@ -46,6 +47,14 @@ classdef Series ...
             %    in = {in};
             %end
             %this.Input = reshape(in, 1, []);
+            if isstruct(in)
+                if numel(in.Values)~=numel(in.Dates)
+                    exception.error([
+                        "Rephrase"
+                        "Dates and values need to have the same number of elements."
+                    ]);
+                end
+            end
             this.Input = in;
         end%
 

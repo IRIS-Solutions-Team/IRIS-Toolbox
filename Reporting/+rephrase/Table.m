@@ -85,8 +85,8 @@ classdef Table ...
 
 
     methods (Static)
-        function [dates, values] = finalizeSeriesData(dates, values)
-            dates = [];
+        function content = finalizeSeriesData(content)
+            content.Dates = [];
         end%
     end
 end 

@@ -90,7 +90,9 @@ classdef SeriesChart ...
         end%
 
 
-        function [dates, values] = finalizeSeriesData(dates, values)
+        function content = finalizeSeriesData(content)
+            values = content.Values;
+            dates = content.Dates;
             values = reshape(values, [], 1);
             dates = reshape(dates, [], 1);
             inxData = ~isnan(values);
@@ -109,6 +111,8 @@ classdef SeriesChart ...
                     dates = textual.stringify(dater.toIsoString(dates, "start"));
                 end
             end
+            content.Values = values;
+            content.Dates = dates;
         end%
     end
 end 

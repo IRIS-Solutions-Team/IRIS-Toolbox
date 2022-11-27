@@ -7,6 +7,7 @@ classdef (Abstract) PlotMixin ...
         Settings_LineWidth (1, 1) double {mustBeNonnegative} = 2
         Settings_LineDash (1, 1) string = "solid"
         Settings_Type (1, 1) string = "scatter"
+        Settings_Mode (1, 1) string = ""
         Settings_Markers (1, 1) = struct() 
         Settings_StackGroup (1, 1) string = ""
         Settings_Fill (1, 1) string = "none"
@@ -18,6 +19,12 @@ classdef (Abstract) PlotMixin ...
         function this = set.Settings_Markers(this, x)
             if isstruct(x)
                 this.Settings_Markers = rephrase.lowerFields(x);
+                if isfield(this.Settings_Markers, 'color')
+                    this.Settings_Markers.color = ...
+                        rephrase.ColorMixin.ensureRgbaArray(this.Settings_Markers.color);
+                end
+            elseif isequal(x, true)
+                this.Settings_Markers = true;
             else
                 this.Settings_Markers = NaN;
             end
