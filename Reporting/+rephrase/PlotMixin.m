@@ -12,6 +12,8 @@ classdef (Abstract) PlotMixin ...
         Settings_StackGroup (1, 1) string = ""
         Settings_Fill (1, 1) string = "none"
         Settings_Text (1, :) string = string.empty(1, 0)
+        Settings_XZeroLine (1, 1) logical = false
+        Settings_YZeroLine (1, 1) logical = false
     end
 
 

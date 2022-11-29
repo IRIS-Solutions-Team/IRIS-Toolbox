@@ -117,10 +117,6 @@ classdef SeriesChart ...
     end
 end 
 
-%
-% Local functions
-%
-
 
 function [freq, startDate, endDate, repeating] = local_parseInputDates(dates, repeating)
     %(
