@@ -42,14 +42,15 @@ classdef (Abstract) DataMixin ...
             content = struct('Dates', [], 'Values', []);
             content.Dates = dates;
             content.Values = values;
+
+            content = parent.finalizeSeriesData(content);
+
             for n = ["Dates", "Values"]
                 content.(n) = reshape(content.(n), 1, []);
                 if isscalar(content.(n)) && ~iscell(content.(n))
                     content.(n) = {content.(n)};
                 end
             end
-
-            content = parent.finalizeSeriesData(content);
             %)
         end%
 
