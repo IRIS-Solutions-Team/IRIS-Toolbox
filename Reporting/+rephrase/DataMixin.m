@@ -11,7 +11,9 @@ classdef (Abstract) DataMixin ...
 
     methods 
         function finalize(this)
-            this.Settings.Transform = func2str(this.Settings.Transform);
+            if isa(this.Settings.Transform, 'function_handle')
+                this.Settings.Transform = func2str(this.Settings.Transform);
+            end
         end%
 
 
