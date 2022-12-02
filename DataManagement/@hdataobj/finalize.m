@@ -3,28 +3,32 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
-function outputDb = finalize(Y, options)
+function outputDb = finalize(Y, opt)
 
-TIME_SERIES = Series();
-MEAN_OUTPUT = iris.mixin.Kalman.MEAN_OUTPUT;
-MEDIAN_OUTPUT = iris.mixin.Kalman.MEDIAN_OUTPUT;
-CONTRIBS_OUTPUT = iris.mixin.Kalman.CONTRIBS_OUTPUT;
-STD_OUTPUT = iris.mixin.Kalman.STD_OUTPUT;
-MSE_OUTPUT = iris.mixin.Kalman.MSE_OUTPUT;
+    TIME_SERIES = Series();
+    MEAN_OUTPUT = iris.mixin.Kalman.MEAN_OUTPUT;
+    MEDIAN_OUTPUT = iris.mixin.Kalman.MEDIAN_OUTPUT;
+    CONTRIBS_OUTPUT = iris.mixin.Kalman.CONTRIBS_OUTPUT;
+    STD_OUTPUT = iris.mixin.Kalman.STD_OUTPUT;
+    MSE_OUTPUT = iris.mixin.Kalman.MSE_OUTPUT;
 
-outputDb = struct();
+    outputDb = struct();
 
-if isfield(Y, 'M0') && ~isequal(Y.M0, [ ])
-    here_oneOutput('0');
-end
+    if isfield(Y, 'M0') && ~isequal(Y.M0, [ ])
+        here_oneOutput('0');
+    end
 
-if isfield(Y, 'M1') && ~isequal(Y.M1, [ ])
-    here_oneOutput('1');
-end
+    if isfield(Y, 'M1') && ~isequal(Y.M1, [ ])
+        here_oneOutput('1');
+    end
 
-if isfield(Y, 'M2') && ~isequal(Y.M2, [ ])
-    here_oneOutput('2');
-end
+    if isfield(Y, 'M2') && ~isequal(Y.M2, [ ])
+        here_oneOutput('2');
+    end
+
+    if isfield(opt, 'FlatOutput') && opt.FlatOutput
+        outputDb = local_flatOutput(outputDb);
+    end
 
 return
 
@@ -45,7 +49,7 @@ return
         contInput = ['C', X];
         mseInput = ['Mse', X];
 
-        if ~options.MedianOnly
+        if ~opt.MedianOnly
             outputDb.(prefix).(MEAN_OUTPUT) = seriesFromData(Y.(meanInput), "mean");
         end
         if isfield(Y, medianInput)
@@ -64,10 +68,29 @@ return
         end
 
         if isfield(Y, mseInput)
-            xbVector = Y.(mseInput).XbVector;
+            xbVector = Y.(mseInput).MseNames;
             cellData = covfun.cov2cell(Y.(mseInput).Data, xbVector, xbVector);
             outputDb.(prefix).(MSE_OUTPUT) = Series(Y.(mseInput).Range(1), cellData);
         end
     end 
+end%
+
+
+function outputDb = local_flatOutput(outputDb)
+    %(
+    for p = databank.fieldNames(outputDb)
+        fields = databank.fieldNames(outputDb.(p));
+        if isempty(fields)
+            outputDb = rmfield(outputDb, p);
+        elseif numel(fields)==1
+            outputDb.(p) = outputDb.(p).(fields);
+        end
+    end
+
+    fields = databank.fieldNames(outputDb);
+    if numel(fields)==1
+        outputDb = outputDb.(fields);
+    end
+    %)
 end%
 

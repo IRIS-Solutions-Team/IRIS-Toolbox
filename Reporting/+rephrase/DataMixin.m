@@ -6,6 +6,7 @@ classdef (Abstract) DataMixin ...
         Settings_Transform = []
         Settings_NaN (1, 1) = string(char(8943))
         Settings_Round (1, 1) double = Inf
+        Settings_ColumnClass (1, :) string = string.empty(1, 0)
     end
 
 
@@ -14,6 +15,7 @@ classdef (Abstract) DataMixin ...
             if isa(this.Settings.Transform, 'function_handle')
                 this.Settings.Transform = func2str(this.Settings.Transform);
             end
+            this.Settings.ColumnClass = rephrase.fixScalar(this.Settings.ColumnClass);
         end%
 
 
@@ -47,9 +49,7 @@ classdef (Abstract) DataMixin ...
 
             for n = ["Dates", "Values"]
                 content.(n) = reshape(content.(n), 1, []);
-                if isscalar(content.(n)) && ~iscell(content.(n))
-                    content.(n) = {content.(n)};
-                end
+                content.(n) = rephrase.fixScalar(content.(n));
             end
             %)
         end%

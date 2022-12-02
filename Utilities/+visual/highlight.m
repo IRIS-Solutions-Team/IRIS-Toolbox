@@ -1,5 +1,5 @@
 
-function [patchHandles, textHandles] = highlight(varargin)
+function varargout = highlight(varargin)
 
     BACKGROUND_LEVEL = -4;
     LIM_MULTIPLE = 100;
@@ -34,32 +34,33 @@ function [patchHandles, textHandles] = highlight(varargin)
         range = { range };
     end
 
-    persistent pp
-    if isempty(pp)
-        pp = extend.InputParser('visual.highlight');
-        pp.KeepUnmatched = true;
-        pp.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
-        pp.addRequired('Range', @(x) all(cellfun(@validate.date, x)));
+    persistent ip
+    if isempty(ip)
+        ip = extend.InputParser('visual.highlight');
+        ip.KeepUnmatched = true;
+        addRequired(ip, 'Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
+        addRequired(ip, 'Range', @(x) all(cellfun(@validate.date, x)));
 
-        pp.addParameter('Alpha', 1, @(x) validate.numericScalar(x, [0, 1]));
-        pp.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
-        pp.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
-        pp.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-        pp.addParameter('HandleVisibility', 'Off', @(x) validate.logicalScalar(x) || validate.anyString(x, 'On', 'Off'));
-        pp.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
-        pp.addParameter('Dates', true, @validate.logicalScalar);
+        addParameter(ip, 'Alpha', 1, @(x) validate.numericScalar(x, [0, 1]));
+        addParameter(ip, 'Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
+        addParameter(ip, 'DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
+        addParameter(ip, 'ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
+        addParameter(ip, 'HandleVisibility', 'off', @(x) validate.logicalScalar(x) || validate.anyString(x, 'on', 'off'));
+        addParameter(ip, 'Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+        addParameter(ip, 'Dates', true, @validate.logicalScalar);
+        addParameter(ip, 'Axis', "x", @(x) strcmpi(x, "x") || strcmpi(x, "y"));
 
         %
         % Legacy options
         %
-        pp.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
-        pp.addParameter('VPosition', '');
-        pp.addParameter('HPosition', '');
+        addParameter(ip, 'Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+        addParameter(ip, 'VPosition', '');
+        addParameter(ip, 'HPosition', '');
     end
-    parse(pp, axesHandle, range, varargin{:});
-    opt = pp.Options;
-    unmatched = pp.UnmatchedInCell;
-    usingDefaults = pp.UsingDefaultsInStruct;
+    parse(ip, axesHandle, range, varargin{:});
+    opt = ip.Options;
+    unmatched = ip.UnmatchedInCell;
+    usingDefaults = ip.UsingDefaultsInStruct;
 
     if isequal(axesHandle, @gca)
         axesHandle = gca( );
@@ -101,11 +102,25 @@ function [patchHandles, textHandles] = highlight(varargin)
         % will be overpainted by the highlight patch.
         set(h, 'layer', 'top');
 
-        yData = local_getYData(h, LIM_MULTIPLE);
+        if lower(opt.Axis)=="x"
+            xData = [];
+            yData = local_getYDataInf(h, LIM_MULTIPLE);
+        else
+            xData = local_getXDataInf(h, LIM_MULTIPLE);
+            yData = [];
+        end
+
         for i = 1 : numel(range)
-            xData = local_getXData(h, range{i}, opt);
-            if isempty(xData)
-                continue
+            if lower(opt.Axis)=="x"
+                xData = local_getXData(h, range{i}, opt);
+                if isempty(xData)
+                    continue
+                end
+            else
+                yData = local_getYData(h, range{i}, opt);
+                if isempty(yData)
+                    continue
+                end
             end
 
             ithPatchHandle = local_drawPatch(h, xData, yData, opt, unmatched);
@@ -142,6 +157,11 @@ elseif isequal(opt.HandleVisibility, false)
 end
 set(patchHandles, 'HandleVisibility', opt.HandleVisibility);
 %}
+
+    varargout = cell.empty(1, 0);
+    if nargout>0
+        varargout = {patchHandles, textHandles};
+    end
 
 end%
 
@@ -205,9 +225,24 @@ function xData = local_getXData(h, range, opt)
 end%
 
 
-function yData = local_getYData(h, LIM_MULTIPLE)
+function yData = local_getYData(h, range, ~)
     %(
-    yData = get(h, 'YLim');
+    yData = [range(1), range(end)];
+    %)
+end%
+
+
+function xData = local_getXDataInf(h, LIM_MULTIPLE)
+    %(
+    xData = get(h, 'xLim');
+    xData = [xData(1)-LIM_MULTIPLE*365, xData(2)+LIM_MULTIPLE*365];
+    %)
+end%
+
+
+function yData = local_getYDataInf(h, LIM_MULTIPLE)
+    %(
+    yData = get(h, 'yLim');
     height = yData(2) - yData(1);
     yData = [yData(1)-LIM_MULTIPLE*height, yData(2)+LIM_MULTIPLE*height];
     %)

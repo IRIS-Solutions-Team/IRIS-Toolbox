@@ -9,7 +9,8 @@ arguments
     opt.TargetNames {local_validateNames(opt.TargetNames)} = @auto
     opt.TargetDb {local_validateDb(opt.TargetDb)} = @empty
     opt.Transform {local_validateTransform(opt.Transform)} = cell.empty(1, 0)
-    opt.WhenTransformFails {local_validateWhenTransformFails} = "error"
+    opt.WhenTransformFails {local_validateWhen} = "error"
+    opt.WhenMissing {local_validateWhen} = "error"
 end
 %)
 % >=R2019b
@@ -55,9 +56,14 @@ numSourceNames = numel(sourceNames);
 here_checkDimensions();
 
 inxSuccess = true(1, numSourceNames);
+inxMissing = true(1, numSourceNames);
 for i = 1 : numSourceNames
     sourceName__ = sourceNames(i);
     targetName__ = targetNames(i);
+    if ~isfield(sourceDb, char(sourceName__))
+        inxMissing(i) = false;
+        continue
+    end
     value = sourceDb.(char(sourceName__));
     try
         value = iris.utils.applyFunctions(value, transform);
@@ -74,6 +80,10 @@ end
 
 if any(~inxSuccess)
     here_throwTransformFailed();
+end
+
+if any(~inxMissing)
+    here_throwMissing();
 end
 
 return
@@ -147,6 +157,15 @@ return
         ];
         throw(exception.Base(thisError, opt.WhenTransformFails), sourceNames(~inxSuccess));
     end%
+
+
+    function here_throwMissing()
+        thisError = [
+            "Databank:TransformFailed"
+            "This field is not in the source databank: %s"
+        ];
+        throw(exception.Base(thisError, opt.WhenMissing), sourceNames(~inxMissing));
+    end%
 end%
 
 %
@@ -177,10 +196,10 @@ function local_validateTransform(input)
 end%
 
 
-function local_validateWhenTransformFails(input)
-    if startsWith(input, ["error", "warning"], "ignoreCase", true)
+function local_validateWhen(input)
+    if startsWith(input, ["error", "warning", "silent"], "ignoreCase", true)
         return
     end
-    error("Validation:Failed", "Input value must be ""Error"" or ""Warning""");
+    error("Validation:Failed", "Input value must be ""error"" or ""warning"" or ""silent"" ");
 end%
 
