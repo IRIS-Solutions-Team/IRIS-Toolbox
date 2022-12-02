@@ -115,173 +115,173 @@ opt = ip.Results;
 % <=R2019a
 
 
-storeToDatabank = nargout>=1 && validate.databank(inputData);
-journal = Journal(opt.Journal, "@Explanatory/simulate");
+    storeToDatabank = nargout>=1 && validate.databank(inputData);
+    journal = Journal(opt.Journal, "@Explanatory/simulate");
 
-%
-% Return immediately if this is an empty Explanatory
-%
-%(
-if isempty(this)
-    outputData = inputData;
-    info = struct( );
-    info.Blocks = cell.empty(1, 0);
-    info.Period = false;
-    return
-end
-%)
-
-
-range = double(range);
-numEquations = numel(this);
-nv = countVariants(this);
-if numEquations>1
-    if isscalar(opt.SkipWhenData)
-        opt.SkipWhenData = repmat(opt.SkipWhenData, 1, numEquations);
+    %
+    % Return immediately if this is an empty Explanatory
+    %
+    %(
+    if isempty(this)
+        outputData = inputData;
+        info = struct( );
+        info.Blocks = cell.empty(1, 0);
+        info.Period = false;
+        return
     end
-    if isscalar(opt.ExogenizeWhenData)
-        opt.ExogenizeWhenData = repmat(opt.ExogenizeWhenData, 1, numEquations);
-    end
-end
+    %)
 
 
-%
-% Create a DataBlock for all variables across all models; LHS variables are
-% only needed when they appear on the RHS (tested within
-% `getDataBlock(...)`
-%
-lhsRequired = false;
-context = "for " + this(1).Context + " simulation";
-outputData = getDataBlock(this, inputData, range, lhsRequired, context);
-extdRange = outputData.ExtendedRange;
-numExtdPeriods = outputData.NumExtdPeriods;
-numPages = outputData.NumPages;
-numRuns = max(nv, numPages);
-lhsNames = [this.LhsName];
-baseRangeColumns = outputData.BaseRangeColumns;
-numBaseRangeColumns = numel(baseRangeColumns);
-
-
-%
-% Create struct with controls
-%
-%(
-if validate.databank(inputData)
-    controls = assignControls(this, inputData);
-else
-    controls = struct( );
-end
-%)
-
-
-%
-% Extract exogenized points from the Plan
-%
-[anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = here_extractExogenized( );
-
-
-here_expandPagesIfNeeded( );
-
-
-%
-% Prepare runtime information
-%
-this = runtime(this, outputData, "simulate");
-
-
-%
-% Run blazer and reorder equations
-% 
-[blocks, ~, humanBlocks, period] = blazer(this, opt.Blazer{:});
-numBlocks = numel(blocks);
-
-
-if opt.Progress
-    progress = ProgressBar("@Explanatory/simulate", numBlocks*numBaseRangeColumns*numRuns);
-end
-
-
-%==========================================================================
-for blk = 1 : numBlocks
-    indent(journal, "Block " + sprintf("%g", blk));
-    if numel(blocks{blk})==1
-        eqn = blocks{blk};
-        this__ = this(eqn);
-        lhsName__ = this__.LhsName;
-        residualName__ = this__.ResidualName;
-        [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( );
-        [subBlock, res] = createData4Simulate(this__, outputData, controls);
-        if period(eqn)
-            %
-            % Period by period
-            %
-            here_runPeriodByPeriod();
-        else
-            %
-            % All periods at once
-            %
-            here_runOnce(baseRangeColumns);
+    range = double(range);
+    numEquations = numel(this);
+    nv = countVariants(this);
+    if numEquations>1
+        if isscalar(opt.SkipWhenData)
+            opt.SkipWhenData = repmat(opt.SkipWhenData, 1, numEquations);
         end
-        updateDataBlock(this__, outputData, subBlock, res);
+        if isscalar(opt.ExogenizeWhenData)
+            opt.ExogenizeWhenData = repmat(opt.ExogenizeWhenData, 1, numEquations);
+        end
+    end
+
+
+    %
+    % Create a DataBlock for all variables across all models; LHS variables are
+    % only needed when they appear on the RHS (tested within
+    % `getDataBlock(...)`
+    %
+    lhsRequired = false;
+    context = "for " + this(1).Context + " simulation";
+    outputData = getDataBlock(this, inputData, range, lhsRequired, context);
+    extdRange = outputData.ExtendedRange;
+    numExtdPeriods = outputData.NumExtdPeriods;
+    numPages = outputData.NumPages;
+    numRuns = max(nv, numPages);
+    lhsNames = [this.LhsName];
+    baseRangeColumns = outputData.BaseRangeColumns;
+    numBaseRangeColumns = numel(baseRangeColumns);
+
+
+    %
+    % Create struct with controls
+    %
+    %(
+    if validate.databank(inputData)
+        controls = assignControls(this, inputData);
     else
-        for column = baseRangeColumns
-            for eqn = reshape(blocks{blk}, 1, [ ])
-                this__ = this(eqn);
-                lhsName__ = this__.LhsName;
-                residualName__ = this__.ResidualName;
-                [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( );
-                [subBlock, res] = createData4Simulate(this__, outputData, controls);
-                here_runOnce(column);
-                updateDataBlock(this__, outputData, subBlock, res);
+        controls = struct( );
+    end
+    %)
+
+
+    %
+    % Extract exogenized points from the Plan
+    %
+    [anyExogenized, inxExogenizedAlways, inxExogenizedWhenData] = here_extractExogenized( );
+
+
+    here_expandPagesIfNeeded( );
+
+
+    %
+    % Prepare runtime information
+    %
+    this = runtime(this, outputData, "simulate");
+
+
+    %
+    % Run blazer and reorder equations
+    % 
+    [blocks, ~, humanBlocks, period] = blazer(this, opt.Blazer{:});
+    numBlocks = numel(blocks);
+
+
+    if opt.Progress
+        progress = ProgressBar("@Explanatory/simulate", numBlocks*numBaseRangeColumns*numRuns);
+    end
+
+
+    %==========================================================================
+    for blk = 1 : numBlocks
+        indent(journal, "Block " + sprintf("%g", blk));
+        if numel(blocks{blk})==1
+            eqn = blocks{blk};
+            this__ = this(eqn);
+            lhsName__ = this__.LhsName;
+            residualName__ = this__.ResidualName;
+            [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( );
+            [subBlock, res] = createData4Simulate(this__, outputData, controls);
+            if period(eqn)
+                %
+                % Period by period
+                %
+                here_runPeriodByPeriod();
+            else
+                %
+                % All periods at once
+                %
+                here_runOnce(baseRangeColumns);
+            end
+            updateDataBlock(this__, outputData, subBlock, res);
+        else
+            for column = baseRangeColumns
+                for eqn = reshape(blocks{blk}, 1, [ ])
+                    this__ = this(eqn);
+                    lhsName__ = this__.LhsName;
+                    residualName__ = this__.ResidualName;
+                    [anyExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = here_extractExogenized__( );
+                    [subBlock, res] = createData4Simulate(this__, outputData, controls);
+                    here_runOnce(column);
+                    updateDataBlock(this__, outputData, subBlock, res);
+                end
             end
         end
+        if journal.IsActive
+            deindent(journal);
+        end
     end
-    if journal.IsActive
-        deindent(journal);
+    %==========================================================================
+
+
+    %
+    % Report equations with NaN or Inf parameters
+    %
+    inxNaNParameters = arrayfun(@(x) any(any(~isfinite(x.Parameters(1, x.IncParameters, :)))), this);
+    if any(inxNaNParameters)
+        here_reportNaNParameters( );
     end
-end
-%==========================================================================
 
 
-%
-% Report equations with NaN or Inf parameters
-%
-inxNaNParameters = arrayfun(@(x) any(any(~isfinite(x.Parameters(1, x.IncParameters, :)))), this);
-if any(inxNaNParameters)
-    here_reportNaNParameters( );
-end
-
-
-%
-% Report LHS variables with NaN or Inf values
-%
-pos = textual.locate(lhsNames, outputData.Names);
-% reorder = [blocks{:}];
-% pos = pos(reorder);
-inxNaN = any(~isfinite(outputData.YXEPG(pos, baseRangeColumns, :)), 3);
-if nnz(inxNaN)>0
-    here_reportNaNSimulation();
-end
-
-
-%
-% Create output databank with LHS, RHS and residual names
-%
-if storeToDatabank
     %
-    % Create only the LHS variables and their residuals in the output
-    % databank; copy RHS-only variables over from the input databank
+    % Report LHS variables with NaN or Inf values
     %
-    namesToInclude = [this.LhsName, this.ResidualName];
-    outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], [ ], opt);
-end
+    pos = textual.locate(lhsNames, outputData.Names);
+    % reorder = [blocks{:}];
+    % pos = pos(reorder);
+    inxNaN = any(~isfinite(outputData.YXEPG(pos, baseRangeColumns, :)), 3);
+    if nnz(inxNaN)>0
+        here_reportNaNSimulation();
+    end
 
 
-if nargout>=2
-    info = struct( );
-    info.Blocks = humanBlocks;
-    info.Period = period;
-end
+    %
+    % Create output databank with LHS, RHS and residual names
+    %
+    if storeToDatabank
+        %
+        % Create only the LHS variables and their residuals in the output
+        % databank; copy RHS-only variables over from the input databank
+        %
+        namesToInclude = [this.LhsName, this.ResidualName];
+        outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], [ ], opt);
+    end
+
+
+    if nargout>=2
+        info = struct( );
+        info.Blocks = humanBlocks;
+        info.Period = period;
+    end
 
 return
 
