@@ -1,30 +1,20 @@
-function [Z, C, ixValid] = vectorizeLinComb(strLinComb, lsName)
 % vectorizeLinComb  Convert strings with linear combinations of names to vectors.
-%
-% Backend IRIS function.
-% No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
+function [Z, C, ixValid] = vectorizeLinComb(strLinComb, lsName)
 
-%--------------------------------------------------------------------------
+% Prepare strLinComb and lsName
+strLinComb = reshape(cellstr(strLinComb), 1, []);
+nString = numel(strLinComb);
 
-% Prepare strLinComb and lsName.
-if ischar(strLinComb)
-    strLinComb = { strLinComb };
-end
-strLinComb = strLinComb(:).';
-nString = length(strLinComb);
-
-lsName = lsName(:).';
+lsName = reshape(cellstr(lsName), 1, []);
 lsName = regexptranslate('escape', lsName);
-nName = length(lsName);
+nName = numel(lsName);
 for i = 1 : nName
     strLinComb = regexprep( ...
         strLinComb, ...
         ['\<',lsName{i},'\>(?!\{)'], ...
         sprintf('?(%g)',i) ...
-        );
+    );
 end
 strLinComb = strrep(strLinComb,'?','x');
 
@@ -51,4 +41,5 @@ for i = 1 : nString
     end
 end
 
-end
+end%
+

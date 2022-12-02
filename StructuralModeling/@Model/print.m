@@ -56,8 +56,9 @@ arguments
     modelFile (1, :) string
 
     opt.SaveAs (1, 1) string = ""
-    opt.Parameters (1, 1) logical = true
-    opt.Steady (1, 1) logical = true
+    opt.Round (1, 1) double = Inf
+    opt.Parameters = true
+    opt.Steady = true
     opt.Markdown (1, 1) logical = false
     opt.Braces (1, 2) string = ["<", ">"]
 end
@@ -73,6 +74,7 @@ persistent ip
 if isempty(ip)
     ip = inputParser();
     addParameter(ip, 'SaveAs', "");
+    addParameter(ip, 'Round', Inf);
     addParameter(ip, 'Parameters', true);
     addParameter(ip, 'Steady' , true);
     addParameter(ip, 'Markdown', false);
@@ -103,15 +105,31 @@ end
 types = modelObject.Quantity.Type;
 names = string(modelObject.Quantity.Name);
 values = modelObject.Variant.Values;
+if opt.Round<Inf
+    values = round(values, opt.Round);
+end
+
 
 selectTypes = [];
-if opt.Parameters
+
+if ~isequal(opt.Parameters, false)
+    if isa(opt.Parameters, 'function_handle')
+        inxApply = types==4;
+        values(inxApply) = opt.Parameters(values(inxApply));
+    end
     selectTypes = [selectTypes, 4];
 end
-if opt.Steady
+
+if ~isequal(opt.Steady, false)
+    if isa(opt.Steady, 'function_handle')
+        inxApply = types==1 | types==2;
+        values(inxApply) = opt.Steady(values(inxApply));
+    end
     selectTypes = [selectTypes, 1, 2];
 end
+
 inxSelect = ismember(types, selectTypes);
+
 
 for i = find(inxSelect)
     name = names(i);

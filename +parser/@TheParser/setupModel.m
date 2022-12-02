@@ -64,11 +64,6 @@ x.Keyword = '!links';
 x.Type = 4;
 this.Block{end+1} = x;
 
-% x = parser.theparser.Equation( );
-% x.Keyword = '!revisions';
-% x.Type = 5;
-% this.Block{end+1} = x;
-
 x = parser.theparser.Equation( );
 x.Keyword = '!preprocessor';
 x.Type = 11;
