@@ -78,9 +78,6 @@ switch lower(query)
 
     case {'inames', 'ilist'}
         answ = cellstr(this.ConditioningNames);
-
-    case {'ieqtn'}
-        answ = this.IEqtn;
         
     case {'zi'}
         % The constant term comes first in Zi, but comes last in user

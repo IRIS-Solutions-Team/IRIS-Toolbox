@@ -27,8 +27,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % ConditioningNames  Names of conditioning variables
         ConditioningNames (1, :) string = string.empty(1, 0)
 
-        % IEqtn  Expressions for conditioning variables
-        ConditiontingEquations (1, :) string = string.empty(1, 0)
+        % ConditioningEquations  Expressions for conditioning variables
+        ConditioningEquations (1, :) string = string.empty(1, 0)
 
         Intercept (1, 1) logical = true
 
@@ -55,7 +55,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % Omega  Covariance matrix of reduced-form forecast errors
         Omega = double.empty(0)
 
-        EigVal = double.empty(1, 0) % Eigenvalues
+        % EigVal  Eigenvalues
+        EigVal = double.empty(1, 0) 
 
         % EigenStability  Stability indicator for each eigenvalue
         EigenStability = int8.empty(1, 0)
@@ -66,7 +67,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % IxFitted  Logical index of dates in estimation range acutally fitted
         IxFitted = logical.empty(1, 0)
 
-        GroupNames (1, :) string = string.empty(1, 0) % Groups in panel objects
+        % GroupNames  Names of group in panel VAR-based models
+        GroupNames (1, :) string = string.empty(1, 0) 
 
         % IsIdentified  True for structural VAR models, false for reduced-form VAR models
         IsIdentified (1, 1) logical = false
@@ -146,6 +148,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = implementGet(varargin)
         varargout = testCompatible(varargin)
         varargout = vertcat(varargin)
+        varargout = size(varargin)
     end
 
 
@@ -501,7 +504,6 @@ classdef (CaseInsensitiveProperties=true) ...
                 this.ResidualNames, ...
             ];
         end%
-
 
         function [minSh, maxSh] = getActualMinMaxShifts(this)
             minSh = -this.Order;

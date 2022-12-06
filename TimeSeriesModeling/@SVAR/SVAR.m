@@ -15,7 +15,7 @@
 % \]
 %
 % where \(u_t\) is a vector of structural errors; compare the [reduced-form
-% VARs](VAR/index.html#Description), and 
+% VARs](VAR/index.html#Description), and
 %
 % \[
 % \mathrm{E} [u_t u_t'] = \mathrm{diag}(\sigma_1^2, ..., \sigma_n^2) .
@@ -75,9 +75,7 @@
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
-    
+
 classdef (CaseInsensitiveProperties=true) ...
     SVAR ...
     < VAR
@@ -98,10 +96,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % Rank  Rank of covariance matrix
         Rank = double.empty(1, 0)
     end
-    
-    
-    
-    
+
+
     methods
         function this = SVAR(varargin)
             % SVAR  Create structural VAR by identifying reduced-form VAR
@@ -195,10 +191,10 @@ classdef (CaseInsensitiveProperties=true) ...
             %
             % __Example__
             %
-            
+
             % -IRIS Macroeconomic Modeling Toolbox
             % -Copyright (c) 2007-2022 IRIS Solutions Team
-            
+
             this = this@VAR( );
             this.IsIdentified = true;
             if nargin==0
@@ -213,32 +209,39 @@ classdef (CaseInsensitiveProperties=true) ...
             % constructors).
         end
     end
-    
-    
+
+
     methods
-        varargout = fevd(varargin)        
-        varargout = irf(varargin)              
+        varargout = fevd(varargin)
+        varargout = irf(varargin)
         varargout = get(varargin)
-        varargout = sort(varargin)        
-        varargout = srf(varargin)        
+        varargout = sort(varargin)
+        varargout = srf(varargin)
         varargout = sspace(varargin)
     end
-    
-    
+
+
     methods (Hidden)
-        varargout = identify(varargin)        
-        varargout = red2struct(varargin)        
+        varargout = identify(varargin)
+        varargout = red2struct(varargin)
         varargout = implementGet(varargin)
-        varargout = testCompatible(varargin)        
+        varargout = testCompatible(varargin)
     end
-    
-    
+
+
     methods (Access=protected, Hidden)
         varargout = populateFromVAR(varargin)
 
         varargout = myparsetest(varargin)
         varargout = subsalt(varargin)
         specdisp(varaargin)
+    end
+
+
+    methods
+        function out = getCovShocks(this)
+            out = diag(this.Std.^2);
+        end%
     end
 
 

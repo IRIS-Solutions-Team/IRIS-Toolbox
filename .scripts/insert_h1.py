@@ -1,4 +1,6 @@
-
+"""
+insert_h1 file1 ... fileN
+"""
 
 import re, sys
 
