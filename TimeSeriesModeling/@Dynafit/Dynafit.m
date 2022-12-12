@@ -128,7 +128,6 @@ classdef (CaseInsensitiveProperties=true) ...
 
     methods
         varargout = access(varargin)
-        varargout = eig(vararing)
         varargout = estimate(varargin)
         varargout = kalmanFilter(varargin)
         varargout = get(varargin)

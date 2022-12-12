@@ -1,4 +1,3 @@
-function [C, Q] = acf(this, varargin)
 % acf  Autocovariance and autocorrelation functions for VAR variables
 %
 % __Syntax__
@@ -46,9 +45,8 @@ function [C, Q] = acf(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2022 IRIS Solutions Team
 
+function [C, Q] = acf(this, varargin)
 
 isnumericscalar = @(x) isnumeric(x) && isscalar(x);
 islogicalscalar = @(x) islogical(x) && isscalar(x);
@@ -89,17 +87,17 @@ end
 for v = find(~inxOfUnstable)
     [T, R, ~, ~, ~, ~, U, Omega] = sspace(this, v);
     eigenStability = this.EigenStability(:, :, v);
-    indexUnitRoots = eigenStability==1;
+    inxUnitRoots = eigenStability==1;
     if isFilter
         S = freqdom.xsfvar(this.A(:, :, v), Omega, freq, filter, applyTo);
         C(:, :, :, v) = freqdom.xsf2acf(S, freq, maxOrder);
     else
         % Compute contemporaneous ACF for its first-order state space form.
         % this gives us autocovariances up to order p-1.
-        c = covfun.acovf(T, R, [ ], [ ], [ ], [ ], U, Omega, indexUnitRoots, 0);
-        if p > 1
-            c0 = c;
-            c = reshape(c0(1:ny, :), ny, ny, p);
+        c = covfun.acovf(T, R, [], [], [], [], U, Omega, inxUnitRoots, 0);
+        if p>1
+            covState = c;
+            c = reshape(covState(1:ny, :), ny, ny, p);
         end
         if p==0
             c(:, :, end+1:maxOrder+1) = 0;

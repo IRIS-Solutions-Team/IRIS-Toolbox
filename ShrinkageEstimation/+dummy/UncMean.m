@@ -3,14 +3,14 @@
 % Syntax
 % =======
 %
-%     O = BVAR.uncmean(YBar,Mu)
+%     O = dummy.UncMean(yBar, mu)
 %
 % Input arguments
 % ================
 %
-% * `YBar` [ numeric ] - Vector of unconditional means imposed as priors.
+% * `yBar` [ numeric ] - Vector of unconditional means imposed as priors.
 %
-% * `Mu` [ numeric ] - Weight on the dummy observations.
+% * `mu` [ numeric ] - Weight on the dummy observations.
 %
 % Output arguments
 % =================
@@ -24,7 +24,7 @@
 % Description
 % ============
 %
-% See [the section explaining the weights on prior dummies](BVAR/Contents),
+% See [the section explaining the weights on prior dummies](BVAR/Contents), 
 % i.e. the input argument `Mu`.
 %
 % Example

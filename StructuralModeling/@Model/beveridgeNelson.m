@@ -1,56 +1,56 @@
 %{
-% 
+%
 % # `beveridgeNelson` ^^(Model)^^
-% 
+%
 % {== Beveridge-Nelson trends ==}
-% 
-% 
+%
+%
 % ## Syntax
-% 
+%
 %     outp = bn(m, inputDb, range, ___)
-% 
-% 
+%
+%
 % ## Input arguments
-% 
-% __`m`__ [ Model ] 
-% > 
+%
+% __`m`__ [ Model ]
+% >
 % > Solved model object.
-% > 
-% 
+% >
+%
 % __`inputDb`__ [ struct ]
-% > 
+% >
 % > Input databank on which the BN trends will be computed.
-% > 
-% 
-% __`range`__ [ Dater ] 
-% > 
+% >
+%
+% __`range`__ [ Dater ]
+% >
 % > Date range on which the BN trends will be computed.
-% > 
-% 
-% ## Output arguments 
-% 
+% >
+%
+% ## Output arguments
+%
 % __`outp`__ [ struct ]
-% > 
+% >
 % > Output databank with the BN trends.
-% > 
-% 
+% >
+%
 % ## Options
-% 
-% __`Deviation=false`__ [ `true` | `false` ] 
-% > 
+%
+% __`Deviation=false`__ [ `true` | `false` ]
+% >
 % > Input and output data are deviations from steady-state paths.
-% > 
-% 
-% 
-% ## Description 
-% 
+% >
+%
+%
+% ## Description
+%
 % The BN decomposition is accurate only if the input data have been generated
 % using unanticipated shocks.
-% 
-% 
+%
+%
 % ## Examples
-% 
-% 
+%
+%
 %}
 % --8<--
 
@@ -62,20 +62,13 @@ EYE_TOLERANCE = this.Tolerance.Solve;
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.bn');
-    pp.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
-    pp.addRequired('InputDatabank', @isstruct);
+    pp.addRequired('SolvedModel', @(x) isa(x, 'Model') && countVariants(x)>=1 && ~any(isnan(x, 'solution')));
+    pp.addRequired('InputDatabank', @validate.databank);
     pp.addRequired('Range', @validate.date);
-    pp.addParameter('Deviation', false, @validate.logicaScalar);
-    pp.addParameter('EvalTrends', logical.empty(1, 0));
+    pp.addParameter('Deviation', false, @(x) isequal(x, true) || isequal(x, false));
 end
 
 opt = pp.parse(this, inp, range, varargin{:});
-
-if isempty(opt.EvalTrends)
-    opt.EvalTrends = ~opt.Deviation;
-end
-
-
 
     [~, ~, nb, nf, ne] = sizeSolution(this.Vector);
     nv = length(this);
@@ -118,8 +111,9 @@ end
                 inxDiffStationary(ithRun) = false;
                 continue
             end
+
             if ~opt.Deviation
-                Ka = K(nf+1:end, 1); 
+                Ka = K(nf+1:end, 1);
                 aBar = zeros(nb, 1);
                 aBar(numUnitRoots+1:end) = ...
                     (eye(nb-numUnitRoots) - Ta(numUnitRoots+1:end, numUnitRoots+1:end)) ...
@@ -129,42 +123,44 @@ end
                 Kf = repmat(Kf, 1, numPeriods);
                 D = repmat(D, 1, numPeriods);
             end
-            if opt.EvalTrends
+            if ~opt.Deviation
                 W = evalTrendEquations(this, [ ], g, ithRun);
             end
         end
-        
+
         a = A(:, :, min(ithRun, end));
         if ~opt.Deviation
             a = a - aBar;
         end
-        
-        % Forward cumsum of stable alpha.
-        aCum = (eye(nb-numUnitRoots) - Ta(numUnitRoots+1:end, numUnitRoots+1:end)) ...
+
+        % Forward cumsum of stable alpha
+        alphaCum = ...
+            (eye(nb-numUnitRoots) - Ta(numUnitRoots+1:end, numUnitRoots+1:end)) ...
             \ a(numUnitRoots+1:end, :);
-        
-        % Beveridge Nelson for non-stationary variables.
-        a(1:numUnitRoots, :) = a(1:numUnitRoots, :) + ...
-            Ta(1:numUnitRoots, numUnitRoots+1:end)*aCum;
-        
+
+        % Beveridge Nelson for non-stationary variables
+        a(1:numUnitRoots, :) = ...
+            a(1:numUnitRoots, :) ...
+            + Ta(1:numUnitRoots, numUnitRoots+1:end)*alphaCum;
+
         if opt.Deviation
             a(numUnitRoots+1:end, :) = 0;
         else
             a(numUnitRoots+1:end, :) = aBar(numUnitRoots+1:end, :);
         end
-        
+
         xf = Tf*a;
         xb = U*a;
         y = Z*a;
-        
+
         if ~opt.Deviation
             xf = xf + Kf;
             y = y + D;
         end
-        if opt.EvalTrends
+        if ~opt.Deviation
             y = y + W;
         end
-        
+
         % Store output data #iloop.
         x = [xf;xb];
         e = zeros(ne, numPeriods);

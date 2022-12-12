@@ -123,8 +123,20 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = assign(varargin)
         varargout = companion(varargin)
         varargout = datarequest(varargin)
+        varargout = eig(varargin)
         varargout = horzcat(varargin)
         varargout = isempty(varargin)
+
+        varargout = isExplosive(varargin)
+        function varargout = isexplosive(varargin)
+            [varargout{1:nargout}] = isExplosive(varargin{:});
+        end%
+
+        varargout = isStationary(varargin)
+        function varargout = isstationary(varargin)
+            [varargout{1:nargout}] = isStationary(varargin{:});
+        end%
+
         varargout = nfitted(varargin)
         varargout = schur(varargin)
         varargout = length(varargin)

@@ -106,7 +106,6 @@ classdef (CaseInsensitiveProperties=true) ...
     
     
     methods
-        varargout = eig(vararing)
         varargout = estimate(varargin)
         varargout = filter(varargin)
         varargout = forecast(varargin)

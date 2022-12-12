@@ -209,7 +209,8 @@ end
 
 % Get input data for estimation and determine extended range (including
 % pre-sample)
-[inputEndogenous, inputExogenous, extendedRange] = getEstimationData(this, inputData, range, p, opt.StartDate);
+[inputEndogenous, inputExogenous, extendedRange] = ...
+    getEstimationData(this, inputData, range, p, opt.StartDate);
 
 % Create components of the LHS and RHS data. Panel VARs create data by
 % concatenting individual groups next to each other separated by a total of
@@ -362,10 +363,10 @@ return
             missing = this.Range(p+1:end);
             missing = missing(~allFitted(p+1:end));
             [~, s] = dater.reportConsecutive(missing);
-            utils.warning('VAR:estimate', ...
-                ['These periods have been not fitted ', ...
-                'because of missing observations: %s '], ...
-                join(s, " "));
+            exception.warning([
+                "VAR"
+                "These periods cannot fitted because of missing observations: %s "
+            ], join(s, " "));
         end
     end
 

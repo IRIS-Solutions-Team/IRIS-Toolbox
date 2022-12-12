@@ -4,7 +4,7 @@ title: databank.fromSheet
 
 # `databank.fromSheet` ^^(+databank)^^
 
-{== Load databank of time series from a XLSX or CSV file ==}
+{== Load databank of time series from an XLSX or CSV file ==}
 
 
 ## Syntax 

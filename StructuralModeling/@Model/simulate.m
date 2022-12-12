@@ -715,6 +715,9 @@ return
         outputInfo.ExitFlags = runningData.ExitFlags;
         outputInfo.DiscrepancyTables = runningData.DiscrepancyTables;
         outputInfo.ProgressBar = progress;
+        outputInfo.Contributions = string.empty(1, 0);
+        if opt.Contributions
+        end
         %)
     end%
 

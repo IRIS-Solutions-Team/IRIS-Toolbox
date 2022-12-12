@@ -96,7 +96,7 @@ Function | Description
 
 Function | Description 
 ---|---
-[`bn`](bn.md) | Beveridge-Nelson trends
+[`beveridgeNelson`](beveridgeNelson.md) | Beveridge-Nelson trends
 [`estimate.md`](estimate.md) | Estimate model parameters by maximizing posterior-based objective function
 [`kalmanFilter`](kalmanFilter.md) | Kalman smoother and estimator of out-of-likelihood parameters
 

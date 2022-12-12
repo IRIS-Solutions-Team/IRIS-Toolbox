@@ -1,4 +1,3 @@
-function E = eig(This)
 % eig  Eigenvalues of a VAR process.
 %
 % Syntax
@@ -27,11 +26,10 @@ function E = eig(This)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-%--------------------------------------------------------------------------
+function eigenValues = eig(this)
 
-E = This.EigVal;
+    eigenValues = this.EigenValues;
 
-end
+end%
+
