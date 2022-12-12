@@ -4,7 +4,7 @@ title: kalmanFilter
 
 # `kalmanFilter` ^^(Model)^^
 
-{== Kalman filter and smoother, and estimator of out-of-likelihood parameters ==}
+{== Run Kalman filter and smoother, and estimator of out-of-likelihood parameters ==}
 
 
 ## Syntax

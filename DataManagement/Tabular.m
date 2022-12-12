@@ -192,7 +192,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 this.Header = [this.Header, header];
             end
 
-            if this.NumDividers>1
+            if this.NumDividers>=1
                 this.Header(:, end+(1:this.NumDividers)) = missingCell;
                 this.Values(:, end+(1:this.NumDividers)) = missingCell;
             end

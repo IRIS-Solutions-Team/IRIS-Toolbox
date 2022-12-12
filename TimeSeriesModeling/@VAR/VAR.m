@@ -1,7 +1,8 @@
 
 classdef (CaseInsensitiveProperties=true) VAR ...
     < BaseVAR ...
-    & matlab.mixin.CustomDisplay
+    & matlab.mixin.CustomDisplay ...
+    & iris.mixin.Plan
 
     properties
         G = [ ] % Coefficients at cointegrating vector in VEC form.
@@ -31,6 +32,30 @@ classdef (CaseInsensitiveProperties=true) VAR ...
 
 
 
+    methods
+        function out = getEndogenousForPlan(this)
+            out = this.EndogenousNames;
+        end%
+
+        function out = getExogenousForPlan(this)
+            out = this.ResidualNames;
+        end%
+
+        function out = getAutoswapsForPlan(this)
+            out = string.empty(0, 2);
+        end%
+
+        function out = getSigmasForPlan(this)
+            covShocks = getCovShocks(this);
+            numY = this.NumEndogenous;
+            numV = countVariants;
+            out = nan(numY, 1, numV);
+            for v = 1 : numV
+                out(:, 1, v) = sqrt(diag(covShocks(:, :, v)));
+            end
+        end%
+    end
+
 
     methods
         varargout = addToDatabank(varargin)
@@ -42,6 +67,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = eig(varargin)
         varargout = estimate(varargin)
         varargout = ferf(varargin)
+        varargout = kalmaFilter(varargin)
         varargout = filter(varargin)
         varargout = fmse(varargin)
         varargout = forecast(varargin)
@@ -77,6 +103,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = implementGet(varargin)
         varargout = SVAR(varargin)
         varargout = myresponse(varargin)
+        varargout = size(varargin)
     end
 
 
@@ -87,7 +114,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = preallocate(varargin)
         varargout = myrngcmp(varargin);
         varargout = subsalt(varargin)
-        varargout = size(varargin)
         varargout = specdisp(varargin)
         varargout = stackData(varargin)
     end
@@ -214,6 +240,14 @@ classdef (CaseInsensitiveProperties=true) VAR ...
     methods
         function value = get.CovParameters(this)
             value = this.Sigma;
+        end%
+
+        function value = getCovShocks(this)
+            value = this.Omega;
+        end%
+
+        function value = getCovForecastErrors(this)
+            value = this.Omega;
         end%
     end
 end

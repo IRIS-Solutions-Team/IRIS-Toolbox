@@ -10,9 +10,10 @@ exception.ParseTime.storeFileName(this.FileName);
 %
 % __Retrieve data preprocessors and postprocessors__
 %
+
 processorLhsNames = string.empty(1, 0);
 for processor = ["Preprocessor", "Postprocessor"]
-    collector.(processor) = regexprep(collector.(processor), "\s+", "");
+    collector.(processor) = regexprep(collector.(processor), "\s+", " ");
     if ~isempty(collector.(processor))
         mf = ModelSource( );
         mf.FileName = this.FileName;

@@ -70,7 +70,7 @@ numEquations = numel(this);
 
 %
 % Create a DataBlock for all variables across all models; LHS variables are
-% needed even if they do not appear on the RHS 
+% needed even if they do not appear on the RHS
 %
 lhsRequired = true;
 context = "to run regress() on the " + this(1).Context + " object";
@@ -321,24 +321,11 @@ end
 %
 % Handle failed exit flags
 %
-
-if lower(opt.WhenEstimationFails)=="silent"
-    % Do nothing
-else
-    if any(~isnan(exitFlagsResidualModels) & exitFlagsResidualModels<=0) 
-        local_reportFailedEstimation(exitFlagsResidualModels, this, "Residual model", opt.WhenEstimationFails)
-    end
-    if any(~isnan(exitFlagsParameters) & exitFlagsParameters<=0)
-        local_reportFailedEstimation(exitFlagsParameters, this, "Parameter", opt.WhenEstimationFails);
-    end
+if any(~isnan(exitFlagsResidualModels) & exitFlagsResidualModels<=0)
+    local_reportFailedEstimation(exitFlagsResidualModels, this, "Residual model", opt.WhenEstimationFails)
 end
-
-
-if nnz(inxMissingColumns)>0
-    if startsWith(opt.MissingObservations, "silent", "ignoreCase", true)
-        % Do nothing
-    else
-    end
+if any(~isnan(exitFlagsParameters) & exitFlagsParameters<=0)
+    local_reportFailedEstimation(exitFlagsParameters, this, "Parameter", opt.WhenEstimationFails);
 end
 
 
@@ -352,6 +339,7 @@ if storeToDatabank
         , opt ...
     );
 end
+
 
 %
 % Reset runtime information
@@ -369,7 +357,7 @@ return
         inx = dataBlock.InxBaseRange;
         columnsBaseRange = find(inx);
         res0 = zeros(1, numExtdPeriods);
-        fitted(q, columnsBaseRange, v) = this__.Simulate(subBlock4Fit__, res0, parameters__, columnsBaseRange, 1, []); 
+        fitted(q, columnsBaseRange, v) = this__.Simulate(subBlock4Fit__, res0, parameters__, columnsBaseRange, 1, []);
         res(:, columnsBaseRange, v) = this__.EndogenizeResiduals(subBlock4Fit__, res0, parameters__, columnsBaseRange, 1, []);
         %)
     end%
@@ -397,7 +385,24 @@ return
         end
         func([
             "Explanatory"
-            "Regression data for %s contain NaN/Inf observations: %s" 
+            "Missing observations in regression data for %s: %s"
+        ], missingReport);
+        %)
+    end%
+
+
+    function here_reportAllMissing(missingReport)
+        %(
+        if opt.MissingObservations=="silent"
+            return
+        elseif opt.MissingObservations=="warning"
+            func = @exception.warning;
+        elseif opt.MissingObservations=="error"
+            func = @exception.error;
+        end
+        func([
+            "Explanatory"
+            "Missing observations in regression data for %s: %s"
         ], missingReport);
         %)
     end%
@@ -452,7 +457,6 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         %
 
         % Adjust for within-sample missing observations
-
         inxMissing = any(~isfinite([y; X]), 1);
         y(:, inxMissing) = 0;
         X(:, inxMissing) = 0;
@@ -464,22 +468,31 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
             y1 = y - fixed(inxFixed)*X(inxFixed, :);
             X1 = X(~inxFixed, :);
         end
+
         parameters = fixed;
         numParameters = numel(parameters);
         covParameters = zeros(numParameters);
         if any(~inxFixed)
-            if isempty(F)
-                [beta, ~, ~, covBeta]  = lscov(transpose(X1), transpose(y1));
+            if ~all(inxMissing)
+                if isempty(F)
+                    [beta, ~, ~, covBeta]  = lscov(transpose(X1), transpose(y1));
+                else
+                    [beta, ~, ~, covBeta]  = lscov(F\transpose(X1), F\transpose(y1));
+                end
+                exitFlag = double(all(isfinite(beta)));
             else
-                [beta, ~, ~, covBeta]  = lscov(F\transpose(X1), F\transpose(y1));
+                beta = NaN;
+                covBeta = NaN;
+                exitFlag = -100;
             end
             parameters(~inxFixed) = transpose(beta);
             covParameters(~inxFixed, ~inxFixed) = covBeta;
+        else
+            exitFlag = 2;
         end
         fitted = parameters*X;
         fitted(:, inxMissing) = NaN;
         numParametersEstimated = nnz(~inxFixed);
-        exitFlag = 1;
 
     else
         %
@@ -513,34 +526,32 @@ function [parameters, varResiduals, covParameters, fitted, res, inxMissing, exit
         [~, ~, objTest] = here_objectiveFunc(zTest);
         inxMissing = ~isfinite(objTest);
 
-
         % Initialize parameters to be estimated at zero, and call the
         % Optimization Toolbox
 
-        z0 = zeros(1, numParametersEstimated);
-        [z, ~, ~, exitFlag, optimOutput] = lsqnonlin(@here_objectiveFunc, z0, [], [], optimOptions);
-        [~, parameters] = here_objectiveFunc(z);
-        parameters(~inxToEstimate & ~inxFixed) = NaN;
-
-
-        % Calculate fitted values using the simulate function
-
         fitted = nan(1, numColumns);
-        fitted(:, columnsBaseRange) ...
-            = simulateFunc(subBlock, e, parameters, columnsBaseRange, v, []); 
-        fitted(:, inxMissing) = NaN;
-
+        if ~all(inxMissing)
+            z0 = zeros(1, numParametersEstimated);
+            [z, ~, ~, exitFlag, optimOutput] = lsqnonlin(@here_objectiveFunc, z0, [], [], optimOptions);
+            [~, parameters] = here_objectiveFunc(z);
+            exitFlag = double(all(isfinite(parameters(inxToEstimate))));
+            % Calculate fitted values using the simulate function
+            fitted(:, columnsBaseRange) = simulateFunc(subBlock, e, parameters, columnsBaseRange, v, []);
+            fitted(:, inxMissing) = NaN;
+        else
+            parameters = nan(1, numParameters);
+            exitFlag = -100;
+        end
+        parameters(~inxToEstimate & ~inxFixed) = NaN;
         covParameters = nan(numParameters);
     end
 
     res = y - fitted;
 
     numPeriodsFitted = nnz(~inxMissing);
-    varResiduals ...
-        = sum(res(~inxMissing).^2, 2) / (numPeriodsFitted - numParametersEstimated);
+    varResiduals = sum(res(~inxMissing).^2, 2) / (numPeriodsFitted - numParametersEstimated);
 
     res(:, inxMissing) = NaN;
-    y(:, inxMissing) = NaN;
     fitted(:, inxMissing) = NaN;
 
     return
@@ -600,7 +611,7 @@ function [gamma, exitFlag] = local_estimateResidualModel(y, X, fixed, rm, inxObj
         , ones(1, rm.NumParameters) ...
         , optimOptions ...
     );
-    
+
     return
         function obj = here_objectiveFunc(p)
             rm = update(rm, p);
@@ -654,18 +665,28 @@ end%
 
 function local_reportFailedEstimation(exitFlags, this, context, whenEstimationFailed)
     %(
-    if lower(whenEstimationFailed)=="error"
+    if lower(whenEstimationFailed)=="silent"
+        return
+    elseif lower(whenEstimationFailed)=="error"
         func = @exception.error;
     else
         func = @exception.warning;
     end
     lhsNames = collectLhsNames(this);
-    [q, v] = find(~isnan(exitFlags) & exitFlags<=0);
+    inxReport = ~isnan(exitFlags) & exitFlags<=0;
+    [q, v] = find(inxReport);
     qv = sortrows([q, v], 1);
-    temp = reshape([reshape(string(qv(:,2)), 1, []); reshape(lhsNames(qv(:,1)), 1, [])], [], 1);
+    reason = repmat("", size(exitFlags));
+    reason(exitFlags<=0) = "No convergence";
+    reason(exitFlags==-100) = "No observations available";
+    temp = reshape([
+        reshape(string(qv(:,2)), 1, [])
+        reshape(lhsNames(qv(:,1)), 1, [])
+        reshape(reason(inxReport), 1, [])
+    ], [], 1);
     func([
-        "Explanatory:ResidualModelFailed"
-        context + " estimation for this LHS variable failed to converge [Page|Variant:%s]: %s "
+        "Explanatory"
+        context + " estimation of this equation failed [Page|Variant:%s]: %s (%s) "
     ], temp);
     %)
 end%

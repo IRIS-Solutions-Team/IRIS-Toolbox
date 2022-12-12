@@ -99,7 +99,7 @@ function this = instrument(this, varargin)
 if isempty(varargin)
     % Clear conditioning variables
     this.ConditioningNames = cell.empty(1, 0);
-    this.Zi = double.empty(0);
+    this.Zi = double.empty(0, 0);
     return
 end
 
@@ -182,10 +182,9 @@ end
 checkExpression( );
 
 this.ConditioningNames = [this.ConditioningNames, newNames];
-this.IEqtn = [this.IEqtn, lsInput];
 
 % The constant term is placed first in Zi, but last in user inputs/outputs.
-this.Zi = [this.Zi;[C, Z]];
+this.Zi = [this.Zi; [C, Z]];
 
 return
 

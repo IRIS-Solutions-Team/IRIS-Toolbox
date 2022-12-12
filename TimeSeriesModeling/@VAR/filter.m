@@ -2,7 +2,7 @@
 %{
 % ## Syntax ##
 %
-%     [v, outputDatabank] = filter(v, inputDb, range, ...)
+%     [v, outputDb] = filter(v, inputDb, range, ...)
 %
 %
 % ## Input Arguments ##
@@ -22,7 +22,7 @@
 % __`V`__ [ VAR ] -
 % Output VAR object.
 %
-% __`outputDatabank`__ [ struct ] -
+% __`outputDb`__ [ struct ] -
 % Output databank with prediction and/or smoothed data.
 %
 %
@@ -38,7 +38,7 @@
 % __`MeanOnly=false`__ [ `true` | `false` ] -
 % Return a plain databank with mean forecasts only.
 %
-% __`Omega=[ ]`__ [ numeric | empty ] -
+% __`Omega=[]`__ [ numeric | empty ] -
 % Modify the covariance matrix of residuals for this run of the filter.
 %
 %
@@ -52,16 +52,11 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-function [this, outputDatabank] = filter(this, inputDb, range, varargin)
+function [this, outputDb] = filter(this, inputDb, range, varargin)
 
 persistent ip
 if isempty(ip)
     ip = inputParser();
-    % Required arguments
-    addRequired(ip, 'this', @(x) isa(x, 'VAR'));
-    addRequired(ip, 'inputDb', @validate.databank);
-    addRequired(ip, 'range', @validate.properRange);
-    % Name-value options
     addParameter(ip, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
     addParameter(ip, 'Cross', true, @(x) validate.logicalScalar(x) || (validate.numericScalar(x) && x>=0 && x<=1));
     addParameter(ip, 'Deviation', false, @(x) islogical(x) && isscalar(x));
@@ -70,132 +65,139 @@ if isempty(ip)
     addParameter(ip, 'Output', 'smooth', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     addParameter(ip, 'Initials', 'fixedFromData', @(x) ismember(lower(string(x)), ["fixedFromData", "asymptotic"]));
 end
-parse(ip, this, inputDb, range, varargin{:});
-opt = rmfield(ip.Results, ["this", "inputDb", "range"]);
+parse(ip, varargin{:});
+opt = ip.Results;
 
-[isPred, isFilter, isSmooth] = here_processOptionOutput( );
 
-%--------------------------------------------------------------------------
-
-ny = size(this.A, 1);
-p = size(this.A, 2) / max(ny, 1);
-nv = size(this.A, 3);
-nx = length(this.ExogenousNames);
-isX = nx>0;
-isConst = ~opt.Deviation;
-
-range = range(1) : range(end);
-extendedRange = range(1)-p : range(end);
-
-% Include pre-sample
-req = datarequest('y*, x*', this, inputDb, extendedRange);
-extendedRange = req.Range;
-y = req.Y;
-x = req.X;
-
-numPeriods = numel(range);
-yInit = y(:, 1:p, :);
-y = y(:, p+1:end, :);
-x = x(:, p+1:end, :);
-
-numPagesY = size(yInit, 3);
-numPagesX = size(x, 3);
-nOmg = size(opt.Omega, 3);
-
-numRuns = max([nv, numPagesY, numPagesX, nOmg]);
-here_checkOptions( );
-
-% Stack initial conditions
-yInit = yInit(:, p:-1:1, :);
-yInit = reshape(yInit(:), ny*p, numRuns);
-
-YY = [ ];
-here_requestOutput( );
-
-s = struct( );
-s.invFunc = @inv;
-s.allObs = NaN;
-s.tol = 0;
-s.reuse = 0;
-s.ahead = opt.Ahead;
-
-% Missing initial conditions
-missingInit = false(ny, numPagesY);
-
-Z = eye(ny);
-for i = 1 : numRuns
-    % Get system matrices for ith parameter variant
-    [A__, B__, K__, J__, ~, Omega__] = getIthSystem(this, i);
-
-    % User-supplied covariance matrix.
-    if ~isempty(opt.Omega)
-        Omega__(:, :) = opt.Omega(:, :, min(i, end));
+    range = double(range);
+    numPeriods = dater.rangeLength(range);
+    [extdStart, extdEnd] = getExtendedRange(this, range);
+    extdRange = dater.colon(extdStart, extdEnd);
+    if isempty(extdRange)
+        return
     end
 
-    % Reduce or zero off-diagonal elements in the cov matrix of residuals
-    % if requested. this only matters in VARs, not SVARs.
-    if double(opt.Cross)<1
-        inx = logical(eye(size(Omega__)));
-        Omega__(~inx) = double(opt.Cross)*Omega__(~inx);
+
+    [isPred, isFilter, isSmooth] = here_processOptionOutput();
+    nv = size(this.A, 3);
+    p = this.Order;
+
+
+    numG = this.NumExogenous;
+    numY = this.NumEndogenous;
+    numE = this.NumResiduals;
+    numC = this.NumConditioning;
+    inxG = [true(numG, 1); false(numY, 1); false(numE, 1); false(numC, 1)];
+    inxY = [false(numG, 1); true(numY, 1); false(numE, 1); false(numC, 1)];
+    inxE = [false(numG, 1); false(numY, 1); true(numE, 1); false(numC, 1)];
+    inxC = [false(numG, 1); false(numY, 1); false(numE, 1); true(numC, 1)];
+
+
+    GYEC = here_requestData();
+    initY = GYEC(inxY, 1:p, :);
+    GYEC = GYEC(:, p+1:end, :);
+    numPages = size(GYEC, 3);
+    numOmega = size(opt.Omega, 3);
+    numRuns = max([nv, numPages, numOmega]);
+    here_checkOptions();
+
+    dataContainer = here_requestOutput();
+
+    s = struct();
+    s.invFunc = @inv;
+    s.allObs = NaN;
+    s.tol = 0;
+    s.reuse = 0;
+    s.ahead = opt.Ahead;
+
+    % Missing initial conditions
+    missingInit = false(numY, numRuns);
+
+
+    %
+    % Measurement equations including conditioning instrument
+    %
+    [Z, D] = here_getMeasurementMatrices();
+
+
+    for run = 1 : numRuns
+        % Get system matrices for ith parameter variant
+        [A__, B__, K__, J__, ~, Omega__] = getIthSystem(this, run);
+
+        % User-supplied covariance matrix.
+        if ~isempty(opt.Omega)
+            Omega__(:, :) = opt.Omega(:, :, min(run, end));
+        end
+
+        % Reduce or zero off-diagonal elements in the cov matrix of residuals
+        % if requested. this only matters in VARs, not SVARs.
+        if double(opt.Cross)<1
+            inx = logical(eye(size(Omega__)));
+            Omega__(~inx) = double(opt.Cross)*Omega__(~inx);
+        end
+
+
+        % Use the `allobserved` option in `@iris.mixin.Kalman/smootherForVAR` only if the cov matrix is
+        % full rank. Otherwise, there is singularity.
+        s.allObs = rank(Omega__)==numY;
+
+
+        G__ = GYEC(inxG, :, min(run, end));
+        Y__ = GYEC(inxY, :, min(run, end));
+        C__ = GYEC(inxC, :, min(run, end));
+
+
+        % Get initials from data
+        [initY__, missingInit__] = here_getInitials();
+        missingInit(:, run) = missingInit__;
+
+
+        % Collect all deterministic terms: constant and exogenous inputs
+        KJ__ = zeros(numY, numPeriods);
+        if ~opt.Deviation
+            KJ__ = KJ__ + repmat(K__, 1, numPeriods);
+        end
+        if numG>0
+            KJ__ = KJ__ + J__*G__;
+        end
+
+
+        %==========================================================================
+        % Run Kalman filter and smoother
+        [~, ~, E2__, ~, Y2__, Py2__, ~, Y0__, Py0__, Y1__, Py1__] = iris.mixin.Kalman.smootherForVAR( ...
+            this, A__, B__, KJ__, Z, D, Omega__, [], [Y__; C__], [], initY__, 0, s ...
+        );
+        % TODO
+        E1__ = nan(numE, numPeriods);
+        %==========================================================================
+
+
+        % Add pre-sample periods and assign hdata
+        here_assignOutput();
     end
 
-    % Use the `allobserved` option in `@iris.mixin.Kalman/smootherForVAR` only if the cov matrix is
-    % full rank. Otherwise, there is singularity.
-    s.allObs = rank(Omega__)==ny;
+    here_reportMissingInit();
 
-    Y__ = y(:, :, min(i, end));
-    X__ = x(:, :, min(i, end));
-
-    % Get initials from data
-    [yInit__, missingInit__] = here_getInitials();
-    missingInit(:, i) = missingInit__;
-
-    % Collect all deterministic terms: constant and exogenous inputs
-    KJ__ = zeros(ny, numPeriods);
-    if isConst
-        KJ__ = KJ__ + repmat(K__, 1, numPeriods);
-    end
-    if isX
-        KJ__ = KJ__ + J__*X__;
-    end
-
-    % Run Kalman filter and smoother
-    [~, ~, E2__, ~, Y2__, iPy2, ~, Y0__, Py0__, Y1__, iPy1] ...
-        = iris.mixin.Kalman.smootherForVAR(this, A__, B__, KJ__, Z, [ ], Omega__, [ ], Y__, [ ], yInit__, 0, s);
-
-    % Add pre-sample periods and assign hdata
-    here_assignOutput( );
-end
-
-here_reportMissingInit( );
-
-% Final output databank
-outputDatabank = hdataobj.hdatafinal(YY);
+    % Final output databank
+    outputDb = hdataobj.hdatafinal(dataContainer);
 
 return
 
-    function [isPred, isFilter, isSmooth] = here_processOptionOutput( )
-        temp = opt.Output;
-        if ischar(temp) || (isa(temp, 'string') && isscalar(temp))
-            temp = char(temp);
-            temp = regexp(temp, '\w+', 'match');
-        else
-            temp = cellstr(temp);
-        end
-        temp = strtrim(temp);
-        isSmooth = any(strncmpi(temp, 'smooth', 6));
-        isPred = any(strncmpi(temp, 'pred', 4));
-        % TODO: Filter.
+    function [isPred, isFilter, isSmooth] = here_processOptionOutput()
+        opt.Output = string(opt.Output);
+        isSmooth = any(contains(opt.Output, "smooth", "ignoreCase", true));
+        isPred = any(contains(opt.Output, "pred", "ignoreCase", true));
+        % TODO
         isFilter = false;
     end%
 
 
-    function here_checkOptions( )
+    function here_checkOptions()
         if numRuns>1 && opt.Ahead>1
-            thisError = { 'VAR:CannotCombineAheadWithMultiple'
-                          [ 'Cannot run filter(~) with option `Ahead=` greater than 1 ', ...
-                            'on multiple parameter variants or multiple data pages'] };
-            throw( exception.Base(thisError, 'error') );
+            exception.error([
+                "VAR"
+                "Cannot combine option Ahead= with multiple parameter variants or multiple data pages"
+            ]);
         end
         if ~isPred
             opt.Ahead = 1;
@@ -203,90 +205,143 @@ return
     end%
 
 
-    function here_requestOutput( )
+    function dataContainer = here_requestOutput()
+        dataContainer = [];
         if isSmooth
-            YY.M2 = hdataobj(this, extendedRange, numRuns);
+            dataContainer.M2 = hdataobj(this, extdRange, numRuns);
             if ~opt.MeanOnly
-                YY.S2 = hdataobj(this, extendedRange, numRuns, ...
-                    'IsVar2Std', true);
+                dataContainer.S2 = hdataobj( ...
+                    this, extdRange, numRuns ...
+                    , "isVar2Std", true ...
+                );
             end
         end
         if isPred
             nPred = max(numRuns, opt.Ahead);
-            YY.M0 = hdataobj(this, extendedRange, nPred);
+            dataContainer.M0 = hdataobj(this, extdRange, nPred);
             if ~opt.MeanOnly
-                YY.S0 = hdataobj(this, extendedRange, nPred, ...
-                    'IsVar2Std', true);
+                dataContainer.S0 = hdataobj( ...
+                    this, extdRange, nPred ...
+                    , "isVar2Std", true ...
+                );
             end
         end
         if isFilter
-            YY.M1 = hdataobj(this, extendedRange, numRuns);
+            dataContainer.M1 = hdataobj(this, extdRange, numRuns);
             if ~opt.MeanOnly
-                YY.S1 = hdataobj(this, extendedRange, numRuns, ...
-                    'IsVar2Std', true);
+                dataContainer.S1 = hdataobj( ...
+                    this, extdRange, numRuns ...
+                    , "isVar2Std", true ...
+                );
             end
         end
     end%
 
 
-    function here_assignOutput( )
+    function here_assignOutput()
         if isSmooth
-            Y2__ = [nan(ny, p), Y2__];
-            Y2__(:, p:-1:1) = reshape(yInit__, ny, p);
-            X2__ = [nan(nx, p), X__];
-            E2__ = [nan(ny, p), E2__];
-            hdataassign(YY.M2, i, { Y2__, X2__, E2__, [ ] } );
+            Y2__ = [nan(numY, p), Y2__];
+            Y2__(:, p:-1:1) = reshape(initY__, numY, p);
+            X2__ = [nan(numG, p), G__];
+            E2__ = [nan(numY, p), E2__];
+            hdataassign(dataContainer.M2, run, {Y2__, X2__, E2__, []} );
             if ~opt.MeanOnly
-                D2__ = covfun.cov2var(iPy2);
-                D2__ = [zeros(ny, p), D2__];
-                hdataassign(YY.S2, i, { D2__, [ ], [ ], [ ] } );
+                D2__ = covfun.cov2var(Py2__);
+                D2__ = [zeros(numY, p), D2__];
+                hdataassign(dataContainer.S2, run, {D2__, [], [], []} );
             end
         end
         if isPred
-            Y0__ = [nan(ny, p, opt.Ahead), Y0__];
-            E0__ = [nan(ny, p, opt.Ahead), zeros(ny, numPeriods, opt.Ahead)];
+            Y0__ = [nan(numY, p, opt.Ahead), Y0__];
+            E0__ = [nan(numY, p, opt.Ahead), zeros(numY, numPeriods, opt.Ahead)];
             if opt.Ahead>1
                 pos = 1 : opt.Ahead;
             else
-                pos = i;
+                pos = run;
             end
-            hdataassign(YY.M0, pos, { Y0__, [ ], E0__, [ ] } );
+            hdataassign(dataContainer.M0, pos, {Y0__, [], E0__, []} );
             if ~opt.MeanOnly
                 D0__ = covfun.cov2var(Py0__);
-                D0__ = [zeros(ny, p), D0__];
-                hdataassign(YY.S0, i, { D0__, [ ], [ ], [ ] } );
+                D0__ = [zeros(numY, p), D0__];
+                hdataassign(dataContainer.S0, run, {D0__, [], [], []} );
             end
         end
         if isFilter
-            Y1__ = [nan(ny, p), Y1__];
-            X1__ = [nan(nx, p), X__];
-            E1__ = [nan(ny, p), zeros(ny, numPeriods)];
-            hdataassign(YY.M1, pos, { Y1__, X1__, E1__, [ ] } );
+            Y1__ = [nan(numY, p), Y1__];
+            G1__ = [nan(numG, p), G__];
+            E1__ = [nan(numY, p), E1__];
+            hdataassign(dataContainer.M1, pos, {Y1__, G1__, E1__, []} );
             if ~opt.MeanOnly
-                D1__ = covfun.cov2var(iPy1);
-                D1__ = [zeros(ny, p), D1__];
-                hdataassign(YY.S1, i, { D1__, [ ], [ ], [ ] } );
+                D1__ = covfun.cov2var(Py1__);
+                D1__ = [zeros(numY, p), D1__];
+                hdataassign(dataContainer.S1, run, {D1__, [], [], []} );
             end
         end
     end%
 
 
-    function here_reportMissingInit( )
+    function here_reportMissingInit()
+        %(
         inxMissingNames = any(missingInit, 2);
         if  ~any(inxMissingNames)
             return
         end
-        endogenousNames = this.EndogenousNames;
-        thisWarning = { 'VAR:MissingInitial'
-                        'Some initial conditions are missing from input databank for this variable: %s' };
-        throw( exception.Base(thisWarning, 'warning'), ...
-               endogenousNames{inxMissingNames} );
+        exception.warning([
+            "VAR", "Some initial conditions are missing for this variable: %s"
+        ], this.EndogenousNames(inxMissingNames));
+        %)
     end%
 
 
-    function [yInit__, missingInit__] = here_getInitials()
-        yInit__ = yInit(:, :, min(i, end));
-        missingInit__ = any(isnan(reshape(yInit__, ny, p)), 2);
+    function [initY__, missingInit__] = here_getInitials()
+        initY__ = initY(:, :, min(run, end));
+        initY__ = reshape(fliplr(initY__), [], 1);
+        missingInit__ = any(isnan(reshape(initY__, numY, p)), 2);
+    end%
+
+
+    function GYEC = here_requestData()
+        %(
+        requiredNames = this.ExogenousNames;
+        optionalNames = string.empty(1, 0);
+        if strcmpi(opt.Initials, 'fixedFromData')
+            requiredNames = [requiredNames, this.EndogenousNames];
+        else
+            optionalNames = [optionalNames, this.EndogenousNames];
+        end
+        optionalNames = [this.ResidualNames, this.ConditioningNames];
+
+        allowedNumeric = string.empty(1, 0);
+        allowedLog = string.empty(1, 0);
+        context = "";
+        dbInfo = checkInputDatabank( ...
+            this, inputDb, extdRange ...
+            , requiredNames, optionalNames ...
+            , allowedNumeric, allowedLog ...
+            , context ...
+        );
+
+        GYEC = requestData( ...
+            this, dbInfo, inputDb ...
+            , [requiredNames, optionalNames], extdRange ...
+        );
+        %)
+    end%
+
+
+    function [Z, D] = here_getMeasurementMatrices()
+        %(
+        if isempty(this.Zi)
+            Z = eye(numY);
+            D = [];
+        else
+            Z = [eye(numY, numY*p); this.Zi(:, 2:end)];
+            D = [];
+            if ~opt.Deviation && any(this.Zi(:, 1)~=0)
+                D = [zeros(numY, 1); this.Zi(:, 1)];
+            end
+        end
+        %)
     end%
 end%
 

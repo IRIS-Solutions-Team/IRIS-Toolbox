@@ -853,7 +853,7 @@ function local_checkSolvedModel(this, method, initial, terminal)
     exception.error([
         "Model:NeedsFirstOrderSolution"
         "Model simulation needs a valid first-order solution to be "
-        "available given the opt Method, Initial and Terminal. "
+        "available given the option Method=, Initial= and Terminal=. "
     ]);
     %)
 end%

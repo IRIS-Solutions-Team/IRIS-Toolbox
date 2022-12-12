@@ -274,14 +274,14 @@ classdef Model ...
             pairingVector = this.Pairing.Autoswaps.Simulate;
             [namesExogenized, namesEndogenized] = ...
                 model.Pairing.getAutoswaps(pairingVector, this.Quantity);
-            value = [ namesExogenized(:), namesEndogenized(:) ];
+            value = [reshape(namesExogenized, [], 1), reshape(namesEndogenized, [], 1)];
         end%
 
 
         function sigmas = getSigmasForPlan(this)
             ne = nnz(getIndexByType(this.Quantity, 31, 32));
             sigmas = this.Variant.StdCorr(:, 1:ne, :);
-            sigmas = reshape(sigmas, ne, 1, [ ]);
+            sigmas = reshape(sigmas, ne, 1, []);
         end%
         %)
     end % methods

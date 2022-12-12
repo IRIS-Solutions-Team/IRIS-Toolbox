@@ -10,115 +10,108 @@ if numel(varargin)==2
     postsample = varargin{2};
 elseif numel(varargin)==1 && validate.databank(varargin{1})
     opt = varargin{1};
-    if isfield(opt, "DbOverlay") && ~isequal(opt.DbOverlay, false)
-        presample = opt.DbOverlay;
-        postsample = opt.DbOverlay;
-    else
-        try
-            presample = opt.PrependInput;
-        catch
-            presample = opt.AppendPresample;
+    try
+        presample = opt.PrependInput;
+    catch
+        presample = opt.AppendPresample;
+    end
+    try
+        postsample = opt.AppendInput;
+    catch
+        postsample = opt.AppendPostsample;
+    end
+end
+
+
+
+    if isequal(presample, false) && isequal(postsample, false)
+        return
+    end
+
+    preDatabank = [ ];
+    if isequal(presample, true)
+        preDatabank = inputDb;
+    elseif validate.databank(presample)
+        preDatabank = presample;
+    end
+
+    postDatabank = [ ];
+    if isequal(postsample, true)
+        postDatabank = inputDb;
+    elseif validate.databank(postsample)
+        postDatabank = postsample;
+    end
+
+    range = double(range);
+    startRange = range(1);
+    endRange = range(end);
+    freq = dater.getFrequency(startRange);
+    serialRangeStart = dater.getSerial(startRange);
+    serialRangeEnd = dater.getSerial(endRange);
+
+    previousSerialXStart = [ ];
+    previousXStart = [ ];
+
+    for name__ = textual.stringify(nameAppendables(this))
+        if ~isfield(outputDb, name__)
+            continue
         end
-        try
-            postsample = opt.AppendInput;
-        catch
-            postsample = opt.AppendPostsample;
+
+        preSeries = [ ];
+        postSeries = [ ];
+        if validate.databank(preDatabank)
+            if isfield(preDatabank, name__) ...
+               && isa(preDatabank.(name__), 'Series') ...
+               && getFrequencyAsNumeric(preDatabank.(name__))==freq
+                preSeries = preDatabank.(name__);
+            end
         end
-    end
-end
-
-%--------------------------------------------------------------------------
-
-if isequal(presample, false) && isequal(postsample, false)
-    return
-end
-
-preDatabank = [ ];
-if isequal(presample, true)
-    preDatabank = inputDb;
-elseif validate.databank(presample)
-    preDatabank = presample;
-end
-
-postDatabank = [ ];
-if isequal(postsample, true)
-    postDatabank = inputDb;
-elseif validate.databank(postsample)
-    postDatabank = postsample;
-end
-
-range = double(range);
-startRange = range(1);
-endRange = range(end);
-freq = dater.getFrequency(startRange);
-serialRangeStart = dater.getSerial(startRange);
-serialRangeEnd = dater.getSerial(endRange);
-
-previousSerialXStart = [ ];
-previousXStart = [ ];
-
-for name__ = textual.stringify(nameAppendables(this))
-    if ~isfield(outputDb, name__)
-        continue
-    end
-
-    preSeries = [ ];
-    postSeries = [ ];
-    if validate.databank(preDatabank)
-        if isfield(preDatabank, name__) ...
-           && isa(preDatabank.(name__), 'Series') ...
-           && getFrequencyAsNumeric(preDatabank.(name__))==freq
-            preSeries = preDatabank.(name__);
+        if validate.databank(postDatabank)
+            if isfield(postDatabank, name__) ...
+                && isa(postDatabank.(name__), 'Series') ...
+                && getFrequencyAsNumeric(postDatabank.(name__))==freq
+                postSeries = postDatabank.(name__);
+            end
         end
-    end
-    if validate.databank(postDatabank)
-        if isfield(postDatabank, name__) ...
-            && isa(postDatabank.(name__), 'Series') ...
-            && getFrequencyAsNumeric(postDatabank.(name__))==freq
-            postSeries = postDatabank.(name__);
+
+        if isempty(preSeries) && isempty(postSeries)
+            continue
         end
-    end
 
-    if isempty(preSeries) && isempty(postSeries)
-        continue
-    end
+        x = outputDb.(name__);
+        serialXStart = round(double(x.Start));
+        serialXStart0 = serialXStart;
+        if isnan(serialXStart)
+            serialXStart = serialRangeStart;
+        elseif serialXStart>serialRangeStart
+            serialXStart = serialRangeStart;
+        end
+        xData = getDataFromTo(x, serialXStart, serialRangeEnd);
+        sizeXData2 = size(xData);
+        sizeXData2 = sizeXData2(2:end);
+        ncolXData = prod(sizeXData2);
 
-    x = outputDb.(name__);
-    serialXStart = round(double(x.Start));
-    serialXStart0 = serialXStart;
-    if isnan(serialXStart)
-        serialXStart = serialRangeStart;
-    elseif serialXStart>serialRangeStart
-        serialXStart = serialRangeStart;
-    end
-    xData = getDataFromTo(x, serialXStart, serialRangeEnd);
-    sizeXData2 = size(xData);
-    sizeXData2 = sizeXData2(2:end);
-    ncolXData = prod(sizeXData2);
+        if ~isempty(preSeries)
+            appendPresample( );
+        end
+        if ~isempty(postSeries)
+            appendPostsample( );
+        end
 
-    if ~isempty(preSeries)
-        appendPresample( );
+        if ~isempty(previousSerialXStart) && serialXStart==previousSerialXStart
+            x.Start = previousXStart;
+        elseif serialXStart~=serialXStart0
+            newStart = Dater.fromSerial(freq, serialXStart);
+            x.Start = newStart;
+            previousSerialXStart = serialXStart;
+            previousXStart = newStart;
+        end
+        x.Data = xData;
+        x = trim(x);
+        outputDb.(name__) = x;
     end
-    if ~isempty(postSeries)
-        appendPostsample( );
-    end
-
-    if ~isempty(previousSerialXStart) && serialXStart==previousSerialXStart
-        x.Start = previousXStart;
-    elseif serialXStart~=serialXStart0
-        newStart = Dater.fromSerial(freq, serialXStart);
-        x.Start = newStart;
-        previousSerialXStart = serialXStart;
-        previousXStart = newStart;
-    end
-    x.Data = xData;
-    x = trim(x);
-    outputDb.(name__) = x;
-end
 
 return
-
-
 
 
     function appendPresample( )
@@ -136,8 +129,6 @@ return
         xData = [preData; xData];
         serialXStart = serialXStart - sizePreData(1);
     end%
-
-
 
 
     function appendPostsample( )

@@ -116,9 +116,6 @@ end
 
 end%
 
-%
-% Local Functions
-%
 
 function [mainDb, fieldsToMerge, fieldsFailed] = concatenateNext(func, mainDb, mergeWith, fieldsToMerge, opt)
     %(

@@ -156,7 +156,7 @@ classdef Explanatory ...
 
 
 
-    properties (Dependent);
+    properties (Dependent)
 % LhsName  Databank name for the LHS variable
         LhsName
 
@@ -227,6 +227,7 @@ classdef Explanatory ...
         varargout = collectAllNames(varargin)
         varargout = collectControlNames(varargin)
         varargout = collectFittedNames(varargin)
+        varargout = collectDescripts(varargin)
         varargout = collectLhsNames(varargin)
         varargout = collectLogStatus(varargin)
         varargout = collectResidualNames(varargin)
@@ -658,7 +659,7 @@ classdef Explanatory ...
         end%
 
 
-        function get.ParameterValues(this)
+        function value = get.ParameterValues(this)
             value = this.Parameters;
         end%
 
@@ -765,7 +766,7 @@ classdef Explanatory ...
         function [inputString, attributes] = extractAttributes(inputString)
             %(
             attributes = string.empty(1, 0);
-            inputString = strtrim(inputString);
+            inputString = strip(inputString);
             if ~startsWith(inputString, ':')
                 return
             end
@@ -773,11 +774,11 @@ classdef Explanatory ...
             if isempty(attributes)
                 return
             end
-            attributes = strtrim(split(attributes));
+            attributes = strip(split(attributes));
             attributes(attributes=="") = [ ];
             attributes = reshape(attributes, 1, [ ]);
             inputString = eraseBetween(inputString, start, finish, 'Boundaries', 'Inclusive');
-            inputString = strtrim(inputString);
+            inputString = strip(inputString);
             %)
         end%
 

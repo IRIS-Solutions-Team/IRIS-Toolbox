@@ -26,7 +26,7 @@ euc = parser.EquationUnderConstruction( );
 puc = parser.PairingUnderConstruction( );
 
 numBlocks = numel(this.Block);
-collector = struct( );
+collector = struct();
 for i = 1 : numBlocks
     block__ = this.Block{i};
     if block__.Parse

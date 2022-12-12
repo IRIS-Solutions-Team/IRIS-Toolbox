@@ -22,7 +22,7 @@ classdef hdataobj<handle
 
         Name = cell.empty(1, 0)
         Label = cell.empty(1, 0)
-        XbVector (1, :) string = string.empty(1, 0)
+        MseNames (1, :) string = string.empty(1, 0)
 
         Precision = 'double'
         IncludeLag = true % Include lags of variables in output time series

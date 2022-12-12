@@ -50,6 +50,7 @@ classdef Table ...
                 this.Settings.ShowUnits = showUnits;
             end
             this.Settings.Dates = textual.stringify(dater.toIsoString(this.Settings_Dates, "mid"));
+            this.Settings.Dates = rephrase.fixScalar(this.Settings.Dates);
             % this.Settings.Dates = double.empty(1, 0);
             % for i = 1 : getNumSegments(this)
                 % dates = getSegmentDates(this, i);

@@ -461,9 +461,6 @@ end
     % Post-process hdata output arguments
     %
     outputDb = hdataobj.finalize(outputData, opt);
-    if opt.FlatOutput
-        outputDb = local_flatOutput(outputDb);
-    end
 
 return
 
@@ -519,7 +516,7 @@ return
                 outputData.Mse0 = hdataobj( );
                 outputData.Mse0.Data = nan(nb, nb, numExtPeriods, numRuns);
                 outputData.Mse0.Range = extRange;
-                outputData.Mse0.XbVector = xbVector;
+                outputData.Mse0.MseNames = xbVector;
             end
             if opt.Contributions
                 outputData.C0 = hdataobj( ...
@@ -552,7 +549,7 @@ return
                 outputData.Mse1 = hdataobj( );
                 outputData.Mse1.Data = nan(nb, nb, numExtPeriods, numRuns);
                 outputData.Mse1.Range = extRange;
-                outputData.Mse1.XbVector = xbVector;
+                outputData.Mse1.MseNames = xbVector;
             end
             if opt.Contributions
                 outputData.C1 = hdataobj( ...
@@ -581,7 +578,7 @@ return
                 outputData.Mse2 = hdataobj( );
                 outputData.Mse2.Data = nan(nb, nb, numExtPeriods, numRuns);
                 outputData.Mse2.Range = extRange;
-                outputData.Mse2.XbVector = xbVector;
+                outputData.Mse2.MseNames = xbVector;
             end
             if opt.Contributions
                 outputData.C2 = hdataobj( ...
@@ -607,28 +604,6 @@ function opt = local_resolveReturnOptions(opt)
     %)
 end%
 
-
-function outputDb = local_flatOutput(outputDb)
-    %(
-    for p = databank.fieldNames(outputDb)
-        fields = databank.fieldNames(outputDb.(p));
-        if isempty(fields)
-            outputDb = rmfield(outputDb, p);
-        elseif numel(fields)==1
-            outputDb.(p) = outputDb.(p).(fields);
-        end
-    end
-
-    fields = databank.fieldNames(outputDb);
-    if numel(fields)==1
-        outputDb = outputDb.(fields);
-    end
-    %)
-end%
-
-%
-% Local validators
-%
 
 function local_validateInputDb(x)
     %(

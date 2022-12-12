@@ -11,6 +11,7 @@ arguments
 
     opt.Range {validate.mustBeRange} = Inf
     opt.AddToDatabank (1, 1) {local_validateDatabank} = @auto
+    opt.Func (1, :) cell = cell.empty(1, 0)
 end
 %}
 % >=R2019b
@@ -26,6 +27,7 @@ if isempty(ip)
     addOptional(ip, "controlDb", struct([]), @validate.mustBeDatabank);
     addParameter(ip, 'Range', Inf);
     addParameter(ip, 'AddToDatabank', @auto);
+    addParameter(ip, 'Func', cell.empty(1, 0));
 end
 parse(ip, varargin{:});
 opt = ip.Results;
@@ -33,6 +35,10 @@ controlDb = ip.Results.controlDb;
 %)
 % <=R2019a
 
+
+if ~isempty(opt.Func)
+    func = opt.Func;
+end
 
 opt.Range = double(opt.Range);
 
