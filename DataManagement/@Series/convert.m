@@ -326,14 +326,15 @@ function [newData, newStart] = local_interpolate(this, oldStart, oldEnd, oldFreq
             newData = nan(newSize);
             oldRange100 = round(100*oldRange);
             newConverted100 = round(100*newConverted);
+            ratioFreq = newFreq / oldFreq;
             if startsWith(opt.Method, "flat", "ignoreCase", true)
                 testPeriods = true(size(newConverted));
             else
-                [~, newPeriods] = dat2ypf(newRange);
+                [~, newPeriods] = dater.getYearPeriodFrequency(newRange);
                 if startsWith(opt.Method, "last", "ignoreCase", true)
-                    testPeriods = newPeriods==newFreq;
+                    testPeriods = mod(newPeriods, round(newFreq/oldFreq))==0;
                 elseif startsWith(opt.Method, "first", "ignoreCase", true)
-                    testPeriods = newPeriods==1;
+                    testPeriods = mod(newPeriods, round(newFreq/oldFreq))==1;
                 end
             end
             for i = 1 : numel(oldRange)
