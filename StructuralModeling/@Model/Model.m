@@ -52,7 +52,12 @@ classdef Model ...
         varargout = assign(varargin)
         varargout = beenSolved(varargin)
         varargout = blazer(varargin)
-        varargout = bn(varargin)
+
+        varargout = beveridgeNelson(varargin)
+        function varargout = bn(varargin)
+            [varargout{1:nargout}] = beveridgeNelson(varargin{:});
+        end%
+
         varargout = checkSteady(varargin)
         varargout = deactivateLink(varargin)
         varargout = diffloglik(varargin)

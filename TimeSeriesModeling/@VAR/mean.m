@@ -1,4 +1,3 @@
-function [meanY, initY] = mean(this)
 % mean  Asymptotic mean of VAR process.
 %
 % Syntax
@@ -43,59 +42,68 @@ function [meanY, initY] = mean(this)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-isYInit = nargout>1;
+function [meanY, initY] = mean(this, variantsRequested)
 
-%--------------------------------------------------------------------------
-
-ny = size(this.A, 1);
-nx = length(this.ExogenousNames);
-p = size(this.A, 2) / max(ny, 1);
-nAlt = size(this.A, 3);
-numGroups = max(1, this.NumGroups);
-
-% Add the effect of exogenous inputs to the constant term, this.K. this
-% will work also in `sspace(...)`.
-if nx>0
-    KJ = this.K;
-    X0 = this.X0;
-    getExogMean( );
-    this.K(:,:,:) = KJ;
-end
-
-if p==0
-    meanY = this.K;
-    if isYInit
-        initY = zeros(ny, 0, nAlt);
+    if nargin>=2
+        numVariantsRequested = 1;
+        variantsRequested = variantsRequested(1);
+    else
+        numVariantsRequested = countVariants(this);
+        variantsRequested = 1 : numVariantsRequested;
     end
-    return
-end
 
-realSmall = getrealsmall( );
+    isYInit = nargout>1;
 
-meanY = nan(size(this.K));
-if isYInit
-    initY = nan(ny, p, nAlt);
-end
-for iAlt = 1 : nAlt
-    [iMean, iInit] = getMean(iAlt);
-    meanY(:, :, iAlt) = iMean;
-    if isYInit
-        initY(:, :, iAlt) = iInit;
+    %--------------------------------------------------------------------------
+
+    numY = size(this.A, 1);
+    numX = numel(this.ExogenousNames);
+    p = this.Order;
+    numGroups = max(1, this.NumGroups);
+
+    % Add the effect of exogenous inputs to the constant term, this.K. this
+    % will work also in `sspace(...)`.
+    if numX>0
+        KJ = this.K(:, :, variantsRequested);
+        X0 = this.X0(:, :, variantsRequested);
+        here_getExogenousMean();
+        this.K(:, :, variantsRequested) = KJ;
     end
-end
+
+    if p==0
+        meanY = this.K;
+        if isYInit
+            initY = zeros(numY, 0, numVariantsRequested);
+        end
+        return
+    end
+
+    realSmall = getrealsmall();
+
+    meanY = nan(numY, 1, 0);
+    if isYInit
+        initY = nan(numY, p, 0);
+    end
+    for v = variantsRequested
+        [meanY__, initY__] = here_getMean(v);
+        meanY = cat(3, meanY, meanY__);
+        if isYInit
+            initY = cat(3, initY, initY__);
+        end
+    end
 
 return
 
 
-    function [m, init] = getMean(iAlt)
-        unit = abs(abs(this.EigVal(1, :, iAlt)) - 1)<=realSmall;
+    function [m, init] = here_getMean(v)
+        unit = abs(abs(this.EigVal(1, :, v)) - 1)<=realSmall;
         nUnit = sum(unit);
-        init = [ ];
+        init = [];
         if nUnit==0
             % Stationary parameterisation
             %-----------------------------
-            m = sum(polyn.var2polyn(this.A(:,:,iAlt)),3) ...
-                \ this.K(:,:,iAlt);
+            m = sum(polyn.var2polyn(this.A(:,:,v)),3) ...
+                \ this.K(:,:,v);
             if isYInit
                 % The function `mean` requests initY only when called on VAR, not panel VAR
                 % objects; at this point, the size of `m` is guaranteed to be 1 in 2nd
@@ -105,16 +113,16 @@ return
         else
             % Unit-root parameterisation
             %----------------------------
-            [T, ~, k, ~, ~, ~, U] = sspace(this, iAlt);
-            a2 = (eye(ny*p-nUnit) - T(nUnit+1:end, nUnit+1:end)) ...
+            [T, ~, k, ~, ~, ~, U] = sspace(this, v);
+            a2 = (eye(numY*p-nUnit) - T(nUnit+1:end, nUnit+1:end)) ...
                 \ k(nUnit+1:end,:);
             % Return NaNs for unit-root variables.
-            dy = any( abs(U(1:ny,unit))>realSmall, 2 ).';
+            dy = any( abs(U(1:numY,unit))>realSmall, 2 ).';
             m = nan(size(this.K,1), size(this.K,2));
             m(~dy, :) = U(~dy,nUnit+1:end)*a2;
             if isYInit
                 init = U*[zeros(nUnit,1); a2];
-                init = reshape(init, ny, p);
+                init = reshape(init, numY, p);
                 init(:,:) = init(:, end:-1:1);
             end
         end
@@ -123,23 +131,23 @@ return
 
 
 
-    function getExogMean( )
+    function here_getExogenousMean( )
         if any(isnan(X0(:)))
             utils.warning('VAR:mean', ...
                 ['Cannot compute VAR mean. ', ...
                 'Asymptotic mean assumptions for exogenous inputs ', ...
                 'contain NaNs.']);
         end
-        if all( X0(:)==0 )
+        if all(X0(:)==0)
             return
         end
-        if nx>0
-            for iiAlt = 1 : nAlt
+        if numX>0
+            for vv = variantsRequested
                 for iiGrp = 1 : numGroups
-                    pos = (iiGrp-1)*nx + (1:nx);
-                    iiX = X0(:, iiGrp, iiAlt);                    
-                    iiJ = this.J(:, pos, iiAlt);
-                    KJ(:, iiGrp, iiAlt) = KJ(:, iiGrp, iiAlt) + iiJ*iiX;
+                    pos = (iiGrp-1)*numX + (1:numX);
+                    iiX = X0(:, iiGrp, vv);
+                    iiJ = this.J(:, pos, vv);
+                    KJ(:, iiGrp, vv) = KJ(:, iiGrp, vv) + iiJ*iiX;
                 end
             end
         end

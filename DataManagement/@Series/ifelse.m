@@ -4,7 +4,7 @@
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     X = ifelse(X, Test, IfTrue, ~IfFalse)
+%     X = ifelse(X, Test, IfTrue, ~WhenFalse)
 %
 %
 % __Input Arguments__
@@ -18,7 +18,7 @@
 % `Test` function returns `true`; if isempty, these observations will
 % remain unchanged.
 %
-% * `IfFalse` [ any | empty ] - Value assigned to observations for which
+% * `WhenFalse` [ any | empty ] - Value assigned to observations for which
 % the `Test` function returns `false`; if isempty or omitted, these
 % observations will remain unchanged.
 %
@@ -37,18 +37,18 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
 
-function this = ifelse(this, test, valueIfTrue, varargin)
+function this = ifelse(this, test, valueWhenTrue, varargin)
 
 persistent ip
 if isempty(ip)
     ip = extend.InputParser();
     ip.addRequired('timeSeries', @(x) isa(x, 'Series'));
     ip.addRequired('test', @(x) isa(x, 'function_handle'));
-    ip.addRequired('valueIfTrue');
-    ip.addOptional('valueIfFalse', []);
+    ip.addRequired('valueWhenTrue');
+    ip.addOptional('valueWhenFalse', []);
 end
-ip.parse(this, test, valueIfTrue, varargin{:});
-valueIfFalse = ip.Results.IfFalse;
+ip.parse(this, test, valueWhenTrue, varargin{:});
+valueWhenFalse = ip.Results.valueWhenFalse;
 
 
     data = this.Data;
@@ -60,22 +60,22 @@ valueIfFalse = ip.Results.IfFalse;
         );
     end
 
-    if isempty(valueIfTrue) && isempty(valueIfFalse)
+    if isempty(valueWhenTrue) && isempty(valueWhenFalse)
         return
     end
 
-    if ~isempty(valueIfTrue)
-        if isequal(valueIfTrue, @missing) || isequal(valueIfTrue, @MissingValue)
-            valueIfTrue = this.MissingValue;
+    if ~isempty(valueWhenTrue)
+        if isequal(valueWhenTrue, @missing) || isequal(valueWhenTrue, @MissingValue)
+            valueWhenTrue = this.MissingValue;
         end
-        data(indexTrue) = valueIfTrue;
+        data(indexTrue) = valueWhenTrue;
     end
 
-    if ~isempty(valueIfFalse)
-        if isequal(valueIfFalse, @missing) || isequal(valueIfFalse, @MissingValue)
-            valueIfFalse = this.MissingValue;
+    if ~isempty(valueWhenFalse)
+        if isequal(valueWhenFalse, @missing) || isequal(valueWhenFalse, @MissingValue)
+            valueWhenFalse = this.MissingValue;
         end
-        data(~indexTrue) = valueIfFalse;
+        data(~indexTrue) = valueWhenFalse;
     end
 
     this.Data = data;

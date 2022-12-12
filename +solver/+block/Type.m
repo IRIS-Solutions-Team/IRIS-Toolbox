@@ -3,21 +3,21 @@ classdef Type
         UNKNOWN       (-1, '', [ ] )
         SOLVE         ( 0, 'Solve for ', [ ] )
         ASSIGN        ( 1, 'Assign', [ ] )
-        ASSIGN_LOG    ( 2, 'Assign @log', @exp )
-        ASSIGN_EXP    ( 3, 'Assign @exp', @log )
-        ASSIGN_UMINUS ( 4, 'Assign @uminus', @uminus )
-        ITERATE_TIME  ( 5, 'Iterate Period by Period', [ ] )
+        ASSIGN_LOG    ( 2, 'Assign', @exp )
+        ASSIGN_EXP    ( 3, 'Assign', @log )
+        ASSIGN_UMINUS ( 4, 'Assign', @uminus )
+        ITERATE_TIME  ( 5, 'Iterate period by period', [ ] )
         EMPTY         ( 6, 'Empty', [ ] )
     end
-    
-    
+
+
     properties
         TypeId
         SaveAsKeyword
         InvTransform
     end
-    
-    
+
+
     methods
         function this = Type(typeId, saveAsKeyword, invTransform)
             PTR = @int16;
@@ -25,8 +25,8 @@ classdef Type
             this.SaveAsKeyword = saveAsKeyword;
             this.InvTransform = invTransform;
         end%
-        
-        
+
+
         function x = int16(this)
             x = this.TypeId;
         end%
@@ -53,8 +53,8 @@ classdef Type
         function flag = isEmptyBlock(this)
             flag = this==solver.block.Type.EMPTY;
         end%
-        
-        
+
+
         function c = strcat(this, c)
             switch this
                 case solver.block.Type.UNKNOWN
@@ -78,8 +78,8 @@ classdef Type
             end
         end%
     end
-    
-    
+
+
     methods (Static)
         function this = getTypeFromId(id)
             PTR = @int16;

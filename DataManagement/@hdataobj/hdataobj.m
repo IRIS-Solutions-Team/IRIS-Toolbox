@@ -6,7 +6,7 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2022 IRIS Solutions Team
 
-classdef hdataobj<handle
+classdef (CaseInsensitiveProperties=true) hdataobj < handle
 
     properties (Constant)
         CONTRIBUTION_FIXED = "Fixed"

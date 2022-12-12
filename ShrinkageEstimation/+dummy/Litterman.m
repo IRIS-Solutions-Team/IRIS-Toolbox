@@ -29,9 +29,9 @@
 % ## Output Arguments ##
 %
 %
-% __`b`__ [ DummyWrapper ]
+% __`b`__ [ dummy.Litterman ]
 % >
-% BVAR object that can be passed into the
+% A dummy.Litterman object that can be passed into the
 % [`VAR/estimate`](VAR/estimate) function.
 %
 %
@@ -59,7 +59,7 @@
 % observations of exogenous variables (if present).
 %
 %
-% ## Description ##
+% ## Description 
 %
 %
 % Create Litterman-style dummy prior observations for estimating a VAR
@@ -71,7 +71,7 @@
 % * `mu` is the weight on the prior (can be a vector of numbers in which
 % case each variable evals different weight); if you use the option
 % `Standardize=` when estimating the VAR, `mu` can be loosely interpreted
-% as the number of fictitious observations that will pull the estimates
+% as the square root of the number of fictitious observations that will pull the estimates
 % towards the priors;
 %
 % * `lambda` between 0 and Inf: priors on the `k`-th lag coefficients get
@@ -80,7 +80,7 @@
 % more heavily shrunk towards their prior value of zero.
 %
 % The dummy observations are arranged in up to four matrices: $$ y^0 $$ is
-% added to the LHS observations, $$ k $$ is added to the intercept vector
+% added to the LHS observations, $k$ is added to the intercept vector
 % (if the intercept is included in the VAR), $$ y^1 $$ is added to the RHS
 % observations of lagged endogenous variables, and $$ g $$ is added to the
 % RHS observations of exogenous variables (if any exogenous variables are

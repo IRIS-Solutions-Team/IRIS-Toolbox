@@ -14,7 +14,7 @@ if isempty(ip)
     addParameter(ip, 'MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(ip, 'ReturnMSE', true, @(x) isequal(x, true) || isequal(x, false));
 
-    addParameter(ip, 'Initials', 'fixedFromData', @(x) ismember(lower(string(x)), ["fixedFromData", "asymptotic"]));
+    addParameter(ip, 'Initials', 'fixedFromData', @(x) ismember(lower(string(x)), lower(["fixedFromData", "asymptotic"])));
 end
 parse(ip, varargin{:});
 opt = ip.Results;
@@ -104,7 +104,7 @@ opt = ip.Results;
 
 
         % Get initials from data
-        [initY__, missingInit__] = here_getInitials();
+        [initY__, initPy__, missingInit__] = here_getInitials();
         missingInit(:, run) = missingInit__;
 
 
@@ -121,7 +121,7 @@ opt = ip.Results;
         %==========================================================================
         % Run Kalman filter and smoother
         [~, ~, E2__, ~, Y2__, Py2__, ~, Y0__, Py0__, Y1__, Py1__] = iris.mixin.Kalman.smootherForVAR( ...
-            this, A__, B__, KJ__, Z, D, Omega__, [], [Y__; C__], [], initY__, 0, s ...
+            this, A__, B__, KJ__, Z, D, Omega__, [], [Y__; C__], [], initY__, initPy__, s ...
         );
 
         % Remove elements relating to conditioning instruments
@@ -288,10 +288,20 @@ return
     end%
 
 
-    function [initY__, missingInit__] = here_getInitials()
-        initY__ = initY(:, :, min(run, end));
+    function [initY__, initPy__, missingInit__] = here_getInitials()
+        if lower(opt.Initials)==lower("fixedFromData")
+            initY__ = initY(:, :, min(run, nv));
+            initPy__ = 0;
+            missingInit__ = any(isnan(reshape(initY__, numY, p)), 2);
+        else
+            [~, initY__] = mean(this, min(run, nv));
+            [T, R, ~, ~, ~, ~, U, Omega] = sspace(this, min(run, nv));
+            eigenStability = this.EigenStability(:, :, min(run, nv));
+            inxUnitRoots = eigenStability==1;
+            initPy__ = covfun.acovf(T, R, [], [], [], [], U, Omega, inxUnitRoots, 0);
+            missingInit__ = false(numY, 1);
+        end
         initY__ = reshape(fliplr(initY__), [], 1);
-        missingInit__ = any(isnan(reshape(initY__, numY, p)), 2);
     end%
 
 
@@ -304,7 +314,7 @@ return
         else
             optionalNames = [optionalNames, this.EndogenousNames];
         end
-        optionalNames = [this.ResidualNames, this.ConditioningNames];
+        optionalNames = [optionalNames, this.ResidualNames, this.ConditioningNames];
 
         allowedNumeric = string.empty(1, 0);
         allowedLog = string.empty(1, 0);
