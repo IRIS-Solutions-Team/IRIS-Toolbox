@@ -13,12 +13,20 @@ elseif numel(varargin)==1 && validate.databank(varargin{1})
     try
         presample = opt.PrependInput;
     catch
-        presample = opt.AppendPresample;
+        try
+            presample = opt.AppendPresample;
+        catch
+            presample = opt.DbOverlay;
+        end
     end
     try
         postsample = opt.AppendInput;
     catch
-        postsample = opt.AppendPostsample;
+        try
+            postsample = opt.AppendPostsample;
+        catch
+            postsample = opt.DbOverlay;
+        end
     end
 end
 

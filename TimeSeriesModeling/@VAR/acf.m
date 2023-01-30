@@ -78,13 +78,13 @@ maxOrder = opt.Order;
 C = nan(ny, ny, maxOrder+1, nv);
 
 % Find explosive parameterisations.
-inxOfUnstable = isexplosive(this);
+inxExplosive = isExplosive(this);
 
 if opt.Progress
     pBar = ProgressBar('[IrisToolbox] @VAR/acf Progress');
 end
 
-for v = find(~inxOfUnstable)
+for v = find(~inxExplosive)
     [T, R, ~, ~, ~, ~, U, Omega] = sspace(this, v);
     eigenStability = this.EigenStability(:, :, v);
     inxUnitRoots = eigenStability==1;
@@ -111,14 +111,14 @@ for v = find(~inxOfUnstable)
     end
     % Update the progress bar.
     if opt.Progress
-        update(pBar, v/sum(~inxOfUnstable));
+        update(pBar, v/sum(~inxExplosive));
     end
 end
 
-if any(inxOfUnstable)
+if any(inxExplosive)
     throw( ...
         exception.Base('VAR:CannotHandleUnstable', 'warning'), ...
-        'ACF', exception.Base.alt2str(inxOfUnstable) ...
+        'ACF', exception.Base.alt2str(inxExplosive) ...
     );
 end
 

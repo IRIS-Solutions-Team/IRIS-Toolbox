@@ -15,28 +15,26 @@ if nargin==2
     this.K = this.K(:, :, ixlhs);
     this.J = this.J(:, :, ixlhs);
     this.G = this.G(:, :, ixlhs);
-    this.Aic = this.Aic(1, ixlhs);
-    this.Sbc = this.Sbc(1, ixlhs);
+    this.AIC = this.AIC(1, ixlhs);
+    this.AICc = this.AICc(1, ixlhs);
+    this.SBC = this.SBC(1, ixlhs);
     this.T = this.T(:, :, ixlhs);
     this.U = this.U(:, :, ixlhs);
     this.X0 = this.X0(:, :, ixlhs);
-    if ~isempty(this.Sigma)
-        this.Sigma = this.Sigma(:, :, ixlhs);
-    end
+    this.Sigma = this.Sigma(:, :, ixlhs);
 elseif nargin==3 && isempty(obj)
     % Empty subscripted assignment this(lhs) = empty.
     this = subsalt@BaseVAR(this, ixlhs, obj);
     this.K(:, :, ixlhs) = [ ];
     this.J(:, :, ixlhs) = [ ];
     this.G(:, :, ixlhs) = [ ];
-    this.Aic(:, ixlhs) = [ ];
-    this.Sbc(:, ixlhs) = [ ];
+    this.AIC(:, ixlhs) = [ ];
+    this.AICc(:, ixlhs) = [ ];
+    this.SBC(:, ixlhs) = [ ];
     this.T(:, :, ixlhs) = [ ];
     this.U(:, :, ixlhs) = [ ];
     this.X0(:, :, ixlhs) = [ ];
-    if ~isempty(this.Sigma) && ~isempty(x.Sigma)
-        this.Sigma(:, :, ixlhs) = [ ];
-    end
+    this.Sigma(:, :, ixlhs) = [ ];
 elseif nargin==4 && testCompatible(this, obj)
     % Proper subscripted assignment this(lhs) = Obj(Rhs).
     this = subsalt@BaseVAR(this, ixlhs, obj, ixRhs);
@@ -44,14 +42,13 @@ elseif nargin==4 && testCompatible(this, obj)
         this.K(:, :, ixlhs) = obj.K(:, :, ixRhs);
         this.J(:, :, ixlhs) = obj.J(:, :, ixRhs);
         this.G(:, :, ixlhs) = obj.G(:, :, ixRhs);
-        this.Aic(:, ixlhs) = obj.Aic(:, ixRhs);
-        this.Sbc(:, ixlhs) = obj.Sbc(:, ixRhs);
+        this.AIC(:, ixlhs) = obj.AIC(:, ixRhs);
+        this.AICc(:, ixlhs) = obj.AICc(:, ixRhs);
+        this.SBC(:, ixlhs) = obj.SBC(:, ixRhs);
         this.T(:, :, ixlhs) = obj.T(:, :, ixRhs);
         this.U(:, :, ixlhs) = obj.U(:, :, ixRhs);
         this.X0(:, :, ixlhs) = obj.X0(:, :, ixRhs);
-        if ~isempty(this.Sigma) && ~isempty(obj.Sigma)
-            this.Sigma(:, :, ixlhs) = obj.Sigma(:, :, ixRhs);
-        end
+        this.Sigma(:, :, ixlhs) = obj.Sigma(:, :, ixRhs);
     catch %#ok<CTCH>
         utils.error('VAR:subsalt', ...
             ['Subscripted assignment to %s object failed, ', ...

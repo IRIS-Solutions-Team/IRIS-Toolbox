@@ -11,6 +11,7 @@ classdef Bands ...
 
 
     properties (Hidden)
+        Parent
         Lower Series
         Upper Series
         Relation (1, 1) string {ismember(Relation, ["relative", "absolute"])}
@@ -34,19 +35,16 @@ classdef Bands ...
         end%
 
 
-        function this = finalize(this, center, startDate, endDate)
+        function this = finalize(this, center)
             if this.Relation=="relative"
                 this.Lower = center - this.Lower;
                 this.Upper = center + this.Upper;
             end
-            [lowerDates, lowerValues] = this.finalizeForChart(this.Lower, startDate, endDate);
-            [upperDates, upperValues] = this.finalizeForChart(this.Upper, startDate, endDate);
-            lowerValues = round(this, lowerValues);
-            upperValues = round(this, upperValues);
+            lowerContent = this.finalizeSeriesData(this.Lower);
+            upperContent = this.finalizeSeriesData(this.Upper);
             this.Content = struct();
-            this.Content.Dates = [reshape(lowerDates, 1, []), fliplr(reshape(upperDates, 1, []))];
-            this.Content.Values = [reshape(lowerValues, 1, []), fliplr(reshape(upperValues, 1, []))];
-
+            this.Content.Dates = [reshape(lowerContent.Dates, 1, []), fliplr(reshape(upperContent.Dates, 1, []))];
+            this.Content.Values = [reshape(lowerContent.Values, 1, []), fliplr(reshape(upperContent.Values, 1, []))];
             populateSettingsStruct(this);
         end%
     end
