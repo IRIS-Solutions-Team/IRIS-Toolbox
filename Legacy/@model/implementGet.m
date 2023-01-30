@@ -201,7 +201,7 @@ else
             response = this.Build;
 
 
-        case {'preparser', 'preparsercontrol', 'pset', 'controlparameters'}
+        case {'preparser', 'preparsercontrol', 'pset', 'controlparam'}
             response = this.PreparserControl;
 
 

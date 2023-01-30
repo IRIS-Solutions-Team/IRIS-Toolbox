@@ -183,7 +183,7 @@ end
 
 function content = local_readTextFile(fileName)
     %(
-    fid = fopen(fileName, "rt+", "native", "UTF-8");
+    fid = fopen(fileName, "r", "native", "UTF-8");
     content = fread(fid, Inf, "*char", "native");
     fclose(fid);
     content = string(reshape(content, 1, [ ]));

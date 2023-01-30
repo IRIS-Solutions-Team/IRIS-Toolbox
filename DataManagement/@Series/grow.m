@@ -40,6 +40,10 @@ opt = ip.Results;
 % <=R2019a
 
 
+if isempty(dates)
+    return
+end
+
 % Legacy positional argument
 if isscalar(legacyShift) && opt.Shift==-1
     opt.Shift = legacyShift;
