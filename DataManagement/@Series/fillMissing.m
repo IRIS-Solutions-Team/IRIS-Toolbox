@@ -31,9 +31,20 @@ if isempty(range)
 end
 
 
+% Return immediately if the time series is empty and range is Inf
+if isequal(range, Inf) && isempty(this)
+    exception.warning([
+        "Series"
+        "No missing values filled because the time series is empty."
+    ]);
+    datesMissing = Dater.empty(1, 0);
+    return
+end
+
+
 % Resolve dates depending on the input time series
 
-[startDate, endDate, inxRange] = locallyResolveDates(this, range);
+[startDate, endDate, inxRange] = local_resolveDates(this, range);
 data = getDataFromTo(this, startDate, endDate);
 
 
@@ -50,7 +61,7 @@ if nargout>=2
 end
 
 while ~isempty(method) && nnz(inxMissing)>0 && isa(method{1}, 'Series')
-    data = locallyReplaceData(data, startDate, endDate, inxMissing, method{1});
+    data = local_replaceData(data, startDate, endDate, inxMissing, method{1});
     inxMissing = this.MissingTest(data) & inxRange;
     method(1) = [];
 end
@@ -67,7 +78,7 @@ end%
 % Local Functions
 %
 
-function [startDate, endDate, inxRange] = locallyResolveDates(this, range)
+function [startDate, endDate, inxRange] = local_resolveDates(this, range)
     range = double(range);
     startMissing = range(1);
     endMissing = range(end);
@@ -95,7 +106,7 @@ function [startDate, endDate, inxRange] = locallyResolveDates(this, range)
 end%
 
 
-function data = locallyReplaceData(data, startDate, endDate, inxMissing, method)
+function data = local_replaceData(data, startDate, endDate, inxMissing, method)
     replaceWith = getDataFromTo(method, startDate, endDate);
     sizeData = size(data);
     sizeReplaceWith = size(replaceWith);

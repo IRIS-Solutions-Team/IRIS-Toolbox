@@ -63,10 +63,12 @@ aggregateRate = sum(rates * weights, 2);
 %
 % Calculate aggregate level
 %
-rateRange = getRangeAsNumeric(aggregateRate);
-growRange = dater.colon(dater.plus(rateRange(1), -1), rateRange(end));
-aggregateLevel = Series(growRange, 1);
-aggregateLevel = grow(aggregateLevel, "roc", aggregateRate, getRange(aggregateRate), "EoPY");
+rateRange = getRange(aggregateRate);
+growRange = rateRange(1)-1 : rateRange(end);
+aggregateLevel = grow( ...
+    Series(growRange, 1), "roc", aggregateRate, rateRange ...
+    , "shift", "EoPY" ...
+);
 
 if ~isempty(opt.RebaseDates)
     aggregateLevel = 100 * normalize(aggregateLevel, opt.RebaseDates);
