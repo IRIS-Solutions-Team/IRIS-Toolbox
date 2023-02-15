@@ -86,7 +86,8 @@ function output = xlist(glue, varargin)
     varargin = cellfun(@local_ensureType, varargin, 'uniformOutput', false);
     output = varargin{end};
     for x = varargin(end-1:-1:1)
-        output = reshape(x{:} + glue + reshape(output, [], 1), 1, []);
+        output = x{:} + glue + reshape(output, [], 1);
+        output = reshape(output, 1, []);
     end
 end%
 
@@ -100,7 +101,7 @@ function c = local_ensureType(c)
         try
             c = string(c);
         catch exc
-            error('Inputs to textual.xlist(~) must be char, cellstr, string or numeric');
+            error('Inputs to textual.xlist must be char, cellstr, string or numeric');
         end
     end
     c = reshape(c, 1, []);

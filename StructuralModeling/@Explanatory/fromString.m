@@ -69,22 +69,23 @@ function this = fromString(inputString, varargin)
 
 % Parse input arguments
 %(
-persistent pp INIT_EXPLANATORY
-if isempty(pp) || isempty(INIT_EXPLANATORY)
-    pp = extend.InputParser('Explanatory.fromString');
+persistent ip INIT_EXPLANATORY
+if isempty(ip)
+    ip = inputParser();
+    addRequired(ip, 'inputString', @validate.list);
+    addParameter(ip, 'ControlNames', string.empty(1, 0), @(x) isempty(x) || isstring(x) || iscellstr(x));
+    addParameter(ip, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
+    addParameter(ip, 'ResidualNamePattern', @auto, @(x) isequal(x, @auto) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
+    addParameter(ip, 'FittedNamePattern', @auto, @(x) isequal(x, @auto) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
+    addParameter(ip, 'LhsReference', @auto, @(x) isequal(x, @auto) || validate.stringScalar(x));
+    addParameter(ip, 'WhenSimultaneous', "warning", @(x) ismember(string(x), ["warning", "error", "silent"]));
+end
+parse(ip, inputString, varargin{:});
+opt = ip.Results;
 
-    addRequired(pp, 'inputString', @validate.list);
-
-    addParameter(pp, 'ControlNames', string.empty(1, 0), @(x) isempty(x) || isstring(x) || iscellstr(x));
-    addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
-    addParameter(pp, 'ResidualNamePattern', @auto, @(x) isequal(x, @auto) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
-    addParameter(pp, 'FittedNamePattern', @auto, @(x) isequal(x, @auto) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
-    addParameter(pp, 'LhsReference', @auto, @(x) isequal(x, @auto) || validate.stringScalar(x));
-
+if isempty(INIT_EXPLANATORY)
     INIT_EXPLANATORY = Explanatory();
 end
-parse(pp, inputString, varargin{:});
-opt = pp.Options;
 %)
 
 
@@ -114,7 +115,7 @@ opt = pp.Options;
         % and FittedNamePattern, and enforce lower or upper case on
         % ResidualNamePattern and FittedNamePattern if requested
         %
-        this__ = hereCreateObject( );
+        this__ = here_createObject();
 
         %
         % Assign control names
@@ -153,7 +154,7 @@ opt = pp.Options;
         % upper case if requested
         %
 
-        this__.VariableNames = hereCollectAllVariableNames( );
+        this__.VariableNames = here_collectAllVariableNames( );
 
 
         %
@@ -168,17 +169,17 @@ opt = pp.Options;
 
         [split__, sign__] = split(inputString__, ["=#", "===", "=", ":="]);
         if isempty(sign__)
-            hereThrowInvalidInputString( );
+            here_throwInvalidInputString( );
         end
         lhsString = split__(1);
         equalSign = sign__(1);
         rhsString = join(split__(2:end), "=");
 
         if lhsString==""
-            hereThrowEmptyLhs( );
+            here_throwEmptyLhs( );
         end
         if rhsString==""
-            hereThrowEmptyRhs( );
+            here_throwEmptyRhs( );
         end
 
         this__.IsIdentity = equalSign~="=";
@@ -197,7 +198,7 @@ opt = pp.Options;
     end
 
     if numEmpty>0
-        hereWarnEmptyEquations( );
+        here_warnEmptyEquations( );
     end
 
     this = reshape([array{:}], [ ], 1);
@@ -205,7 +206,7 @@ opt = pp.Options;
 return
 
 
-    function obj = hereCreateObject( )
+    function obj = here_createObject( )
         obj = INIT_EXPLANATORY;
         if ~isequal(opt.ResidualNamePattern, @auto)
             obj.ResidualNamePattern = string(opt.ResidualNamePattern);
@@ -220,18 +221,19 @@ return
             obj.ResidualNamePattern = opt.EnforceCase(obj.ResidualNamePattern);
             obj.FittedNamePattern = opt.EnforceCase(obj.FittedNamePattern);
         end
+        obj.WhenSimultaneous = opt.WhenSimultaneous;
     end%
 
 
 
 
-    function variableNames = hereCollectAllVariableNames( )
+    function variableNames = here_collectAllVariableNames( )
         if isempty(opt.EnforceCase)
             variableNames = regexp(inputString__, Explanatory.VARIABLE_NO_SHIFT, 'match');
         else
             variableNames = string.empty(1, 0);
             enforceCaseFunc = opt.EnforceCase;
-            replaceFunc = @hereEnforceCase;
+            replaceFunc = @here_enforceCase;
             inputString__ = regexprep(inputString__, Explanatory.VARIABLE_NO_SHIFT, '${replaceFunc($0)}');
         end
 
@@ -248,7 +250,7 @@ return
         end
 
         return
-            function c = hereEnforceCase(c)
+            function c = here_enforceCase(c)
                 c = enforceCaseFunc(c);
                 variableNames(end+1) = c;
             end%
@@ -257,7 +259,7 @@ return
 
 
 
-    function hereThrowInvalidInputString( )
+    function here_throwInvalidInputString( )
         thisError = [
             "Explanatory:InvalidInputString"
             "Invalid input string to define ExplanatoryTerm: %s"
@@ -268,7 +270,7 @@ return
 
 
 
-    function hereThrowEmptyLhs( )
+    function here_throwEmptyLhs( )
         thisError = [
             "Explanatory:EmptyLhs"
             "This Explanatory object specification has an empty LHS: %s "
@@ -279,7 +281,7 @@ return
 
 
 
-    function hereThrowEmptyRhs( )
+    function here_throwEmptyRhs( )
         thisError = [
             "Explanatory:EmptyRhs"
             "This Explanatory object specification has an empty RHS: %s"
@@ -290,7 +292,7 @@ return
 
 
 
-    function hereWarnEmptyEquations( )
+    function here_warnEmptyEquations( )
         thisWarning = [
             "Explanatory:EmptyEquations"
             "Excluded a total number of %g empty equation(s) from the input string."

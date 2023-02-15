@@ -7,7 +7,6 @@ function  [this, success, outputInfo] = steadyLinear(this, variantsRequested, op
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 STEADY_TOLERANCE = this.Tolerance.Steady;
-PTR = @int16;
 
 try
     throwWarning = isequal(options.Warning, true);
@@ -131,7 +130,7 @@ return
             a2 = temp(numOfUnitRoots+(1:numOfStableRoots));
             da1 = temp(nb+(1:numOfUnitRoots));
         end
-        
+
         % __Transition Variables__
         x = [ Tf*[-da1; a2]+Kf; U(:, numOfUnitRoots+1:end)*a2 ];
         dx = [ Tf(:, 1:numOfUnitRoots)*da1; U(:, 1:numOfUnitRoots)*da1 ];
@@ -141,7 +140,7 @@ return
         dx(~ixZeroShxx) = [ ];
         lvl(1, posxx) = x(:).';
         grw(1, posxx) = dx(:).';
-        
+
         % __Measurement Variables__
         if ny > 0
             y = Z(:, numOfUnitRoots+1:end)*a2 + D;

@@ -11,6 +11,7 @@ arguments
     opt.Transform {local_validateTransform(opt.Transform)} = cell.empty(1, 0)
     opt.WhenTransformFails {local_validateWhen} = "error"
     opt.WhenMissing {local_validateWhen} = "error"
+    opt.RemoveSource (1, 1) logical = false
 end
 %}
 % >=R2019b
@@ -28,6 +29,7 @@ if isempty(ip)
     addParameter(ip, "TargetDb", @empty);
     addParameter(ip, "Transform", cell.empty(1, 0));
     addParameter(ip, "WhenTransformFails", "error");
+    addParameter(ip, "RemoveStart", false);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
@@ -57,6 +59,7 @@ here_checkDimensions();
 
 inxSuccess = true(1, numSourceNames);
 inxMissing = true(1, numSourceNames);
+namesToRemove = string.empty(1, 0);
 for i = 1 : numSourceNames
     sourceName__ = sourceNames(i);
     targetName__ = targetNames(i);
@@ -76,6 +79,14 @@ for i = 1 : numSourceNames
     elseif isstruct(targetDb)
         targetDb.(char(targetName__)) = value;
     end
+
+    if opt.RemoveSource && sourceName__~=targetName__ && isfield(targetDb, sourceName__)
+        namesToRemove(end+1) = sourceName__;
+    end
+end
+
+if ~isempty(namesToRemove)
+    targetDb = rmfield(targetDb, namesToRemove);
 end
 
 if any(~inxSuccess)

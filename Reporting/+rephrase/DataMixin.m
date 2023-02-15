@@ -19,13 +19,13 @@ classdef (Abstract) DataMixin ...
         end%
 
 
-        function content = finalizeSeriesData(this, input)
+        function content = finalizeSeriesData(this, input, startDate, endDate)
             %(
             % Keep expression string and add to the data requests
             if isstring(input) || ischar(input) || iscellstr(input)
 %                 content = textual.stringify(input);
 %                 this.DataRequests = union(this.DataRequests, content, 'stable');
-                error("Not implemented");
+                error("String inputs into Series elements not implemented");
                 return
             end
 
@@ -65,8 +65,8 @@ classdef (Abstract) DataMixin ...
 
 
         function x = transform(this, x)
-            if isa(this.Settings.Transform, 'function_handle')
-                x = this.Settings.Transform(x);
+            if isa(this.Settings_Transform, 'function_handle')
+                x = this.Settings_Transform(x);
             end
         end%
     end
