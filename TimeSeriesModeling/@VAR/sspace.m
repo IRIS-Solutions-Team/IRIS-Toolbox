@@ -1,4 +1,3 @@
-function [T, R, k, Z, H, d, U, Cov] = sspace(this, varargin)
 % sspace  Quasi-triangular state-space representation of VAR.
 %
 % Syntax
@@ -43,6 +42,8 @@ function [T, R, k, Z, H, d, U, Cov] = sspace(this, varargin)
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2022 IRIS Solutions Team.
+
+function [T, R, k, Z, H, d, U, Cov] = sspace(this, varargin)
 
 if ~isempty(varargin) && validate.numericScalar(varargin{1}) 
    variantsRequested = varargin{1};

@@ -29,18 +29,18 @@ if isempty(pp)
     % addParameter(pp, 'Transition_Rate', 1, @(x) isequal(x, @auto) || validate.numericScalar(x));
     addParameter(pp, 'TransitionStd', 1, @(x) isequal(x, 1) || isa(x, 'Series'));
 
-    addParameter(pp, 'HardLevel', [ ], @(x) isempty(x) || isa(x, 'Series'));
-    addParameter(pp, 'HardDiff', [ ], @(x) isempty(x) || isa(x, 'Series'));
-    addParameter(pp, 'HardRate', [ ], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'HardLevel', [], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'HardDiff', [], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'HardRate', [], @(x) isempty(x) || isa(x, 'Series'));
 
     %{
-    addParameter(pp, 'SoftLevel', [ ], @(x) isempty(x) || isa(x, 'Series'));
-    addParameter(pp, 'SoftDiff', [ ], @(x) isempty(x) || isa(x, 'Series'));
-    addParameter(pp, 'SoftRate', [ ], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'SoftLevel', [], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'SoftDiff', [], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'SoftRate', [], @(x) isempty(x) || isa(x, 'Series'));
     %}
 
     addParameter(pp, 'IndicatorModel', 'Difference', @(x) (ischar(x) || isstring(x)) && startsWith(x, ["diff", "rat"], "ignoreCase", true));
-    addParameter(pp, 'IndicatorLevel', [ ], @(x) isempty(x) || isa(x, 'Series'));
+    addParameter(pp, 'IndicatorLevel', [], @(x) isempty(x) || isa(x, 'Series'));
 end
 %)
 

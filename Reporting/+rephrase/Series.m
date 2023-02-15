@@ -27,13 +27,12 @@ classdef Series ...
             if ~isempty(this.Settings_Bands) && rephrase.Type.isChart(this.Parent.Type)
                 %center = this.Input{1};
                 center = this.Input;
-                startDate = this.Parent.Settings_StartDate;
-                endDate = this.Parent.Settings_EndDate;
                 % if ~iscell(this.Settings_Bands)
                 %     this.Settings_Bands = {this.Settings_Bands};
                 % end
                 for i = 1 : numel(this.Settings_Bands)
-                    this.Settings_Bands{i} = finalize(this.Settings_Bands{i}, center, startDate, endDate);
+                    this.Settings_Bands{i}.Parent = this.Parent;
+                    this.Settings_Bands{i} = finalize(this.Settings_Bands{i}, center);
                 end
             end
             finalize@rephrase.Terminal(this);

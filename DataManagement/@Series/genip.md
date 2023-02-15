@@ -4,7 +4,7 @@ title: genip
 
 # `genip` ^^(Series)^^
 
-{== Generalized indicator based interpolation ==}
+{==Generalized indicator based interpolation==}
 
 
 ## Syntax 
@@ -100,7 +100,7 @@ __`ResolveConflicts=true`__ [ `true` | `false` ]
 > obervatations and the data supplied through the `HighLevel=` option.
 > 
 
-__`IndicatorLevel=[ ]`__ [ empty | Series ] 
+__`IndicatorLevel=[]`__ [ empty | Series ] 
 > 
 > High-frequency indicator whose dynamics will be used to interpolate
 > the `lowInput`.
@@ -119,7 +119,7 @@ __`Initials=@auto`__ [ `@auto` | Series ]
 > Initial (presample) conditions for the Kalman filter; `@auto` means
 > the initial condition will be extracted from the `HardLevel`
 > time series; if no observations are supplied either directly
-> through `Initials` or through `HardLevel`, then the initial
+> through `Initials` or through `HardLevel`, the initial
 > condition will be estimated by maximum likelihood.
 > 
 
@@ -144,48 +144,53 @@ estimated by a Kalman filter:
 
 ### State transition equation 
 
-$$ \left(1 - L\right)^k \hat x_t = v_t $$
+$$
+\left(1 - L\right)^k \hat x_t = v_t
+$$
 
-where $ \hat x_t $ is a transformation of the unobserved higher-frequency
-interpolated series, $ x_t $, depending on the option `Indicator.Model`,
+where $\hat x_t$ is a transformation of the unobserved higher-frequency
+interpolated series, $x_t$, depending on the option `Indicator.Model`,
 and $v_t$ is a transition error with constant variance. The
 transformation $\hat x_t$ is given by:
 
-* $ \hat x_t = x_t $ if no indicator is specified;
+* $\hat x_t = x_t$ if no indicator is specified;
 
-* $ \hat x_t = x_t - q_t $ if an indicator $ q_t $ is entered through
+* $\hat x_t = x_t - q_t$ if an indicator $q_t$ is entered through
 `Indicator.Level=` and `Indicator.Model="Difference"`;
 
-* $ \hat x_t = x_t / q_t $ if an indicator $ q_t $ is entered through
+* $\hat x_t = x_t / q_t$ if an indicator $q_t$ is entered through
 `Indicator.Level=` and `Indicator.Model="Ratio"`;
 
-$ L $ is the lag operator, $ k $ is the order of differencing
+$L$ is the lag operator, $k$ is the order of differencing
 specified by `order`.
 
 ### Measurement equation ###
 
-$$ y_t = Z x_t $$
+$$
+y_t = Z x_t
+$$
 
 where 
 
-* $ y_t $ is a measurement variables containing the lower-frequency data
+* $y_t$ is a measurement variables containing the lower-frequency data
 placed in the last (fourth) quarter of every year; in other words, only
 every fourth observation is available, and the three in between are
 missing
 
-* $ x_t $ is a state vector consisting of $N$ elements, where $N$
+* $x_t$ is a state vector consisting of $N$ elements, where $N$
 is the number of high-frequency periods within one low-frequency period:
 the unobserved high-frequency lags $t-N, \dots, t-1, t$.
 
-* $ Z $ is a time-invariant aggregation matrix depending on
+* $Z$ is a time-invariant aggregation matrix depending on
 `aggregation`: 
-    * $ Z=[1, 1, 1, 1] $ for `aggregation="Sum"`, 
-    * $ Z=[1/4, 1/4, 1/4, 1/4] $ for `aggregation="Average"`, 
-    * $ Z=[0, 0, 0, 1] $ for `aggregation="Last"`, 
-    * $ Z=[1, 0, 0, 0] $ for `aggregation="First"`, 
-    * or a user supplied 1-by-$ N $ vector
 
-* $ w_t $ is a vector of measurement errors associated with soft
+* $Z=[1, 1, 1, 1]$ for `aggregation="sum"`, 
+* $Z=[1/4, 1/4, 1/4, 1/4]$ for `aggregation="average"`, 
+* $Z=[0, 0, 0, 1]$ for `aggregation="last"`, 
+* $Z=[1, 0, 0, 0]$ for `aggregation="first"`, 
+* or a user supplied 1-by-$N$ vector
+
+* $w_t$ is a vector of measurement errors associated with soft
 conditions.
 
 ## Examples

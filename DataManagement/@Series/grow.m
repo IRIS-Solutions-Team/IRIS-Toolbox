@@ -15,7 +15,7 @@ arguments
     legacyShift (1, :) double {mustBeInteger} = double.empty(1, 0)
 
     opt.Direction (1, 1) string {validate.anyString(opt.Direction, ["forward", "backward"])} = "forward" 
-    opt.Shift (1, 1) double {mustBeInteger} = -1
+    opt.Shift = -1
 end
 %}
 % >=R2019b
@@ -40,8 +40,12 @@ opt = ip.Results;
 % <=R2019a
 
 
+if isempty(dates)
+    return
+end
+
 % Legacy positional argument
-if isscalar(legacyShift) && opt.Shift==-1
+if isscalar(legacyShift) && isequal(opt.Shift, -1)
     opt.Shift = legacyShift;
 end
 

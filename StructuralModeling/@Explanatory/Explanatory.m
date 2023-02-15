@@ -140,8 +140,9 @@ classdef Explanatory ...
             , 'OptimOutput', {{[]}} ...
         )
 
-
         Runtime = struct( )
+
+        WhenSimultaneous (1, 1) string = "warning"
     end
 
 
@@ -280,8 +281,8 @@ classdef Explanatory ...
             return
 
                 function hereReportCurrentLhsName( )
-                    exception.warning([
-                        "Explanatory:RhsContainsCurrentLhsName"
+                    exception.(this.WhenSimultaneous)([
+                        "Explanatory"
                         "RHS of the Explanatory object contains the current date of its own LHS name: %s "
                         "Careful because Explanatory objects are not solved as simultaneous systems. "
                     ], this.LhsName);
