@@ -165,8 +165,10 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
             if ~isempty(this.Values)
                 this.Values(end+1:numPer, :) = missingCell;
             end
-            this.Values = [this.Values, dates];
 
+            allValues = double.empty(numValues, 0);
+            inxNaN = logical.empty(numValues, 0);
+            inxMissing = logical.empty(numValues, 0);
             for n = names
                 if ~isnan(freq)
                     values = getDataFromTo(db.(n), range);
@@ -176,21 +178,24 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                     values = nan(size__);
                 end
                 values = values(:, :);
-                inxNaN = isnan(values);
-                values = num2cell(values);
-                values(inxNaN) = nanCell;
-                values(end+1:numValues, :) = missingCell;
+                [numRows, numColumns] = size(values);
+                values(numRows+1:numValues, :) = NaN;
+                allValues = [allValues, values];
 
-                this.Values = [this.Values, values];
+                inxNaN = [inxNaN, isnan(values)];
+                inxMissing = [inxMissing, [false(numRows, numColumns); true(numValues-numRows, numColumns)]];
 
                 targetName = getTargetName(this, n);
-                numColumns = size(values, 2);
                 header = [{char(targetName)}, repmat({char(this.Multivariate)}, 1, numColumns-1)];
                 if this.IncludeComments
                     header = [header; cellstr(comment(db.(n)))];
                 end
                 this.Header = [this.Header, header];
             end
+            allValues = num2cell(allValues);
+            allValues(inxNaN) = nanCell;
+            allValues(inxMissing) = missingCell;
+            this.Values = [this.Values, dates, allValues];
 
             if this.NumDividers>=1
                 this.Header(:, end+(1:this.NumDividers)) = missingCell;
@@ -237,7 +242,9 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 end
 
                 if this.IsDatesColumn(name)
-                    this.CurrentDatesColumn = extractDatesColumn(this, name, column);
+                    freq = this.FrequencyFromHeader(name);
+                    dates = this.Values(:, column);
+                    this.CurrentDatesColumn = extractDatesColumn(dates, freq, name);
                     continue
                 end
 
@@ -327,10 +334,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 end
             end
 
-            exception.error([
-                "Tabular"
-                "Invalid dates in column %s. "
-            ], name);
+            exception.error(["Tabular"; "Invalid dates in column %s "], name);
             %)
         end%
 
