@@ -5,8 +5,8 @@ function this = diff(this, shift, varargin)
         return
     end
 
-    try, shift;
-        catch, shift = -1;
+    if nargin<2
+        shift = -1;
     end
 
     if isnumeric(shift) && numel(shift)>1

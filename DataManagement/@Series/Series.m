@@ -937,11 +937,11 @@ classdef ( ...
         function x = power(x, y)
             x = binop(@power, x, y);
         end%
-        function x = prod(x, dim)
+        function x = prod(x, dim, varargin)
             if nargin<2
                 dim = 1;
             end
-            x = unop(@prod, x, dim, dim);
+            x = unop(@prod, x, dim, dim, varargin{:});
         end%
         function x = rdivide(x, y)
             x = binop(@rdivide, x, y);
