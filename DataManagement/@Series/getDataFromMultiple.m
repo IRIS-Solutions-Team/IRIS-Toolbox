@@ -15,13 +15,12 @@ end
 
 inputSeries = varargin;
 
-
-if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
-    dates = "unbalanced";
-end
-
-if ~isstring(dates)
-    dates = double(dates);
+if ~isequal(dates, "unbalanced")
+    if isequal(dates, @all) || isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
+        dates = "unbalanced";
+    else
+        dates = double(dates);
+    end
 end
 
 numSeries = numel(inputSeries);

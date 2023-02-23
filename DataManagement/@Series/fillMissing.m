@@ -5,7 +5,7 @@ function [this, datesMissing] = fillMissing(this, range, method)
 
 arguments
     this Series
-    range { validate.mustBeRange(range) }
+    range
 end
 
 arguments (Repeating)
