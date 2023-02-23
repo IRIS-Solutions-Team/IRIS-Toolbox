@@ -82,25 +82,25 @@
 
 function this = roc(this, shift, varargin)
 
-if isempty(this.Data)
-    return
-end
+    if isempty(this.Data)
+        return
+    end
 
-try, shift;
-    catch, shift = -1;
-end
+    if nargin<2
+        shift = -1;
+    end
 
-[shift, power] = dater.resolveShift(getRangeAsNumeric(this), shift, varargin{:});
-
-
-%==========================================================================
-this = unop(@series.change, this, 0, @rdivide, shift);
-%==========================================================================
+    [shift, power] = dater.resolveShift(getRangeAsNumeric(this), shift, varargin{:});
 
 
-if power~=1
-    this.Data = this.Data .^ power;
-end
+    %==========================================================================
+    this = unop(@series.change, this, 0, @rdivide, shift);
+    %==========================================================================
+
+
+    if power~=1
+        this.Data = this.Data .^ power;
+    end
 
 end%
 

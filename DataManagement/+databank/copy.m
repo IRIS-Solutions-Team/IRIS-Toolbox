@@ -12,6 +12,7 @@ arguments
     opt.WhenTransformFails {local_validateWhen} = "error"
     opt.WhenMissing {local_validateWhen} = "error"
     opt.RemoveSource (1, 1) logical = false
+    opt.WhenTargetExists (1, 1) string {mustBeMember(opt.WhenTargetExists, ["error", "warning", "silent"])} = "error"
 end
 %}
 % >=R2019b
@@ -60,6 +61,7 @@ here_checkDimensions();
 inxSuccess = true(1, numSourceNames);
 inxMissing = true(1, numSourceNames);
 namesToRemove = string.empty(1, 0);
+targetExists = string.empty(1, 0);
 for i = 1 : numSourceNames
     sourceName__ = sourceNames(i);
     targetName__ = targetNames(i);
@@ -74,6 +76,11 @@ for i = 1 : numSourceNames
         inxSuccess(i) = false;
         continue
     end
+
+    if isfield(targetDb, targetName__)
+        targetExists(end+1) = targetName__;
+    end
+
     if isa(targetDb, 'Dictionary')
         store(targetDb, targetName__, value);
     elseif isstruct(targetDb)
@@ -83,6 +90,19 @@ for i = 1 : numSourceNames
     if opt.RemoveSource && sourceName__~=targetName__ && isfield(targetDb, sourceName__)
         namesToRemove(end+1) = sourceName__;
     end
+end
+
+
+if ~isempty(targetExists)
+    switch opt.WhenTargetExists
+        case "error"
+            func = @exception.error;
+        case "warning"
+            func = @exception.warning;
+        case "silent"
+            func = @exception.silent;
+    end
+    func(["Databank", "This target name already exists in the target databank: %s"], targetExists);
 end
 
 if ~isempty(namesToRemove)
