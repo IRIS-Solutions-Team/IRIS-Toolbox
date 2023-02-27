@@ -16,6 +16,7 @@ classdef (CaseInsensitiveProperties=true) Chartpack ...
         ShowFigure (1, 1) double = Inf
         Round (1, 1) double = Inf
         FigureTitle (1, :) string = string.empty(1, 0)
+        ReorderFigures (1, 1) logical = true
 
         Expansion (1, :) cell = cell.empty(1, 0)
 
