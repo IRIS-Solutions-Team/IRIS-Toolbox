@@ -28,7 +28,7 @@ classdef (CaseInsensitiveProperties=true) Chart < handle
         SEPARATE_CAPTION = ":"
         EXCLUDE_FROM_TRANSFORM = "^"
         EXPANSION_MARK = "?"
-        PAGE_BREAK = ["//", "---"]
+        PAGE_BREAK = ["//", "---", "..."]
     end
 
 
