@@ -17,7 +17,7 @@ function dateCode = ww(varargin)
             varargin{2} = dater.monthFromString(varargin{2});
         end
         day = datenum(varargin{:});
-        dateCode = numeric.day2ww(day);
+        dateCode = dater.day2ww(day);
         return
     end
 

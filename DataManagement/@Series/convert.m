@@ -326,7 +326,6 @@ function [newData, newStart] = local_interpolate(this, oldStart, oldEnd, oldFreq
             newData = nan(newSize);
             oldRange100 = round(100*oldRange);
             newConverted100 = round(100*newConverted);
-            ratioFreq = newFreq / oldFreq;
             if startsWith(opt.Method, "flat", "ignoreCase", true)
                 testPeriods = true(size(newConverted));
             else
