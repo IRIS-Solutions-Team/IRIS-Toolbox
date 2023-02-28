@@ -53,10 +53,15 @@ for x = reshape(chartObjects, 1, [])
         end
         currentFigure = figure(this.FigureSettings{:});
         countFigures = countFigures + 1;
-        if length(this.FigureTitle)==1
-            visual.heading(this.FigureTitle);
-        elseif length(this.FigureTitle)>=countFigures
-            visual.heading(this.FigureTitle(countFigures));
+        heading = "";
+        if numel(this.FigureTitle)==1
+            heading = this.FigureTitle;
+        elseif numel(this.FigureTitle)>=countFigures
+            heading = this.FigureTitle(countFigures);
+        end
+        if strlength(heading)>0
+            visual.heading(heading);
+            set(currentFigure, "name", heading);
         end
         info.FigureHandles(end+1) = currentFigure;
         info.AxesHandles{end+1} = gobjects(1, 0);

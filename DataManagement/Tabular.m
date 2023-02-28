@@ -244,7 +244,10 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 if this.IsDatesColumn(name)
                     freq = this.FrequencyFromHeader(name);
                     dates = this.Values(:, column);
-                    this.CurrentDatesColumn = extractDatesColumn(dates, freq, name);
+                    [this.CurrentDatesColumn, success] = extractDatesColumn(this, dates, freq);
+                    if ~success
+                        exception.error(["Tabular"; "Invalid dates in column %s "], name);
+                    end
                     continue
                 end
 
@@ -291,12 +294,10 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
         end%
 
 
-        function outputDates = extractDatesColumn(this, name, column)
+        function [outputDates, success] = extractDatesColumn(this, dates, freq)
             %(
             isIsoString = @(x) ischar(x) && strlength(x)==10 && x(5)=='-' &&  x(8)=='-';
-
-            freq = this.FrequencyFromHeader(name);
-            dates = this.Values(:, column);
+            success = true;
 
             inxMiss = cellfun(@(x) any(ismissing(x)) || isempty(x), dates);
             if all(inxMiss)
@@ -322,7 +323,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 if isnan(freq)
                     return
                 end
-                if isIsoString(dates{pos})
+                if isIsoString(char(dates{pos}))
                     try
                         outputDates(~inxMiss) = dater.fromIsoString(freq, dates(~inxMiss));
                         return
@@ -334,7 +335,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 end
             end
 
-            exception.error(["Tabular"; "Invalid dates in column %s "], name);
+            success = false;
             %)
         end%
 
