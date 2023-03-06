@@ -31,6 +31,7 @@ if isempty(ip)
     addParameter(ip, "Transform", cell.empty(1, 0));
     addParameter(ip, "WhenTransformFails", "error");
     addParameter(ip, "RemoveStart", false);
+    addParameter(ip, "RemoveSource", false);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
