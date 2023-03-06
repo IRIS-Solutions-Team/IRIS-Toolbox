@@ -52,7 +52,6 @@ opt = ip.Results;
 %}
 % <=R2019a
 
-
 opt.AppendPresample = false;
 opt.AppendPostsample = false;
 

@@ -3,15 +3,16 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
     properties (Constant)
         EndFile (1, 1) string = "__eof__"
         IsEndFile = @(n) string(n)==string(Tabular.EndFile)
-        IsDatesColumn = @(n) startsWith(string(n), "__") && ~Tabular.IsEndFile(n)
-        HeaderFromFrequency = @(x) "__"+lower(string(Frequency(x)))+"__"
-        FrequencyFromHeader = @(n) Frequency.(upper(erase(n, "_")))
-        SheetSeparator (1, 1) string = "::"
-        Multivariate (1, 1) string = "*"
     end
 
 
     properties
+        IsDateColumn = @(n) startsWith(string(n), "__") && ~Tabular.IsEndFile(n)
+        HeaderFromFrequency = @(x) "__"+lower(string(Frequency(x)))+"__"
+        FrequencyFromHeader = @(n) Frequency.(upper(erase(n, "_")))
+        SheetSeparator (1, 1) string = "::"
+        Multivariate (1, 1) string = "*"
+
         FileName (1, 1) string = ""
         Sheet = []
         WhenMissing (1, 1) string = "warning"
@@ -241,7 +242,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                     break
                 end
 
-                if this.IsDatesColumn(name)
+                if this.IsDateColumn(name)
                     freq = this.FrequencyFromHeader(name);
                     dates = this.Values(:, column);
                     [this.CurrentDatesColumn, success] = extractDatesColumn(this, dates, freq);
