@@ -1,3 +1,13 @@
+%{
+% 
+% # `databank.fromIMF.datasets`
+% 
+% {== Download list of datasets from IMF Data Portal ==}
+% 
+%}
+% --8<--
+
+
 % >=R2019b
 %{
 function [summaryTable, json, info] = datasets(opt)

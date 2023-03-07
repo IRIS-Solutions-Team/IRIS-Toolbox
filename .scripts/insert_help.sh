@@ -1,8 +1,11 @@
 
 
-all_dirs="./StructuralModeling/@Model"
+all_dirs=(
+    "./StructuralModeling/@Model"
+    "./DataManagement/+databank"
+)
 
-for d in $all_dirs; do
+for d in ${all_dirs[@]}; do
     all_md_files=$(find $d -name "*.md")
     for md in $all_md_files; do
         mfile=${md%".md"}.m
@@ -12,4 +15,5 @@ for d in $all_dirs; do
         fi
     done
 done
+
 
