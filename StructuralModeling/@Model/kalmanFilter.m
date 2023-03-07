@@ -2,7 +2,7 @@
 % 
 % # `kalmanFilter` ^^(Model)^^
 % 
-% {== Kalman smoother and estimator of out-of-likelihood parameters ==}
+% {== Run Kalman filter and smoother, and estimator of out-of-likelihood parameters ==}
 % 
 % 
 % ## Syntax
@@ -178,18 +178,27 @@
 % > `ChkFmse=true`.
 % > 
 % 
-% __`InitCond='Stochastic'`__ [ `'fixed'` | `'optimal'` | `'stochastic'` | struct ]
+% __`InitCond="Stochastic"`__ [ `"fixed"` | `"optimal"` | `"stochastic"` | struct ]
 % > 
 % > The method or data that will be used initialise the Kalman filter;
 % > user-supplied initial condition must be a databank with the mean values
 % > (in which case the MSE of the initial condition will be set to zero) or a
-% > nested databank containing sub-databanks named `.mean` and `.mse`.
+% > nested databank containing sub-databanks named `.Mean` (or `.Median`) and `.MSE`.
 % > 
 % 
-% __`InitUnit='FixedUnknown'`__ [ `'ApproxDiffuse'` | `'FixedUknown'` ]
+% __`UnitRootInitials="approxDiffuse"`__ [ `"approxDiffuse"` | `"fixedUnknown"` | `"preiterate"` ]
 % > 
-% > Method of initializing unit root variables; see Description.
+% > Method of initializing the MSE matrix for unit root variables; see Description.
 % > 
+% 
+% 
+% __`Preiterate=0`__ [ numeric ]
+% >
+% > Number of preiteration periods to initialize the MSE matrix for
+% > unit root variables when `UnitRootInitials="preiterate"`; `Preiterate=0`
+% > is equivalent to `"UnitRootInitials="fixedUnknown"`.
+% > 
+% 
 % 
 % __`LastSmooth=Inf`__ [ numeric ]
 % > 

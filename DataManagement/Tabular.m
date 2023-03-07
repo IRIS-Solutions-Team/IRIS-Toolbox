@@ -24,7 +24,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
         AddToDatabank = struct()
         StartDateOnly (1, 1) logical = false
         NaN (1, 1) string {ismember(NaN, ["NaN", ""])} = "NaN"
-        WriteCellSettings (1, :) cell = cell.empty(1, 0)
+        WriteCellSettings (1, :) cell = {"writeMode", "overwriteSheet"}
         ReadCellSettings (1, :) cell = cell.empty(1, 0)
     end
 
@@ -230,6 +230,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
             variablesFound = string.empty(1, 0);
 
             column = 0;
+
             while column<numDataColumns
                 column = column + 1;
                 name = this.NamesRow(column);
@@ -244,8 +245,13 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
 
                 if this.IsDateColumn(name)
                     freq = this.FrequencyFromHeader(name);
-                    dates = this.Values(:, column);
-                    [this.CurrentDatesColumn, success] = extractDatesColumn(this, dates, freq);
+                    if ~isnan(freq)
+                        dates = this.Values(:, column);
+                        [this.CurrentDatesColumn, success] = extractDatesColumn(this, dates, freq);
+                    else
+                        this.CurrentDatesColumn = [];
+                        success = true;
+                    end
                     if ~success
                         exception.error(["Tabular"; "Invalid dates in column %s "], name);
                     end
@@ -257,18 +263,17 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                 end
 
                 variablesFound(end+1) = name;
-                values = extractValuesColumn(this, column);
+                targetName = getTargetName(this, name);
                 comments = extractComment(this, column);
 
+                values = extractValuesColumn(this, column, freq);
                 while column<numDataColumns && this.NamesRow(column+1)==this.Multivariate
                     column = column + 1;
-                    values = [values, extractValuesColumn(this, column)];
+                    values = [values, extractValuesColumn(this, column, freq)];
                     comments = [comments, extractComment(this, column)];
                 end
 
                 inxKeep = ~all(isnan([this.CurrentDatesColumn, values]), 2);
-
-                targetName = getTargetName(this, name);
                 outputDb.(targetName) = Series(this.CurrentDatesColumn(inxKeep, :), values(inxKeep, :), comments);
             end
 
@@ -352,14 +357,18 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
         end%
 
 
-        function values = extractValuesColumn(this, column)
-            values = this.Values(:, column);
-            for i = 1 : numel(values)
-                if ~isnumeric(values{i}) || ~isscalar(values{i})
-                    values{i} = NaN;
+        function values = extractValuesColumn(this, column, freq)
+            if ~isnan(freq)
+                values = this.Values(:, column);
+                for i = 1 : numel(values)
+                    if ~isnumeric(values{i}) || ~isscalar(values{i})
+                        values{i} = NaN;
+                    end
                 end
+                values = reshape(double([values{:}]), [], 1);
+            else
+                values = NaN;
             end
-            values = reshape(double([values{:}]), [], 1);
         end%
 
 
