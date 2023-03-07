@@ -4,7 +4,7 @@
 % 
 % {==
 % Structural models are systems of dynamic simultaneous (interdependent)
-% equations with lags and leads (expectations). IrisT supports nonlinear
+% equations with lags and leads (expectations). Iris supports nonlinear
 % nonstationary (balanced growth path) structural models.
 % ==}
 % 
@@ -93,7 +93,7 @@
 % 
 % Function | Description 
 % ---|---
-% [`bn`](bn.md) | Beveridge-Nelson trends
+% [`beveridgeNelson`](beveridgeNelson.md) | Beveridge-Nelson trends
 % [`estimate.md`](estimate.md) | Estimate model parameters by maximizing posterior-based objective function
 % [`kalmanFilter`](kalmanFilter.md) | Kalman smoother and estimator of out-of-likelihood parameters
 % 

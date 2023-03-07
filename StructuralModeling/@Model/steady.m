@@ -47,7 +47,7 @@
 % 
 % * `Warning=true` [ `true` | `false` ] 
 % > 
-% > Display IrisT warning messages produced by this function.
+% > Display Iris warning messages produced by this function.
 % > 
 % 
 % ## Options for nonlinear models
@@ -104,7 +104,7 @@
 % > 
 % > Numerical nonlinear solver (optionally also specified including
 % > non-default settings) used in steady state calculations; see Description;
-% > the default solver, "qnsd", is an IrisT quasi-Newton steepest-descent
+% > the default solver, "qnsd", is an Iris quasi-Newton steepest-descent
 % > based algorithm.
 % > 
 % 

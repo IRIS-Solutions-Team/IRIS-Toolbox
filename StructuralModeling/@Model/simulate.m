@@ -228,8 +228,8 @@
 % ### Numerical solver settings in nonlinear simulations
 % 
 % When `method="stacked"` or `method="period"`, the model is solved as a
-% nonlinear system of equations using an IrisT quasi-Newton solver. There are two
-% basic varieties of the numerical solver in IrisT:
+% nonlinear system of equations using an Iris quasi-Newton solver. There are two
+% basic varieties of the numerical solver in Iris:
 % 
 % * a quasi-Newton, called `"iris-newton"`; this is a traditional Newton
 %   algorithm with optional step size optimization;

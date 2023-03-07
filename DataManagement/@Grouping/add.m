@@ -1,5 +1,5 @@
 
-function this = addgroup(this, groupName, lsContents)
+function this = add(this, groupName, lsContents)
 
 pp = inputParser( );
 pp.addRequired('g', @(x) isa(x, 'Grouping'));
