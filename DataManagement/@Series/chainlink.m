@@ -33,56 +33,56 @@ opt = ip.Results;
 % <=R2019a
 
 
-if ~isequal(opt.Range, Inf)
-    levels = clip(levels, opt.Range);
-    weights = clip(weights, opt.Range);
-    hereCheckMissing();
-end
+    if ~isequal(opt.Range, Inf)
+        levels = clip(levels, opt.Range);
+        weights = clip(weights, opt.Range);
+        here_checkMissing();
+    end
 
 
-%
-% Normalize weights
-%
-if opt.NormalizeWeights
-    weights = weights / sum(weights, 2);
-end
+    %
+    % Normalize weights
+    %
+    if opt.NormalizeWeights
+        weights = weights / sum(weights, 2);
+    end
 
 
-%
-% Calculate rates of change relative to last period of previous year
-%
-rates = roc(levels, "EoPY");
+    %
+    % Calculate rates of change relative to last period of previous year
+    %
+    rates = roc(levels, "EoPY");
 
 
-%
-% Calculate aggregate rates of change
-%
-aggregateRate = sum(rates * weights, 2);
+    %
+    % Calculate aggregate rates of change
+    %
+    aggregateRate = sum(rates * weights, 2);
 
 
-%
-% Calculate aggregate level
-%
-rateRange = getRange(aggregateRate);
-growRange = rateRange(1)-1 : rateRange(end);
-aggregateLevel = grow( ...
-    Series(growRange, 1), "roc", aggregateRate, rateRange ...
-    , "shift", "EoPY" ...
-);
+    %
+    % Calculate aggregate level
+    %
+    rateRange = getRange(aggregateRate);
+    growRange = rateRange(1)-1 : rateRange(end);
+    aggregateLevel = grow( ...
+        Series(growRange, 1), "roc", aggregateRate, rateRange ...
+        , "shift", "EoPY" ...
+    );
 
-if ~isempty(opt.RebaseDates)
-    aggregateLevel = 100 * normalize(aggregateLevel, opt.RebaseDates);
-end
+    if ~isempty(opt.RebaseDates)
+        aggregateLevel = 100 * normalize(aggregateLevel, opt.RebaseDates);
+    end
 
-if nargout>=3
-    info = struct();
-    info.Rates = rates;
-    info.Weights = weights;
-end
+    if nargout>=3
+        info = struct();
+        info.Rates = rates;
+        info.Weights = weights;
+    end
 
 return
 
-    function hereCheckMissing()
+    function here_checkMissing()
         %(
         if opt.WhenMissing=="error"
             func = @exception.error;
@@ -97,13 +97,13 @@ return
         inxWeightMissing = any(~isfinite(weightsData(:)));
         if any(inxLevelMissing)
             func([
-                "Series:MissingInput"
+                "Series"
                 "Some level input series into Series/chainlink have missing observations."
             ]);
         end
         if any(inxWeightMissing)
             func([
-                "Series:MissingInput"
+                "Series"
                 "Some weight input series into Series/chainlink have missing observations."
             ]);
         end

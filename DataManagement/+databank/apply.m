@@ -173,8 +173,8 @@
 function [outputDb, appliedToNames, newNames] = apply(inputDb, func, opt)
 
 arguments
-    inputDb (1, 1) {locallyValidateInputDbOrFunc}
-    func (1, 1) {locallyValidateInputDbOrFunc}
+    inputDb (1, 1) {local_validateInputDbOrFunc}
+    func (1, 1) {local_validateInputDbOrFunc}
 
     opt.StartsWith (1, 1) string = ""
         opt.HasPrefix__StartsWith = []
@@ -191,9 +191,9 @@ arguments
     opt.RemoveEnd (1, 1) logical = false
         opt.RemoveSuffix__RemoveEnd = []
     opt.RemoveSource (1, 1) logical = false
-    opt.SourceNames {locallyValidateNames} = @all
-    opt.TargetNames {locallyValidateNames} = @auto
-    opt.TargetDb {locallyValidateDb} = @auto
+    opt.SourceNames {local_validateNames} = @all
+    opt.TargetNames {local_validateNames} = @auto
+    opt.TargetDb {local_validateDb} = @auto
         opt.AddToDatabank__TargetDb = []
     opt.WhenError (1, 1) string {mustBeMember(opt.WhenError, ["keep", "remove", "error"])} = "keep"
 end
@@ -238,117 +238,117 @@ opt = ip.Results;
 opt = iris.utils.resolveOptionAliases(opt, [], true);
 
 
-if validate.databank(func)
-    [func, inputDb] = deal(inputDb, func);
-end
-
-if ~isa(opt.SourceNames, 'function_handle')
-    if isa(opt.SourceNames, 'Rxp')
-        opt.SourceNames = databank.filter(inputDb, 'name', opt.SourceNames);
-    end
-    opt.SourceNames = cellstr(opt.SourceNames);
-end
-
-opt.StartsWith = char(opt.StartsWith);
-opt.EndsWith = char(opt.EndsWith);
-
-opt.Prepend = char(opt.Prepend);
-opt.Append = char(opt.Append);
-
-hereCheckInputOutputNames( );
-
-if isa(inputDb, 'Dictionary')
-    namesFields = cellstr(keys(inputDb));
-elseif isstruct(inputDb)
-    namesFields = fieldnames(inputDb);
-end
-
-numFields = numel(namesFields);
-newNames = repmat({''}, size(namesFields));
-
-
-outputDb = opt.TargetDb;
-if isequal(outputDb, @auto)
-    outputDb = inputDb;
-end
-
-inxApplied = false(1, numFields);
-inxToRemove = false(1, numFields);
-for i = 1 : numFields
-    name__ = namesFields{i};
-    if ~isa(opt.SourceNames, 'function_handle') && ~any(strcmpi(name__, opt.SourceNames))
-       continue
-    end 
-    if ~isempty(opt.StartsWith) && ~startsWith(name__, opt.StartsWith)
-        continue
-    end
-    if ~isempty(opt.EndsWith) && ~endsWith(name__, opt.EndsWith)
-        continue
+    if validate.databank(func)
+        [func, inputDb] = deal(inputDb, func);
     end
 
-    inxApplied(i) = true;
-
-    %
-    % Create output field name
-    %
-    if iscellstr(opt.TargetNames)
-        inxName = strcmp(opt.SourceNames, name__);
-        newName__ = opt.TargetNames{inxName};
-    elseif isa(opt.TargetNames, 'function_handle') && ~isequal(opt.TargetNames, @auto)
-        newName__ = opt.TargetNames(name__);
-    else
-        newName__ = name__;
-        if opt.RemoveStart
-            newName__ = extractAfter(newName__, strlength(opt.StartsWith));
+    if ~isa(opt.SourceNames, 'function_handle')
+        if isa(opt.SourceNames, 'Rxp')
+            opt.SourceNames = databank.filter(inputDb, 'name', opt.SourceNames);
         end
-        if opt.RemoveEnd
-            newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.EndsWith)+1);
-        end
-        if ~isempty(opt.Prepend)
-            newName__ = [opt.Prepend, newName__];
-        end
-        if ~isempty(opt.Append)
-            newName__ = [newName__, opt.Append];
-        end
+        opt.SourceNames = cellstr(opt.SourceNames);
     end
-    newNames{i} = newName__;
 
-    field__ = inputDb.(name__);
-    if ~isempty(func)
-        success = true;
-        try
-            field__ = func(field__);
-        catch exc
-            success = false;
-            if opt.WhenError=="error"
-                exception.warning([
-                    "Databank:ErrorEvaluatingFunction"
-                    "The function failed with an error on this field: %s"
-                ], name__);
-                rethrow(exc);
+    opt.StartsWith = char(opt.StartsWith);
+    opt.EndsWith = char(opt.EndsWith);
+
+    opt.Prepend = char(opt.Prepend);
+    opt.Append = char(opt.Append);
+
+    here_checkInputOutputNames( );
+
+    if isa(inputDb, 'Dictionary')
+        namesFields = cellstr(keys(inputDb));
+    elseif isstruct(inputDb)
+        namesFields = fieldnames(inputDb);
+    end
+
+    numFields = numel(namesFields);
+    newNames = repmat({''}, size(namesFields));
+
+
+    outputDb = opt.TargetDb;
+    if isequal(outputDb, @auto)
+        outputDb = inputDb;
+    end
+
+    inxApplied = false(1, numFields);
+    inxToRemove = false(1, numFields);
+    for i = 1 : numFields
+        name__ = namesFields{i};
+        if ~isa(opt.SourceNames, 'function_handle') && ~any(strcmpi(name__, opt.SourceNames))
+           continue
+        end 
+        if ~isempty(opt.StartsWith) && ~startsWith(name__, opt.StartsWith)
+            continue
+        end
+        if ~isempty(opt.EndsWith) && ~endsWith(name__, opt.EndsWith)
+            continue
+        end
+
+        inxApplied(i) = true;
+
+        %
+        % Create output field name
+        %
+        if iscellstr(opt.TargetNames)
+            inxName = strcmp(opt.SourceNames, name__);
+            newName__ = opt.TargetNames{inxName};
+        elseif isa(opt.TargetNames, 'function_handle') && ~isequal(opt.TargetNames, @auto)
+            newName__ = opt.TargetNames(name__);
+        else
+            newName__ = name__;
+            if opt.RemoveStart
+                newName__ = extractAfter(newName__, strlength(opt.StartsWith));
+            end
+            if opt.RemoveEnd
+                newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.EndsWith)+1);
+            end
+            if ~isempty(opt.Prepend)
+                newName__ = [opt.Prepend, newName__];
+            end
+            if ~isempty(opt.Append)
+                newName__ = [newName__, opt.Append];
             end
         end
+        newNames{i} = newName__;
+
+        field__ = inputDb.(name__);
+        if ~isempty(func)
+            success = true;
+            try
+                field__ = func(field__);
+            catch exc
+                success = false;
+                if opt.WhenError=="error"
+                    exception.warning([
+                        "Databank:ErrorEvaluatingFunction"
+                        "The function failed with an error on this field: %s"
+                    ], name__);
+                    rethrow(exc);
+                end
+            end
+        end
+        if isa(outputDb, 'Dictionary')
+            store(outputDb, newName__, field__);
+        else
+            outputDb.(newName__) = field__;
+        end
+        inxToRemove(i) = (opt.RemoveSource && ~strcmp(name__, newName__)) ...
+            || (opt.WhenError=="remove" && ~success);
     end
-    if isa(outputDb, 'Dictionary')
-        store(outputDb, newName__, field__);
-    else
-        outputDb.(newName__) = field__;
+
+    if any(inxToRemove)
+        outputDb = rmfield(outputDb, namesFields(inxToRemove));
     end
-    inxToRemove(i) = (opt.RemoveSource && ~strcmp(name__, newName__)) ...
-        || (opt.WhenError=="remove" && ~success);
-end
 
-if any(inxToRemove)
-    outputDb = rmfield(outputDb, namesFields(inxToRemove));
-end
+    appliedToNames = namesFields(inxApplied);
+    newNames = newNames(inxApplied);
 
-appliedToNames = namesFields(inxApplied);
-newNames = newNames(inxApplied);
-
-return
+    return
 
 
-    function hereCheckInputOutputNames( )
+    function here_checkInputOutputNames( )
         if isa(opt.TargetNames, 'function_handle')
             return
         end
@@ -370,10 +370,11 @@ return
             "must be lists of the same size"
         ]);
     end%
+
 end%
 
 
-function locallyValidateInputDbOrFunc(input)
+function local_validateInputDbOrFunc(input)
     if isempty(input) || validate.databank(input) || isa(input, 'function_handle')
         return
     end
@@ -381,7 +382,7 @@ function locallyValidateInputDbOrFunc(input)
 end%
 
 
-function locallyValidateNames(input)
+function local_validateNames(input)
     if isa(input, 'function_handle') || validate.list(input)
         return
     end
@@ -389,7 +390,7 @@ function locallyValidateNames(input)
 end%
 
 
-function locallyValidateDb(input)
+function local_validateDb(input)
     if isa(input, 'function_handle') || validate.databank(input)
         return
     end

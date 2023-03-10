@@ -50,7 +50,7 @@ arguments
     dates double
 
     opt.Aggregation {validate.mustBeA(opt.Aggregation, "function_handle")} = @mean
-    opt.Mode (1, 1) string {startsWith(opt.Mode, ["mult", "add"], "ignoreCase", 1)} = "mult"
+    opt.Mode (1, 1) string {startsWith(opt.Mode, ["mult", "add"], "ignoreCase", 1)} = "multiplicative"
 end
 %}
 % >=R2019b
@@ -72,29 +72,29 @@ opt = ip.Results;;
 % <=R2019a
 
 
-if startsWith(opt.Mode, "add", "ignoreCase", true)
-    func = @minus;
-else
-    func = @rdivide;
-end
+    if startsWith(opt.Mode, "add", "ignoreCase", true)
+        func = @minus;
+    else
+        func = @rdivide;
+    end
 
-sizeData = size(this.Data);
-this.Data = this.Data(:, :);
-norm = getData(this, reshape(dates, [], 1));
-norm = norm(:, :);
-
-
-%==========================================================================
-for i = 1 : size(this.Data, 2)
-    this.Data(:, i) = func(this.Data(:, i), opt.Aggregation(norm(:, i)));
-end
-%==========================================================================
+    sizeData = size(this.Data);
+    this.Data = this.Data(:, :);
+    norm = getData(this, reshape(dates, [], 1));
+    norm = norm(:, :);
 
 
-if numel(sizeData)>2
-    this.Data = reshape(this.Data, sizeData);
-end
-this = trim(this);
+    %==========================================================================
+    for i = 1 : size(this.Data, 2)
+        this.Data(:, i) = func(this.Data(:, i), opt.Aggregation(norm(:, i)));
+    end
+    %==========================================================================
+
+
+    if numel(sizeData)>2
+        this.Data = reshape(this.Data, sizeData);
+    end
+    this = trim(this);
 
 end%
 
