@@ -71,7 +71,8 @@ arguments
 
     opt.Blazer (1, :) cell = cell.empty(1, 0)
     opt.NaNParameters (1, 1) string = "warning"
-    opt.NaNSimulation (1, 1) string = "warning"
+    opt.WhenSimulatesNaN (1, 1) string = "warning"
+        opt.NaNSimulation__WhenSimulatesNaN = []
     opt.OutputType (1, 1) string = "struct"
     opt.Plan = []
 
@@ -99,7 +100,8 @@ if isempty(ip)
 
     addParameter(ip, "Blazer", cell.empty(1, 0));
     addParameter(ip, "NaNParameters", "warning");
-    addParameter(ip, "NaNSimulation", "warning");
+    addParameter(ip, "WhenSimulatesNaN", "warning");
+        addParameter(ip, "NaNSimulation__WhenSimulatesNaN", []);
     addParameter(ip, "OutputType", "struct");
     addParameter(ip, "Plan", []);
 
@@ -113,6 +115,10 @@ parse(ip, varargin{:});
 opt = ip.Results;
 %}
 % <=R2019a
+
+issueWarning = false;
+opt = iris.utils.resolveOptionAliases(opt, [], issueWarning);
+
 
 
     storeToDatabank = nargout>=1 && validate.databank(inputData);
@@ -513,7 +519,7 @@ return
             report(end+1) = lhsNames(row);
             report(end+1) = textual.rangify(find(inxNaN(row, :)), dateStrings);
         end
-        exception.(opt.NaNSimulation)([
+        exception.(opt.WhenSimulatesNaN)([
             "Explanatory"
             "Simulation of %s produced NaN/Inf: %s"
         ], report);

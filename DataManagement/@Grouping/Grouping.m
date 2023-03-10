@@ -91,7 +91,7 @@ classdef Grouping < iris.mixin.UserDataContainer ...
                 ip = extend.InputParser();
                 ip.addRequired('model', @(x) isa(x, 'model') || isa(x, 'Model'));
                 ip.addRequired('type', @(x) ischar(x) || isstring(x));
-                ip.addParameter('IncludeExtras', @(x) isequal(x, true) || isequal(x, false));
+                ip.addParameter('IncludeExtras', true, @(x) isequal(x, true) || isequal(x, false));
             end
             opt = parse(ip, m, type, varargin{:});
 
@@ -102,6 +102,10 @@ classdef Grouping < iris.mixin.UserDataContainer ...
 
 
         varargout = add(varargin)
+        function varargout = addgroup(varargin)
+            [varargout{1:end}] = add(varargin{:});
+        end%
+
         varargout = detail(varargin)
         varargout = eval(varargin)
         varargout = isempty(varargin)

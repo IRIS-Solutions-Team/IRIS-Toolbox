@@ -24,7 +24,7 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
         AddToDatabank = struct()
         StartDateOnly (1, 1) logical = false
         NaN (1, 1) string {ismember(NaN, ["NaN", ""])} = "NaN"
-        WriteCellSettings (1, :) cell = {"writeMode", "overwriteSheet"}
+        WriteCellSettings (1, :) cell = {"writeMode", "overwrite"}
         ReadCellSettings (1, :) cell = cell.empty(1, 0)
     end
 
