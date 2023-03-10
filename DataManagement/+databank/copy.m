@@ -109,6 +109,7 @@ if isempty(ip)
     addParameter(ip, "TargetDb", @empty);
     addParameter(ip, "Transform", cell.empty(1, 0));
     addParameter(ip, "WhenTransformFails", "error");
+    addParameter(ip, "WhenMissing", "error");
     addParameter(ip, "RemoveStart", false);
     addParameter(ip, "RemoveSource", false);
     addParameter(ip, "WhenTargetExists", "error");
