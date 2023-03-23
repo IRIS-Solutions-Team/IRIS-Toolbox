@@ -131,11 +131,12 @@ end
 % Calculate solutions for all parameterisations, and store expansion
 % matrices.
 [this, info] = solveFirstOrder(this, Inf, opt);
-exitFlag = info.ExitFlag;
 
 if (opt.Warning || opt.Error) && ~all(hasSucceeded(info.ExitFlag))
     here_reportFailure( );
 end
+
+exitFlag = info.ExitFlag;
 
 return
 
