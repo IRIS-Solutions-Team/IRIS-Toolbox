@@ -22,8 +22,9 @@ classdef SparseModel < Model
 
 
     methods (Static)
-        function this = fromFile(varargin)
-            this = SparseModel(varargin{:}, "linear", true, "makeBkw", @all, "symbDiff", ~true);
+        function this = fromFile(fileName, varargin)
+            source = ModelSource.fromFile(fileName, varargin{:});
+            this = SparseModel(source, varargin{:}, "linear", true, "makeBkw", @all, "symbDiff", ~true);
         end%
     end
 end

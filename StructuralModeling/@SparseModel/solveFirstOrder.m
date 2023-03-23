@@ -35,7 +35,7 @@ numZ = numObserved;
 numT = nnz(inxT);
 
 info = struct();
-info.ExitFlag = ones(1, nv);
+info.ExitFlag = repmat(solve.StabilityFlag.UNIQUE_STABLE, 1, nv);
 info.Singularity = false(numT, nv);
 info.InxNanDeriv = cell(1, nv);
 info.EigenValues = cell(1, nv);
@@ -86,7 +86,7 @@ v = 1;
 % for NaN derivatives.
 [system, info.InxNanDeriv{v}] = systemFirstOrder(this, v, opt);
 if any(info.InxNanDeriv{v})
-    info.ExitFlag = -3;
+    info.ExitFlag(v) = solve.StabilityFlag.NAN_SYSTEM;
     return
 end
 
@@ -99,7 +99,7 @@ if ~isreal(system.K{1}) ...
         || ~isreal(system.B{2}) ...
         || ~isreal(system.E{1}) ...
         || ~isreal(system.E{2})
-    info.ExitFlag = 1i;
+    info.ExitFlag(v) = solve.StabilityFlag.COMPLEX_SYSTEM;
     return
 end
 % Check system matrices for NaNs.
@@ -111,7 +111,7 @@ if any(isnan(system.K{1})) ...
         || any(isnan(system.B{2}(:))) ...
         || any(isnan(system.E{1}(:))) ...
         || any(isnan(system.E{2}(:)))
-    info.ExitFlag = NaN;
+    info.ExitFlag(v) = solve.StabilityFlag.NAN_SYSTEM;
     return
 end
 
@@ -132,7 +132,7 @@ if doTransition
 end
 
 if ~flagTransition || ~flagMeasurement
-    info.ExitFlag = -1;
+    info.ExitFlag(v) = solve.StabilityFlag.NAN_SOLUTION;
 end
 
 return
