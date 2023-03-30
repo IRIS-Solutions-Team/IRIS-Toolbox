@@ -50,20 +50,20 @@
 %         ''
 %         User Data: empty
 %}
-    
+
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function tabular(this)
 
-switch this.Frequency
-    case {frequency.INTEGER, frequency.YEARLY}
-        disp(this);
-    case {frequency.DAILY}
-        disp(this, '', 'disp2dDaily');
-    otherwise
-        disp(this, '', 'disp2dYearly');
-end
+    switch this.Frequency
+        case {frequency.YEARLY, frequency.INTEGER}
+            disp(this);
+        case frequency.DAILY
+            disp(this, "", "disp2dDaily");
+        otherwise
+            disp(this, "", "disp2dYearly");
+    end
 
 end%
 

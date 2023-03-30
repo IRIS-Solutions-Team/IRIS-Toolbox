@@ -94,9 +94,7 @@ classdef Serialize ...
             % * UserData will be added as a flat structure to the other fields (`""`)
             % * UserData will be nested within the specified field name (`"fieldName"`)
             %
-            if isequal(this.UserData, false)
-                return
-            elseif isstring(this.UserData) 
+            if isstring(this.UserData) 
                 userData = inputSeries.Userdata;
                 if strlength(this.UserData)>0
                     outputRecord.(this.UserData) = userData;
@@ -119,7 +117,7 @@ classdef Serialize ...
             outputValues = inputData;
             if isa(this.Format, 'function_handle')
                 outputValues = this.Format(outputValues);
-            elseif ~isequal(this.Format, false) && strlength(this.Format)>0
+            elseif isstring(this.Format) && strlength(this.Format)>0
                 outputValues = compose(this.Format, outputValues);
             end
             if this.ScalarAsArray && isscalar(outputValues)
