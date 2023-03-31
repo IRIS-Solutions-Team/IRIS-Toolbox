@@ -117,7 +117,6 @@ return
                     , opt.PlotSettings{:} ...
                 );
             end
-            keyboard
         end
         if holdStatus
             hold(axesHandle, 'on');
