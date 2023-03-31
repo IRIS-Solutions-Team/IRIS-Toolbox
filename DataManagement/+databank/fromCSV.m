@@ -796,7 +796,11 @@ return
         end
         % Convert date strings
         if ~isempty(datesColumn) && ~all(inxEmptyDates)
-            if isequal(opt.DateFormat, @iso) || validate.anyText(opt.DateFormat, "ISO")
+            if ~islogical(opt.EnforceFrequency) && opt.EnforceFrequency==Frequency.INTEGER
+                dateStrings = string(datesColumn(~inxEmptyDates));
+                dateStrings = erase(dateStrings, ["""", "'"]);
+                dates(~inxEmptyDates) = round(double(dateStrings));
+            elseif isequal(opt.DateFormat, @iso) || validate.anyText(opt.DateFormat, "ISO")
                 if ~validate.numericScalar(opt.EnforceFrequency)
                     exception.error([
                         "Databank:EnforceFrequencyWhenIso"
