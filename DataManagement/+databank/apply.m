@@ -196,6 +196,7 @@ arguments
     opt.TargetDb {local_validateDb} = @auto
         opt.AddToDatabank__TargetDb = []
     opt.WhenError (1, 1) string {mustBeMember(opt.WhenError, ["keep", "remove", "error"])} = "keep"
+    opt.WhenSourceMissing (1, 1) string {mustBeMember(opt.WhenSourceMissing, ["error", "warning", "silent"])} = "error"
 end
 %}
 % >=R2019b
@@ -228,6 +229,7 @@ if isempty(ip)
     addParameter(ip, "TargetDb", @auto);
         addParameter(ip, "AddToDatabank__TargetDb", []);
     addParameter(ip, "WhenError", "keep");
+    addParameter(ip, "WhenSourceMissing", "error");
 end
 parse(ip, varargin{:});
 opt = ip.Results;
@@ -266,6 +268,16 @@ opt = iris.utils.resolveOptionAliases(opt, [], true);
     numFields = numel(namesFields);
     newNames = repmat({''}, size(namesFields));
 
+    if ~isa(opt.SourceNames, 'function_handle')
+        missing = setdiff(opt.SourceNames, namesFields);
+        if ~isempty(missing)
+            missing = reshape(string(missing), 1, []);
+            exception.(opt.WhenSourceMissing)([
+                "Databank"
+                "This source name does not exist in the databank: %s"
+            ], missing);
+        end
+    end
 
     outputDb = opt.TargetDb;
     if isequal(outputDb, @auto)
