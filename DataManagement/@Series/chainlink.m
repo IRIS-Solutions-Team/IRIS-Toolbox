@@ -29,6 +29,7 @@ ip = inputParser();
     addParameter(ip, "NormalizeWeights", true);
     addParameter(ip, "WhenMissing", "error");
     addParameter(ip, "DecumulateFunc", "roc");
+    addParameter(ip, "GrowFrom",[]);
 end
 parse(ip, varargin{:});
 opt = ip.Results;
