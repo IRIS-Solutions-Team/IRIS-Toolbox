@@ -13,7 +13,7 @@ classdef Report ...
         Settings_InteractiveCharts (1, 1) logical = true
         Settings_TableOfContents (1, 1) logical = false
         Settings_TableOfContentsDepth (1, 1) double = 1
-        Settings_Logo (1, 1) logical = false
+        Settings_Logo = false
     end
 
 
