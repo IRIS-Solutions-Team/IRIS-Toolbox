@@ -24,7 +24,10 @@ function implementDisp(this, name, disp2dFunc)
     dataNDim = ndims(data);
     dispND(start, data, this.Comment, this.Headers, [ ], name, disp2dFunc, dataNDim, config);
 
-    implementDisp@iris.mixin.UserDataContainer(this, name);
+    if ~isempty(this.UserData)
+        implementDisp@iris.mixin.UserDataContainer(this, name);
+        textual.looseLine();
+    end
 
 end%
 
@@ -82,10 +85,14 @@ function dispND(start, data, comment, headers, pos, name, disp2dFunc, numDims, c
             textual.looseLine( );
         end
         if numPeriods>0
+            done = false;
             try
                 % Create and display 2D table
                 disp(Series.createTable(start, data, comment, headers, true));
-            catch
+                done = true;
+            end
+
+            if ~done
                 % Legacy method
                 toCharFunc = @num2str;
                 range = dater.plus(start, 0:numPeriods-1);
@@ -96,8 +103,11 @@ function dispND(start, data, comment, headers, pos, name, disp2dFunc, numDims, c
                 disp(temp);
             end
         end
-        textual.looseLine( );
-        disp(["Dates", string(comment)]);
+        comment = reshape(string(comment), 1, []);
+        if any(strlength(comment)>0)
+            fprintf("    Comments: " + sprintf("  ""%s""", comment) + newline());
+            textual.looseLine();
+        end
     end
 end%
 

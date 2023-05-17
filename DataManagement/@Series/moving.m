@@ -55,7 +55,11 @@ end
 
 if ~isempty(opt.Window)
     freq = dater.getFrequency(this.Start);
-    this.Data = series.moving(this.Data, freq, opt.Window, opt.Function, this.MissingValue, this.MissingTest, opt.Period);
+    missingTest = this.MissingTest;
+    if isempty(missingTest)
+        missingTest = @isnan;
+    end
+    this.Data = series.moving(this.Data, freq, opt.Window, opt.Function, this.MissingValue, missingTest, opt.Period);
     this = trim(this);
 else
     this = emptyData(this);

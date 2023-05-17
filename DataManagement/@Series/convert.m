@@ -156,6 +156,9 @@ function [newData, newStart] = local_aggregate(this, oldStart, oldEnd, oldFreq, 
     %
     newData = nan(0, numColumns);
     missingTest = this.MissingTest;
+    if isempty(missingTest)
+        missingTest = @isnan;
+    end
     for newSerial = newStartSerial : newEndSerial
         inxRows = newSerial==newDatesSerial;
         newAdd = nan(1, numColumns);

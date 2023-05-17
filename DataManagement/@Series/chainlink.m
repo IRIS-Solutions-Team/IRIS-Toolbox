@@ -3,12 +3,14 @@
 function [aggregateLevel, aggregateRate, info] = chainlink(levels, weights, opt)
 
 arguments
-    levels Series
-    weights Series
+    levels (:, :) Series
+    weights (:, :) Series
 
     opt.Range = Inf
     opt.RebaseDates = []
     opt.NormalizeWeights (1, 1) logical = true
+    opt.GrowFrom = []
+    opt.DecumulateFunc (1, 1) string {mustBeMember(opt.DecumulateFunc, ["diff", "difflog", "roc", "pct"])} = "roc"
     opt.WhenMissing (1, 1) string {mustBeMember(opt.WhenMissing, ["error", "warning", "silent"])} = "error"
 end
 %}
@@ -51,7 +53,8 @@ opt = ip.Results;
     %
     % Calculate rates of change relative to last period of previous year
     %
-    rates = roc(levels, "EoPY");
+    delevelFunc = str2func(opt.DecumulateFunc);
+    rates = delevelFunc(levels, "EoPY");
 
 
     %
@@ -64,9 +67,16 @@ opt = ip.Results;
     % Calculate aggregate level
     %
     rateRange = getRange(aggregateRate);
-    growRange = rateRange(1)-1 : rateRange(end);
+    if isempty(opt.GrowFrom)
+        growRange = rateRange(1)-1 : rateRange(end);
+        growFrom = Series(growRange, 1);
+    else
+        growFrom = opt.GrowFrom;
+    end 
+
+    % Recumulate the aggregate rate of change
     aggregateLevel = grow( ...
-        Series(growRange, 1), "roc", aggregateRate, rateRange ...
+        growFrom, opt.DecumulateFunc, aggregateRate, rateRange ...
         , "shift", "EoPY" ...
     );
 

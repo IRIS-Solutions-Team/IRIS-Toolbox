@@ -107,7 +107,7 @@ else
     %
     here_resolveConflictsInMeasurement();
 
-    [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
+    [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator, transition] = ...
         local_clipRange(lowLevel, hard, indicator, transition, aggregation);
 
     here_checkIndicatorForNaNs();
@@ -286,7 +286,7 @@ end%
 % Local Functions
 %
 
-function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
+function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator, transition] = ...
     local_clipRange(lowLevel, hard, indicator, transition, aggregation)
     %
     % If the hard conditions are available for a continuous span of dates
@@ -343,6 +343,9 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
         end
         if ~isempty(hard.Rate)
             hard.Rate = hard.Rate(inxRunHigh);
+        end
+        if ~isempty(transition.Std)
+            transition.Std = transition.Std(inxRunHigh);
         end
     end
     %)

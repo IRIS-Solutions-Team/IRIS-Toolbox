@@ -19,7 +19,7 @@ classdef ( ...
         MissingValue = NaN
 
         % Headers  Short titles for individual columns
-        Headers = []
+        Headers (1, :) string = string.empty(1, 0)
     end
 
 
@@ -201,7 +201,11 @@ classdef ( ...
                 return
             end
             start = double(this.Start);
-            inxMissing = this.MissingTest(this.Data);
+            if isempty(this.MissingTest)
+                inxMissing = isnan(this.Data);
+            else
+                inxMissing = this.MissingTest(this.Data);
+            end
             inxMissing = inxMissing(:, :);
             first = find(all(~inxMissing, 2), 1);
             if ~isempty(first)
@@ -263,7 +267,11 @@ classdef ( ...
                 return
             end
             start = double(this.Start);
-            inxMissing = this.MissingTest(this.Data);
+            if isempty(this.MissingTest)
+                inxMissing = isnan(this.Data);
+            else
+                inxMissing = this.MissingTest(this.Data);
+            end
             inxMissing = inxMissing(:, :);
             last = find(all(~inxMissing, 2), 1, 'last');
             if ~isempty(last)
@@ -399,7 +407,7 @@ classdef ( ...
             missingValue = this.MissingValue;
             if isequaln(missingValue, NaN)
                 if isreal(this.Data)
-                    missingTest = @isnan;
+                    missingTest = [];
                 else
                     missingTest = @(x) isnan(real(x)) & isnan(imag(x));
                 end
@@ -632,7 +640,11 @@ classdef ( ...
         varargout = horzcat(varargin)
 
         function this = isMissing(this)
-            this.Data = this.MissingTest(this.Data);
+            if isempty(this.MissingTest)
+                this.Data = isnan(this.Data);
+            else
+                this.Data = this.MissingTest(this.Data);
+            end
             this = resetMissingValue(this, this.Data);
         end%
 
