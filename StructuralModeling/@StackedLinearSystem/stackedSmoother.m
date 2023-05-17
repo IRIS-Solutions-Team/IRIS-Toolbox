@@ -6,10 +6,14 @@ function [Xi, Xi0] = stackedSmoother(this, Y, Xi0)
     numInit = size(T, 2);
 
     if ~isempty(stdV)
-        Rs = R .* reshape(stdV, 1, [ ]);
+        stdV1 = reshape(stdV, 1, []);
+        stdV1 = fliplr(stdV1);
+        %Rs = R .* reshape(stdV, 1, []);
+        Rs = R .* stdV1;
         SigmaV = Rs * Rs';
     else
-        SigmaV = R*OmegaV*R';
+        %SigmaV = R*OmegaV*R';
+        SigmaV = R*R';
     end
     P = SigmaV;
 

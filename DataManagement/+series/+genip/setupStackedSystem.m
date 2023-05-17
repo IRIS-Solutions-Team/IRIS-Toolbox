@@ -21,20 +21,26 @@ function ...
     numLowPeriods = size(lowLevel, 1);
     numHighPeriods = numWithin*numLowPeriods;
 
+    if isempty(transition.Std)
+        initStdV = ones(numInit, 1);
+        stdV = ones(numHighPeriods, 1);
+    else
+        transition.Std = reshape(transition.Std, [], 1);
+        initStdV = transition.Std(1:numInit);
+        stdV = transition.Std(numInit+1:end);
+    end
+
     if isequal(transition.Order, 0)
         R = eye(numHighPeriods);
         T = zeros(numHighPeriods, numInit);
     elseif isequal(transition.Order, 1)
-        R = triu(toeplitz(ones(1, numHighPeriods)));
+        R = triu(ones(numHighPeriods));
         T = [ones(numHighPeriods, 1), zeros(numHighPeriods, 1)];
     elseif isequal(transition.Order, 2)
         R = triu(toeplitz(1:numHighPeriods));
         T = [ (numHighPeriods+1:-1:2)', -(numHighPeriods:-1:1)' ];
     end
-    if isscalar(transition.Std)
-        transition.Std = repmat(transition.Std, numHighPeriods, 1);
-    end
-    stdV = reshape(transition.Std, [ ], 1);
+
     R = [R; zeros(numInit, numHighPeriods)];
     T = [T; eye(numInit)];
 

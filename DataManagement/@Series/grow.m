@@ -124,12 +124,11 @@ end
 return
 
     function here_checkMissingObs( )
-        if isa(this, 'Series')
-            missingTest = this.MissingTest;
+        if isa(this, 'Series') && ~isempty(this.MissingTest)
+            inxMissing = any(missingTest(levelData(posDates, :)), 2);
         else
-            missingTest = @isnan;
+            inxMissing = any(isnan(levelData(posDates, :)), 2);
         end
-        inxMissing = any(missingTest(levelData(posDates, :)), 2);
         if ~any(inxMissing)
             return
         end

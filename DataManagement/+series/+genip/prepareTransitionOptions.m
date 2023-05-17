@@ -5,12 +5,13 @@
 
 function transition = prepareTransitionOptions(transition, aggregation, highRange, lowLevel, opt)
 
+    numInit = 2;
     highRange = double(highRange);
-    highStart = highRange(1);
+    highStartInit = highRange(1) - numInit;
     highEnd = highRange(end);
     canHaveMissing = false;
 
-    transition.NumInit = 2;
+    transition.NumInit = numInit;
     % transition.Rate = opt.TransitionRate;
     % if isequal(transition.Rate, @auto)
     %     transitionRate = series.genip.fitTransitionRate(aggregation, lowLevel);
@@ -20,16 +21,16 @@ function transition = prepareTransitionOptions(transition, aggregation, highRang
     transition.Std = opt.TransitionStd;
 
     if isa(transition.Std, 'Series')
-        transition.Std = getDataFromTo(transition.Std, highStart, highEnd);
+        transition.Std = getDataFromTo(transition.Std, highStartInit, highEnd);
         transition.Std = abs(transition.Std);
         inxNaN = isnan(transition.Std);
         if any(inxNaN(:))
-            transition.Std = series.fillMissing(transition.Std, inxNaN, "regressLogTrend");
+            transition.Std(inxNaN) = 1;
         end
-        transition.Std = transition.Std/transition.Std(1);
-        transition.Std = reshape(transition.Std, 1, 1, [ ]);
+        transition.Std = transition.Std / transition.Std(1);
+        transition.Std = reshape(transition.Std, 1, 1, []);
     else
-        transition.Std = 1;
+        transition.Std = [];
     end
 
 end%
