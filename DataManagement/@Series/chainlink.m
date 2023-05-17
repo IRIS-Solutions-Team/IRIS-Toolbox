@@ -28,6 +28,7 @@ ip = inputParser();
     addParameter(ip, "RebaseDates", []);
     addParameter(ip, "NormalizeWeights", true);
     addParameter(ip, "WhenMissing", "error");
+    addParameter(ip, "DecumulateFunc", "roc");
 end
 parse(ip, varargin{:});
 opt = ip.Results;
