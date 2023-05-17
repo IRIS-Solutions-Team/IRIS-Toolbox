@@ -1,6 +1,6 @@
 
 % >=R2019b
-%(
+%{
 function [flag, missing] = exist(db, fields, opt)
 
 arguments
@@ -9,12 +9,12 @@ arguments
 
     opt.WhenMissing (1, 1) string {mustBeMember(opt.WhenMissing, ["error", "warning", "silent"])} = "error"
 end
-%)
+%}
 % >=R2019b
 
 
 % <=R2019a
-%{
+%(
 function [flag, missing] = exist(db, fields, varargin)
 
 persistent ip
@@ -24,7 +24,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%}
+%)
 % <=R2019a
 
 
