@@ -2,11 +2,10 @@
 function outputTable = createTable(startDate, data, comments, headers, padDates)
 
     if ndims(data)>2
-        thisError = [
-            "Series:CannotCreateTable"
+        exception.error([
+            "Series"
             "Cannot create table for three- or higher-dimensional time series."
-        ];
-        throw(exception.Base(thisError, 'error'));
+        ]);
     end
 
     numColumns = size(data, 2);

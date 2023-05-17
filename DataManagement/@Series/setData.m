@@ -32,7 +32,11 @@ end
 
 % Convert LHS NaNs to complex if LHS is real and RHS is complex
 if isnumeric(this.Data) && isreal(this.Data) && ~isreal(y)
-    inxMissing = this.MissingTest(this.Data);
+    if isempty(this.MissingTest)
+        inxMissing = isnan(this.Data);
+    else
+        inxMissing = this.MissingTest(this.Data);
+    end
     complexMissing = complex(this.MissingValue, this.MissingValue);
     this.Data(inxMissing) = complexMissing;
 end

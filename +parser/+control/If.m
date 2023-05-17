@@ -4,10 +4,10 @@ classdef If < parser.control.Conditional
         IfBody
         ElseBody
     end
-    
-    
-    
-    
+
+
+
+
     methods
         function this = If(varargin)
             if isempty(varargin)
@@ -17,10 +17,10 @@ classdef If < parser.control.Conditional
             sh = varargin{2};
             construct(this, c, sh);
         end
-        
-        
-        
-        
+
+
+
+
         function construct(this, c, sh)
             import parser.control.*
             keyIf = Keyword.IF;
@@ -35,7 +35,7 @@ classdef If < parser.control.Conditional
             while true
                 % Separate the keyword and condition from the rest of the string. The input
                 % string c contains the current keyword, !if or !elseif.
-                [cond, c, sh, le] = If.separateCondition(key, c, sh, le);                
+                [cond, c, sh, le] = If.separateCondition(key, c, sh, le);
                 this.IfCond{end+1} = cond;
                 % Position of the next !elseif at level 1, if any.
                 key = keyElseif;
@@ -65,11 +65,9 @@ classdef If < parser.control.Conditional
                 sh = sh(posElse+len(keyElse):end);
                 this.ElseBody = CodeSegments(c, [ ], sh);
             end
-        end
-        
-        
-        
-        
+        end%
+
+
         function c = writeFinal(this, p, varargin)
             import parser.Preparser;
             import parser.control.For;
@@ -81,7 +79,7 @@ classdef If < parser.control.Conditional
                         cond = For.substitute(cond, p);
                     end
                     value = Preparser.eval(cond, p.Assigned, p);
-                catch
+                catch exc
                     value = false;
                     addEvalWarning('If', p, this.IfCond{i});
                 end
@@ -92,7 +90,7 @@ classdef If < parser.control.Conditional
             end
             if ~isempty(this.ElseBody)
                 c = writeFinal(this.ElseBody, p, varargin{:});
-            end 
-        end        
+            end
+        end%
     end
 end

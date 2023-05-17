@@ -65,7 +65,7 @@ classdef Explanatory ...
 
 % ResidualModel  Armani or ParamArmani object specifying an ARMA
 % model for residuals
-        ResidualModel = [ ]
+        ResidualModel = []
     end
 
 
@@ -220,7 +220,7 @@ classdef Explanatory ...
 
 
 
-    methods % Frontend Signatures
+    methods % Frontend signatures
         %(
         varargout = alter(varargin)
         varargout = blazer(varargin)
@@ -246,6 +246,7 @@ classdef Explanatory ...
         varargout = retrieve(varargin)
         varargout = simulate(varargin)
         varargout = simulateResidualModel(varargin)
+        varargout = markdown(varargin)
         %)
     end
 

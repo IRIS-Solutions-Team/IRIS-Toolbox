@@ -40,7 +40,7 @@ if isempty(newData)
     return
 end
 
-if isequaln(this.MissingTest, @isnan)
+if isempty(this.MissingTest)
     inxAllMissing = all(isnan(newData(:, :)), 2);
 else
     inxAllMissing = all(this.MissingTest(newData(:, :)), 2);

@@ -50,7 +50,12 @@ data = getDataFromTo(this, startDate, endDate);
 
 % Look up missing observations within the input range
 
-inxMissing = this.MissingTest(data) & inxRange;
+if isempty(this.MissingTest)
+    inxMissing = isnan(data) & inxRange;
+else
+    inxMissing = this.MissingTest(data) & inxRange;
+end
+
 if nargout>=2
     if any(inxMissing)
         datesMissing = dater.plus(startDate, find(inxMissing)-1);
@@ -62,7 +67,11 @@ end
 
 while ~isempty(method) && nnz(inxMissing)>0 && isa(method{1}, 'Series')
     data = local_replaceData(data, startDate, endDate, inxMissing, method{1});
-    inxMissing = this.MissingTest(data) & inxRange;
+    if isempty(this.MissingTest)
+        inxMissing = isnan(data) & inxRange;
+    else
+        inxMissing = this.MissingTest(data) & inxRange;
+    end
     method(1) = [];
 end
 

@@ -9,7 +9,9 @@ function [x, actualFrom, actualTo, actualRange] = getDataFromTo(this, from, to)
     % caller
 
     start = double(this.Start);
-    try, to; catch, to = []; end;
+    if nargin<3
+        to = [];
+    end
 
     if nargin==1
         x = this.Data;
