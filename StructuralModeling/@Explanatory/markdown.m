@@ -10,6 +10,7 @@ end
 parse(ip, varargin{:});
 opt = ip.Results;
 
+
     n = numel(this);
     md = string.empty(1, 0);
     for i = 1 : n
@@ -27,24 +28,30 @@ function md = local_markdown(this, opt)
     periodsFitted = this.Statistics.PeriodsFitted{1};
     numPeriodsFitted = numel(periodsFitted);
     if numPeriodsFitted==0
-        periodsFitted = "";
+        periodsFittedString = "";
     else
         range = periodsFitted(1) : periodsFitted(end);
-        periodsFitted = dater.toDefaultString(periodsFitted);
         if numel(range) == numPeriodsFitted
-            periodsFitted = sprintf("`%s`–`%s`", periodsFitted(1), periodsFitted(end));
+            startString = dater.toDefaultString(range(1));
+            endString = dater.toDefaultString(range(end));
+            periodsFittedString = sprintf("`%s`–`%s`", startString, endString);
         else
-            periodsFitted = join(periodsFitted, " ");
+            periodsFittedString = join(dater.toDefaultString(periodsFitted), " ");
         end
     end
 
-    md = [md, sprintf(opt.Heading + " Equation for `%s`", this.LhsName), ""];
+    if ~this.IsIdentity
+        heading = "Equation";
+    else
+        heading = "Identity";
+    end
+    md = [md, sprintf(opt.Heading + " " + heading + " for `%s`", this.LhsName), ""];
     md = [md, "* Type of equation: " + local_getType(this), ""];
-    md = [md, "* Specification: `" + this.InputString + "`", ""];
+    md = [md, "* Specification:", "", "```", this.InputString, "```", ""];
 
     if ~this.IsIdentity
         md = [md, "* Number of periods fitted: " + string(numPeriodsFitted), ""];
-        md = [md, "* Periods fitted: " + periodsFitted, ""];
+        md = [md, "* Periods fitted: " + periodsFittedString, ""];
         md = [md, "Parameter# | Estimate | Std. Error", ":-----------|---------:|------------:"];
         for i = 1 : numel(this.Parameters)
             md = [md, sprintf("%g | %g | %g", i, this.Parameters(i), stdErrors(i))];

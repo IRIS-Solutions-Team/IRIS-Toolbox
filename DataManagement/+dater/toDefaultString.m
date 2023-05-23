@@ -27,7 +27,7 @@ function defaultString = toDefaultString(dates, letterFromFreq)
 
     inx = freq==0;
     if nnz(inx)>0
-        defaultString(inx) = compose("%g", dates(inx));
+        defaultString(inx) = "(" + string(dates(inx)) + ")";
     end
 
     inx = freq==365;
@@ -37,26 +37,27 @@ function defaultString = toDefaultString(dates, letterFromFreq)
 
     inx = freq==1;
     if nnz(inx)>0
-        defaultString(inx) = compose( ...
-            "%g%s" ...
-            , [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1)] ...
-        );
+        yearString = string(reshape(year(inx), [], 1));
+        freqLetterString = string(reshape(freqLetters(inx), [], 1));
+        defaultString(inx) = yearString + freqLetterString;
     end
 
     inx = freq==12 | freq==52;
     if nnz(inx)>0
-        defaultString(inx) = compose( ...
-            "%g%s%02g" ...
-            , [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
-        );
+        perString = string(reshape(per(inx), [], 1));
+        inxAddZero = strlength(perString)==1;
+        perString(inxAddZero) = "0" + perString(inxAddZero);
+        yearString = string(reshape(year(inx), [], 1));
+        freqLetterString = string(reshape(freqLetters(inx), [], 1));
+        defaultString(inx) = yearString + freqLetterString + perString;
     end
 
     inx = freq==2 | freq==4;
     if nnz(inx)>0
-        defaultString(inx) = compose( ...
-            "%g%s%g" ...
-            , [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
-        );
+        perString = string(reshape(per(inx), [], 1));
+        yearString = string(reshape(year(inx), [], 1));
+        freqLetterString = string(reshape(freqLetters(inx), [], 1));
+        defaultString(inx) = yearString + freqLetterString + perString;
     end
 
 end%
