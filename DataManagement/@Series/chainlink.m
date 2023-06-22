@@ -76,20 +76,27 @@ opt = ip.Results;
         growFrom = opt.GrowFrom;
     end 
 
+
+    %
     % Recumulate the aggregate rate of change
+    %
     aggregateLevel = grow( ...
         growFrom, opt.DecumulateFunc, aggregateRate, rateRange ...
         , "shift", "EoPY" ...
     );
 
     if ~isempty(opt.RebaseDates)
-        aggregateLevel = 100 * normalize(aggregateLevel, opt.RebaseDates);
+        aggregateLevel = rebase(aggregateLevel, opt.RebaseDates, 100);
     end
 
     if nargout>=3
         info = struct();
         info.Rates = rates;
         info.Weights = weights;
+        info.SumWeights = sum(weights, 2);
+        info.MinMaxWeights = [min(info.SumWeights), max(info.SumWeights)];
+        info.AggregateRate = aggregateRate;
+        info.GrowFrom = growFrom;
     end
 
 return
@@ -123,3 +130,4 @@ return
     end%
 
 end%
+
