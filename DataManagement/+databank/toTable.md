@@ -20,32 +20,23 @@ __`inputDb`__ [ struct | Dictionary ]
 > `names`) will be extracted. 
 > 
 
-__`~names`__ [ string | `@all` ] 
+__`~names=@all`__ [ string | `@all` ] 
 > 
 > Names of time series that will be extracted from the `inputDb`;
-> `@all` means all time series found in the `inputDb`; if omitted,
-> `names=@all`.
+> `@all` means all time series found in the `inputDb`.
 > 
 
-__`~dates`__ [ DateWrapper | `"longRange"` | `"shortRange"` | "`head`" | "`tail`" ]
+__`~dates="unbalanced"`__ [ Dater | `"unbalanced"` | `"balanced"` ]
+>
 > Dates for which the time series observations will be retrieved, 
 > with the following four text specifications:
 > 
-> * `"longRange"` means a range from the earliest start date to the
+> * `"unbalanced"` means a range from the earliest start date to the
 > latest end date found amongst all the named time series; 
 > 
-> * `"shortRange"` means a range from the latest start date to the
+> * `"balanced"` means a range from the latest start date to the
 > earliest end date found; 
->   
-> * `"head"` means that a `"longRange"` table is first compiled, and
-> then the standard `head` table method is applied (i.e. preserving
-> only the first eight rows);
-> 
-> * `"tail"` means that a `"longRange"` table is first compiled, and
-> then the standard `tail` table method is applied (preserving only
-> the last eight fows of the table).
-> 
-> If omitted, `dates="longRange"`.
+
 
 ## Output arguments 
 

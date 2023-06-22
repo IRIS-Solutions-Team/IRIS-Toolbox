@@ -20,6 +20,7 @@ classdef Grid ...
             string(rephrase.Type.SERIESCHART)
             string(rephrase.Type.CURVECHART)
             string(rephrase.Type.MATRIX)
+            string(rephrase.Type.VOID)
         ]
     end
 

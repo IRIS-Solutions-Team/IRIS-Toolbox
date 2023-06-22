@@ -1,6 +1,6 @@
 
 % >=R2019b
-%{
+%(
 function [plotHandles, unitHandle] = eigen(x, opt)
 
 arguments
@@ -8,14 +8,14 @@ arguments
 
     opt.PlotSettings (1, :) cell = {"lineStyle", "none", "marker", "s", "markerSize", 12, "lineWidth", 3}
     opt.UnitCircle (1, 1) logical = true
-    opt.UnitCircleSettings (1, :) cell = {"color", 0.5*[1, 1, 1]}
+    opt.UnitCircleSettings (1, :) cell = cell.empty(1, 0);
 end
-%}
+%)
 % >=R2019b
 
 
 % <=R2019a
-%(
+%{
 function [plotHandles, unitHandle] = eigen(x, varargin)
 
 persistent ip
@@ -27,7 +27,7 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
-%)
+%}
 % <=R2019a
 
 
@@ -41,7 +41,10 @@ if opt.UnitCircle
     ax = gca();
     nextPlot = get(ax, "nextplot");
     set(ax, "nextPlot", "add");
-    unitHandle = local_plotUnitCircle(ax, opt);  
+    unitHandle = visual.circle("plotSettings", opt.UnitCircleSettings);
+    label = cellstr(get(ax, "yTickLabel"));
+    label = regexprep(label, "\s*([\+-\.\d]+).*", "$1 i");
+    set(ax, "yTickLabel", label, "yTickMode", "manual");
     visual.vline(0);
     visual.hline(0);
     visual.excludeFromLegend(unitHandle);
@@ -50,20 +53,4 @@ if opt.UnitCircle
 end
 
 end%
-
-%
-% Local functions
-%
-
-function unitHandle = local_plotUnitCircle(ax, opt)
-    %(
-    n = 128;
-    th = 2*pi*(0:n)/n;
-    unitHandle = plot(ax, cos(th), sin(th), opt.UnitCircleSettings{:});
-    label = cellstr(get(gca, "yTickLabel"));
-    label = regexprep(label, "\s*([\+-\.\d]+).*", "$1 i");
-    set(ax, "yTickLabel", label, "yTickMode", "manual");
-    axis equal
-    %)
-end%  
 

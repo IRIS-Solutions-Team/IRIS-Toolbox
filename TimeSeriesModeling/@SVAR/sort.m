@@ -32,7 +32,7 @@ end
 
 % Look for the simulation horizon and the presence of asymptotic responses
 % in the `sortBy` string.
-[h, isY] = myparsetest(this, sortBy);
+[h, isY] = parseTest(this, sortBy);
 
 if opt.Progress
     progress = ProgressBar("[IrisToolbox] SVAR/sort")
