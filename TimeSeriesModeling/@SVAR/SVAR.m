@@ -232,7 +232,7 @@ classdef (CaseInsensitiveProperties=true) ...
     methods (Access=protected, Hidden)
         varargout = populateFromVAR(varargin)
 
-        varargout = myparsetest(varargin)
+        varargout = parseTest(varargin)
         varargout = subsalt(varargin)
         specdisp(varaargin)
     end

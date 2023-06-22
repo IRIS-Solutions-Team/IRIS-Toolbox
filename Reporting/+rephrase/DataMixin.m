@@ -7,6 +7,7 @@ classdef (Abstract) DataMixin ...
         Settings_NaN (1, 1) = string(char(8943))
         Settings_Round (1, 1) double = Inf
         Settings_ColumnClass (1, :) string = string.empty(1, 0)
+        Settings_RemoveMissing (1, 1) logical = false
     end
 
 
@@ -40,6 +41,12 @@ classdef (Abstract) DataMixin ...
                 values = transform(this, input.Values);
             end
             values = round(this, values);
+
+            if this.Settings_RemoveMissing
+                inxNaN = isnan(values);
+                dates(inxNaN) = [];
+                values(inxNaN) = [];
+            end
 
             content = struct('Dates', [], 'Values', []);
             content.Dates = dates;

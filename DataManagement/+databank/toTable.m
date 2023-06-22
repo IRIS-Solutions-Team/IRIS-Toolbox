@@ -25,26 +25,19 @@
 % > `names=@all`.
 % > 
 % 
-% __`~dates`__ [ DateWrapper | `"longRange"` | `"shortRange"` | "`head`" | "`tail`" ]
+% __`~dates`__ [ DateWrapper | `"unbalanced"` | `"balanced"` ]
 % > Dates for which the time series observations will be retrieved, 
 % > with the following four text specifications:
 % > 
-% > * `"longRange"` means a range from the earliest start date to the
+% > * `"unbalanced"` means a range from the earliest start date to the
 % > latest end date found amongst all the named time series; 
 % > 
-% > * `"shortRange"` means a range from the latest start date to the
+% > * `"balanced"` means a range from the latest start date to the
 % > earliest end date found; 
-% >   
-% > * `"head"` means that a `"longRange"` table is first compiled, and
-% > then the standard `head` table method is applied (i.e. preserving
-% > only the first eight rows);
 % > 
-% > * `"tail"` means that a `"longRange"` table is first compiled, and
-% > then the standard `tail` table method is applied (preserving only
-% > the last eight fows of the table).
-% > 
-% > If omitted, `dates="longRange"`.
+% > If omitted, `dates="unbalanced"`.
 % 
+%
 % ## Output arguments 
 % 
 % __`outputTable`__ [ table ]
@@ -83,19 +76,19 @@ function outputTable = toTable(inputDb, varargin)
 %(
 persistent ip
 if isempty(ip)
-    ip = extend.InputParser('databank/toTimetable');
-    addRequired(ip, 'inputDb', @validate.databank);
+    ip = inputParser();
     addOptional(ip, 'names', @all, @(x) isa(x, 'function_handle') || isstring(x) || iscellstr(x) || ischar(x));
-    addOptional(ip, 'dates', "longRange", @(x) (isstring(x) && startsWith(x, ["longRange", "shortRange", "head", "tail"], "ignoreCase", true) || validate.properRange));
+    addOptional(ip, 'dates', "unbalanced", @(x) any(strcmpi(x, ["unbalanced", "balanced"])) || validate.properRange(x));
     addParameter(ip, 'Timetable', false, @(x) isequal(x, true) || isequal(x, false));
 end
-opt = parse(ip, inputDb, varargin{:});
+parse(ip, varargin{:});
+opt = ip.Results;
 names = ip.Results.names;
 dates = ip.Results.dates;
 %)
 
 
-    [data, names, dates, transform] = databank.backend.extractSeriesData(inputDb, names, dates);
+    [data, names, dates] = databank.backend.extractSeriesData(inputDb, names, dates);
     freq = dater.getFrequency(dates(1));
 
     dates = reshape(dates, [], 1);
@@ -109,10 +102,6 @@ dates = ip.Results.dates;
         outputTable = timetable(dt, data{:}, 'VariableNames', names);
     else
         outputTable = table(dt, data{:}, 'VariableNames', ["Time", names]);
-    end
-
-    if ~isempty(transform)
-        outputTable = transform(outputTable);
     end
 
 end%
