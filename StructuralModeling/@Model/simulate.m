@@ -292,7 +292,7 @@ arguments
     opt.Window {local_validateWindowOption} = @auto
     opt.Terminal (1, 1) string {mustBeMember(opt.Terminal, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
     opt.StartIterationsFrom (1, 1) string {mustBeMember(opt.StartIterationsFrom, ["firstOrder", "FirstOrder", "data", "Data"])} = "firstOrder"
-        opt.Initial__StartIterationsFrom = [];
+        opt.Initial__StartIterationsFrom = []
     opt.PrepareGradient (1, 1) logical = true
     opt.OutputData (1, 1) string {mustBeMember(opt.OutputData, ["databank", "simulate.Data"])} = "databank"
     opt.OutputType (1, 1) {validate.mustBeOutputType} = @auto
