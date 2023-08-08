@@ -28,33 +28,41 @@ function t = fromDefaultString(freq, s)
 
     function t = here_convertWeekly(s)
         t = NaN;
+        s = erase(s, "-");
         out = sscanf(s, "%g"+freqLetter+"%g");
         if numel(out)==2
             t = dater.ww(out(1), out(2));
+            return
         end
     end%
 
     function t = here_convertMonthly(s)
         t = NaN;
+        s = replace(s, "-", freqLetter);
         out = sscanf(s, "%g"+freqLetter+"%g");
         if numel(out)==2
             t = dater.mm(out(1), out(2));
+            return
         end
     end%
 
     function t = here_convertQuarterly(s)
         t = NaN;
+        s = erase(s, "-");
         out = sscanf(s, "%g"+freqLetter+"%g");
         if numel(out)==2
             t = dater.qq(out(1), out(2));
+            return
         end
     end%
 
     function t = here_convertHalfYearly(s)
         t = NaN;
+        s = erase(s, "-");
         out = sscanf(s, "%g"+freqLetter+"%g");
         if numel(out)==2
             t = dater.hh(out(1), out(2));
+            return
         end
     end%
 
@@ -63,6 +71,12 @@ function t = fromDefaultString(freq, s)
         out = sscanf(s, "%g"+freqLetter);
         if numel(out)==1
             t = dater.yy(out(1));
+            return
+        end
+        out = sscanf(s, "%g");
+        if numel(out)==1
+            t = dater.yy(out(1));
+            return
         end
     end%
 end%

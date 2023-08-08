@@ -76,7 +76,6 @@ opt = ip.Results;
         growFrom = opt.GrowFrom;
     end 
 
-
     %
     % Recumulate the aggregate rate of change
     %

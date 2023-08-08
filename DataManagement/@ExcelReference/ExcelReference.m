@@ -20,20 +20,18 @@ classdef ExcelReference
         end%
 
 
-
-
         function outputRow = decodeRow(varargin)
-            outputRow = [ ];
+            outputRow = [];
             for i = 1 : numel(varargin)
                 rowRef = varargin{i};
                 if isnumeric(rowRef)
                     row = rowRef;
                 elseif isstring(rowRef)
-                    row = double(row);
+                    row = double(rowRef);
                 elseif validate.string(rowRef)
                     row = str2num(rowRef);
                 end
-                outputRow = [outputRow, reshape(row, 1, [ ])];
+                outputRow = [outputRow, reshape(row, 1, [])];
             end
         end%
 

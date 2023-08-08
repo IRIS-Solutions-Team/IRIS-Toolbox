@@ -89,7 +89,8 @@ arguments
     opt.TargetDb {local_validateDb(opt.TargetDb)} = @empty
     opt.Transform {local_validateTransform(opt.Transform)} = cell.empty(1, 0)
     opt.WhenTransformFails {local_validateWhen} = "error"
-    opt.WhenMissing {local_validateWhen} = "error"
+    opt.WhenSourceMissing {local_validateWhen} = "error"
+        opt.WhenMissing__WhenSourceMissing = []
     opt.RemoveSource (1, 1) logical = false
     opt.WhenTargetExists (1, 1) string {mustBeMember(opt.WhenTargetExists, ["error", "warning", "silent"])} = "error"
 end
@@ -109,7 +110,8 @@ if isempty(ip)
     addParameter(ip, "TargetDb", @empty);
     addParameter(ip, "Transform", cell.empty(1, 0));
     addParameter(ip, "WhenTransformFails", "error");
-    addParameter(ip, "WhenMissing", "error");
+    addParameter(ip, "WhenSourceMissing", "error");
+        addParameter(ip, "WhenMissing__WhenSourceMissing", []);
     addParameter(ip, "RemoveStart", false);
     addParameter(ip, "RemoveSource", false);
     addParameter(ip, "WhenTargetExists", "error");
@@ -118,6 +120,9 @@ parse(ip, varargin{:});
 opt = ip.Results;
 %}
 % <=R2019a
+
+
+opt = iris.utils.resolveOptionAliases(opt, [], false);
 
 
 transform = opt.Transform;
@@ -277,7 +282,7 @@ return
             "Databank:TransformFailed"
             "This field is not in the source databank: %s"
         ];
-        throw(exception.Base(thisError, opt.WhenMissing), sourceNames(~inxMissing));
+        throw(exception.Base(thisError, opt.WhenSourceMissing), sourceNames(~inxMissing));
     end%
 end%
 
