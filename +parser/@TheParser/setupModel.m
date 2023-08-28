@@ -89,9 +89,9 @@ x.Type = 2;
 this.Block{end+1} = x;
 
 
-this.AltKeyword = [ 
-    this.AltKeyword 
-    { 
+this.AltKeyword = [
+    this.AltKeyword
+    {
         '!allbut',           '!all-but'
         '!all_but',          '!all-but'
         '!equations',        '!transition-equations'
@@ -101,24 +101,26 @@ this.AltKeyword = [
         '!measurement_',     '!measurement-'
         '!exogenous_',       '!exogenous-'
         '!log_variables',    '!log-variables'
-        '!ttrend',           'ttrend' 
+        '!ttrend',           'ttrend'
         '!dynamic_autoexog', '!autoswaps-simulate'
-        '!steady_autoexog',  '!autoswaps-steady'          
-    } 
+        '!steady_autoexog',  '!autoswaps-steady'
+        '!autoswaps_simulate',  '!autoswaps-simulate'
+        '!autoswaps_steady',  '!autoswaps-steady'
+    }
 ];
 
 
-this.AltKeywordRegexp = [ 
-    this.AltKeywordRegexp 
-    { 
+this.AltKeywordRegexp = [
+    this.AltKeywordRegexp
+    {
         '\$\<([a-zA-Z]\w*)\>(?!\$)',              '&$1' % Steady references
-    } 
+    }
 ];
 
 
-this.AltKeywordWarn = [ 
+this.AltKeywordWarn = [
     this.AltKeywordWarn
-    { 
+    {
         '!equations:dtrends',      '!measurement-trends'
         '!dtrends:measurement',    '!measurement-trends'
         '!dtrends',                '!measurement-trends'
@@ -130,8 +132,8 @@ this.AltKeywordWarn = [
         '!equations:measurement',  '!measurement-equations'
         '!variables:log',          '!log-variables'
         '!autoexogenise',          '!autoswaps-simulate'
-        '!autoexogenize',          '!autoswaps-simulate' 
-    } 
+        '!autoexogenize',          '!autoswaps-simulate'
+    }
 ];
 
 
@@ -139,7 +141,7 @@ this.OtherKeyword = [ this.OtherKeyword, ...
                       { '!all-but', '!ttrend', '!min' } ];
 
 
-this.AssignOrder = [ 
+this.AssignOrder = [
     this.AssignOrder, ...
     4, ...
     5, ...
