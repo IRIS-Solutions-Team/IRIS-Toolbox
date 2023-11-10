@@ -141,6 +141,10 @@ end
         % of the Explanatory object
         %
 
+        for n = ["ar", "sar", "ma", "sma"]
+            inputString__ = replace(inputString__, "&"+n, "#"+n);
+        end
+
         if contains(inputString__, "#")
             residualModelString__ = "#" + extractAfter(inputString__, "#");
             inputString__ = extractBefore(inputString__, "#");
@@ -167,7 +171,7 @@ end
         % * There may be more than one equal sign such as == in if( )
         %
 
-        [split__, sign__] = split(inputString__, ["=#", "===", "=", ":="]);
+        [split__, sign__] = split(inputString__, ["===", "=", ":="]);
         if isempty(sign__)
             here_throwInvalidInputString( );
         end

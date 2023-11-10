@@ -828,7 +828,7 @@ classdef Plan ...
             template = Series(this.BaseStart, false(this.NumBasePeriods, 1));
             numNames = numel(names);
             for i = 1 : numNames
-                name = names{i};
+                name = string(names(i));
                 values = transpose(anchors(i, baseRangeColumns));
                 output.(name) = fill(template, values, this.BaseStart);
             end

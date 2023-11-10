@@ -257,7 +257,7 @@ function [outputDb, info] = data(dataset, freq, areas, items, counters, varargin
 
 persistent ip
 if isempty(ip)
-    ip = inputParser(); 
+    ip = inputParser();
     addParameter(ip, "AddToDatabank", struct( ));
     addParameter(ip, "StartDate", -Inf);
     addParameter(ip, "EndDate", Inf);
@@ -273,6 +273,8 @@ if isempty(ip)
 end
 parse(ip, varargin{:});
 opt = ip.Results;
+
+try, counters; catch, counters = string.empty(1, 0); end
 %)
 % <=R2019a
 

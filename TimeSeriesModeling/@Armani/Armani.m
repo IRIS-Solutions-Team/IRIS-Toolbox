@@ -29,7 +29,7 @@ classdef Armani
     end
 
 
-    properties
+    properties (Dependent)
 % IsIdentity  True if both AR and MA parts are 1
         IsIdentity
     end
@@ -179,9 +179,10 @@ classdef Armani
 
 
         function value = get.IsIdentity(this)
+            this = update(this);
             value = isequal(this.AR, 1) && isequal(this.MA, 1);
         end%
-    end            
+    end
 
 
     methods (Static)
@@ -231,7 +232,7 @@ classdef Armani
             end
             absPoly = abs(polyn);
             if absPoly(end)<=tolerance
-                polyn = polyn(1:find(absPoly>tolerance, 1, 'last')); 
+                polyn = polyn(1:find(absPoly>tolerance, 1, 'last'));
             end
             %)
         end%
