@@ -9,7 +9,7 @@ classdef (Abstract) PlotMixin ...
         Settings_Line (1, 1) struct = struct() % Low level
         Settings_Type (1, 1) string = "scatter"
         Settings_Mode (1, 1) string = ""
-        Settings_Markers (1, 1) = struct() 
+        Settings_Markers (1, 1) = struct()
         Settings_StackGroup (1, 1) string = ""
         Settings_Fill (1, 1) string = "none"
         Settings_Text (1, :) string = string.empty(1, 0)

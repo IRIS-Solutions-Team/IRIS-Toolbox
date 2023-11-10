@@ -27,6 +27,9 @@ classdef ParamArmani ...
 
 
         function this = update(this, p)
+            if nargin<2
+                p = rand(1, this.NumParameters);
+            end
             if numel(p)~=this.NumParameters
                 throw(exception.Base([
                     "ParamArmani:InvalidNumParameters"
