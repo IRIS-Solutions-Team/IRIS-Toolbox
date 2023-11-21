@@ -52,6 +52,15 @@ opt = ip.Results;
 %}
 % <=R2019a
 
+
+%
+% Exclude identities
+%
+allInputModels = this;
+inxIdentity = [allInputModels.IsIdentity];
+this = this(~inxIdentity);
+
+
 opt.AppendPresample = false;
 opt.AppendPostsample = false;
 
@@ -71,10 +80,12 @@ numEquations = numel(this);
 % Create a DataBlock for all variables across all models; LHS variables are
 % needed even if they do not appear on the RHS
 %
-lhsRequired = true;
+[variableNames, residualNames, ~, ~] = collectAllNames(this);
+variableNames = setdiff(variableNames, residualNames, "stable");
+requiredNames = variableNames;
+optionalNames = residualNames;
 context = "to run regress() on the " + this(1).Context + " object";
-dataBlock = getDataBlock(this, inputDb, fittedRange, lhsRequired, context);
-
+dataBlock = getDataBlock(this, inputDb, fittedRange, requiredNames, optionalNames, context);
 
 %
 % Create struct with controls
@@ -344,6 +355,9 @@ end
 % Reset runtime information
 %
 this = runtime(this);
+
+allInputModels(~inxIdentity) = this;
+this = allInputModels;
 
 if nargout>=3
     info = here_populateOutputInfo();
