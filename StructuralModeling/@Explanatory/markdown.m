@@ -52,12 +52,21 @@ function md = local_markdown(this, opt)
     if ~this.IsIdentity
         md = [md, "* Number of periods fitted: " + string(numPeriodsFitted), ""];
         md = [md, "* Periods fitted: " + periodsFittedString, ""];
+        md = [md, "* Parameter estimates:", ""];
         md = [md, "Parameter# | Estimate | Std. Error", ":-----------|---------:|------------:"];
         for i = 1 : numel(this.Parameters)
             md = [md, sprintf("%g | %g | %g", i, this.Parameters(i), stdErrors(i))];
         end
+        md = [md, ""];
+
+        if this.HasResidualModel
+            md = [md, "* Residual model:", ""];
+            md = [md, "```"];
+            md = [md, "AR=[" + join(string(this.ResidualModel.AR), ", ") + "]"];
+            md = [md, "MA=[" + join(string(this.ResidualModel.MA), ", ") + "]"];
+            md = [md, "```", ""];
+        end
     end
-    md = [md, ""];
 
     md = join(md, newline());
     %)
@@ -73,13 +82,13 @@ function type = local_getType(this)
 
     type = sprintf("Regression with %g parameters", this.NumParameters);
 
-    if ~isempty(this.ResidualModel)
-        residualModel = "plain";
+    if this.HasResidualModel
+        residuals = "ARMA residuals";
     else
-        residualModel = "ARMA";
+        residuals = "plain residuals";
     end
 
-    type = type + sprintf(" and %s residuals", residualModel);
+    type = type + sprintf(" and %s", residuals);
     %)
 end%
 
