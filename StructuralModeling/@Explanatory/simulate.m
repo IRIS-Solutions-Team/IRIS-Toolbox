@@ -156,9 +156,16 @@ opt = iris.utils.resolveOptionAliases(opt, [], issueWarning);
     % only needed when they appear on the RHS (tested within
     % `getDataBlock(...)`
     %
-    lhsRequired = false;
+    [variableNames, residualNames, ~, ~] = collectAllNames(this);
+    variableNames = setdiff(variableNames, residualNames, "stable");
+    inxLhsOptional = ~[this.RhsContainsLhsName];
+    lhsNames = [this.LhsName];
+    requiredNames = [setdiff(variableNames, lhsNames(inxLhsOptional))];
+    optionalNames = [lhsNames(inxLhsOptional), residualNames];
+
     context = "for " + this(1).Context + " simulation";
-    outputData = getDataBlock(this, inputData, range, lhsRequired, context);
+    outputData = getDataBlock(this, inputData, range, requiredNames, optionalNames, context);
+
     extdRange = outputData.ExtendedRange;
     numExtdPeriods = outputData.NumExtdPeriods;
     numPages = outputData.NumPages;

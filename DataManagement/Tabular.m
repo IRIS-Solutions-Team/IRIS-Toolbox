@@ -302,7 +302,11 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
 
         function [outputDates, success] = extractDatesColumn(this, dates, freq)
             %(
-            isIsoString = @(x) ischar(x) && strlength(x)==10 && x(5)=='-' &&  x(8)=='-';
+            isIsoString = @(x) ...
+                (ischar(x) && strlength(x)==10 && x(5)=='-' &&  x(8)=='-') ...
+                || (ischar(x) && strlength(x)==7 && x(5)=='-') ...
+                || (ischar(x) && strlength(x)==4);
+
             success = true;
 
             inxMiss = cellfun(@(x) any(ismissing(x)) || isempty(x), dates);
@@ -321,6 +325,10 @@ classdef (CaseInsensitiveProperties=true) Tabular < handle
                     outputDates = dater.fromMatlab(freq, dates);
                     return
                 end
+            end
+
+            if ~ischar(dates{pos})
+                dates{pos} = char(string(dates{pos}));
             end
 
             if ischar(dates{pos})
