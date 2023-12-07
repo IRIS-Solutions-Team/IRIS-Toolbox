@@ -68,6 +68,14 @@ opt.AppendPostsample = false;
 opt.BlackoutBefore = Explanatory.resolveBlackout(opt.BlackoutBefore);
 opt.BlackoutAfter = Explanatory.resolveBlackout(opt.BlackoutAfter);
 
+if numel(opt.BlackoutBefore)>1
+    opt.BlackoutBefore = opt.BlackoutBefore(~inxIdentity);
+end
+
+if numel(opt.BlackoutAfter)>1
+    opt.BlackoutAfter = opt.BlackoutAfter(~inxIdentity);
+end
+
 storeToDatabank = nargout>=2;
 journal = Journal(opt.Journal, "@Explanatory/regress");
 
@@ -189,7 +197,6 @@ for q = 1 : numEquations
                 , opt.BlackoutAfter(min(q,end)) ...
                 , journal ...
             );
-
 
         if ~any(inxBaseRange__)
             emptyDataReport = [emptyDataReport, this__.LhsName];
