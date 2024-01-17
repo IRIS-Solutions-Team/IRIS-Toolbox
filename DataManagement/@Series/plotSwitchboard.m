@@ -17,9 +17,12 @@ if ~isequal(smooth, false) && numel(yData)>1
 end
 
 switch plotFuncString
-    case {'histogram', 'scatter', 'binscatter', 'bubblechart'}
+    case {'histogram', 'binscatter', 'bubblechart'}
         isTimeAxis = false;
         plotHandle = local_implementNoTimeAxis(axesHandle, plotFunc, yData, plotSpec, varargin);
+    case {'scatter'}
+        isTimeAxis = false;
+        plotHandle = local_implementScatter(axesHandle, plotFunc, yData, plotSpec, varargin);
     case {'barcon', 'series.barcon'}
         % Do not pass plotSpec but do pass user options
         isTimeAxis = true;
@@ -169,6 +172,18 @@ function plotHandle = local_implementNoTimeAxis(axesHandle, plotFunc, yData, plo
         temp{i} = yData(:, i);
     end
     plotHandle = plotFunc(axesHandle, temp{:}, plotSpec{:});
+    if ~isempty(settings)
+        set(plotHandle, settings{:});
+    end
+end%
+
+
+function plotHandle = local_implementScatter(axesHandle, plotFunc, yData, plotSpec, settings)
+    numColumns = size(yData, 2);
+    halfNumColumns = round(numColumns/2);
+    horzData = yData(:, 1:halfNumColumns);
+    vertData = yData(:, halfNumColumns+1:end);
+    plotHandle = plotFunc(axesHandle, horzData, vertData, plotSpec{:});
     if ~isempty(settings)
         set(plotHandle, settings{:});
     end
