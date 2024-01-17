@@ -1,9 +1,5 @@
 % clpf  Constrained low-pass filter
 %
-% Backend [IrisToolbox] function
-% No help provided
-
-% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2022 [IrisToolbox] Solutions Team
 
 function [lowp, highp] = clpf(data, lambda, order, infoSet, levelData, changeData, gamma, drift) 

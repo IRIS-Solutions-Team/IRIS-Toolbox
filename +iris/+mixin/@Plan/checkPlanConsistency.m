@@ -31,7 +31,7 @@ end
 %
 numVariantsModel = countVariants(this);
 numVariantsPlan = countVariants(plan);
-if (numVariantsModel~=1 || numVariantsPlan~=1) && numVariantsModel~=numVariantsPlan
+if numVariantsModel~=1 && numVariantsPlan~=1 && numVariantsModel~=numVariantsPlan
     exception.error([ 
         "Plan"
         "The number of variants in the Plan object (%g) is not consistent "
