@@ -13,10 +13,11 @@ dcy = double.empty(0);
 if startsWith(blazer.StartIterationsFrom, "firstOrder", "ignoreCase", true)
     if idFrame==1
         % Simulate the entire frame range
+        data.IgnoreShocks = false;
         flat(rect, data);
     else
         % Simulate only missing data
-        hereSimulateMissingData( );
+        hereSimulateMissingData();
     end
 else
     hereFillMissingData( );
